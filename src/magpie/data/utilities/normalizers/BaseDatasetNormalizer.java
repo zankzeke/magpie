@@ -49,7 +49,7 @@ import magpie.utility.interfaces.*;
  * <command><p><b>test $&lt;dataset&gt;</b> - Test whether restoration actually maps 
  * dataset back onto original ranges.
  * <pr><br><i>dataset</i>: Dataset used for testing
- * <br>This operation is only used for debugging purposes.</p>
+ * <br>This operation is only used for debugging purposes.</p></command>
  * 
  * @author Logan Ward
  */
