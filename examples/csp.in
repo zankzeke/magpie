@@ -1,0 +1,18 @@
+// This example uses the DMSP method of Fisher et al to predict
+//  which structural prototype is most likely for a compound
+//  based on its composition.
+//  See the Magpie Javadoc for DMSPEngine or 
+
+// Create the CSP engine
+csp = new csp.DMSPEngine
+
+// Load in known compounds and their prototype structure
+csp prototypes ./datasets/icsd.prototypes.mine
+
+// List top 20 most likely structures for Na5Pb2 (should be Li5Tl2-166)
+csp predict Na5Pb2 20
+
+// List 10 most likely structures for Al2NiCu (not sure what the answer is)
+csp predict Al2NiCu
+
+exit

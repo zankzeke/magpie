@@ -1,0 +1,129 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package magpie.data.utilities.modifiers;
+
+import java.util.Arrays;
+import java.util.List;
+import magpie.data.BaseEntry;
+import magpie.data.Dataset;
+import magpie.data.MultiPropertyDataset;
+import magpie.data.MultiPropertyEntry;
+
+/**
+ * Transforms a Dataset with a continuous class variable into a dataset with multiple 
+ * class based on the value of the class variable. User must define bins that define
+ * the new classes, follows the following procedure.
+ * 
+ * <p>Class &le; edge0 -> Class = 0
+ * <br>Class &gt; edge0 && Class &le; edge1 -> Class = 1
+ * <br>...
+ * <br>Class &gt; edgeN -> Class = N
+ *
+ * <p>For MultiPropertyDatasets, adds a new property and sets it as the target class.</p>
+ * 
+ * <usage><p><b>Usage</b>: &lt;interval Edges...&gt;
+ * <br><pr><i>interval Edges...</i>: Values that define Edges of class variable bins.
+ </usage>
+ * 
+ * @author Logan Ward
+ * @version 0.1
+ * @see MultiPropertyDataset
+ */
+public class ClassIntervalModifier extends BaseDatasetModifier {
+    /** Interval Edges */
+    private double[] Edges = new double[]{0};
+
+    /**
+     * Set the Edges that define the class intervals on which data is discretized.
+     * @param edges Edges of bins
+     */
+    public void setEdges(double[] edges) {
+        if (edges.length == 0) {
+            throw new Error("At least one edge must be defined.");
+        }
+        this.Edges = edges.clone();
+        Arrays.sort(this.Edges);
+    }
+    
+    /**
+     * Get number of intervals on which data is split.
+     * @return Number of intervals
+     */
+    public int NBins() {
+        return Edges.length + 1;
+    }
+    
+    @Override
+    protected void modifyDataset(Dataset Data) {
+        // Add property to each entry
+        for (BaseEntry Entry : Data.getEntries()) {
+            double value = Double.NaN;
+            if (Entry.hasMeasurement()) {
+                value = getBin(Entry.getMeasuredClass());
+            }
+            if (Entry instanceof MultiPropertyEntry) {
+                // Add property
+                MultiPropertyEntry Ptr = (MultiPropertyEntry) Entry;
+                if (Entry.hasMeasurement()) {
+                    if (Ptr.getTargetProperty() != -1)
+                        Ptr.addProperty(value);
+                    else {
+                        Entry.setMeasuredClass(value);
+                    }
+                } else {
+                    if (Ptr.getTargetProperty() != -1) {
+                        Ptr.addProperty();
+                    } else {
+                        Ptr.setMeasuredClass(value);
+                    }
+                }
+            } else {
+                Entry.setMeasuredClass(value);
+            }
+        }
+		
+        // Add property to dataset if MultiPropertyDataset
+        if (Data instanceof MultiPropertyDataset) {
+            MultiPropertyDataset Ptr = (MultiPropertyDataset) Data;
+            if (Ptr.getTargetPropertyIndex() != -1) {
+                Ptr.addProperty(Ptr.getTargetPropertyName() + "Bin");
+                Ptr.setTargetProperty(Ptr.getTargetPropertyName() + "Bin");
+            }
+        }
+        
+        // Define new class names
+        
+        String[] ClassNames = new String[NBins()];
+        for (int i=0; i<NBins(); i++) {
+            ClassNames[i] = "Bin" + i;
+        }
+        Data.setClassNames(ClassNames);
+    }
+    
+    /**
+     * Calculate new class variable by deciding which interval a class variable 
+     *  falls into.
+     * @param x Value of class variable for an entry
+     * @return New class variable
+     */
+    private double getBin(double x) {
+        for (int i=0; i<Edges.length; i++) {
+            if (x <= Edges[i]) return i;
+        }
+        return Edges.length;
+    }
+
+    @Override
+    public void setOptions(List Options) throws Exception {
+        /* Nothing to do, ignore all input */
+    }
+
+    @Override
+    public String printUsage() {
+        return "Usage: *No options*";
+    }
+    
+    
+}

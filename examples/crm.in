@@ -1,0 +1,40 @@
+// Perform the "Cluster-Rank-Modeling" method of Wolverton and Meredig
+//  See: http://pubs.acs.org/doi/abs/10.1021/cm403727z
+
+// Load in a dataset of compound properties
+data = new data.materials.CompositionDataset
+data import ./datasets/small_set.txt
+data filter exclude ContainsElementFilter He Ne Ar Kr Xe
+
+// Define where to find elemental property data
+data properties directory ./Lookup Data/
+// Select which set of elemental properties to use for attributes
+data properties add set general
+
+// Define bandgap as the target property
+data target bandgap
+
+// Generate new attributes
+data attributes generate
+
+// Define clusterer to use k-means++ based on a subset of attributes
+clusterer = new cluster.WekaClusterer SimpleKMeans -N 4 -I 500 -P
+selector = new attributes.selectors.WekaAttributeSelector -eval CfsSubsetEval -M -search BestFirst -D 1
+clusterer selector $selector
+
+// Build a model that splits data using the clusterer
+model = new models.regression.SplitRegression
+model splitter ClustererSplitter $clusterer // Should not work yet
+
+// Use the the best-fitting quadratic model of a single attribute
+submodel = new models.regression.PolynomialRegression 2
+selector = new attributes.selectors.BestIndividualSelector 1 PolynomialFitEvaluator 2
+submodel set selector $selector
+model submodel set generic $submodel
+
+// Train the model
+model train $data
+print model training stats
+print model model
+
+exit

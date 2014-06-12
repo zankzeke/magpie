@@ -1,0 +1,96 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package magpie.models.classification;
+
+import java.util.List;
+import magpie.analytics.ClassificationStatistics;
+import magpie.data.Dataset;
+import magpie.models.BaseModel;
+import magpie.models.SplitModel;
+
+/**
+ * Abstract class for models that utilize multiple classifiers.
+ * 
+ * <p>Usage: No options to set.
+ * 
+ * @author Logan Ward
+ * @version 0.1
+ */
+public class SplitClassifier extends SplitModel implements AbstractClassifier {
+    /** Pointer to ClassificationStatistics interface of TrainingStats */
+    protected ClassificationStatistics TrainingStatsPtr;
+    /** Pointer to ClassificationStatistics interface of ValidationStates*/
+    protected ClassificationStatistics ValidationStatsPtr;
+    /** Number of classes model can distinguish between */
+    protected int nclasses;
+    
+    /** 
+     * Create a blank SplitClassifier
+     */
+    public SplitClassifier() {
+        TrainingStats = new ClassificationStatistics();
+        ValidationStats = new ClassificationStatistics();
+        TrainingStatsPtr = (ClassificationStatistics) TrainingStats;
+        ValidationStatsPtr = (ClassificationStatistics) ValidationStats;
+        setClassDiscrete();
+    }
+
+    @Override
+    public void setOptions(List Options) throws Exception {
+        super.setOptions(Options);
+    }
+
+    @Override
+    public void setModel(int index, BaseModel x) {
+        if (! (x instanceof AbstractClassifier)) {
+            throw new Error("Model is not a classifier");
+        }
+        super.setModel(index, x); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void setGenericModel(BaseModel x) {
+        if (! (x instanceof AbstractClassifier)) {
+            throw new Error("Model is not a classifier");
+        }
+        super.setGenericModel(x); //To change body of generated methods, choose Tools | Templates.
+    }
+    
+    @Override public SplitClassifier clone() {
+        SplitClassifier x = (SplitClassifier) super.clone();
+        x.TrainingStatsPtr = (ClassificationStatistics) x.TrainingStats;
+        x.ValidationStatsPtr = (ClassificationStatistics) x.ValidationStats;
+        return x;
+    }
+    
+    @Override
+    public boolean classIsDiscrete() { return TrainingStatsPtr.classIsDiscrete(); }
+    @Override
+    final public void setClassDiscrete() { 
+        ValidationStatsPtr.setClassDiscrete();
+        TrainingStatsPtr.setClassDiscrete();
+    }
+    @Override
+    final public void setClassContinuous() { 
+        ValidationStatsPtr.setClassContinuous();
+        TrainingStatsPtr.setClassContinuous();
+    }
+    
+    @Override
+    public void setClassCutoff(double x) {
+        this.ValidationStatsPtr.setClassCutoff(x); 
+        this.TrainingStatsPtr.setClassCutoff(x);
+    }
+    @Override
+    public double getClassCutoff() { return ValidationStatsPtr.getClassCutoff(); }
+    @Override
+    public int getNClasses() { return nclasses; };
+
+    @Override
+    protected void train_protected(Dataset TrainingData) {
+        nclasses = TrainingData.NClasses();
+        super.train_protected(TrainingData);
+    }    
+}

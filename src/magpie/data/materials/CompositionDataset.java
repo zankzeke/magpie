@@ -1,0 +1,801 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package magpie.data.materials;
+
+import java.io.BufferedReader;
+import java.io.LineNumberReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.*;
+import java.util.*;
+import magpie.data.BaseEntry;
+import magpie.data.materials.util.PropertyLists;
+import org.apache.commons.math3.stat.*;
+
+/**
+ * This class stores entries that describe a material based solely on its
+ * composition.<p>
+ *
+ * Some of the available features include:
+ * <ul>
+ * <li>Generate attributes based on composition only</li>
+ * <li>Read in data from specially-formatted input file</li>
+ * <li>Store multiple properties for a each entry</li>
+ * </ul>
+ *
+ * When reading data in from text using the <code>importText</code> function,
+ * the data must be in the following format:
+ *
+ * <p>
+ * Composition property_1 property_2 ... property_N<br>
+ * As,0.2,B,0.8, 0.1 0.4 0.8 ...<br>
+ * As,1,B,4, 0.2 0.9 none ...<br>
+ * Cu,2,Zr,4, 0.2 0.1 10.8 ...<br>
+ * &lt;as many entries as you desire&gt;<br>
+ *
+ * <p>
+ * Please see the documentation provided with this package for more information.
+ *
+ * <p><b><u>Implemented Commands:</u></b>
+ * 
+ * <command><p><b>attributes generate [-comp]</b> - Generate attributes for each entry
+ * <br><pr><i>-comp</i>: Whether to use fraction of each element as an attribute</command>
+ *
+ * <command><p><b>properties</b> - List which elemental properties are used to generate attributes</command>
+ *
+ * <command><p><b>properties add &lt;names...></b> - Add elemental properties to use when generating attributes</command>
+ * <br><pr><i>name...</i>: Name of a elemental properties</command>
+ *
+ * <command><p><b>properties add set &lt;name</b> - Add in all elemental properties from a pre-defined set
+ * <br><pr><i>name</i>: Name of the pre-defined set</command>
+ *
+ * <command><p><b>properties remove &lt;names..></b> - Remove properties from list of those used when generating attributes
+ * <br><pr><i>names...</i>: Name of properties to remove</command>
+ *
+ * <command><p><b>properties &lt;directory></b> - Specify directory that contains the elemental property lookup files
+ * <br><pr><i>directory</i>: Desired directory</command>
+ *
+ * @author Logan Ward
+ * @version 0.2
+ */
+public class CompositionDataset extends magpie.data.MultiPropertyDataset {
+
+    /**
+     * List of element names
+     */
+    public String[] ElementNames;
+    /**
+     * Order in which elements are sorted (used when printing)
+     */
+    protected int[] SortingOrder;
+    /**
+     * Location of lookup date files
+     */
+    public String DataDirectory = "./Lookup Data";
+    /**
+     * List of properties used when generating attributes
+     */
+    public List<String> ElementalProperties = new LinkedList<>();
+    /**
+     * Map of property names to values
+     */
+    public Map<String, double[]> PropertyData = new TreeMap<>();
+
+    public CompositionDataset() {
+        ElementNames = new String[]{"H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na",
+            "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K", "Ca", "Sc", "Ti", "V", "Cr",
+            "Mn", "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Ge", "As", "Se", "Br", "Kr", "Rb",
+            "Sr", "Y", "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn",
+            "Sb", "Te", "I", "Xe", "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", "Sm", "Eu",
+            "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb", "Lu", "Hf", "Ta", "W", "Re", "Os",
+            "Ir", "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Po", "At", "Rn", "Fr", "Ra",
+            "Ac", "Th", "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm",
+            "Md", "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds",
+            "Rg", "Cn"};
+        SortingOrder = new int[]{91, 1, 26, 62, 85, 102, 109, 111, 112, 2, 24, 53, 64, 74, 90,
+            104, 110, 3, 20, 27, 55, 60, 66, 68, 61, 72, 73, 78, 75, 67, 71, 83, 89, 103, 107, 108,
+            21, 25, 36, 54, 63, 88, 76, 92, 97, 93, 79, 69, 70, 80, 86, 87, 106, 105, 19, 22, 28, 30,
+            31, 32, 4, 33, 5, 34, 35, 37, 38, 39, 40, 6, 41, 43, 58, 100, 77, 94, 95, 98, 101, 81, 65,
+            99, 84, 82, 96, 7, 18, 23, 29, 44, 59, 57, 56, 42, 45, 46, 47, 48, 49, 50, 51, 52, 8, 9, 10,
+            11, 12, 13, 14, 15, 16, 17};
+    }
+
+    @Override
+    @SuppressWarnings("CloneDeclaresCloneNotSupported")
+    public CompositionDataset clone() {
+        CompositionDataset x = (CompositionDataset) super.clone();
+        x.ElementNames = ElementNames.clone();
+        return x;
+    }
+
+    @Override
+    public CompositionDataset emptyClone() {
+        CompositionDataset x = (CompositionDataset) super.emptyClone();
+        x.ElementNames = ElementNames.clone();
+        return x;
+    }
+
+    @Override
+    public CompositionEntry getEntry(int index) {
+        return (CompositionEntry) super.getEntry(index);
+    }
+
+    /**
+     * Get the order in which elements are sorted when storing a composition. Sorting
+     * makes it faster to detect whether compounds are equal
+     * @return Sorting order
+     */
+    public int[] getSortingOrder() {
+        return SortingOrder.clone();
+    }
+    
+    
+
+    /**
+     * Read in an dataset from file. See documentation for format information.
+     *
+     * @param filename Path of file to be imported
+     * @throws java.lang.Exception
+     */
+    @Override
+    @SuppressWarnings("empty-statement")
+    public void importText(String filename, Object[] options) throws Exception {
+        // Count the number of lines (1 per entry + 1 header)
+        // Thanks to: http://stackoverflow.com/questions/453018/number-of-lines-in-a-file-in-java
+        LineNumberReader lr = new LineNumberReader(new FileReader(filename));
+        while (lr.skip(Long.MAX_VALUE) > 0) {
+        };
+        int Entry_Count = lr.getLineNumber() + 1;
+        lr.close();
+
+        // Define the reader
+        BufferedReader is = Files.newBufferedReader(Paths.get(filename), Charset.forName("US-ASCII"));
+        String Line;
+        String[] Words;
+
+        // Read in the header
+        Line = is.readLine();
+        Words = Line.split(" ");
+        for (int i = 1; i < Words.length; i++) {
+            addProperty(Words[i]);
+        }
+
+        // Determine which property is the energy ("energy_pa")
+        int energy_id = getPropertyIndex("energy_pa");
+
+        // Read in each entry
+        TreeMap<BaseEntry, CompositionEntry> acceptedEntries = new TreeMap<>();
+        TreeMap<BaseEntry, List<double[]>> duplicateProperties = new TreeMap<>();
+        CompositionEntry Entry;
+        for (int i = 0; i < Entry_Count; i++) {
+            double[] properties;
+            // Read a line and tokenize it
+            Line = is.readLine();
+            if (Line == null) {
+                break;
+            }
+            Words = Line.split("\\s+");
+
+            // Get the properties
+            properties = new double[NProperties()];
+            for (int j = 0; j < NProperties(); j++) {
+                try {
+                    properties[j] = Double.parseDouble(Words[j + 1]);
+                } catch (NumberFormatException e) {
+                    // System.err.println("Warning: Entry #"+i+" has an invalid property.");
+                    properties[j] = Double.NaN;
+                }
+            }
+
+            // Make an entry
+            Entry = new CompositionEntry(Words[0], ElementNames, SortingOrder);
+            Entry.setMeasuredProperties(properties);
+
+            // Add if the set does not already have it
+            if (!acceptedEntries.containsKey(Entry)) {
+                acceptedEntries.put(Entry, Entry);
+            } else {
+                // If the entries have a "energy_pa" as a property, supplant the existing
+                //   entry if it is higher in energy
+                if (energy_id != -1) {
+                    CompositionEntry oldBest = (CompositionEntry) acceptedEntries.get(Entry);
+                    if (oldBest.getMeasuredProperty(energy_id)
+                            > Entry.getMeasuredProperty(energy_id)) {
+                        acceptedEntries.remove(oldBest);
+                        acceptedEntries.put(Entry, Entry);
+                    }
+                } else {
+                    // Add to list of entries to duplicate properties if there is no "energy" property
+                    if (!duplicateProperties.containsKey(Entry)) {
+                        // Add in the property data of the accepted entry
+                        double[] props = acceptedEntries.get(Entry).getMeasuredProperties();
+                        List<double[]> newList = new LinkedList<>();
+                        newList.add(props);
+                        duplicateProperties.put(Entry, newList);
+                    }
+                    duplicateProperties.get(Entry).add(Entry.getMeasuredProperties());
+                }
+            }
+        }
+
+        // If we have any duplicate properties, average them
+        Iterator<BaseEntry> Eiter = duplicateProperties.keySet().iterator();
+        while (Eiter.hasNext()) {
+            CompositionEntry E = (CompositionEntry) Eiter.next();
+            CompositionEntry accepted = acceptedEntries.get(E);
+            List<double[]> dupProps = duplicateProperties.get(E);
+            for (int p = 0; p < NProperties(); p++) {
+                double sum = 0, count = 0;
+                for (double[] props : dupProps) {
+                    double toAdd = props[p];
+                    if (! Double.isNaN(toAdd)) {
+                        sum += toAdd; count++;
+                    }
+                }
+                if (count > 0) {
+                    accepted.setMeasuredProperty(p, sum / count);
+                }
+            }
+        }
+
+        // Close the file
+        is.close();
+
+        // Copy the entries
+        this.Entries = new ArrayList<>(acceptedEntries.keySet());
+    }
+
+    @Override
+    public void generateAttributes(Object[] Options) throws Exception {
+        boolean UseComp = false;
+        try {
+            if (Options.length == 1) {
+                if (Options[0].toString().equals("-comp")) {
+                    UseComp = true;
+                } else {
+                    throw new Exception();
+                }
+            } else if (Options.length > 1) {
+                throw new Exception();
+            }
+        } catch (Exception e) {
+            throw new Exception("Usage: [-comp]");
+        }
+        generateAttributes(UseComp);
+    }
+
+    /**
+     * Define whether to look for elemental property lookup tables.
+     *
+     * <p>
+     * Elemental property tables should have the properties for each element on
+     * a separate line, sorted by Atomic Number. If the property is not known,
+     * write "None". You will be alerted if that property was needed generating
+     * attributes.
+     *
+     * @param DataDirectory PAth to the elemental property lookup directory
+     */
+    public void setDataDirectory(String DataDirectory) {
+        this.DataDirectory = DataDirectory;
+    }
+
+    /**
+     * Define a new elemental property to use when generating attributes.
+     *
+     * @param Name Name of property
+     */
+    public void addElementalProperty(String Name) {
+        ElementalProperties.add(Name);
+    }
+
+    /**
+     * Remove an elemental property from the list used when generating
+     * attributes
+     *
+     * @param Name Name of property
+     * @return Whether the property was found and removed
+     */
+    public boolean removeElementalProperty(String Name) {
+        if (ElementalProperties.contains(Name)) {
+            ElementalProperties.remove(Name);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Calculate attributes for each entry. Currently, this set is equipped to
+     * calculate four kinds of properties:
+     *
+     * <ol>
+     * <li><b>Fraction Only:</b> Only depends on the fraction of elements
+     * present, and not what they are.
+     * <li><b>Elemental Properties:</b> Various statistics based on the supplied
+     * properties of each present element
+     * <li><b>Band structure:</b> Fraction of electrons expected to be in each
+     * orbital (s/p/d/f)
+     * <li><b>Other:</b> Bond ionicity, sum of oxidation states, etc
+     * </ol>
+     *
+     * @param useComposition Whether to use the fraction of each element as an
+     * attributes
+     */
+    public void generateAttributes(boolean useComposition) {
+        // --> Create attributes based on elemental fractions, if desired
+        if (useComposition) {
+            generateElementFractionAttributes();
+        }
+
+        // --> Add attributes that are dependant on fraction only (not element type)
+        generateCompositionAttributes();
+
+        // --> Add attributes related to properties
+        generatePropertyBasedAttributes();
+
+        // --> Add attributes related to valance shell occupation
+        generateValenceShellAttributes();
+
+        // --> Calculate the percent ionic character for each entry
+        generateIonicCharacter();
+
+        // --> Add attribute based on whether it can form an ionic compound
+        generateCanFormIonic();
+
+        // --> Reduce memory footprint, where possible
+        finalizeGeneration();
+    }
+
+    /**
+     * Run after generating attributes. Performs some operations to reduce the
+     * amount of memory used.
+     */
+    protected void finalizeGeneration() {
+        for (int i = 0; i < NEntries(); i++) {
+            getEntry(i).reduceMemoryFootprint();
+        }
+        System.gc();
+    }
+
+    /**
+     * Reads in a data file that contains properties for each element.
+     * MeasuredProperty list should be contained in a file named
+     * PropertyName.table
+     *
+     * @param PropertyName MeasuredProperty of interest
+     * @return That property for each element
+     */
+    public double[] getPropertyLookupTable(String PropertyName) {
+        // Check if it has been loaded in yet
+        if (PropertyData.containsKey(PropertyName)) {
+            return PropertyData.get(PropertyName);
+        }
+
+        // If not, load it in
+        // Open the file for reading
+        Path datafile = Paths.get(DataDirectory);
+        BufferedReader is;
+        try {
+            is = Files.newBufferedReader(
+                    datafile.resolve(PropertyName + ".table"), Charset.forName("US-ASCII"));
+
+            // Read the file
+            double[] output = new double[ElementNames.length];
+            for (int i = 0; i < ElementNames.length; i++) {
+                try {
+                    output[i] = Double.parseDouble(is.readLine());
+                } catch (IOException | NumberFormatException e) {
+                    output[i] = Double.NaN;
+                }
+            }
+            is.close();
+
+            /// Return the data table, and save a copy
+            PropertyData.put(PropertyName, output);
+            return output;
+        } catch (IOException e) {
+            throw new Error("Property " + PropertyName + " failed to read due to " + e);
+        }
+    }
+
+    /**
+     * Reads in a data file that contains known oxidation states for each
+     * element. List should be contained in a file named OxidationStates.table
+     *
+     * @param DataDirectory Location of data files
+     * @return List of possible oxidation states for each element
+     */
+    protected double[][] getOxidationStates(String DataDirectory) {
+        // Open the file for reading
+        Path datafile = Paths.get(DataDirectory);
+        BufferedReader is;
+        try {
+            is = Files.newBufferedReader(
+                    datafile.resolve("OxidationStates.table"), Charset.forName("US-ASCII"));
+
+            // Read the file
+            int i, j; // Counters
+            double[][] output = new double[ElementNames.length][];
+            for (i = 0; i < ElementNames.length; i++) {
+                String[] States = is.readLine().split(" ");
+                if (States[0].isEmpty()) {
+                    output[i] = null;
+                } else {
+                    output[i] = new double[States.length];
+                    for (j = 0; j < output[i].length; j++) {
+                        output[i][j] = Double.parseDouble(States[j]);
+                    }
+                }
+            }
+            is.close();
+            return output;
+        } catch (IOException | NumberFormatException e) {
+            throw new Error("Oxidation states failed to read due to " + e);
+        }
+    }
+
+    /**
+     * Generate attributes that only deal with composition (ignores element
+     * types)
+     */
+    protected void generateCompositionAttributes() {
+        double x;
+
+        // --> Generate the variables only dependant on composition
+        // Number of components
+        AttributeName.add("NComp");
+        for (int i = 0; i < NEntries(); i++) {
+            getEntry(i).addAttribute((double) getEntry(i).getElements().length);
+        }
+        // L2 Norm of composition
+        AttributeName.add("Comp_L2Norm");
+        for (int i = 0; i < NEntries(); i++) {
+            x = StatUtils.sumSq(getEntry(i).getFractions());
+            getEntry(i).addAttribute(Math.sqrt(x));
+        }
+
+        // Some other norms  
+        double[] norms = new double[]{3, 5, 7, 10};
+        for (int i = 0; i < norms.length; i++) {
+            AttributeName.add("Comp_L" + ((int) norms[i]) + "Norm");
+        }
+
+        for (int j = 0; j < NEntries(); j++) {
+            double[] fractions = getEntry(j).getFractions();
+            double[] newAttributes = new double[norms.length];
+            for (int n = 0; n < norms.length; n++) {
+                newAttributes[n] = 0.0;
+                for (int k = 0; k < fractions.length; k++) {
+                    newAttributes[n] += Math.pow(fractions[k], norms[n]);
+                }
+                newAttributes[n] = Math.pow(newAttributes[n], 1.0 / norms[n]);
+            }
+            getEntry(j).addAttributes(newAttributes);
+        }
+    }
+
+    /**
+     * Generate attributes that are simply the fraction of each element present
+     */
+    protected void generateElementFractionAttributes() {
+        for (String ElementName : ElementNames) {
+            AttributeName.add("X_" + ElementName);
+        }
+
+        // Determine the composition for each element
+        double[] composition = new double[ElementNames.length], fractions;
+        int[] elements;
+        for (int i = 0; i < NEntries(); i++) {
+            Arrays.fill(composition, 0);
+            elements = getEntry(i).getElements();
+            fractions = getEntry(i).getFractions();
+            for (int j = 0; j < elements.length; j++) {
+                composition[elements[j]] = fractions[j];
+            }
+            // Copy it into the feature array
+            getEntry(i).addAttributes(composition);
+        }
+    }
+
+    /**
+     * Generate attributes that are based on elemental properties
+     */
+    protected void generatePropertyBasedAttributes() {
+        // Create list of entries with missing elemental properties and properties
+        //   with key missing values
+        // Dev Note: I am not sure what to do with these entries, options: 
+        //   1) Remove them from the dataset, which is a viable option
+        //   2) Remove offending properties, which means different datasets will have different attributes
+        // For now, I am passing the problem onto the user by issuing a warning
+        Set<String> MissingData = new TreeSet<>();
+
+        // Add in property names
+        for (String prop : ElementalProperties) {
+            AttributeName.add("mean_" + prop);
+            AttributeName.add("maxdiff_" + prop);
+            AttributeName.add("dev_" + prop);
+            AttributeName.add("max_" + prop);
+            AttributeName.add("min_" + prop);
+            AttributeName.add("most_" + prop);
+        }
+
+        // Generate attributes for each entry
+        double[] toAdd = new double[ElementalProperties.size() * 6];
+        for (int e = 0; e < NEntries(); e++) {
+            CompositionEntry entry = getEntry(e);
+            int count = 0;
+
+            // Generate data for each property
+            for (String prop : ElementalProperties) {
+                // Get the lookup table for this property
+                double[] lookup = getPropertyLookupTable(prop);
+
+                // Check if any required lookup data is missing;
+                for (int i = 0; i < entry.getElements().length; i++) {
+                    if (lookup[entry.Element[i]] == Double.NaN) {
+                        MissingData.add(ElementNames[entry.Element[i]] + ":" + prop);
+                    }
+                }
+
+                // Calculate the mean
+                double mean = entry.getMean(lookup);
+                toAdd[count++] = mean;
+
+                // Calculate the maximum diff
+                toAdd[count++] = entry.getMaxDifference(lookup);
+                // Calculate the mean deviation
+                toAdd[count++] = entry.getAverageDeviation(lookup, mean);
+                toAdd[count++] = entry.getMaximum(lookup);
+                toAdd[count++] = entry.getMinimum(lookup);
+                toAdd[count++] = entry.getMost(lookup);
+            }
+
+            // Add attributes to entry
+            entry.addAttributes(toAdd);
+        }
+
+        // Print out warning of which properties have missing (see def of 
+        //    OffendingProperties)
+        if (MissingData.size() > 0) {
+            System.err.println("WARNING: There are " + MissingData.size()
+                    + " missing elmental properties:");
+            int i = 0;
+            Iterator<String> iter = MissingData.iterator();
+            while (iter.hasNext()) {
+                System.err.format("%32s", iter.next());
+                if (i % 2 == 1) {
+                    System.err.println();
+                }
+                i++;
+            }
+            if (i % 2 == 1) {
+                System.err.println();
+            }
+            System.err.println();
+            System.err.flush();
+        }
+    }
+
+    /**
+     * Generate attributes related to valence shell occupation
+     */
+    protected void generateValenceShellAttributes() {
+        // Load in the number of electrons in each shell
+        Character[] shell = new Character[]{'s', 'p', 'd', 'f'};
+        double[][] n_valance = new double[4][];
+        for (int i = 0; i < 4; i++) {
+            n_valance[i] = getPropertyLookupTable("N" + shell[i] + "Valence");
+        }
+
+        // Determine the fraction of electrons in each valence cell
+        for (int i = 0; i < 4; i++) {
+            AttributeName.add("frac_" + shell[i] + "Valence");
+        }
+        for (int i = 0; i < NEntries(); i++) {
+            double[] total_e = new double[4];
+            double sum_e = 0.0;
+            // First, get the average number of electrons in each shell
+            for (int j = 0; j < 4; j++) {
+                total_e[j] = getEntry(i).getMean(n_valance[j]);
+                sum_e += total_e[j];
+            }
+
+            // Convert to fractions
+            for (int j = 0; j < 4; j++) {
+                total_e[j] /= sum_e;
+            }
+
+            // Add to entry
+            getEntry(i).addAttributes(total_e);
+        }
+    }
+
+    /**
+     * Generate the percent ionic character for each entry
+     */
+    protected void generateIonicCharacter() {
+        double x;
+        // --> Calculate the maximum and mean %Ionic character
+        double[] en = getPropertyLookupTable("Electronegativity");
+        AttributeName.add("MaxIonicChar");
+        AttributeName.add("MeanIonicChar");
+        for (int i = 0; i < NEntries(); i++) {
+            getEntry(i).addAttribute(1
+                    - Math.exp(-0.25 * Math.pow(getEntry(i).getMaxDifference(en), 2.0)));
+            int[] elem = getEntry(i).getElements();
+            double[] frac = getEntry(i).getFractions();
+            x = 0.0;
+            for (int j = 0; j < elem.length; j++) {
+                for (int k = 0; k < elem.length; k++) {
+                    x += frac[j] * frac[k] * (1 - Math.exp(-0.25
+                            * Math.pow(en[elem[j]] - en[elem[k]], 2.0)));
+                }
+            }
+            getEntry(i).addAttribute(x);
+        }
+    }
+
+    /**
+     * Determine whether each entry can form an ionic compound. Assumes that
+     * each element can only take on a single oxidation state
+     */
+    protected void generateCanFormIonic() {
+        double x, y;
+        AttributeName.add("CanFormIonic");
+
+        double[][] states = getOxidationStates(DataDirectory);
+        for (int i = 0; i < NEntries(); i++) {
+            int[] elem = getEntry(i).getElements();
+            double[] frac = getEntry(i).getFractions();
+            x = 0; // Initially assume that it cannot form
+
+            // If any of the compounds are noble gasses, it cannot form an ionic compound
+            for (int j = 0; j < elem.length; j++) {
+                if (states[elem[j]] == null) {
+                    x = -1;
+                    break;
+                }
+            }
+            if (x == -1) {
+                x = 0;
+                getEntry(i).addAttribute(x);
+                continue;
+            }
+
+            // Loop through each possible combination
+            int[] guess = new int[elem.length]; // Initialize a guess
+            boolean was_incremented = true;
+            while (was_incremented) {
+                // Calculate the charge
+                y = 0; // Start the charge out at zero
+                for (int j = 0; j < elem.length; j++) {
+                    y += frac[j] * states[elem[j]][guess[j]];
+                }
+
+                // If the charge is equal to zero, we have found a valid compound
+                if (y == 0) {
+                    x = 1;
+                    break;
+                }
+
+                // If not, increment the compound
+                was_incremented = false;
+                for (int j = 0; j < guess.length; j++) {
+                    guess[j]++;
+                    if (guess[j] == states[elem[j]].length) {
+                        guess[j] = 0;
+                    } else {
+                        was_incremented = true;
+                        break;
+                    }
+                }
+            }
+            getEntry(i).addAttribute(x);
+        }
+    }
+
+    @Override
+    public Object runCommand(List<Object> Command) throws Exception {
+        String Action = Command.get(0).toString();
+        switch (Action.toLowerCase()) {
+            case "property": case "properties":
+                return runPropertyCommand(Command.subList(1, Command.size()));
+            default:
+                return super.runCommand(Command); 
+        }
+        
+    }
+
+    /**
+     * Run commands that control which elemental properties are used when
+     * generating attributes
+     *
+     * @param Command Command to act on
+     * @return Any output from operation (null if no output)
+     * @throws Exception
+     */
+    protected Object runPropertyCommand(List<Object> Command) throws Exception {
+        if (Command.isEmpty()) {
+            Iterator<String> iter = ElementalProperties.iterator();
+            int count = 0;
+            while (iter.hasNext()) {
+                count++;
+                System.out.print("\t" + iter.next());
+                if (count % 5 == 0) {
+                    System.out.println();
+                }
+            }
+            if (count % 5 != 0) {
+                System.out.println();
+            }
+            return null;
+        }
+        String Action = Command.get(0).toString();
+        switch (Action.toLowerCase()) {
+            case "add": {
+                // Usage: add <name> or add set <name>
+                if (Command.size() < 2) {
+                    throw new Exception("Usage: \"properties add set <set name>\""
+                            + " or properties add <property names...>");
+                }
+                // Add in new properties
+                int originalSize = ElementalProperties.size();
+                if (Command.get(1).toString().equalsIgnoreCase("set")) {
+                    // Add properties from a known set
+                    String[] Properties = PropertyLists.getPropertySet(Command.get(2).toString());
+                    for (String p : Properties) {
+                        addElementalProperty(p);
+                    }
+                } else {
+                    // Add in properties one by one
+                    for (int i = 1; i < Command.size(); i++) {
+                        addElementalProperty(Command.get(i).toString());
+                    }
+                }
+                System.out.println("\tAdded " + (ElementalProperties.size() - originalSize) 
+                    + " new properties.");
+            }
+            break;
+            case "remove": {
+                // Usage: remove <names...>
+                if (Command.size() < 2) {
+                    throw new Exception("Usage: properties remove <property names...>");
+                }
+                // Remove those property from the set
+                String output = "\tRemoved properties:";
+                int nRemoved = 0;
+                for (int i = 1; i < Command.size(); i++) {
+                    boolean wasRemoved = removeElementalProperty(Command.get(i).toString());
+                    if (wasRemoved) {
+                        output += " " + Command.get(i).toString();
+                        nRemoved++;
+                    }
+                }
+                if (nRemoved > 0) {
+                    System.out.println(output);
+                } else {
+                    System.out.println("\tWARNING: No attributes were removed.");
+                }
+                break;
+            }
+            case "directory": {
+                // Define the lookup directory
+                if (Command.size() < 2) {
+                    throw new Exception("Usage: properties directory <directory name>");
+                }
+                DataDirectory = Command.get(1).toString();
+                for (int i = 2; i < Command.size(); i++) {
+                    DataDirectory += " " + Command.get(i).toString();
+                }
+            }
+            break;
+            default:
+                throw new Exception("ERROR: Property command not recognized: " + Action);
+        }
+        return null;
+    }
+
+}
