@@ -1,16 +1,5 @@
-<<<<<<< HEAD
-Added-By	Added-On	Description	Progress	(Arranged by priority)
-Logan	3June14 Provide some mechanism to normalize attributes before model-building	Not started
-Logan	10June14	Allow a dataset to contain entries w/ and w/o a measured property, don't remove those without a measured property when setting a target property	Not started
-Logan	3June14	Add in multiobjective optimization	Not started
-Logan	3June14	Ensure "Base" classes contain guides on how to implement them	Not started
-Logan	3June14	Add in some kind of guide for people who want to contribute to Magpie	Not started
-Logan 	3June14	Ensure all options can be set from the Java interface	Not Started
-Logan	5June14	Add in Ratio attributes (idea stolen from Vinay)	Not Started
-=======
 Added-By	Added-On	Description	Progress	(Arranged by priority)
 Logan   12June14    Make AttributeNames a protected variable    Not Started
-Logan	3June14 Provide some mechanism to normalize attributes before model-building	Working on it
 Logan	3June14	Add in multiobjective optimization	Not started
 Logan	5June14	Add in Ratio attributes (idea stolen from Vinay)	Not Started
 Logan	3June14	Ensure "Base" classes contain guides on how to implement them	Not started
@@ -21,4 +10,3 @@ Logan 	3June14	Ensure all options can be set from the Java interface	Not Started
 Logan   12June14    Add license Not Started
 Logan	5June14	Add in Ratio attributes (idea stolen from Vinay)	Not Started
 Logan	10June14    Allow a dataset to contain entries w/ and w/o a measured property, don't remove those without a measured property when setting a target property (would be a real pain)	Not started
->>>>>>> f6d2a9d886e1aa8ffa1cc7baf2e5822decf39055
