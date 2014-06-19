@@ -67,6 +67,4 @@ public class AttributeIntervalSplitter extends BaseDatasetSplitter {
             throw new Error("Dataset does not contain feature: "+AttributeName);
         }
     }
-    
-    
 }
