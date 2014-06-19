@@ -13,7 +13,11 @@ data target delta_e
 
 // Create a simple two-layer perceptron based on a reduced subset of attributes
 model = new models.regression.PerceptronRegression -val 25 -nstall 3 5 5
+
+// Add a normalizer to the model
 model normalize attributes class SoftmaxNormalizer 1
+
+// Add an attribute selector
 selector = new attributes.selectors.WekaAttributeSelector 
 model set selector $selector
 
