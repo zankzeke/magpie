@@ -6,6 +6,7 @@ package magpie.analytics;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import magpie.cluster.BaseClusterer;
 import magpie.data.Dataset;
@@ -85,7 +86,7 @@ public class ClustererStatistics implements Serializable, Printable {
         if (NEntries == 0)
             throw new Error("All clusters were empty");
         // Evaluate each attribute
-        AttributesUsed = new ArrayList<>(Clusters[0].AttributeName);
+        AttributesUsed = new ArrayList<>(Arrays.asList(Clusters[0].getAttributeNames()));
         ClusterMean = new double[NClusters][AttributesUsed.size()];
         for (int c=0; c<NClusters; c++) {
             if (Clusters[c].NAttributes() != AttributesUsed.size())

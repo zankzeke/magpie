@@ -62,7 +62,7 @@ abstract public class BaseDatasetNormalizer
     /** Whether to class variable */
     private boolean NormalizeClass = false;
     /** Names of attributes (to make sure the dataset is not different) */
-    private List<String> AttributeNames = null;
+    private String[]  AttributeNames = null;
 
     /**
      * @return Whether this normalizer has been trained
@@ -127,7 +127,7 @@ abstract public class BaseDatasetNormalizer
             trainOnMeasuredClass(Data);
         }
         Trained = true;
-        AttributeNames = new ArrayList<>(Data.AttributeName);
+        AttributeNames = Data.getAttributeNames();
     }
     
     /**
@@ -159,7 +159,7 @@ abstract public class BaseDatasetNormalizer
         }
         
         // Check if attributes are different
-        if (! AttributeNames.equals(Data.AttributeName)) {
+        if (! Arrays.equals(AttributeNames, Data.getAttributeNames())) {
             throw new Error("Attribute names different: Different type of data?");
         }
         
@@ -198,7 +198,7 @@ abstract public class BaseDatasetNormalizer
         }
         
         // Check if attributes are different
-        if (! AttributeNames.equals(Data.AttributeName)) {
+        if (! Arrays.equals(AttributeNames, Data.getAttributeNames())) {
             throw new Error("Attribute names different: Different type of data?");
         }
         

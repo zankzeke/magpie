@@ -47,8 +47,10 @@ abstract public class BaseAttributeSelector implements java.io.Serializable,
         // Store the names
         Attribute_Names.clear();
         Iterator<Integer> iter = Attribute_ID.iterator();
-        while (iter.hasNext())
-            Attribute_Names.add(Data.AttributeName.get(iter.next()));
+        String[] attributeName = Data.getAttributeNames();
+        while (iter.hasNext()) {
+            Attribute_Names.add(attributeName[iter.next()]);
+        }
     }
     
     /**
@@ -74,10 +76,11 @@ abstract public class BaseAttributeSelector implements java.io.Serializable,
         
         // Get the new list of feature names
         ArrayList<String> NewAttributeNames = new ArrayList<>(Attribute_ID.size());
-        for (Integer Attribute_ID1 : Attribute_ID) {
-            NewAttributeNames.add((String) Data.AttributeName.get(Attribute_ID1));
+        String[] oldAttributeNames = Data.getAttributeNames();
+        for (Integer id : Attribute_ID) {
+            NewAttributeNames.add((String) oldAttributeNames[id]);
         }
-        Data.AttributeName = NewAttributeNames;
+        Data.setAttributeNames(NewAttributeNames);
         
         // For each entry, redo the feature list
         for (int i=0; i<Data.NEntries(); i++) {

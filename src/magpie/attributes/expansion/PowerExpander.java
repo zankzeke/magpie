@@ -4,6 +4,7 @@
  */
 package magpie.attributes.expansion;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import magpie.data.BaseEntry;
@@ -53,12 +54,15 @@ public class PowerExpander extends BaseAttributeExpander {
                    
         /** Generate names of new attributes */
         int NNAttributes = 0;
-        for (int i=0; i<OriginalAttributeCount; i++)
+        List<String> attributeNames = new LinkedList<>(Arrays.asList(Data.getAttributeNames()));
+        for (int i=0; i<OriginalAttributeCount; i++) {
             for (int j=0; j<Exponent.size(); j++)
                 if (is_ok[i][j]) {
-                    Data.AttributeName.add(Data.AttributeName.get(i) + "^" + j);
+                    attributeNames.add(attributeNames.get(i) + "^" + j);
                     NNAttributes++;
                 }
+        }
+        Data.setAttributeNames(attributeNames);
         
         /** Generate new attributes */
         for (int i=0; i<Data.NEntries(); i++) {

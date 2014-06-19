@@ -69,7 +69,7 @@ abstract public class BaseAttributeEvaluator implements Options{
         double[] power = evaluateAttributes(Data);
         int[] rank = OptimizationHelper.sortAndGetRanks(power, positiveIsBetter());
         for (int i = 0; i < Math.min(NumberToPrint, Data.NAttributes()); i++) {
-            output += String.format("#%4d\t%24s\t%7.4f\n", i + 1, Data.AttributeName.get(rank[i]), power[i]);
+            output += String.format("#%4d\t%24s\t%7.4f\n", i + 1, Data.getAttributeName(rank[i]), power[i]);
         }
         return output;
     }

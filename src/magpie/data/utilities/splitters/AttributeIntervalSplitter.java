@@ -62,9 +62,10 @@ public class AttributeIntervalSplitter extends BaseDatasetSplitter {
 
     @Override
     public void train(Dataset TrainingSet) {
-        AttributeID = TrainingSet.AttributeName.indexOf(AttributeName);
-        if (AttributeID == -1) 
+        AttributeID = TrainingSet.getAttributeIndex(AttributeName);
+        if (AttributeID == -1) {
             throw new Error("Dataset does not contain feature: "+AttributeName);
+        }
     }
     
     

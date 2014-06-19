@@ -94,7 +94,7 @@ public class AttributeFilter extends BaseDatasetFilter {
 
     @Override
     protected boolean[] label(Dataset D) {
-        int FeatureID = D.AttributeName.indexOf(TargetAttribute);
+        int FeatureID = D.getAttributeIndex(TargetAttribute);
         if (FeatureID == -1)
             throw new Error("Attribute "+TargetAttribute+" not found in Dataset");
         double[] feature = D.getSingleAttributeArray(FeatureID);

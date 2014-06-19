@@ -31,7 +31,7 @@ public class PolynomialRegression extends BaseRegression {
     /** Coefficients of each term in the polynomial */
     double[] coefficients = null;
     /** Names of attributes */
-    List<String> attributeNames;
+    String[] attributeNames;
 
     @Override
     public void setOptions(List Options) throws Exception {
@@ -47,7 +47,7 @@ public class PolynomialRegression extends BaseRegression {
     public BaseRegression clone() {
         PolynomialRegression x = (PolynomialRegression) super.clone(); 
         x.coefficients = coefficients.clone();
-        x.attributeNames = new ArrayList<>(attributeNames);
+        x.attributeNames = attributeNames.clone();
         return x;
     }
     
@@ -66,7 +66,7 @@ public class PolynomialRegression extends BaseRegression {
         double[][] attributes = TrainData.getAttributeArray();
         double[] classVariable = TrainData.getMeasuredClassArray();
         numAttributes = TrainData.NAttributes();
-        attributeNames = (List) TrainData.AttributeName.clone();
+        attributeNames = TrainData.getAttributeNames();
         
         // Fit a polynomial model
         coefficients = fitPolynomialModel(attributes, order, classVariable);
@@ -178,7 +178,7 @@ public class PolynomialRegression extends BaseRegression {
         for (int a=0; a<numAttributes; a++) {
             for (int o=1; o<=order; o++) {
                 output += String.format(" + %.3e * %s ^ %d", coefficients[count++],
-                        attributeNames.get(a), o);
+                        attributeNames[a], o);
                 if (count % 4 == 0)
                     output += "\n\t";
             }

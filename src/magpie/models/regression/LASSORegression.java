@@ -41,6 +41,7 @@ public class LASSORegression extends BaseRegression {
     protected double Intercept;
     
     @Override
+    @SuppressWarnings("CloneDeclaresCloneNotSupported")
     public BaseRegression clone() {
         LASSORegression x = (LASSORegression) super.clone();
         x.Coefficients = new LinkedList<>(Coefficients);
@@ -123,7 +124,7 @@ public class LASSORegression extends BaseRegression {
         Intercept = results[0];
         Coefficients.add(results[1]);
         Terms.add(toAdd);
-        TermNames.add(TrainData.AttributeName.get(toAdd));
+        TermNames.add(TrainData.getAttributeName(toAdd));
         
         // Find the residuals
         double[] residual = getResidual(observations, targetClass);

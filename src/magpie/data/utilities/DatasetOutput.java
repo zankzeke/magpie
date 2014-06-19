@@ -32,8 +32,9 @@ abstract public class DatasetOutput extends Dataset {
             PrintWriter fp = new PrintWriter(new BufferedWriter(new FileWriter(Filename)));
             boolean hasMeasuredClass = Data.getEntry(0).hasMeasurement();
             // Print out the first row
+            String[] attributeNames = Data.getAttributeNames();
             for (int i=0; i<Data.NAttributes(); i++)
-                fp.format("%s%s", Data.AttributeName.get(i), Delimiter);
+                fp.format("%s%s", attributeNames[i], Delimiter);
             if (hasMeasuredClass)
                 fp.println("Class");
             
@@ -116,7 +117,7 @@ abstract public class DatasetOutput extends Dataset {
             fp = new PrintWriter(new BufferedWriter(new FileWriter(filename)));
             fp.write("@RELATION \'Auto-generated arff\'\n\n");
             for (int i = 0; i < Data.NAttributes(); i++) {
-                fp.format("@ATTRIBUTE %s NUMERIC\n", Data.AttributeName.get(i));
+                fp.format("@ATTRIBUTE %s NUMERIC\n", Data.getAttributeName(i));
             }
             if (Data.NClasses() == 1) {
                 fp.write("@ATTRIBUTE class NUMERIC\n");
@@ -136,7 +137,7 @@ abstract public class DatasetOutput extends Dataset {
                 if (Data.NClasses() == 1) {
                     fp.format("%.6e\n", Data.getEntry(i).getMeasuredClass());
                 } else {
-                    fp.format("%s\n", Data.AttributeName.get((int) Data.getEntry(i).getMeasuredClass()));
+                    fp.format("%s\n", Data.getClassName((int) Data.getEntry(i).getMeasuredClass()));
                 }
             }
             fp.close();
@@ -209,7 +210,7 @@ abstract public class DatasetOutput extends Dataset {
             double x; double[] data;
             // Print out data about each feature.
             for (int i = 0; i < Data.NAttributes(); i++) {
-                fp.print(Data.AttributeName.get(i)+",");
+                fp.print(Data.getAttributeName(i)+",");
                 data = Data.getSingleAttributeArray(i);
                 x = StatUtils.min(data); fp.format("%.5e,", x);
                 x = StatUtils.percentile(data, 25); fp.format("%.5e,", x);

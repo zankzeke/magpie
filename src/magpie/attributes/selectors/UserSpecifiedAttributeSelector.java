@@ -75,7 +75,7 @@ public class UserSpecifiedAttributeSelector extends BaseAttributeSelector {
     public void run(Dataset Data) {
         if (! Selected_Attributes.isEmpty()) {
             Attribute_ID.clear();
-            String[] Names = (String[]) Data.AttributeName.toArray(new String[0]);
+            String[] Names = Data.getAttributeNames();
             for (int i=0; i<Attribute_ID.size(); i++) {
                 int id = ArrayUtils.indexOf(Names, Selected_Attributes.get(i));
                 if (id == ArrayUtils.INDEX_NOT_FOUND)

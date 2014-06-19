@@ -4,6 +4,8 @@
  */
 package magpie.attributes.expansion;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
@@ -25,11 +27,14 @@ public class CrossExpander extends BaseAttributeExpander {
         int OriginalAttributeCount = Data.NAttributes();
         
         /** Create new names */
-        for (int i=0; i<OriginalAttributeCount - 1; i++)
+        List<String> attributeNames = new ArrayList<>(Arrays.asList(Data.getAttributeNames()));
+        for (int i=0; i<OriginalAttributeCount - 1; i++) {
             for (int j=i+1; j<OriginalAttributeCount; j++) {
-                Data.AttributeName.add(Data.AttributeName.get(i) + "*"
-                        + Data.AttributeName.get(j));
+                attributeNames.add(attributeNames.get(i) + "*"
+                        + attributeNames.get(j));
             }
+        }
+        Data.setAttributeNames(attributeNames);
         
         /** Create new features */
         int NNAttributes = (OriginalAttributeCount - 1) * OriginalAttributeCount / 2;

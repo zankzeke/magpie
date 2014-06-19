@@ -90,7 +90,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         java.lang.Cloneable, Printable, Savable, Options, Commandable {
 
     /** Names of attributes that describe each entry */
-    public ArrayList<String> AttributeName;
+    protected ArrayList<String> AttributeName;
     /** Names of the class(s) of each entry */
     private String[] ClassName;
     /** Internal array that stores entries */
@@ -193,6 +193,43 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
             throw new Exception("Usage: *No options*");
         // Nothing to do for base class
     }
+
+    /**
+     * @return Names of all attributes
+     */
+    public String[] getAttributeNames() {
+        return AttributeName.toArray(new String[0]);
+    }
+    
+    /**
+     * Get name of a specific attribute
+     * @param index Attribute number
+     * @return Name of that attribute
+     */
+    public String getAttributeName(int index) {
+        return AttributeName.get(index);
+    }
+    
+    /**
+     * Set the names of each attributes.
+     * 
+     * <p>NOTE: This will not effect the number of attributes of each entry. 
+     * Make sure to update those if needed!
+     * @param attributeNames 
+     */
+    public void setAttributeNames(List<String> attributeNames) {
+        AttributeName.clear();
+        AttributeName.addAll(attributeNames);
+    }
+    
+    /**
+     * Get index of a certain attribute
+     * @param Name Name of desired attribute
+     * @return Index of that attribute (-1 if it does not exist)
+     */
+    public int getAttributeIndex(String Name) {
+        return AttributeName.indexOf(Name);
+    }
     
     /**
      * Imports data from a text file. Expected format for file:
@@ -263,6 +300,15 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      */
     public String[] getClassNames() {
         return ClassName;
+    }
+    
+    /**
+     * Get the name of a certain class (for data with multiple possible classficiations)
+     * @param value Value of class variable
+     * @return Name of that class
+     */
+    public String getClassName(int value) {
+        return ClassName[value];
     }
     
     /** 

@@ -294,7 +294,7 @@ public abstract class AbstractNonlinearRegression extends BaseRegression {
     private void findVariableIndicies(Dataset Data) {
         VariableIndices = new int[VariableNames.size()];
         for (int i=0; i < VariableNames.size(); i++) {
-            int index = Data.AttributeName.indexOf(VariableNames.get(i));
+            int index = Data.getAttributeIndex(VariableNames.get(i));
             if (index == -1) 
                 throw new Error("Dataset is missing attribute - " + VariableNames.get(i));
             VariableIndices[i] = index;
