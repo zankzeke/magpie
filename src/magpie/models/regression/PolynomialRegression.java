@@ -6,6 +6,7 @@
 
 package magpie.models.regression;
 
+import java.util.ArrayList;
 import java.util.List;
 import magpie.data.Dataset;
 import org.apache.commons.math3.stat.regression.MillerUpdatingRegression;
@@ -41,6 +42,15 @@ public class PolynomialRegression extends BaseRegression {
         }
     }
 
+    @Override
+    @SuppressWarnings("CloneDeclaresCloneNotSupported")
+    public BaseRegression clone() {
+        PolynomialRegression x = (PolynomialRegression) super.clone(); 
+        x.coefficients = coefficients.clone();
+        x.attributeNames = new ArrayList<>(attributeNames);
+        return x;
+    }
+    
     @Override
     public String printUsage() {
         return "Usage: <order of polynomial>";
