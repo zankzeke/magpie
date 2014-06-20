@@ -46,6 +46,9 @@ public class PropertyFormulaRanker extends MultiObjectiveEntryRanker {
         try {
             template = (MultiPropertyDataset) Options.get(0);
             formula = Options.get(1).toString();
+            for (int i=2; i<Options.size(); i++) {
+                formula += " " + Options.get(i).toString();
+            }
         } catch (Exception e) {
             throw new Exception(printUsage());
         }
@@ -142,7 +145,7 @@ public class PropertyFormulaRanker extends MultiObjectiveEntryRanker {
         MultiPropertyEntry e = (MultiPropertyEntry) Entry;
         for (int i=0; i<Variables.size(); i++) {
             double x = UseMeasured ? e.getMeasuredProperty(PropertyIndex[i]) 
-                : e.getMeasuredProperty(PropertyIndex[i]);
+                : e.getPredictedProperty(PropertyIndex[i]);
             Variables.get(i).setValue(x);
         }
         return Evaluator.value();
