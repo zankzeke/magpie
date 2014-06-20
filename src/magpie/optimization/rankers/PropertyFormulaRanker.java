@@ -31,6 +31,13 @@ public class PropertyFormulaRanker extends MultiObjectiveEntryRanker {
     final private List<Variable> Variables = new LinkedList<>();
     /** Index of properties used in the formula */
     private int[] PropertyIndex;
+
+    @Override
+    protected PropertyFormulaRanker clone() throws CloneNotSupportedException {
+        PropertyFormulaRanker x = (PropertyFormulaRanker) super.clone();
+        x.PropertyIndex = PropertyIndex.clone();
+        return x;
+    }
     
     @Override
     public void setOptions(List<Object> Options) throws Exception {

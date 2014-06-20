@@ -13,7 +13,7 @@ import magpie.data.MultiPropertyDataset;
  * 
  * @author Logan Ward
  */
-abstract public class MultiObjectiveEntryRanker extends EntryRanker {
+abstract public class MultiObjectiveEntryRanker extends EntryRanker implements Cloneable {
 
     /**
      * Train the entry ranker. This may be necessary for multi-objective methods
