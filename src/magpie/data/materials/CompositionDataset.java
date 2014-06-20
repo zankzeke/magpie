@@ -44,15 +44,15 @@ import org.apache.commons.math3.stat.*;
  * <command><p><b>attributes generate [-comp]</b> - Generate attributes for each entry
  * <br><pr><i>-comp</i>: Whether to use fraction of each element as an attribute</command>
  *
- * <command><p><b>properties</b> - List which elemental properties are used to generate attributes</command>
+ * <command><p><b>attributes properties</b> - List which elemental properties are used to generate attributes</command>
  *
- * <command><p><b>properties add &lt;names...></b> - Add elemental properties to use when generating attributes</command>
+ * <command><p><b>attributes properties add &lt;names...></b> - Add elemental properties to use when generating attributes</command>
  * <br><pr><i>name...</i>: Name of a elemental properties</command>
  *
- * <command><p><b>properties add set &lt;name</b> - Add in all elemental properties from a pre-defined set
+ * <command><p><b>attributes properties add set &lt;name</b> - Add in all elemental properties from a pre-defined set
  * <br><pr><i>name</i>: Name of the pre-defined set</command>
  *
- * <command><p><b>properties remove &lt;names..></b> - Remove properties from list of those used when generating attributes
+ * <command><p><b>attributes properties remove &lt;names...></b> - Remove properties from list of those used when generating attributes
  * <br><pr><i>names...</i>: Name of properties to remove</command>
  *
  * <command><p><b>properties &lt;directory></b> - Specify directory that contains the elemental property lookup files
@@ -707,6 +707,21 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
                 return super.runCommand(Command); 
         }
         
+    }
+
+    @Override
+    protected Object runAttributeCommand(List<Object> Command) throws Exception {
+        if (Command.isEmpty()) {
+            return super.runAttributeCommand(Command);
+        }
+        String Action = Command.get(0).toString().toLowerCase();
+        switch (Action) {
+            case "properties": case "prop": {
+                return runPropertyCommand(Command.subList(1, Command.size()));
+            }
+            default:
+                return super.runAttributeCommand(Command);
+        }
     }
 
     /**

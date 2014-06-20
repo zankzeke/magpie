@@ -7,9 +7,9 @@ data import ./datasets/small_set.txt
 data filter exclude ContainsElementFilter He Ne Ar Kr Xe
 
 // Define where to find elemental property data
-data properties directory ./Lookup Data/
+data attributes properties directory ./Lookup Data/
 // Select which set of elemental properties to use for attributes
-data properties add set general
+data attributes properties add set general
 
 // Define bandgap as the target property
 data target bandgap
