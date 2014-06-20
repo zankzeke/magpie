@@ -25,6 +25,20 @@ abstract public class EntryRanker implements java.lang.Cloneable, Options {
     public boolean MaximizeFunction = false; 
     /** Whether to use the measured or predicted class variable */
     public boolean UseMeasured = false;
+
+    @Override
+    @SuppressWarnings("CloneDeclaresCloneNotSupported")
+    protected EntryRanker clone() {
+        EntryRanker x; 
+        try {
+            x = (EntryRanker) super.clone(); 
+        } catch (CloneNotSupportedException e) {
+            throw new Error(e); // Do nothing (should never end up here)
+        }
+        return x;
+    }
+    
+    
     
     /** 
      * Some kind of objective function that returns a double when given an entry.<br>

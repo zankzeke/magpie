@@ -13,8 +13,14 @@ import magpie.data.MultiPropertyDataset;
  * 
  * @author Logan Ward
  */
-abstract public class MultiObjectiveEntryRanker extends EntryRanker implements Cloneable {
+abstract public class MultiObjectiveEntryRanker extends EntryRanker {
 
+    @Override
+    @SuppressWarnings("CloneDeclaresCloneNotSupported")
+    public MultiObjectiveEntryRanker clone()  {
+        return (MultiObjectiveEntryRanker) super.clone(); 
+    }
+    
     /**
      * Train the entry ranker. This may be necessary for multi-objective methods
      *  that rely on the performance of other entries (e.g. Pareto fronts).

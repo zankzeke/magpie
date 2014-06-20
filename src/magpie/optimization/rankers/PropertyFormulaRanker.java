@@ -33,7 +33,7 @@ public class PropertyFormulaRanker extends MultiObjectiveEntryRanker {
     private int[] PropertyIndex;
 
     @Override
-    protected PropertyFormulaRanker clone() throws CloneNotSupportedException {
+    public PropertyFormulaRanker clone() {
         PropertyFormulaRanker x = (PropertyFormulaRanker) super.clone();
         x.PropertyIndex = PropertyIndex.clone();
         return x;
