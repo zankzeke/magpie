@@ -9,11 +9,11 @@ package magpie.optimization.rankers;
 import magpie.data.MultiPropertyDataset;
 
 /**
- * Interface for multi-objective entry rankers. 
+ * Base class for multi-objective entry rankers. 
  * 
  * @author Logan Ward
  */
-public interface MultiobjectiveRanker {
+abstract public class MultiObjectiveEntryRanker extends EntryRanker {
 
     /**
      * Train the entry ranker. This may be necessary for multi-objective methods
@@ -23,13 +23,13 @@ public interface MultiobjectiveRanker {
      * of each property with their index to allow for faster operation of 
      * the {@linkplain EntryRanker#objectiveFunction(magpie.data.BaseEntry)}
      */
-    public void train(MultiPropertyDataset data);
+    abstract public void train(MultiPropertyDataset data);
     
     /**
      * Get properties currently used in objective functions.
      *
      * @return Array of properties currently in use
      */
-    public String[] getObjectives();
+    abstract public String[] getObjectives();
     
 }

@@ -24,7 +24,7 @@ import magpie.data.MultiPropertyDataset;
  * 
  * @author Logan Ward
  */
-public class PropertyFormulaRanker extends EntryRanker implements MultiobjectiveRanker {
+public class PropertyFormulaRanker extends MultiObjectiveEntryRanker {
     /** Engine used to evaluate formula */
     private Expr Evaluator = null;
     /** Holds links to the value of variables in the Expr formula */
