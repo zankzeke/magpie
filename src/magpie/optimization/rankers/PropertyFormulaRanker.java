@@ -24,7 +24,7 @@ import magpie.data.MultiPropertyDataset;
  * 
  * @author Logan Ward
  */
-public class PropertyFormulaRanker extends EntryRanker {
+public class PropertyFormulaRanker extends EntryRanker implements MultiobjectiveRanker {
     /** Engine used to evaluate formula */
     private Expr Evaluator = null;
     /** Holds links to the value of variables in the Expr formula */
@@ -48,6 +48,20 @@ public class PropertyFormulaRanker extends EntryRanker {
     @Override
     public String printUsage() {
         return "Usage: $<data template> <formula...>";
+    }
+
+    @Override
+    public void train(MultiPropertyDataset data) {
+        // Nothing to do
+    }
+    
+    @Override
+    public String[] getObjectives() {
+        String[] output = new String[Variables.size()];
+        for (int i=0; i < Variables.size(); i++) {
+            output[i] = Variables.get(i).name();
+        }
+        return output;
     }
     
     /**
