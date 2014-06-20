@@ -176,7 +176,7 @@ public class MultiObjectiveRegression extends BaseRegression {
         // Calculate the value of each property
         MultiPropertyDataset d = (MultiPropertyDataset) TrainData;
         for (String prop : ObjFunction.getObjectives()) {
-            if (! modelIsTrained(prop)) {
+            if (! modelIsDefined(prop)) {
                 try {
                     setModel(prop, GenericModel.clone());
                 } catch (Exception e) {
