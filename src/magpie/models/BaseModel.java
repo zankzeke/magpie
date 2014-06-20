@@ -178,8 +178,6 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
     public void train(Dataset TrainingData, boolean Record_Stats) {
         if (TrainingData.NEntries() == 0)
             throw new Error("ERROR: Training data does not contain any entries");
-        if (! TrainingData.getEntry(0).hasMeasurement())
-            throw new Error("ERROR: Dataset does not contain measured class");
         
         // Perform normalization, if needed
         if (Normalizer != null) {
