@@ -165,7 +165,9 @@ public class MultiPropertyDataset extends Dataset {
 
     /** 
      * Define which property to set as the measured class of each entry. Automatically
-     * set this as the target property for each entry.
+     * set this as the target property for each entry. Set to "-1" to use a variable 
+     * besides a measured property as the class variable. 
+     * 
      * Note: This removes entries which do not have this property defined. 
      * 
      * @param Index Index of the property to be used
@@ -176,16 +178,22 @@ public class MultiPropertyDataset extends Dataset {
         if (NEntries() > 0 && Index >= getEntry(0).NProperties())
             throw new Error("Critical Error: Entries have fewer properties than Dataset!");
         Iterator<BaseEntry> iter = Entries.iterator();
-        setClassNames(PClassNames.get(Index));
         TargetProperty = Index;
+        if (TargetProperty >= 0) {
+            setClassNames(PClassNames.get(Index));
+        }
         
         // Process the entries
         while (iter.hasNext()) {
             MultiPropertyEntry E = (MultiPropertyEntry) iter.next();
-            if (E.hasMeasuredProperty(Index)) {
-                E.setTargetProperty(Index);
+            if (TargetProperty >= 0) {
+                if (E.hasMeasuredProperty(Index)) {
+                    E.setTargetProperty(Index);
+                } else {
+                    iter.remove();
+                }
             } else {
-                iter.remove();
+                E.setTargetProperty(-1);
             }
         }
     }
