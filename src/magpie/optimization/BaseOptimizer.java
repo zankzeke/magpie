@@ -10,9 +10,11 @@ import java.util.Set;
 import java.util.TreeSet;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
+import magpie.data.MultiPropertyDataset;
 import magpie.optimization.rankers.EntryRanker;
 import magpie.optimization.analytics.OptimizationStatistics;
 import magpie.optimization.oracles.BaseOracle;
+import magpie.optimization.rankers.MultiObjectiveEntryRanker;
 import magpie.user.CommandHandler;
 import static magpie.user.CommandHandler.instantiateClass;
 import static magpie.user.CommandHandler.printImplmentingClasses;
@@ -250,8 +252,6 @@ abstract public class BaseOptimizer implements java.io.Serializable,
     public boolean hasStarted() {
         return HasStarted;
     }
-
-    ;
     
     /**
      * Throw an error if the algorithm has started.
@@ -357,6 +357,12 @@ abstract public class BaseOptimizer implements java.io.Serializable,
                 if (PrintStatus) {
                     System.out.print("\nGenerating list of new candidates...");
                 }
+                // If needed, train the optimization algorithm
+                if (ObjectiveFunction instanceof MultiObjectiveEntryRanker) {
+                    MultiObjectiveEntryRanker Ptr = (MultiObjectiveEntryRanker) ObjectiveFunction;
+                    Ptr.train((MultiPropertyDataset) getFullDataset(CurrentIteration));
+                }
+                
                 Dataset new_entries = getNewCandidates();
                 if (Candidates.size() != currentIteration()) {
                     throw new Exception("Candidates array incorrect size. Ensure getNewCandidates did not edit it.");
