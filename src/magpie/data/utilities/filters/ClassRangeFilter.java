@@ -19,7 +19,7 @@ import magpie.user.CommandHandler;
  * @author Logan Ward
  * @version 0.1
  */
-public class ClassVariableRangeFilter extends BaseDatasetFilter {
+public class ClassRangeFilter extends BaseDatasetFilter {
     /** Whether to use predicted or measured classes */
     boolean useMeasured;
     /** Keep entries inside range? */
