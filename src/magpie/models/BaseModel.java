@@ -27,7 +27,7 @@ import magpie.utility.interfaces.*;
  * 
  * <p><b><u>Implemented Commands:</u></b>
  * 
- * <command><p><b>train $&lt;dataset</b> - Train model using measured class values 
+ * <command><p><b>train $&lt;dataset&gt;</b> - Train model using measured class values 
  * <br><pr><i>dataset</i>: Dataset used to train this model</command>
  * 
  * <command><p><b>crossvalidate $&lt;dataset> [&lt;folds>]</b> - Crossvalidate model

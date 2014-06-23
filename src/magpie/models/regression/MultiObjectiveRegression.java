@@ -28,6 +28,9 @@ import magpie.user.CommandHandler;
  * 
  * <command><p><b>submodel</b> - Print type and status of model associated with each property</command>
  * 
+ * <command><p><b>&lt;model&gt; = submodel get &lt;property&gt;</b> - Get a model for a certain property
+ * <br><pr><i>property</i>: Name of property associated with model</command>
+ * 
  * <command><p><b>submodel set &lt;property&gt; $&lt;model&gt;</b> - Set a model for a certain property
  * <br><pr><i>property</i>: Name of property associated with model
  * <br><pr><i>model</i>: Regression model to use</command>

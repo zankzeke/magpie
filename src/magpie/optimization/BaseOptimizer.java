@@ -556,6 +556,11 @@ abstract public class BaseOptimizer implements java.io.Serializable,
 						throw new Exception();
 					}
 					FilterMethod = Command.get(2).toString();
+					if (FilterMethod.equalsIgnoreCase("?")) {
+						System.out.println("Available Filters:");
+						System.out.println(printImplmentingClasses(BaseDatasetFilter.class, false));
+						return;
+					}
 					FilterOptions = Command.subList(3, Command.size());
                 } catch (Exception e) {
                     throw new Exception("Usage: stats success <include|exclude> <filter method> <filter options...>");
