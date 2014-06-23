@@ -90,7 +90,7 @@ public class AdaptiveScalarizingEntryRanker extends MultiObjectiveEntryRanker {
                 objName = Options.get(pos++).toString();
                 
                 while ( pos < Options.size() &&
-                        Options.get(pos+1).toString().equalsIgnoreCase("-opt")) {
+                        ! Options.get(pos).toString().equalsIgnoreCase("-opt")) {
                     objOptions.add(Options.get(pos++));
                 }
             } catch (Exception e) {
@@ -107,7 +107,7 @@ public class AdaptiveScalarizingEntryRanker extends MultiObjectiveEntryRanker {
 
     @Override
     public String printUsage() {
-        return "<p> -obj <maximize|minimize> <property> <ranker name> [<ranker options...>] [-opt <...>]";
+        return "Usage: <p> -obj <maximize|minimize> <property> <ranker name> [<ranker options...>] [-opt <...>]";
     }
     
     
