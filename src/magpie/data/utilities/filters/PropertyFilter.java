@@ -14,8 +14,8 @@ import magpie.data.MultiPropertyDataset;
  * Filter entries based on a measured or predicted property. Requires the data to extend 
  *  {@linkplain MultiPropertyDataset}. 
  * 
- * <usage><p><b>Usage</b>: &lt;Target Property> &lt;Criteria> &lt;Threshold>
- * <br><pr>
+ * <usage><p><b>Usage</b>: &lt;measured|predicted&gt; &lt;Target Property> &lt;Criteria> &lt;Threshold>
+ * <br><pr><i>measured|predicted</i>: Whether to use the measured or predicted value
  * <br><pr><i>Target Property</i>: Property on which data is filtered
  * <br><pr><i>Criteria</i>: Comparison operator used to filter data. Can be: &lt;, &le;, >, &ge;, =, and &ne;
  * <br><pr><i>Threshold</i>: Value to which property is compared</usage>
