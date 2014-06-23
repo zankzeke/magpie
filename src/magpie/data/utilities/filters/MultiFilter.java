@@ -63,8 +63,15 @@ public class MultiFilter extends BaseDatasetFilter {
             } catch (Exception e) {
                 throw new Exception(printUsage());
             }
-			BaseDatasetFilter newFilter = (BaseDatasetFilter) CommandHandler.instantiateClass(
-					"data.utilities.filters." + filterName, filterOptions);
+            
+            // Instantiate the filter
+            BaseDatasetFilter newFilter;
+            try {
+                newFilter = (BaseDatasetFilter) CommandHandler.instantiateClass(
+                    	"data.utilities.filters." + filterName, filterOptions);
+            } catch (Exception e) {
+                throw new Exception(filterName + "-" + e.getLocalizedMessage());
+            }
 			newFilter.setExclude(! toInclude);
 			addFilter(newFilter);
         }
