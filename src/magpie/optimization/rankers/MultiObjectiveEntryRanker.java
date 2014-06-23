@@ -9,7 +9,12 @@ package magpie.optimization.rankers;
 import magpie.data.MultiPropertyDataset;
 
 /**
- * Base class for multi-objective entry rankers. 
+ * Base class for multi-objective entry rankers. Users need to specify the following operations:
+ * 
+ * <ul>
+ * <li>{@linkplain #train(magpie.data.MultiPropertyDataset) ) - Run necessary calculations
+ * <li>
+ * </ul>
  * 
  * @author Logan Ward
  */

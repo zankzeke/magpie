@@ -11,9 +11,11 @@ import java.util.Set;
 import java.util.TreeSet;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
+import magpie.data.MultiPropertyDataset;
 import magpie.data.utilities.filters.BaseDatasetFilter;
 import magpie.optimization.rankers.EntryRanker;
 import magpie.optimization.BaseOptimizer;
+import magpie.optimization.rankers.MultiObjectiveEntryRanker;
 import magpie.utility.interfaces.Printable;
 import org.apache.commons.math3.stat.StatUtils;
 
@@ -92,7 +94,9 @@ public class OptimizationStatistics implements java.io.Serializable, java.lang.C
             Generation.addAll(Optimizer.getGeneration(i).getEntries());
             Population.addAll(Generation);
             // Evaluate it
+            genDataset.clearData();
 			genDataset.addEntries(Generation);
+            popDataset.clearData();
 			popDataset.addEntries(Population);
             evaluateEntries(genDataset, popDataset, Optimizer.getObjectiveFunction(), i);
         }
@@ -109,7 +113,18 @@ public class OptimizationStatistics implements java.io.Serializable, java.lang.C
     protected void evaluateEntries(Dataset Generation,
             Dataset Population, EntryRanker Ranker, int IterationNumber) {
         Ranker.UseMeasured = true;
-        // Run the objective funciton on each population
+        
+        // If necessary, train the objective function on the total population
+        if (Ranker instanceof MultiObjectiveEntryRanker) {
+            MultiObjectiveEntryRanker p = (MultiObjectiveEntryRanker) Ranker;
+            if (! (Population instanceof MultiPropertyDataset)) {
+                throw new Error("Data must extend MultiPropertyDataset");
+            }
+            MultiPropertyDataset p2 = (MultiPropertyDataset) Population;
+            p.train(p2);
+        }
+        
+        // Run the objective function on each population
         double[] gen_obj = new double[Generation.NEntries()],
                 pop_obj = new double[Population.NEntries()];
         int i=0; Iterator<BaseEntry> iter = Generation.getEntries().iterator();
@@ -133,12 +148,16 @@ public class OptimizationStatistics implements java.io.Serializable, java.lang.C
         EvaluatedSoFar[IterationNumber] = Population.NEntries();
         
         // Check how many top entries have been found
-        for (i=0; i<NumberTopEntries; i++) {
-            BaseEntry Entry = TopEntries.getEntry(i);
-            if (Population.containsEntry(Entry)) TopEntriesFound[IterationNumber]++;
+        if (TopEntries != null) {
+            for (i=0; i<NumberTopEntries; i++) {
+                BaseEntry Entry = TopEntries.getEntry(i);
+                if (Population.containsEntry(Entry)) TopEntriesFound[IterationNumber]++;
+            }
         }
-        if (TopEntriesFound[IterationNumber] == NumberTopEntries)
+        
+        if (TopEntriesFound[IterationNumber] == NumberTopEntries) {
             FoundAll[IterationNumber] = true;
+        }
         
         // Check how many are successes {
 		if (SuccessFilter != null) {
@@ -159,11 +178,8 @@ public class OptimizationStatistics implements java.io.Serializable, java.lang.C
         Dataset SearchSpace = Optimizer.getInitialData().emptyClone();
         SearchSpace.addEntries(Optimizer.getSearchSpace());
         
-        // Check if we have measured entries
-        if (SearchSpace.getEntry(0).hasMeasurement())
-            setTopEntries(SearchSpace, Optimizer.getObjectiveFunction());
-        else // Otherwise, mark as null
-            TopEntries = null;
+        // Set top entries (may do nothing if no mesaured values)
+        setTopEntries(SearchSpace, Optimizer.getObjectiveFunction());
     }
     
     /**
@@ -172,10 +188,23 @@ public class OptimizationStatistics implements java.io.Serializable, java.lang.C
      * @param Ranker Objective function to use for ranking entries
      */
     protected void setTopEntries(Dataset SearchSpace, EntryRanker Ranker) {
-        int[] rank = Ranker.rankEntries(SearchSpace, true);
-        TopEntries = SearchSpace.emptyClone();
-        for (int i=0; i<NumberTopEntries; i++)
-            TopEntries.addEntry(SearchSpace.getEntry(rank[i]));
+        try {
+            // If necessary, train the objective function on the total population
+            if (Ranker instanceof MultiObjectiveEntryRanker) {
+                MultiObjectiveEntryRanker p = (MultiObjectiveEntryRanker) Ranker;
+                if (! (SearchSpace instanceof MultiPropertyDataset)) {
+                    throw new Error("Data must extend MultiPropertyDataset");
+                }
+                MultiPropertyDataset p2 = (MultiPropertyDataset) SearchSpace;
+                p.train(p2);
+            }
+            int[] rank = Ranker.rankEntries(SearchSpace, true);
+            TopEntries = SearchSpace.emptyClone();
+            for (int i=0; i<NumberTopEntries; i++)
+                TopEntries.addEntry(SearchSpace.getEntry(rank[i]));
+        } catch (Exception e) {
+            TopEntries = null;
+        }
     }
 
     /**

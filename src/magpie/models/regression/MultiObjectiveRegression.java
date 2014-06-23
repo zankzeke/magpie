@@ -18,7 +18,7 @@ import magpie.user.CommandHandler;
 
 /**
  * Employs multiple models, each designed to predict a different property that composes
- *  the class variable. Works hand-in-hand with a {@linkplain MultiObjectiveEntryRanker}.
+ *  the class variable. Works hand-in-hand with a {@link MultiObjectiveEntryRanker}.
  * 
  * <usage><p><b>Usage</b>: &lt;ranker method&gt; [&lt;ranker options...&gt;]
  * <br><pr><i>ranker method</i>: Multi-objective function ("?" for options)
