@@ -17,7 +17,7 @@ import magpie.data.MultiPropertyDataset;
  * Use a formula of several properties. Requires that entries are instances of
  *  {@linkplain MultiPropertyEntry}.
  * 
- * <usage><p><b>Usage</b>: $&lt;data template&gt; &lt;formula...&gt;
+ * <usage><p><b>Usage</b>: &lt;formula...&gt;
  * <pr><br><i>data template</i>: Template used to determine whether properties exist in dataset
  * <pr><br><i>formula</i>: Formula to use as objective function. Property names must be surrounded by #{}'s.
  * <br>Example formula: #{volume_pa} * #{bandgap}</usage>
@@ -33,6 +33,7 @@ public class PropertyFormulaRanker extends MultiObjectiveEntryRanker {
     private int[] PropertyIndex;
 
     @Override
+    @SuppressWarnings("CloneDeclaresCloneNotSupported")
     public PropertyFormulaRanker clone() {
         PropertyFormulaRanker x = (PropertyFormulaRanker) super.clone();
         x.PropertyIndex = PropertyIndex.clone();
@@ -42,17 +43,15 @@ public class PropertyFormulaRanker extends MultiObjectiveEntryRanker {
     @Override
     public void setOptions(List<Object> Options) throws Exception {
         String formula;
-        MultiPropertyDataset template;
         try {
-            template = (MultiPropertyDataset) Options.get(0);
-            formula = Options.get(1).toString();
-            for (int i=2; i<Options.size(); i++) {
+            formula = Options.get(0).toString();
+            for (int i=1; i<Options.size(); i++) {
                 formula += " " + Options.get(i).toString();
             }
         } catch (Exception e) {
             throw new Exception(printUsage());
         }
-        setFormula(template, formula);
+        setFormula(formula);
     }
     
     @Override
@@ -62,7 +61,14 @@ public class PropertyFormulaRanker extends MultiObjectiveEntryRanker {
 
     @Override
     public void train(MultiPropertyDataset data) {
-        // Nothing to do
+        // Ensure dataset contains those variables
+        PropertyIndex = new int[Variables.size()];
+        for (int i=0; i < Variables.size(); i++) {
+            PropertyIndex[i] = data.getPropertyIndex(Variables.get(i).name());
+            if (PropertyIndex[i] == -1) {
+                throw new Error("Dataset does not contain property: " + Variables.get(i).name());
+            }
+        }
     }
     
     @Override
@@ -78,19 +84,11 @@ public class PropertyFormulaRanker extends MultiObjectiveEntryRanker {
      * Define the formula used by this class. Names of properties used in the 
      *  calculation should be surrounded #{}'s.
      * @param formula Formula to be used
-     * @throws Exception If parsing failed or template does not contain 
+     * @throws Exception If parsing fails
      */
-    public void setFormula(MultiPropertyDataset template, String formula) throws Exception {
+    public void setFormula(String formula) throws Exception {
         // Find variables in the formula
         formula = extractVariables(formula);
-        // Ensure dataset contains those variables
-        PropertyIndex = new int[Variables.size()];
-        for (int i=0; i < Variables.size(); i++) {
-            PropertyIndex[i] = template.getPropertyIndex(Variables.get(i).name());
-            if (PropertyIndex[i] == -1) {
-                throw new Exception("Dataset does not contain property: " + Variables.get(i).name());
-            }
-        }
         
         // Generate the expression
         Parser Parser = new Parser();
