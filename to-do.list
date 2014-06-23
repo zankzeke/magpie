@@ -1,5 +1,4 @@
 Added-By	Added-On	Description	Progress	(Arranged by priority)
-Logan	3June14	Add in multiobjective optimization	Started by Logan. Have basics, need to add some good objective functions
 Logan   20June14    Add in a text command to evaluate a certain material. Method: Define an interface to BaseEntry that allows you to create an entry given a specially-formatted string. Work from there. Not Started
 Logan	5June14	Add in Ratio attributes (idea stolen from Vinay)	Not Started
 Logan	3June14	Ensure "Base" classes contain guides on how to implement them	Not started
