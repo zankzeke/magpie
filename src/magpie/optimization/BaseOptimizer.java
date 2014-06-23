@@ -4,6 +4,7 @@
  */
 package magpie.optimization;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -85,6 +86,10 @@ import magpie.utility.interfaces.Printable;
  * <br><pr><i>include|exclude</i>: Whether to include entries that pass the filter as a success
  * <br><pr><i>filter method</i>: Name of a dataset filter ("?" for options)
  * <br><pr><i>filter options...</i>: Any options for that filter</command>
+ * 
+ * <command><p><b>write generations &lt;directory&gt; &lt;format&gt;</b> - Write out the data from each generation
+ * <br><pr><i>directory</i>: Directory in which to save datasets
+ * <br><pr><i>format</i>: Format in which to write datasets</command>
  * 
  * <p><b><u>Available Print Command:</u></b>
  * 
@@ -443,25 +448,6 @@ abstract public class BaseOptimizer implements java.io.Serializable,
     }
 
     /**
-     * Save to file using serialization
-     *
-     * @param filename Desired filename
-     */
-    public void saveState(String filename) {
-        UtilityOperations.saveState(this, filename);
-    }
-
-    /**
-     * Load a new BaseOptimizer from a serialized file
-     *
-     * @param filename File to be loaded
-     * @return New instance loaded from file
-     */
-    public static BaseOptimizer loadState(String filename) {
-        return (BaseOptimizer) UtilityOperations.loadState(filename);
-    }
-
-    /**
      * Based on the current optimization state, return a list of new candidate entries
      *
      * @return Dataset of candidate entries
@@ -486,7 +472,6 @@ abstract public class BaseOptimizer implements java.io.Serializable,
         if (Command.isEmpty()) {
             return about();
         }
-
         switch (Command.get(0).toLowerCase()) {
             case "stats":
                 return Statistics.printResults();
@@ -512,10 +497,44 @@ abstract public class BaseOptimizer implements java.io.Serializable,
                 setComponent(Command.subList(1, Command.size())); break;
             case "stats":
                 runStatisticsCommand(Command.subList(1, Command.size())); break;
+            case "write":
+                runWriteCommand(Command.subList(1, Command.size())); break;
             default:
                 throw new Exception("ERROR: Optimizer command not recognized:" + Action);
         }
         return null;
+    }
+    
+    /**
+     * Run commands devoted to writing out data
+     * @param Command 
+     */
+    protected void runWriteCommand(List<Object> Command) throws Exception {
+        if (Command.isEmpty()) {
+            throw new Exception("Write commands must have at least one argument");
+        }
+        String Action = Command.get(0).toString().toLowerCase();
+        switch (Action) {
+            case "generations": {
+                if (Command.size() != 3) {
+                    throw new Exception("Usage: write generations <directory> <format>");
+                }
+                String directory = Command.get(1).toString();
+                String format = Command.get(2).toString();
+                
+                // Make the directory
+                new File(directory).mkdirs();
+                
+                // Write out the datafiles
+                InitialData.saveCommand(String.format("%s/%d", directory, 0), format);
+                Dataset tempData = InitialData.emptyClone();
+                for (int i=0; i<CurrentIteration; i++) {
+                    Candidates.get(i).saveCommand(String.format("%s/%d", directory, i+1), format);
+                }
+            }
+            default:
+                throw new Exception("Write command not recognized: " + Action);
+        }
     }
 
     /**
