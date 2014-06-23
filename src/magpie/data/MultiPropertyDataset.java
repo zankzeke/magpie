@@ -232,7 +232,7 @@ public class MultiPropertyDataset extends Dataset {
     }
     
     /**
-     * Get a certain measured property for all entries in the dataset. For entries
+     * Get measured values for a certain property for all entries in the dataset. For entries
      *  without a measurement for that property, will return NaN.
      * @param PropertyName Name of desired property
      * @return Array containing measured property for each entry.
@@ -246,7 +246,21 @@ public class MultiPropertyDataset extends Dataset {
     }
     
     /**
-     * Get a certain measured property for all entries in the dataset. For entries
+     * Get predicted values for a certain property for all entries in the dataset. For entries
+     *  without a prediction for that property, will return NaN.
+     * @param PropertyName Name of desired property
+     * @return Array containing predicted property for each entry.
+     */
+    public double[] getPredictedPropertyArray(String PropertyName) {
+        int ind = getPropertyIndex(PropertyName);
+        if (ind == -1) {
+            throw new Error("Dataset does not contain property: " + PropertyName);
+        }
+        return getPredictedPropertyArray(ind);
+    }
+    
+    /**
+     * Get the measured value for a certain property for all entries in the dataset. For entries
      *  without a measurement for that property, will return NaN.
      * @param Index Index of the desired property
      * @return Array containing measured property for each entry.
@@ -258,6 +272,23 @@ public class MultiPropertyDataset extends Dataset {
         double[] output = new double[NEntries()];
         for (int i=0; i<NEntries(); i++) {
             output[i] = getEntry(i).getMeasuredProperty(Index);
+        }
+        return output;
+    }
+    
+    /**
+     * Get the predicted value for a certain property for all entries in the dataset. For entries
+     *  without a measurement for that property, will return NaN.
+     * @param Index Index of the desired property
+     * @return Array containing predicted property for each entry.
+     */
+    public double[] getPredictedPropertyArray(int Index) {
+        if (Index < 0) throw new Error("Invalid property index: " + Index);
+        if (Index >= NProperties()) 
+            throw new Error("Requested property " + Index + " only " + NProperties() + " properties in dataset");
+        double[] output = new double[NEntries()];
+        for (int i=0; i<NEntries(); i++) {
+            output[i] = getEntry(i).getPredictedProperty(Index);
         }
         return output;
     }
