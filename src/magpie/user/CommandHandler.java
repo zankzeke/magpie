@@ -123,8 +123,9 @@ public class CommandHandler {
                 runCommandOnVariable(variableName, varCommand);
             }
         } catch (Exception e) {
-            if (Debug)
+            if (Debug) {
                 e.printStackTrace();
+            }
             System.err.println(e.getMessage());
             if (! Forgiving) 
                 System.exit(3);
