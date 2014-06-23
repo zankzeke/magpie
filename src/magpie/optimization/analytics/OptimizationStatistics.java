@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
+import magpie.data.utilities.filters.BaseDatasetFilter;
 import magpie.optimization.rankers.EntryRanker;
 import magpie.optimization.BaseOptimizer;
 import magpie.utility.interfaces.Printable;
@@ -24,8 +25,8 @@ import org.apache.commons.math3.stat.StatUtils;
  */
 public class OptimizationStatistics implements java.io.Serializable, java.lang.Cloneable, Printable {
     // ---> Settings
-    /** If set, will calculate fraction of entries past a certain threshold */
-    public double Threshold = Double.NaN;
+	/** Defines when an entry is considered successful */
+	protected BaseDatasetFilter SuccessFilter = null;
     /** Number of top entries to select */
     public int NumberTopEntries = 50;
     
@@ -49,26 +50,25 @@ public class OptimizationStatistics implements java.io.Serializable, java.lang.C
     public double[] GenerationBest = null;
     /** Best objective function of entries added by all previous generations */
     public double[] BestSoFar = null;
-    /** Number of entries higher/lower than a cutoff */
-    public int[] PastThreshold = null;
+    /** Number of entries pass a success filter */
+    public int[] NSuccess = null;
 
-    /**
-     * Define a threshold defining when an entry is a "hit". If the goal is to maximize 
-     *  the objective function, any entry above the threshold will be marked as 
-     *  a success. Vis versa for minimization.
-     * @param Threshold Desired threshold
-     */
-    public void setThreshold(double Threshold) {
-        this.Threshold = Threshold;
+	/** 
+	 * Define a filter to define when the optimization algorithm has found an acceptable 
+	 *  entry.
+	 * @param filter Desired filter
+	 */
+    public void setSuccessFilter(BaseDatasetFilter filter) {
+        this.SuccessFilter = filter;
     }
 
-    /**
-     * Define the number of top entries to hold for statistical purposes. 
-     * @param NumberTopEntries Desired number
-     */
-    public void setNumberTopEntries(int NumberTopEntries) {
-        this.NumberTopEntries = NumberTopEntries;
-    }
+	/**
+	 * Define the number of top entries to hold for statistical purposes.
+	 * @param NumberTopEntries Desired number
+	 */
+	public void setNumberTopEntries(int NumberTopEntries) {
+		this.NumberTopEntries = NumberTopEntries;
+	}
     
     /**
      * Evaluate the performance of an optimizer. Produces statistics for each iteration
@@ -84,13 +84,17 @@ public class OptimizationStatistics implements java.io.Serializable, java.lang.C
         // Evaluate each geneneration
         Set Generation = new TreeSet<>();
         Set Population = new TreeSet<>(Generation);
+		Dataset genDataset = Optimizer.getEmptyDataset(),
+			popDataset = Optimizer.getEmptyDataset();
         for (int i=0; i<=Optimizer.currentIteration(); i++) {
             // Get the new popoulation and generation
             Generation.clear();
             Generation.addAll(Optimizer.getGeneration(i).getEntries());
             Population.addAll(Generation);
             // Evaluate it
-            evaluateEntries(Generation, Population, Optimizer.getObjectiveFunction(), i);
+			genDataset.addEntries(Generation);
+			popDataset.addEntries(Population);
+            evaluateEntries(genDataset, popDataset, Optimizer.getObjectiveFunction(), i);
         }
     }
     
@@ -102,17 +106,17 @@ public class OptimizationStatistics implements java.io.Serializable, java.lang.C
      * @param Ranker Objective function used during optimization
      * @param IterationNumber Which iteration we are one
      */
-    protected void evaluateEntries(Set<BaseEntry> Generation,
-            Set<BaseEntry> Population, EntryRanker Ranker, int IterationNumber) {
+    protected void evaluateEntries(Dataset Generation,
+            Dataset Population, EntryRanker Ranker, int IterationNumber) {
         Ranker.UseMeasured = true;
         // Run the objective funciton on each population
-        double[] gen_obj = new double[Generation.size()],
-                pop_obj = new double[Population.size()];
-        int i=0; Iterator<BaseEntry> iter = Generation.iterator();
+        double[] gen_obj = new double[Generation.NEntries()],
+                pop_obj = new double[Population.NEntries()];
+        int i=0; Iterator<BaseEntry> iter = Generation.getEntries().iterator();
         while(iter.hasNext()) {
             gen_obj[i] = Ranker.objectiveFunction(iter.next()); i++;
         }
-        i=0; iter = Population.iterator();
+        i=0; iter = Population.getEntries().iterator();
         while(iter.hasNext()) {
             pop_obj[i] = Ranker.objectiveFunction(iter.next()); i++;
         }
@@ -126,23 +130,22 @@ public class OptimizationStatistics implements java.io.Serializable, java.lang.C
             GenerationBest[IterationNumber] = StatUtils.min(gen_obj);
         }
         GenerationAverage[IterationNumber] = StatUtils.mean(gen_obj);
-        EvaluatedSoFar[IterationNumber] = Population.size();
+        EvaluatedSoFar[IterationNumber] = Population.NEntries();
         
         // Check how many top entries have been found
         for (i=0; i<NumberTopEntries; i++) {
             BaseEntry Entry = TopEntries.getEntry(i);
-            if (Population.contains(Entry)) TopEntriesFound[IterationNumber]++;
+            if (Population.containsEntry(Entry)) TopEntriesFound[IterationNumber]++;
         }
         if (TopEntriesFound[IterationNumber] == NumberTopEntries)
             FoundAll[IterationNumber] = true;
         
-        // Check how many past a threshold
-        if (! Double.isNaN(Threshold))
-            for (i=0; i<pop_obj.length; i++) 
-                if (Ranker.MaximizeFunction && pop_obj[i] > Threshold) 
-                    PastThreshold[IterationNumber]++;
-                else if (! Ranker.MaximizeFunction && pop_obj[i] < Threshold)
-                    PastThreshold[IterationNumber]++;
+        // Check how many are successes {
+		if (SuccessFilter != null) {
+			Dataset popClone = Population.clone();
+			SuccessFilter.filter(popClone);
+			NSuccess[IterationNumber] = popClone.NEntries();
+		}
     }
     
     /**
@@ -188,8 +191,9 @@ public class OptimizationStatistics implements java.io.Serializable, java.lang.C
         TopEntriesFound = new int[NumberGenerations];
         FoundAll = new boolean[NumberGenerations];
         EvaluatedSoFar = new int[NumberGenerations];
-        if (! Double.isNaN(Threshold))
-            PastThreshold = new int[NumberGenerations];
+        if ( SuccessFilter != null) {
+            NSuccess = new int[NumberGenerations];
+		}
     }
     
     /**
@@ -213,7 +217,7 @@ public class OptimizationStatistics implements java.io.Serializable, java.lang.C
         String output = "IterationNumber  EvaluatedSoFar  BestSoFar";
         output += "  GenerationAverage  GenerationBest  TopEntriesFound";
         output += "  FoundAll";
-        if (! Double.isNaN(Threshold))
+        if (SuccessFilter != null)
             output+="  PastThreshold";
         return output;
     }
@@ -230,8 +234,9 @@ public class OptimizationStatistics implements java.io.Serializable, java.lang.C
         output += String.format("  %14.5f", GenerationBest[i]);
         output += String.format("  %15d", TopEntriesFound[i]);
         output += String.format("  %8d", FoundAll[i] ? 1 : 0);
-        if (! Double.isNaN(Threshold))
-            output += String.format("  %13d", PastThreshold[i]);
+        if (SuccessFilter != null) {
+            output += String.format("  %13d", NSuccess[i]);
+		}
         return output;
     }
     
@@ -246,8 +251,8 @@ public class OptimizationStatistics implements java.io.Serializable, java.lang.C
             x.GenerationBest = Arrays.copyOf(GenerationBest, IterationsEvaluated);
             x.TopEntriesFound = Arrays.copyOf(TopEntriesFound, IterationsEvaluated);
         }
-        if (! Double.isNaN(Threshold)) {
-            x.PastThreshold = Arrays.copyOf(PastThreshold, IterationsEvaluated);
+        if (SuccessFilter != null) {
+            x.NSuccess = Arrays.copyOf(NSuccess, IterationsEvaluated);
         }
         if (TopEntries != null) 
             x.TopEntries = TopEntries.clone();

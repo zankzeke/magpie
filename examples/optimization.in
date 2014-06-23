@@ -46,7 +46,7 @@ opt set model $model
 //  1. If the highest 10 entries have been found
 //  2. How many entries with f > 0.9 were found
 opt stats ntop 10
-opt stats threshold 0.9
+opt stats success include ClassFilter measured > 0.9
 
 // Run 
 opt run

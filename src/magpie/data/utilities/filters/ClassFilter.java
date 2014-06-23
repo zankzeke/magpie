@@ -43,9 +43,48 @@ public class ClassFilter extends BaseDatasetFilter {
 
     @Override
     public String printUsage() {
-        return "Usage: <Target Attribute> <Criteria> <Threshold>";
+        return "Usage: <measured|predicted> <Criteria> <Threshold>";
     }
+
+	/** 
+	 * Set the comparison threshold.
+	 * @param Threshold Desired threshold
+	 */
+	public void setThreshold(double Threshold) {
+		this.Threshold = Threshold;
+	}
     
+	/**
+	 * Define comparison operator. Can be &gt;, le, eq, "!=", and such.
+	 * @param operator Desired operator
+	 */
+	public void setComparisonOperator(String operator) throws Exception {
+		 switch(operator.toLowerCase()) {
+            case "eq": case "=": case "==":
+                Equal = true; GreaterThan = false; LessThan = false; break;
+            case "ne": case "!=": case "~=": case "<>":
+                Equal = false; GreaterThan = true; LessThan = true; break;
+            case "gt": case ">":
+                Equal = false; GreaterThan = true; LessThan = false; break;
+            case "ge": case ">=": case "=>":
+                Equal = true; GreaterThan = true; LessThan = false; break;
+            case "lt": case "<":
+                Equal = false; GreaterThan = false; LessThan = true; break;
+            case "le": case "<=": case "=<":
+                Equal = true; GreaterThan = false; LessThan = true; break;
+            default:
+                throw new Exception("Criteria \"" + operator + "\" not recognized.");
+        }
+	}
+
+	/**
+	 * Set whether to use the measured class variable.
+	 * @param value Desired setting
+	 */
+	public void setUseMeasured(boolean value) {
+		this.UseMeasured = value;
+	}
+	
     /**
      * Configure the filter by defining which entries should be kept
      * @param Measured Should be either measured or predicted
@@ -62,25 +101,10 @@ public class ClassFilter extends BaseDatasetFilter {
 			throw new Exception();
 		}
 		
-        try { this.Threshold = Double.parseDouble(Threshold); }
+        try { setThreshold(Double.parseDouble(Threshold)); }
         catch (NumberFormatException e) { throw new Exception("Error parsing Threshold: " + e); }
 		
-        switch(Criteria.toLowerCase()) {
-            case "eq": case "=": case "==":
-                Equal = true; GreaterThan = false; LessThan = false; break;
-            case "ne": case "!=": case "~=": case "<>":
-                Equal = false; GreaterThan = true; LessThan = true; break;
-            case "gt": case ">":
-                Equal = false; GreaterThan = true; LessThan = false; break;
-            case "ge": case ">=": case "=>":
-                Equal = true; GreaterThan = true; LessThan = false; break;
-            case "lt": case "<":
-                Equal = false; GreaterThan = false; LessThan = true; break;
-            case "le": case "<=": case "=<":
-                Equal = true; GreaterThan = false; LessThan = true; break;
-            default:
-                throw new Exception("Criteria \"" + Criteria + "\" not recognized.");
-        }
+		setComparisonOperator(Criteria);
     }
     
     /**

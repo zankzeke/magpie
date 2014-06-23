@@ -11,6 +11,7 @@ import java.util.TreeSet;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.data.MultiPropertyDataset;
+import magpie.data.utilities.filters.BaseDatasetFilter;
 import magpie.optimization.rankers.EntryRanker;
 import magpie.optimization.analytics.OptimizationStatistics;
 import magpie.optimization.oracles.BaseOracle;
@@ -79,8 +80,11 @@ import magpie.utility.interfaces.Printable;
  * <command><p><b>stats ntop &lt;number></b> - Control number of top entries to detect when evaluating algorithm performance
  * <br><pr><i>number</i>: Number of globally best-performing entries to check for after each generation</command>
  * 
- * <command><p><b>stats threshold &lt;value></b> - Control success threshold used when evaluating performance
- * <br><pr><i>value</i>: Value of objective function past which a candidate is a "successful" prediction</command>
+ * <command><p><b>stats success &lt;include|exclude> &lt;filter method&gt; [&lt;filter options...&gt;]</b> 
+ *	- Define a filter used to define when an entry is a "success"
+ * <br><pr><i>include|exclude</i>: Whether to include entries that pass the filter as a success
+ * <br><pr><i>filter method</i>: Name of a dataset filter ("?" for options)
+ * <br><pr><i>filter options...</i>: Any options for that filter</command>
  * 
  * <p><b><u>Available Print Command:</u></b>
  * 
@@ -226,6 +230,13 @@ abstract public class BaseOptimizer implements java.io.Serializable,
     public EntryRanker getObjectiveFunction() {
         return ObjectiveFunction;
     }
+	
+	/**
+	 * Get an empty dataset based on initial population.
+	 */
+	public Dataset getEmptyDataset() {
+		return InitialData.emptyClone();
+	}
 
     /**
      * Set the number of new entries created per iteration
@@ -525,22 +536,35 @@ abstract public class BaseOptimizer implements java.io.Serializable,
                 try {
                     value = Integer.parseInt(Command.get(1).toString());
                 } catch (Exception e) {
-                    throw new Exception("Usage: <optimizer> stats ntop <#>");
+                    throw new Exception("Usage: stats ntop <#>");
                 }
                 Statistics.setNumberTopEntries(value);
                 System.out.println("\tSet number of top entries to " + value);
                 evaluate();
             }
             break;
-            case "threshold": {
-                double value;
+            case "success": {
+                boolean ToExclude;
+				String FilterMethod;
+				List<Object> FilterOptions;
                 try {
-                    value = Double.valueOf(Command.get(1).toString());
+                    if (Command.get(1).toString().equalsIgnoreCase("include")) {
+						ToExclude = false;
+					} else if (Command.get(1).toString().equalsIgnoreCase("exclude")) {
+						ToExclude = true;
+					} else {
+						throw new Exception();
+					}
+					FilterMethod = Command.get(2).toString();
+					FilterOptions = Command.subList(3, Command.size());
                 } catch (Exception e) {
-                    throw new Exception("Usage: <optimizer> stats threshold <#>");
+                    throw new Exception("Usage: stats success <include|exclude> <filter method> <filter options...>");
                 }
-                Statistics.setThreshold(value);
-                System.out.println("\tSet success threshold to " + value);
+				BaseDatasetFilter filter = (BaseDatasetFilter) instantiateClass(
+						"data.utilities.filters." + FilterMethod, FilterOptions);
+				filter.setExclude(ToExclude);
+				Statistics.setSuccessFilter(filter);
+                System.out.println("\tDefined a " + FilterMethod + " as the success filter");
                 evaluate();
             }
             break;
