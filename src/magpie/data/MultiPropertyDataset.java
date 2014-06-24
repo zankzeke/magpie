@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeSet;
+import magpie.data.utilities.DatasetOutput;
 
 /**
  * Dataset that can store multiple properties for each entry. User can define the names
@@ -21,6 +22,10 @@ import java.util.TreeSet;
  * <command><p><b>target &lt;name></b> - Set class variable to be a certain property
  * <br><pr><i>name</i>: Name of property to use as class variable
  * Any entries without this property will be removed from the dataset.</command>
+ * 
+ * <p><b><u>Implemented Save Formats:</u>
+ * 
+ * <save><p><b>prop</b>: Print out the measured and predicted properties</save>
  * 
  * @author Logan Ward
  * @version 0.1
@@ -63,6 +68,14 @@ public class MultiPropertyDataset extends Dataset {
      */
     public int NProperties() {
         return PNames.size();
+    }
+    
+    /**
+     * Get the names of each property stored in this dataset.
+     * @return Array containing property names
+     */
+    public String[] getPropertyNames() {
+        return PNames.toArray(new String[0]);
     }
 
     @Override
@@ -325,5 +338,19 @@ public class MultiPropertyDataset extends Dataset {
             return null;
         }
         return super.runCommand(Command); 
-    }    
+    }
+
+    @Override
+    public String saveCommand(String Basename, String Format) throws Exception {
+        switch (Format.toLowerCase()) {
+            case "prop": {
+                DatasetOutput.saveProperties(this, Basename + ".prop");
+                return Basename + ".prop";
+            }
+            default:
+                return super.saveCommand(Basename, Format);
+        }
+    }
+    
+    
 }

@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
+import magpie.data.MultiPropertyDataset;
+import magpie.data.MultiPropertyEntry;
 import magpie.optimization.rankers.EntryRanker;
 import org.apache.commons.math3.stat.StatUtils;
 
@@ -250,5 +252,46 @@ abstract public class DatasetOutput extends Dataset {
         } catch (Exception e) {
             throw new Error(e);
         }
+    }
+    
+    /**
+     * Writes a comma-delimited file containing measured and predicted properties.
+     *  Format is something like:
+     * 
+     * <center>Entry, Property1_Measured, Property1_Predicted, [...]</center>
+     * 
+     * @param data Dataset to be printed
+     * @param filename Path to desired output
+     */
+    static public void saveProperties(MultiPropertyDataset data, String filename) {
+        // Open the file writer
+        PrintWriter fp;
+        try {
+            fp = new PrintWriter(new BufferedWriter(new FileWriter(filename)));
+        } catch (IOException e) {
+            throw new Error(e);
+        }
+        
+        // Print out the commands
+        fp.print("Entry,");
+        for (String property: data.getPropertyNames()) {
+            fp.print(String.format("%s_measured,%s_predicted,", property, property));
+        }
+        fp.println();
+        
+        // Print out the data
+        for (BaseEntry entry : data.getEntries()) {
+            fp.print(entry.toString() + ",");
+            MultiPropertyEntry ptr = (MultiPropertyEntry) entry;
+            for (int i=0; i<data.NProperties(); i++) {
+                String m = ptr.hasMeasuredProperty(i) ? 
+                        String.format("%.7e", ptr.getMeasuredProperty(i)) : "None";
+                String p = ptr.hasPredictedProperty(i) ? 
+                        String.format("%.7e", ptr.getPredictedProperty(i)) : "None";
+                fp.format("%s,%s,",m,p);
+            }
+            fp.println();
+        }
+        fp.close();
     }
 }
