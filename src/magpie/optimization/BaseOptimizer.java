@@ -531,7 +531,7 @@ abstract public class BaseOptimizer implements java.io.Serializable,
                 for (int i=0; i<CurrentIteration; i++) {
                     Candidates.get(i).saveCommand(String.format("%s/%d", directory, i+1), format);
                 }
-            }
+            } break;
             default:
                 throw new Exception("Write command not recognized: " + Action);
         }
