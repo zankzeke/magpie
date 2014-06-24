@@ -1,0 +1,67 @@
+<!-- 
+    Simple script to build this project with Ant
+    
+    To build Magpie:
+        1. Rename this file "build.xml"
+        2. Call: ant jar
+    
+    The code can then be run by the command:
+        java -jar dist/Magpie.jar
+        
+    Note: The entire "dist" folder must be copied in
+        order to run Magpie (fixed classpath)
+    
+    Author: Logan Ward
+    Date: 2 June 2014
+-->
+
+<project>
+        <!-- Variables to contol -->
+        <property name="lib.dir" value="required-libraries"/>
+
+        <!-- Derived variables -->
+        <path id="classpath">
+                <fileset dir="${lib.dir}" includes="*.jar"/>
+        </path>
+
+        <target name="clean">
+                <delete dir="build"/>
+                <delete dir="dist"/>
+        </target>
+
+        <target name="compile">
+                <mkdir dir="build/classes"/>
+                <javac srcdir="src" destdir="build/classes" classpathref="classpath"/>
+        </target>
+
+        <target name="jar" depends="compile">
+                <!-- Process classpath -->
+                <mkdir dir="dist/"/>
+                <copy todir="lib">
+                        <fileset dir="${lib.dir}"/>
+                </copy>
+                <path id="dist-classpath">
+                        <fileset dir="dist/lib/" includes="*.jar"/>
+                </path>
+                <move file="lib" todir="dist/"/>
+                <manifestclasspath property="jar.classpath" jarfile="dist/Magpie.jar">
+                        <classpath refid="dist-classpath"/>
+                </manifestclasspath>
+
+                <!-- Compile Jar -->
+
+                <jar destfile="dist/Magpie.jar" basedir="build/classes">
+                        <manifest>
+                                <attribute name="Main-Class" value="magpie.Magpie"/>
+                                <attribute name="Class-Path" value="${jar.classpath}"/>
+                        </manifest>
+                </jar>
+        </target>
+
+	<target name="javadoc">
+		<javadoc sourcepath="src" destdir="javadoc"
+			author="false"
+			version="false"
+			/>
+	</target>
+</project>
