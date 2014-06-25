@@ -80,7 +80,7 @@ public class MultiPropertyEntry extends BaseEntry {
         MeasuredProperty = ArrayUtils.add(MeasuredProperty, measuredValue);
         
         // Add in new predicted property
-        if (predictedValue == Double.NaN)
+        if (Double.isNaN(predictedValue))
             PredictedProperty = ArrayUtils.add(PredictedProperty, null);
         else 
             PredictedProperty = ArrayUtils.add(PredictedProperty, new double[]{predictedValue});
