@@ -296,7 +296,7 @@ public class CompositionEntry extends MultiPropertyEntry {
     /**
      * Get the maximum of an elemental property
      * @param Lookup Lookup table of elemental properties
-     * @return Maximum of the property amongst all available properties
+     * @return Maximum of the property amongst all elements in the composition
      */
     public double getMaximum(double[] Lookup) {
         double x=Lookup[Element[0]];
@@ -308,7 +308,7 @@ public class CompositionEntry extends MultiPropertyEntry {
     /**
      * Get the minimum of an elemental property
      * @param Lookup Lookup table of elemental properties
-     * @return Minimum of the property amongst all available properties
+     * @return Minimum of the property amongst all elements in the compound
      */
     public double getMinimum(double[] Lookup) {
         double x=Lookup[Element[0]];
@@ -321,7 +321,7 @@ public class CompositionEntry extends MultiPropertyEntry {
      * Get the elemental property of the most-prevalent element. If multiple elements are
      *  equally prevalent, returns the average of their properties.
      * @param Lookup Lookup table of elemental properties
-     * @return MeasuredProperty of the most-prevalent element
+     * @return Property of the most-prevalent element
      */
     public double getMost(double[] Lookup) {
         // Special case
