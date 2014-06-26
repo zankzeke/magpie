@@ -121,7 +121,7 @@ public class MultiObjectiveRegression extends BaseRegression {
         if (! (model instanceof AbstractRegressionModel)) {
             throw new Exception("Error: Model must be a regression model.");
         }
-        Models.put(propertyName, model);
+        Models.put(propertyName, model.clone());
     }
 
     /**
@@ -132,7 +132,7 @@ public class MultiObjectiveRegression extends BaseRegression {
         if (! (model instanceof AbstractRegressionModel)) {
             throw new Exception("Error: Model must be a regression model.");
         }
-        this.GenericModel = model;
+        this.GenericModel = model.clone();
     }
     
     /**
