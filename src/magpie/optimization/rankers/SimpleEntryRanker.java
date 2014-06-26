@@ -31,7 +31,7 @@ public class SimpleEntryRanker extends EntryRanker {
     
     @Override 
     public double objectiveFunction(BaseEntry Entry) {
-            if (UseMeasured) return Entry.getMeasuredClass();
+            if (isUsingMeasured()) return Entry.getMeasuredClass();
             else return Entry.getPredictedClass();
     }
 }

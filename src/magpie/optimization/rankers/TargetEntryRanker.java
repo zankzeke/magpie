@@ -52,7 +52,7 @@ public class TargetEntryRanker extends EntryRanker {
     @Override 
     public double objectiveFunction(BaseEntry Entry) {
         double error;
-        if (UseMeasured) error = Entry.getMeasuredClass()-Target;
+        if (isUsingMeasured()) error = Entry.getMeasuredClass()-Target;
         else error = Entry.getPredictedClass()-Target;
         return Math.abs(error);
     }

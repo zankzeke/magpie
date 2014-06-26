@@ -22,9 +22,9 @@ import magpie.utility.interfaces.Options;
  */
 abstract public class EntryRanker implements java.lang.Cloneable, Options {
     /** Whether to maximize or minimize the objective function */
-    protected boolean MaximizeFunction = false; 
+    private boolean MaximizeFunction = false; 
     /** Whether to use the measured or predicted class variable */
-    protected boolean UseMeasured = false;
+    private boolean UseMeasured = false;
 
     @Override
     @SuppressWarnings("CloneDeclaresCloneNotSupported")
@@ -128,9 +128,9 @@ abstract public class EntryRanker implements java.lang.Cloneable, Options {
      */
     public int[] rankEntries(Dataset Data, boolean useMeasured) {
         boolean original = UseMeasured;
-        this.UseMeasured = useMeasured;
+        this.setUseMeasured(useMeasured);
         int[] ranks = rankEntries(Data);
-        this.UseMeasured = original;
+        this.setUseMeasured(original);
         return ranks;
     }
 }

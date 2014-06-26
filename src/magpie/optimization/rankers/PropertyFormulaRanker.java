@@ -144,7 +144,7 @@ public class PropertyFormulaRanker extends MultiObjectiveEntryRanker {
         }
         MultiPropertyEntry e = (MultiPropertyEntry) Entry;
         for (int i=0; i<Variables.size(); i++) {
-            double x = UseMeasured ? e.getMeasuredProperty(PropertyIndex[i]) 
+            double x = isUsingMeasured() ? e.getMeasuredProperty(PropertyIndex[i]) 
                 : e.getPredictedProperty(PropertyIndex[i]);
             Variables.get(i).setValue(x);
         }
