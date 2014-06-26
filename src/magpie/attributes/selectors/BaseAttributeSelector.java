@@ -61,6 +61,7 @@ abstract public class BaseAttributeSelector implements java.io.Serializable,
     /**
      * Operation that actually does the work for training. Must generate a list 
      *  of attribute IDs and store it in {@link #Attribute_ID}.
+     * @param Data Dataset used to train selector
      */
     abstract protected void train_protected(Dataset Data);
     

@@ -13,8 +13,8 @@ import magpie.utility.interfaces.Options;
  *  attributes. Implementing subclasses need to provide the following operations:
  * <ul>
  * <li>{@linkplain #evaluateAttributes_internal(magpie.data.Dataset)} - Calculate predictive power of attributes
- * <li>{@linkplain #positiveIsBetter()} - Whether a more positive predictive power is better
- * <li>{@linkplain #setOptions(java.lang.String[]) } - Set options (if necessary)
+ * <li>{@linkplain #positiveIsBetter()} - Whether a more positive parameter means better predictive ability
+ * <li>{@linkplain #setOptions(java.lang.String[]) } - Set any necessary options
  * </ul>
  * @author Logan Ward
  * @version 0.1

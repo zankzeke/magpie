@@ -18,6 +18,10 @@ import org.apache.commons.math3.stat.StatUtils;
  * This class stores basic statistics about model performance and contains methods 
  * to calculate each of these statistics.
  * 
+ * Implementations of this case need to supply {@linkplain #evaluate(magpie.data.Dataset)}, 
+ *  which actually performs the statistical calculations. It is also up to the implementation
+ *  to provide some way of storing results and printing them using the toString() operation.
+ * 
  * <usage><p><b>Usage</b>: *No options to set*</usage>
  * 
  * <p><b><u>Implemented Commands:</u></b>
