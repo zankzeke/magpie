@@ -99,8 +99,8 @@ public class AdaptiveScalarizingEntryRanker extends MultiObjectiveEntryRanker {
             
             EntryRanker obj = (EntryRanker) CommandHandler.instantiateClass(
                     "optimization.rankers." + objName, objOptions);
-            obj.MaximizeFunction = toMaximize;
-            obj.UseMeasured = true;
+            obj.setMaximizeFunction(toMaximize);
+            obj.setUseMeasured(true);
             addObjectiveFunction(property, obj);
         }
     }
@@ -109,7 +109,14 @@ public class AdaptiveScalarizingEntryRanker extends MultiObjectiveEntryRanker {
     public String printUsage() {
         return "Usage: <p> -obj <maximize|minimize> <property> <ranker name> [<ranker options...>] [-opt <...>]";
     }
-    
+
+	@Override
+	public void setUseMeasured(boolean useMeasured) {
+		for (EntryRanker ranker : ObjectiveFunction.values()) {
+			ranker.setUseMeasured(useMeasured);
+		}
+		super.setUseMeasured(useMeasured); //To change body of generated methods, choose Tools | Templates.
+	}
     
 
     /**
@@ -207,7 +214,7 @@ public class AdaptiveScalarizingEntryRanker extends MultiObjectiveEntryRanker {
         for (EntryRanker obj : ObjectiveFunction.values()) {
             p.setTargetProperty(PropertyIndex[pos]);
             f[pos] = obj.objectiveFunction(Entry);
-            f[pos] = obj.MaximizeFunction ? 
+            f[pos] = obj.isMaximizing() ? 
                     (ObjectiveMaximum[pos] - f[pos])
                     : (f[pos] - ObjectiveMinimum[pos]);
             f[pos] /= ObjectiveMaximum[pos] - ObjectiveMinimum[pos];
