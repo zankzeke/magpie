@@ -527,7 +527,6 @@ abstract public class BaseOptimizer implements java.io.Serializable,
                 
                 // Write out the datafiles
                 InitialData.saveCommand(String.format("%s/%d", directory, 0), format);
-                Dataset tempData = InitialData.emptyClone();
                 for (int i=0; i<CurrentIteration; i++) {
                     Candidates.get(i).saveCommand(String.format("%s/%d", directory, i+1), format);
                 }
@@ -637,8 +636,8 @@ abstract public class BaseOptimizer implements java.io.Serializable,
                 }
                 // Make the ranker, attach it
                 EntryRanker objFun = (EntryRanker) instantiateClass("optimization.rankers." + Method, Options);
-                objFun.UseMeasured = true;
-                objFun.MaximizeFunction = toMaximize;
+                objFun.setUseMeasured(true);
+                objFun.setMaximizeFunction(toMaximize);
                 setObjectiveFunction(objFun);
                 System.out.println("\tDefined objective function to be a " + Method);
             }

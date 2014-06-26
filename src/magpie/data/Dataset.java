@@ -1107,8 +1107,8 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                         throw new Exception("Usage: <dataset> rank <number> <maximum|minimum> <measured|predicted> <method> [<options>]");
                     }
                     EntryRanker Ranker = (EntryRanker) instantiateClass("magpie.optimization.rankers." + Method, Options);
-                    Ranker.MaximizeFunction = maximize;
-                    Ranker.UseMeasured = measured;
+                    Ranker.setMaximizeFunction(maximize);
+                    Ranker.setUseMeasured(measured);
                     System.out.println(DatasetOutput.printTopEntries(this, Ranker, numberToPrint));
                 }
                 break;

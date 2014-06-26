@@ -68,27 +68,27 @@ abstract public class DatasetOutput extends Dataset {
         
         // Prepare the header
         String output= String.format("%5s\t%32s", "Rank", "Entry");
-        if (Ranker.UseMeasured) output += String.format("\t%10s","Measured");
+        if (Ranker.isUsingMeasured()) output += String.format("\t%10s","Measured");
         else output += String.format("\t%10s","Predicted");
         
         // Get the predicted/measured value, if available
         boolean extra = false;
         double[] extra_values = null;
-        if (Ranker.UseMeasured) {
+        if (Ranker.isUsingMeasured()) {
             if (Data.getEntry(0).hasPrediction()) {
                 extra = true;
                 output += String.format("\t%10s","Predicted");
-                Ranker.UseMeasured = false;
+                Ranker.setUseMeasured(false);
                 extra_values = Ranker.runObjectiveFunction(Data);
-                Ranker.UseMeasured = true;
+                Ranker.setUseMeasured(true);
             }
         } else {
             if (Data.getEntry(0).hasPrediction()) {
                 extra = true;
                 output += String.format("\t%10s","Measured");
-                Ranker.UseMeasured = true;
+                Ranker.setUseMeasured(true);
                 extra_values = Ranker.runObjectiveFunction(Data);
-                Ranker.UseMeasured = false;
+                Ranker.setUseMeasured(false);
             }
         }
         output+="\n";

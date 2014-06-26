@@ -86,7 +86,7 @@ public class ObjectiveFunctionSplitter extends BaseDatasetSplitter {
      */
     public void setObjectiveFunction(EntryRanker objFun) {
         this.objFun = objFun;
-        this.objFun.UseMeasured = true;
+        this.objFun.setUseMeasured(true);
     }
 
     @Override

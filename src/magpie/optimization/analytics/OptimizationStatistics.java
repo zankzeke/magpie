@@ -112,7 +112,7 @@ public class OptimizationStatistics implements java.io.Serializable, java.lang.C
      */
     protected void evaluateEntries(Dataset Generation,
             Dataset Population, EntryRanker Ranker, int IterationNumber) {
-        Ranker.UseMeasured = true;
+        Ranker.setUseMeasured(true);
         
         // If necessary, train the objective function on the total population
         if (Ranker instanceof MultiObjectiveEntryRanker) {
@@ -137,7 +137,7 @@ public class OptimizationStatistics implements java.io.Serializable, java.lang.C
         }
         
         // Now, gather the statistics
-        if (Ranker.MaximizeFunction) {
+        if (Ranker.isMaximizing()) {
             BestSoFar[IterationNumber] = StatUtils.max(pop_obj);
             GenerationBest[IterationNumber] = StatUtils.max(gen_obj);
         } else {

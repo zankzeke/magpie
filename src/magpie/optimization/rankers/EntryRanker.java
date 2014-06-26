@@ -22,9 +22,9 @@ import magpie.utility.interfaces.Options;
  */
 abstract public class EntryRanker implements java.lang.Cloneable, Options {
     /** Whether to maximize or minimize the objective function */
-    public boolean MaximizeFunction = false; 
+    protected boolean MaximizeFunction = false; 
     /** Whether to use the measured or predicted class variable */
-    public boolean UseMeasured = false;
+    protected boolean UseMeasured = false;
 
     @Override
     @SuppressWarnings("CloneDeclaresCloneNotSupported")
@@ -37,9 +37,37 @@ abstract public class EntryRanker implements java.lang.Cloneable, Options {
         }
         return x;
     }
+
+	/**
+	 * Set whether to used measured (or predicted) class values
+	 * @param useMeasured Desired option
+	 */
+	public void setUseMeasured(boolean useMeasured) {
+		this.UseMeasured = useMeasured;
+	}
+	
+	/**
+	 * @return Whether this ranker is using measured or predicted class variables
+	 */
+	public boolean isUsingMeasured() {
+		return UseMeasured;
+	}
     
-    
-    
+	/**
+	 * Set whether this entry ranker will maximize objective function
+	 * @param toMaximize Whether to maximize function
+	 */
+    public void setMaximizeFunction(boolean toMaximize) {
+		this.MaximizeFunction = toMaximize;
+	}
+	
+	/**
+	 * @return Whether the goal is to maximize the objective
+	 */
+	public boolean isMaximizing() {
+		return MaximizeFunction;
+	}
+	
     /** 
      * Some kind of objective function that returns a double when given an entry.<br>
      * <p>NOTE: This function needs to support using either the measured or predicted

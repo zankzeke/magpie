@@ -192,7 +192,7 @@ public class MultiObjectiveRegression extends BaseRegression {
         }
         
         // Ensure the measured composite value is calculated for each entry
-        ObjFunction.UseMeasured = true;
+        ObjFunction.setUseMeasured(true);
         ObjFunction.train(d);
         d.setTargetProperty(-1); // Preparing to store target variable
         for (int i=0; i<d.NEntries(); i++) {
@@ -212,7 +212,7 @@ public class MultiObjectiveRegression extends BaseRegression {
         }
         
         // Ensure the measured composite value is calculated for each entry
-        ObjFunction.UseMeasured = false;
+        ObjFunction.setUseMeasured(false);
         d.setTargetProperty(-1); // Prepare to store target variable
         for (int i=0; i<d.NEntries(); i++) {
             d.getEntry(i).setPredictedClass(ObjFunction.objectiveFunction(d.getEntry(i)));

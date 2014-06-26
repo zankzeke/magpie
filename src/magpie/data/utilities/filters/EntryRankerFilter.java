@@ -30,9 +30,9 @@ public class EntryRankerFilter extends BaseDatasetFilter {
     /** Entry ranking method */
     private EntryRanker Ranker;
     /** Whether to select the maximum or minimum values */
-    boolean Maximize;
+    private boolean Maximize;
     /** Whether to use the selected or predicted class */
-    boolean Measured;
+    private boolean Measured;
 
     @Override
     public void setOptions(List<Object> OptionsObj) throws Exception {
@@ -63,8 +63,8 @@ public class EntryRankerFilter extends BaseDatasetFilter {
         
         // Make the EntryRanker
         Ranker = (EntryRanker) CommandHandler.instantiateClass("optimization.rankers." + RankingMethod, MethodOptions);
-        Ranker.MaximizeFunction = Maximize;
-        Ranker.UseMeasured = Measured;
+        Ranker.setMaximizeFunction(Maximize);
+        Ranker.setUseMeasured(Measured);
     }
 
     @Override
