@@ -701,8 +701,6 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
     public Object runCommand(List<Object> Command) throws Exception {
         String Action = Command.get(0).toString();
         switch (Action.toLowerCase()) {
-            case "property": case "properties":
-                return runPropertyCommand(Command.subList(1, Command.size()));
             default:
                 return super.runCommand(Command); 
         }
