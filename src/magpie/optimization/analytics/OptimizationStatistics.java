@@ -20,7 +20,8 @@ import magpie.utility.interfaces.Printable;
 import org.apache.commons.math3.stat.StatUtils;
 
 /**
- * Basic statistics and analysis methods for optimization algorithms.
+ * Basic statistics about the performance optimization algorithms. Useful in cases
+ *  where the correct answers both are known and yet-undiscovered.
  * 
  * @author Logan Ward
  * @version 1.0
@@ -33,27 +34,34 @@ public class OptimizationStatistics implements java.io.Serializable, java.lang.C
     public int NumberTopEntries = 50;
     
     // ---> Things from the dataset
-    /** A list of top entries that your algorithm is designed to find */
+    /** A list of top entries that optimization algorithm is designed to find. 
+	 * Only used if the search space associated with the algorithm being evaluated
+	 *  contains the measured properties of each possible candidate.
+	 */
     protected Dataset TopEntries = null;
+	/** A list of entries that pass the SuccessFilter (if defined) */
+	protected Dataset SuccessfulEntries = null;
     
     
     // ---> Results
     /** Number of iterations that have been evaluated */
-    public int IterationsEvaluated = 0;
+    protected int IterationsEvaluated = 0;
     /** Number of entries that have been evaluated so far */
-    public int[] EvaluatedSoFar = null;
+    protected int[] EvaluatedSoFar = null;
     /** Number of top entries found in the population for each iteration */
-    public int[] TopEntriesFound = null;
+    protected int[] TopEntriesFound = null;
     /** Whether all of the top entries have been found */
-    public boolean[] FoundAll = null;
+    protected boolean[] FoundAllTop = null;
     /** Average objective function of entries added by the previous generation */
-    public double[] GenerationAverage = null;
+    protected double[] GenerationAverage = null;
     /** Best objective function of entries added by the previous generation */
-    public double[] GenerationBest = null;
+    protected double[] GenerationBest = null;
     /** Best objective function of entries added by all previous generations */
-    public double[] BestSoFar = null;
+    protected double[] BestSoFar = null;
     /** Number of entries pass a success filter */
-    public int[] NSuccess = null;
+    protected int[] NSuccess = null;
+	/** Whether all successful entries have been found */
+	protected boolean[] FoundAllSuccess = null;
 
 	/** 
 	 * Define a filter to define when the optimization algorithm has found an acceptable 
@@ -77,8 +85,8 @@ public class OptimizationStatistics implements java.io.Serializable, java.lang.C
      * @param Optimizer Optimization run to be analyzed
      */
     public void evaluate(BaseOptimizer Optimizer) {
-        // If not set already, find the top entries from this run
-        setTopEntries(Optimizer);
+        // If answers to this optimization problem are known, find them
+        collectAnswers(Optimizer);
         
         // Allocate arrays for results
         allocateResults(Optimizer.currentIteration() + 1);
@@ -156,56 +164,89 @@ public class OptimizationStatistics implements java.io.Serializable, java.lang.C
         }
         
         if (TopEntriesFound[IterationNumber] == NumberTopEntries) {
-            FoundAll[IterationNumber] = true;
+            FoundAllTop[IterationNumber] = true;
         }
         
-        // Check how many are successes {
+        // Calculate how many "successes" have been found
 		if (SuccessFilter != null) {
 			Dataset popClone = Population.clone();
 			SuccessFilter.filter(popClone);
 			NSuccess[IterationNumber] = popClone.NEntries();
+			if (SuccessfulEntries != null) {
+				FoundAllSuccess[IterationNumber] = true;
+				for (BaseEntry e : SuccessfulEntries.getEntries()) {
+					if (! Population.containsEntry(e)) {
+						FoundAllSuccess[IterationNumber] = false;
+						break;
+					}
+				}
+			}
 		}
     }
     
     /**
-     * Get a list of the top entries from the Optimizer. If the search space has measured
-     *  properties, extract the top 
+     * If answers to optimization problem are already known, collect them. This requires
+	 * that the optimizer being evaluated has measured properties in the search space.
      * 
      * @param Optimizer Optimization run to draw results from
      */
-    protected void setTopEntries(BaseOptimizer Optimizer) {
+    protected void collectAnswers(BaseOptimizer Optimizer) {
         // Get the search space
-        Dataset SearchSpace = Optimizer.getInitialData().emptyClone();
-        SearchSpace.addEntries(Optimizer.getSearchSpace());
+        Dataset searchSpace = Optimizer.getInitialData().emptyClone();
+        searchSpace.addEntries(Optimizer.getSearchSpace());
         
         // Set top entries (may do nothing if no mesaured values)
-        setTopEntries(SearchSpace, Optimizer.getObjectiveFunction());
+        findTopEntries(searchSpace, Optimizer.getObjectiveFunction());
+		
+		// Find entries that pass the success filter, if defined
+		findSuccesses(searchSpace);
     }
     
     /**
      * Set the top entry list with a known list
-     * @param SearchSpace Search space from which to pull top entries
-     * @param Ranker Objective function to use for ranking entries
+     * @param searchSpace Search space from which to pull top entries
+     * @param ranker Objective function to use for ranking entries
      */
-    protected void setTopEntries(Dataset SearchSpace, EntryRanker Ranker) {
+    protected void findTopEntries(Dataset searchSpace, EntryRanker ranker) {
         try {
             // If necessary, train the objective function on the total population
-            if (Ranker instanceof MultiObjectiveEntryRanker) {
-                MultiObjectiveEntryRanker p = (MultiObjectiveEntryRanker) Ranker;
-                if (! (SearchSpace instanceof MultiPropertyDataset)) {
+            if (ranker instanceof MultiObjectiveEntryRanker) {
+                MultiObjectiveEntryRanker p = (MultiObjectiveEntryRanker) ranker;
+                if (! (searchSpace instanceof MultiPropertyDataset)) {
                     throw new Error("Data must extend MultiPropertyDataset");
                 }
-                MultiPropertyDataset p2 = (MultiPropertyDataset) SearchSpace;
+                MultiPropertyDataset p2 = (MultiPropertyDataset) searchSpace;
                 p.train(p2);
             }
-            int[] rank = Ranker.rankEntries(SearchSpace, true);
-            TopEntries = SearchSpace.emptyClone();
+            int[] rank = ranker.rankEntries(searchSpace, true);
+            TopEntries = searchSpace.emptyClone();
             for (int i=0; i<NumberTopEntries; i++)
-                TopEntries.addEntry(SearchSpace.getEntry(rank[i]));
+                TopEntries.addEntry(searchSpace.getEntry(rank[i]));
         } catch (Exception e) {
             TopEntries = null;
         }
     }
+	
+	/**
+	 * Find all entries in the search space that pass the success filter. If there
+	 *  are no measured classes in the search space dataset or no success filter is
+	 *  defined, will set {@linkplain #SuccessfulEntries} to null.
+	 * 
+	 * @param searchSpace Search space
+	 */
+	protected void findSuccesses(Dataset searchSpace) {
+		if (SuccessFilter == null) {
+			SuccessfulEntries = null;
+			return;
+		}
+		try {
+			SuccessFilter.train(searchSpace);
+			SuccessfulEntries = searchSpace.clone();
+			SuccessFilter.filter(SuccessfulEntries);
+		} catch (Exception e) {
+			SuccessfulEntries = null;
+		}
+	}
 
     /**
      * Before evaluation, allocate result arrays
@@ -218,10 +259,13 @@ public class OptimizationStatistics implements java.io.Serializable, java.lang.C
         GenerationAverage = new double[NumberGenerations];
         GenerationBest = new double[NumberGenerations];
         TopEntriesFound = new int[NumberGenerations];
-        FoundAll = new boolean[NumberGenerations];
+        FoundAllTop = new boolean[NumberGenerations];
         EvaluatedSoFar = new int[NumberGenerations];
         if ( SuccessFilter != null) {
             NSuccess = new int[NumberGenerations];
+			if (SuccessfulEntries != null) {
+				FoundAllSuccess = new boolean[NumberGenerations];
+			}
 		}
     }
     
@@ -244,10 +288,16 @@ public class OptimizationStatistics implements java.io.Serializable, java.lang.C
      */
     protected String getHeader() {
         String output = "IterationNumber  EvaluatedSoFar  BestSoFar";
-        output += "  GenerationAverage  GenerationBest  TopEntriesFound";
-        output += "  FoundAll";
-        if (SuccessFilter != null)
-            output+="  PastThreshold";
+        output += "  GenerationAverage  GenerationBest";
+		if (TopEntries != null) {
+			output += "TopEntriesFound  FoundAllTop";
+		}
+        if (SuccessFilter != null) {
+            output += "  SuccessesFound";
+			if (SuccessfulEntries != null) {
+				output += "  FoundAllSuccesses";
+			}
+		}
         return output;
     }
     
@@ -261,10 +311,15 @@ public class OptimizationStatistics implements java.io.Serializable, java.lang.C
         output += String.format("  %9.5f", BestSoFar[i]);
         output += String.format("  %17.5f", GenerationAverage[i]);
         output += String.format("  %14.5f", GenerationBest[i]);
-        output += String.format("  %15d", TopEntriesFound[i]);
-        output += String.format("  %8d", FoundAll[i] ? 1 : 0);
+		if (TopEntries != null) {
+			output += String.format("  %15d", TopEntriesFound[i]);
+			output += String.format("  %8d", FoundAllTop[i] ? 1 : 0);
+		}
         if (SuccessFilter != null) {
             output += String.format("  %13d", NSuccess[i]);
+			if (SuccessfulEntries != null) {
+				output += String.format("  %17d", FoundAllSuccess[i] ? 1 : 0);
+			}
 		}
         return output;
     }
@@ -282,9 +337,14 @@ public class OptimizationStatistics implements java.io.Serializable, java.lang.C
         }
         if (SuccessFilter != null) {
             x.NSuccess = Arrays.copyOf(NSuccess, IterationsEvaluated);
+			if (SuccessfulEntries != null) {
+				x.FoundAllSuccess = FoundAllSuccess.clone();
+			}
         }
-        if (TopEntries != null) 
+        if (TopEntries != null) {
             x.TopEntries = TopEntries.clone();
+			x.FoundAllTop = FoundAllTop.clone();
+		}
         return x;
     }
 
