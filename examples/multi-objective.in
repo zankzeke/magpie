@@ -14,10 +14,8 @@ initial = data subset 10
 // Create model: Has to have separate models for each property
 //  used in this model
 model = new models.regression.CompositeRegression
-submodel = new models.regression.MultiObjectiveRegression AdaptiveScalarizingEntryRanker 1.0 &
-    -opt min volume_pa TargetEntryRanker 20.0 &
-    -opt min delta_e SimpleEntryRanker    
-leaf = new models.regression.MixingRuleRegression GSvolume_pa
+submodel = new models.regression.MultiPropertyRegression volume_pa delta_e
+leaf = new models.regression.MixingRuleRegression GSvolume_pa -correct
 submodel submodel set volume_pa $leaf
 leaf = new models.regression.WekaRegression trees.REPTree
 submodel submodel set delta_e $leaf 
