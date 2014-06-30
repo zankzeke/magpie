@@ -2,6 +2,7 @@
 //  which structural prototype is most likely for a compound
 //  based on its composition.
 //  See the Magpie Javadoc for DMSPEngine or 
+//   http://www.nature.com/nmat/journal/v5/n8/full/nmat1691.html
 
 // Create the CSP engine
 csp = new csp.DMSPEngine
