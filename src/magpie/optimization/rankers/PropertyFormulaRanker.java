@@ -18,7 +18,6 @@ import magpie.data.MultiPropertyDataset;
  *  {@linkplain MultiPropertyEntry}.
  * 
  * <usage><p><b>Usage</b>: &lt;formula...&gt;
- * <pr><br><i>data template</i>: Template used to determine whether properties exist in dataset
  * <pr><br><i>formula</i>: Formula to use as objective function. Property names must be surrounded by #{}'s.
  * <br>Example formula: #{volume_pa} * #{bandgap}</usage>
  * 
