@@ -25,13 +25,13 @@ import org.apache.commons.math3.stat.StatUtils;
  * 
  * <p>Requires that dataset be a {@linkplain PrototypeDataset}.
  * 
- * <usage><p><b>Usage</b>: $&lt;filename> &lt;order>
+ * <usage><p><b>Usage</b>: &lt;filename&gt; &lt;order&gt;
  * <br><pr><i>filename</i>: Path to a file that contains all known compounds.
  * <br><pr><i>order</i>: Number sites in prototype</usage>
  * 
  * <p><b><u>Implemented Print Commands</u></b>
  * 
- * <print><p><b>cumulants [&lt;toPrint>]</b> - Print out the most important cumulant functions for each class
+ * <print><p><b>cumulants [&lt;toPrint&gt;]</b> - Print out the most important cumulant functions for each class
  * <br><pr><i>toPrint</i>: Number of top cumulants to print (default 10)</print>
  * 
  * @author Logan Ward
