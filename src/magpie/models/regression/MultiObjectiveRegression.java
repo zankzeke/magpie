@@ -18,7 +18,7 @@ import magpie.user.CommandHandler;
 
 /**
  * Employs multiple models, each designed to predict a different property that composes
- *  the class variable. Works hand-in-hand with a {@link MultiObjectiveEntryRanker}.
+ *  the class variable. Class variable is defined by a {@link MultiObjectiveEntryRanker}.
  * 
  * <usage><p><b>Usage</b>: &lt;ranker method&gt; [&lt;ranker options...&gt;]
  * <br><pr><i>ranker method</i>: Multi-objective function ("?" for options)
@@ -183,7 +183,11 @@ public class MultiObjectiveRegression extends BaseRegression {
                 try {
                     setModel(prop, GenericModel.clone());
                 } catch (Exception e) {
-                    throw new Error(e); // Should not happen
+					if (GenericModel == null) {
+						throw new Error("No model defined for property (and no generic): " + prop);
+					} else {
+						throw new Error(e); // Should not happen
+					}
                 }
             }
             BaseModel model = Models.get(prop);
