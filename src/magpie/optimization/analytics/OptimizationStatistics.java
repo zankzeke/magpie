@@ -290,7 +290,7 @@ public class OptimizationStatistics implements java.io.Serializable, java.lang.C
         String output = "IterationNumber  EvaluatedSoFar  BestSoFar";
         output += "  GenerationAverage  GenerationBest";
 		if (TopEntries != null) {
-			output += "TopEntriesFound  FoundAllTop";
+			output += "  TopEntriesFound  FoundAllTop";
 		}
         if (SuccessFilter != null) {
             output += "  SuccessesFound";
@@ -313,10 +313,10 @@ public class OptimizationStatistics implements java.io.Serializable, java.lang.C
         output += String.format("  %14.5f", GenerationBest[i]);
 		if (TopEntries != null) {
 			output += String.format("  %15d", TopEntriesFound[i]);
-			output += String.format("  %8d", FoundAllTop[i] ? 1 : 0);
+			output += String.format("  %11d", FoundAllTop[i] ? 1 : 0);
 		}
         if (SuccessFilter != null) {
-            output += String.format("  %13d", NSuccess[i]);
+            output += String.format("  %14d", NSuccess[i]);
 			if (SuccessfulEntries != null) {
 				output += String.format("  %17d", FoundAllSuccess[i] ? 1 : 0);
 			}
