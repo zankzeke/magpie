@@ -31,6 +31,10 @@ import org.apache.commons.math3.stat.StatUtils;
  * where f is the vector objective function, z<sup>ideal</sup>/z<sup>worst</sup> is the best/worst solutions found
  * so far for a certain objective, p is a tradeoff parameter, and N is the number of objectives.
  * 
+ * <p>Note: Rather than using the maximum and minimum values of each objective to mark the best/worst
+ *  this code uses the 99% and 1% percentiles. This is used to prevent a single outlier from drastically 
+ *  effecting the normalized values of each objective function. 
+ * 
  * <usage><p><b>Usage</b>: &lt;p&gt; -obj &lt;maximize|minimize&gt; &lt;property&gt; &lt;ranker name&gt; [&lt;ranker options...&gt;] [-opt &lt;...&gt;]
  * <br><pr><i>p</i>: Trade-off parameter between favoring entries that are best in a single category, and those that are good in many (default=1.0)
  * <br><pr><i>property</i>: Name of property to be optimized using this ranker
@@ -53,6 +57,8 @@ public class AdaptiveScalarizingEntryRanker extends MultiObjectiveEntryRanker {
     protected double[] ObjectiveMinimum;
     /** Index of each property of interest */
     protected int[] PropertyIndex;
+	/** Percentile of minimum value */
+	private double ObjectivePercentile = 1;
 
     @Override
     public void setOptions(List<Object> Options) throws Exception {
@@ -180,6 +186,7 @@ public class AdaptiveScalarizingEntryRanker extends MultiObjectiveEntryRanker {
         
         // Main work
         int pos = 0;
+		double[] objValues = new double[data.NEntries()];
         for (Map.Entry<String,EntryRanker> pair : ObjectiveFunction.entrySet()) {
             // Set class to a certain property
             String property = pair.getKey();
@@ -188,13 +195,11 @@ public class AdaptiveScalarizingEntryRanker extends MultiObjectiveEntryRanker {
             
             // Get the maximum, minimum objective function for this objective
             EntryRanker obj = pair.getValue();
-            ObjectiveMaximum[pos] = -1 * Double.MAX_VALUE;
-            ObjectiveMinimum[pos] = Double.MAX_VALUE;
-            for (BaseEntry entry : data.getEntries()) {
-                double x = obj.objectiveFunction(entry);
-                if (ObjectiveMaximum[pos] < x) ObjectiveMaximum[pos] = x;
-                if (ObjectiveMinimum[pos] > x) ObjectiveMinimum[pos] = x;
+			for (int i=0; i<data.NEntries(); i++) {
+                objValues[i] = obj.objectiveFunction(data.getEntry(i));
             }
+			ObjectiveMaximum[pos] = StatUtils.percentile(objValues, 100 - ObjectivePercentile);
+			ObjectiveMinimum[pos] = StatUtils.percentile(objValues, ObjectivePercentile);
             
             // Increment loop counter
             pos++;
