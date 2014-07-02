@@ -23,14 +23,17 @@ import org.apache.commons.lang3.ArrayUtils;
 
 public class UserSpecifiedAttributeSelector extends BaseAttributeSelector {
     /** Names of attributes to be used */
-    protected List<String> Selected_Attributes = new LinkedList<>();
+    protected List<String> SelectedAttributes = new LinkedList<>();
 
     /**
      * Sets the object to select only attributes listed in input
      * @param Options List of attributes to use
      */
     @Override
-    public void setOptions(List<Object> OptionsObj) {
+    public void setOptions(List<Object> OptionsObj) throws Exception {
+        if (OptionsObj.isEmpty()) {
+            throw new Exception(printUsage());
+        }
         String[] Options = CommandHandler.convertCommandToString(OptionsObj);
         List Attributes = new LinkedList();
         Attributes.addAll(Arrays.asList(Options));
@@ -45,7 +48,7 @@ public class UserSpecifiedAttributeSelector extends BaseAttributeSelector {
     @Override
     public UserSpecifiedAttributeSelector clone() {
         UserSpecifiedAttributeSelector x = (UserSpecifiedAttributeSelector) super.clone();
-        x.Selected_Attributes = new LinkedList<>(Selected_Attributes);
+        x.SelectedAttributes = new LinkedList<>(SelectedAttributes);
         return x; //To change body of generated methods, choose Tools | Templates.
     }
     
@@ -54,35 +57,24 @@ public class UserSpecifiedAttributeSelector extends BaseAttributeSelector {
      *  when training a model
      * @param Attributes List of desired attributes
      */
-    public void selectAttributes(List Attributes) {
-        Selected_Attributes.clear();
+    public void selectAttributes(List<String> Attributes) {
+        SelectedAttributes.clear();
         if (Attributes.isEmpty()) return;
         
-        if (Attributes.get(0) instanceof String)
-            this.Selected_Attributes.addAll(Attributes);
-        else if (Attributes.get(0) instanceof Integer)
-            this.Attribute_ID = Attributes;
-        else
-            throw new Error("Attributes must contain Integers or Strings (what did you put in this!?)");
+        this.SelectedAttributes.addAll(Attributes);
     }
 
     @Override
-    protected void train_protected(Dataset Data) { 
-        // Nothing needs to be trained 
-    }
-
-    @Override
-    public void run(Dataset Data) {
-        if (! Selected_Attributes.isEmpty()) {
-            Attribute_ID.clear();
-            String[] Names = Data.getAttributeNames();
-            for (int i=0; i<Attribute_ID.size(); i++) {
-                int id = ArrayUtils.indexOf(Names, Selected_Attributes.get(i));
-                if (id == ArrayUtils.INDEX_NOT_FOUND)
-                    throw new Error("Attribute \""+Selected_Attributes.get(i)+"\" not found");
-                Attribute_ID.add(id);
+    protected List<Integer> train_protected(Dataset Data) { 
+        List<Integer> output = new LinkedList<>();
+        String[] Names = Data.getAttributeNames();
+        for (String name : SelectedAttributes) {
+            int id = ArrayUtils.indexOf(Names, name);
+            if (id == ArrayUtils.INDEX_NOT_FOUND) {
+                throw new Error("Attribute \""+name+"\" not found");
             }
+            output.add(id);
         }
-        super.run(Data);
+        return output;
     }
 }

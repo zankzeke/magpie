@@ -5,6 +5,7 @@
 package magpie.attributes.selectors;
 
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import magpie.data.Dataset;
 import magpie.user.CommandHandler;
@@ -138,16 +139,18 @@ public class WekaAttributeSelector extends BaseAttributeSelector {
         return newObj;
     }
     
-    @Override public void train_protected(Dataset Data) {
-        Attribute_ID.clear();
+    @Override protected List<Integer> train_protected(Dataset Data) {
+        List<Integer> output = new LinkedList<>();
         try { 
             Instances wekadata = Data.convertToWeka(true, false);
             Evaluator.buildEvaluator(wekadata);
             int[] List = Searcher.search(Evaluator, wekadata);
-            for (int i=0; i<List.length; i++)
-                Attribute_ID.add(List[i]);
+            for (int i=0; i<List.length; i++) {
+                output.add(List[i]);
+            }
         } catch (Exception e) {
             throw new Error(e);
         }
+        return output;
     }
 }

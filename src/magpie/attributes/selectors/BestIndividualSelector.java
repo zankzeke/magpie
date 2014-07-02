@@ -6,6 +6,7 @@
 
 package magpie.attributes.selectors;
 
+import java.util.LinkedList;
 import java.util.List;
 import magpie.attributes.evaluators.BaseAttributeEvaluator;
 import magpie.data.Dataset;
@@ -62,11 +63,14 @@ public class BestIndividualSelector extends BaseAttributeSelector {
     }
     
     @Override
-    protected void train_protected(Dataset Data) {
+    protected List<Integer> train_protected(Dataset Data) {
         if (Evaluator == null) 
             throw new Error("Evaluator not set");
         int[] ranks = Evaluator.getAttributeRanks(Data);
-        for (int i=0; i<NToSelect; i++)
-            Attribute_ID.add(ranks[i]);
+        List<Integer> output = new LinkedList<>();
+        for (int i=0; i<NToSelect; i++) {
+            output.add(ranks[i]);
+        }
+        return output;
     }
 }

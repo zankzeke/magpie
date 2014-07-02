@@ -15,14 +15,21 @@ import magpie.utility.interfaces.Printable;
 
 /**
  * Interface to select a subset of attributes for a dataset. Implementations must
- * define a method to train the selector and one to apply it to another dataset.<p>
+ * define a method to select a subset of attribute:<p>
+ * 
+ * <ul>
+ * <li>{@linkplain #train_protected(magpie.data.Dataset) } - Select attributes, return list of their indexes
+ * <li>{@linkplain #setOptions(java.util.List) } - Set any options for your implementation. Make sure
+ *  to make them settable from the Java interface as well.
+ * </ul>
  * 
  * <p><b><u>Implemented Commands:</u></b>
- * <p><b>Usage: train $&lt;dataset></b> - Train an attribute selector<br>
- * <i>dataset</i>: {@linkplain Dataset} used to train selector
+ * <command><p><b>train $&lt;dataset></b> - Train an attribute selector. Selects
+ *  a subset of attributes.
+ * <br><pr><i>dataset</i>: {@linkplain Dataset} used to train selector</command>
  * 
- * <p><b>Usage: run $&lt;dataset></b> - Reduce number of attributes in a dataset<br>
- * <i>dataset</i>: {@linkplain Dataset} to run selector on
+ * <command><p><b>run $&lt;dataset></b> - Reduce number of attributes in a dataset
+ * <br><pr><i>dataset</i>: {@linkplain Dataset} to run selector on</command>
  * 
  * @author Logan Ward 
  * @version 0.1
@@ -32,17 +39,18 @@ abstract public class BaseAttributeSelector implements java.io.Serializable,
     /** Whether this BaseAttributeSelector has been trained */
     protected boolean trained = false;
     /** List of attributes that were selected */
-    protected List<Integer> Attribute_ID = new LinkedList<>();
+    private List<Integer> Attribute_ID = new LinkedList<>();
     /** Names of attributes that were selected */
     final private List<String> Attribute_Names = new LinkedList<>();
     
     /** 
-     * Train an attribute selection algorithm on a dataset
+     * Train an attribute selection algorithm on a dataset. Selects which attributes
+     *  will be used, but does not reduce the dataset (see {@linkplain #run(magpie.data.Dataset) }).
      * @param Data Data used for training purposes
      */
     public void train(Dataset Data) {
         Attribute_ID.clear();
-        train_protected(Data);
+        Attribute_ID.addAll(train_protected(Data));
         trained = true;
         // Store the names
         Attribute_Names.clear();
@@ -60,10 +68,11 @@ abstract public class BaseAttributeSelector implements java.io.Serializable,
     
     /**
      * Operation that actually does the work for training. Must generate a list 
-     *  of attribute IDs and store it in {@link #Attribute_ID}.
+     *  of attribute IDs
      * @param Data Dataset used to train selector
+     * @return List of indexes of selected attributes
      */
-    abstract protected void train_protected(Dataset Data);
+    abstract protected List<Integer> train_protected(Dataset Data);
     
     /**
      * Adjust the attribute list of a dataset, based on a trained selection algorithm
