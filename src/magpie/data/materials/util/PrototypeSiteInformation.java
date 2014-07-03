@@ -51,6 +51,7 @@ public class PrototypeSiteInformation implements java.io.Serializable, Cloneable
     }
 
     @Override
+	@SuppressWarnings("CloneDeclaresCloneNotSupported")
     protected Object clone() {
         PrototypeSiteInformation x;
         try {

@@ -128,9 +128,9 @@ public class PrototypeDataset extends CompositionDataset {
                         isOmitted = true;
                         break;
                     case "-equiv":
-                        p++;
+						p++;
                         while (p < Words.length
-                                && UtilityOperations.isInteger(Words[p])) {
+                                && UtilityOperations.isInteger(Words[p+1])) {
                             equivSites.add(Integer.parseInt(Words[p++]));
                             if (p == Words.length) {
                                 break;
