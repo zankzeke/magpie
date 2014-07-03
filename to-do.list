@@ -7,4 +7,5 @@ Logan   12June14    Make it so that training / running commands throw Exceptions
 Logan	3June14	Add in some kind of guide for people who want to contribute to Magpie	Not started
 Logan 	3June14	Ensure all options can be set from the Java interface	Logan working on it idly (i.e. when bored on bus)
 Logan   12June14    Add license Not Started
+Logan	2July14	Create automated tests for basic functionality	Not started
 Logan	10June14    Allow a dataset to contain entries w/ and w/o a measured property, don't remove those without a measured property when setting a target property (would be a real pain)	Not started
