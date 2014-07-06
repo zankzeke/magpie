@@ -61,8 +61,7 @@ public class HeuslerCrossover extends BaseCrossoverFunction {
             elem_choice[index++] = to_add;
         }
         // Build a new entry
-        C = new CompositionEntry(elem_choice, composition,
-                A.getElementNameList(), A.getSortingOrder());
+        C = new CompositionEntry(elem_choice, composition);
         return C;
     }
 }

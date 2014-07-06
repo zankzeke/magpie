@@ -130,8 +130,6 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
             throw new Error(e);
         }
         // Read in each compound
-        CompositionDataset data = new CompositionDataset();
-        int[] sortingOrder = data.getSortingOrder();
         do {
             String Line;
             try {
@@ -143,7 +141,7 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
                 break;
             }
             String[] words = Line.split("\t");
-            CompositionEntry entry = new CompositionEntry(words[0], data.ElementNames, sortingOrder);
+            CompositionEntry entry = new CompositionEntry(words[0]);
             KnownCompounds.put(entry, words[1]);
         } while (true);
     }
@@ -164,8 +162,7 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
      * @return List of names of prototypes and their probabilities
      */
     public List<Pair<String, Double>> predictStructure(String Composition) {
-        CompositionDataset temp = new CompositionDataset();
-        CompositionEntry comp = new CompositionEntry(Composition, temp.ElementNames, temp.getSortingOrder());
+        CompositionEntry comp = new CompositionEntry(Composition);
         return predictStructure(comp);
     }
 
@@ -309,7 +306,7 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
             throw new Error("Entry must have the same number of sites as the number of elements in siteIdentity");
         }
         for (int i = 0; i < siteIdentity.length; i++) {
-            entry.setSiteComposition(i, new CompositionEntry(new int[]{siteIdentity[i]}, new double[]{1.0}, entry.getElementNameList(), entry.getSortingOrder()));
+            entry.setSiteComposition(i, new CompositionEntry(new int[]{siteIdentity[i]}, new double[]{1.0}));
         }
     }
 

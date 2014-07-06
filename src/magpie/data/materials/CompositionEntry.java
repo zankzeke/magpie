@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.regex.*;
+import magpie.data.materials.util.LookupData;
 import org.apache.commons.math3.stat.StatUtils;
 
 /**
@@ -21,7 +22,7 @@ import org.apache.commons.math3.stat.StatUtils;
  */
 public class CompositionEntry extends MultiPropertyEntry {
     /** Names of each element */
-    protected String[] Elem_List=null;
+    protected String[] ElementNames=null;
     /** Rank of each element (used in display order) */
     protected int[] SortingOrder=null;
     /** Elements present in composition */
@@ -46,11 +47,10 @@ public class CompositionEntry extends MultiPropertyEntry {
      * An element can be appear more than once.
      * 
      * @param Composition Composition of entry
-     * @param ElementList List of known elements
-     * @param sortingOrder Order in which elements should be sorted
      */
-    public CompositionEntry(String Composition, String[] ElementList, int[] sortingOrder) {
-        this.Elem_List = ElementList; this.SortingOrder = sortingOrder;
+    public CompositionEntry(String Composition) {
+        this.ElementNames = LookupData.ElementNames;
+		this.SortingOrder = LookupData.SortingOrder;
         // Add up all the constituents
         Matcher compMatcher = Pattern.compile("[A-Z][^A-Z]*").matcher(Composition);
         Pattern elemPattern = Pattern.compile("[A-Z][a-z]?");
@@ -64,7 +64,7 @@ public class CompositionEntry extends MultiPropertyEntry {
             if (! elemMatcher.find()) throw new Error("Something has gone horribly wrong!");
             String element = elemMatcher.group();
             if (element.equals("D") || element.equals("T")) element = "H";// Special case for D/T
-            Integer elementNumber = Arrays.asList(ElementList).indexOf(element);
+            Integer elementNumber = Arrays.asList(ElementNames).indexOf(element);
             if (elementNumber == -1)
                 throw new Error("Element " + element + " not recognized");
             
@@ -106,14 +106,12 @@ public class CompositionEntry extends MultiPropertyEntry {
      * Given the element numbers (probably Z-1) and fractions, create an entry
      * @param Element Numbers of element in ElementList
      * @param Amount Amount of each element present
-     * @param ElementList List of element names
-     * @param SortingOrder Order to sort elements when printing
      */
-    public CompositionEntry(int[] Element, double[] Amount, String[] ElementList, int[] SortingOrder) {
+    public CompositionEntry(int[] Element, double[] Amount) {
         this.Element = Element;
         this.Fraction = Amount;
-        this.Elem_List = ElementList;
-        this.SortingOrder = SortingOrder;
+        this.ElementNames = LookupData.ElementNames;
+        this.SortingOrder = LookupData.SortingOrder;
         rectifyEntry();
     }
     
@@ -132,7 +130,7 @@ public class CompositionEntry extends MultiPropertyEntry {
      * @return Names of elements known by this entry
      */
     public String[] getElementNameList() {
-        return Elem_List;
+        return ElementNames;
     }
 
     /**
@@ -158,8 +156,8 @@ public class CompositionEntry extends MultiPropertyEntry {
      * @return Fraction of that element present in this entry
      */
     public double getElementFraction(String elem) {
-        for (int i=0; i<Elem_List.length; i++)
-            if (Elem_List[i].equalsIgnoreCase(elem))
+        for (int i=0; i<ElementNames.length; i++)
+            if (ElementNames[i].equalsIgnoreCase(elem))
                 return getElementFraction(i);
         return 0;
     }
@@ -220,7 +218,7 @@ public class CompositionEntry extends MultiPropertyEntry {
     final public void rectifyEntry() {
         // Makes sure we have a sorting order
         if (SortingOrder == null) {
-            SortingOrder = new int[Elem_List.length];
+            SortingOrder = new int[ElementNames.length];
             for (int i=0; i<SortingOrder.length; i++) SortingOrder[i] = i;
         }
         
@@ -351,14 +349,14 @@ public class CompositionEntry extends MultiPropertyEntry {
     }
     
     @Override public String toString() {
-        if (Elem_List == null)
+        if (ElementNames == null)
             return "\"Elem_List not defined\"";
         if (HTMLFormat)
             return toHTMLString();
         else {
             String output="";
             for (int i=0; i<Element.length; i++)
-                output+=String.format("%s%.2f",Elem_List[Element[i]],Fraction[i]*100);
+                output+=String.format("%s%.2f",ElementNames[Element[i]],Fraction[i]*100);
             return output;
         }
     }
@@ -371,7 +369,7 @@ public class CompositionEntry extends MultiPropertyEntry {
         String output="";
         String[] Numbers = printNumber(Fraction, NumberInCell);
         for (int i=0; i<Element.length; i++) {
-            output+=Elem_List[Element[i]];
+            output+=ElementNames[Element[i]];
             if (Numbers[i].length() > 0) output+="<sub>" + Numbers[i] + "</sub>";
         }
  

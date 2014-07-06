@@ -42,7 +42,7 @@ public class PrototypeEntry extends CompositionEntry {
     public PrototypeEntry(PrototypeSiteInformation SiteInfo, String Composition, String[] ElementList, int[] SortingOrder) {
         // Define the site information 
         this.SiteInfo = SiteInfo;
-        this.Elem_List = ElementList;
+        this.ElementNames = ElementList;
         this.SortingOrder = SortingOrder;
         
         // Define the array of site compositions
@@ -56,7 +56,7 @@ public class PrototypeEntry extends CompositionEntry {
             if (pos >= SiteInfo.NSites() )
                 throw new Error("Composition contains more sites than defined in SiteInfo: " + Composition);
             String comp = compMatch.group();
-            CompositionEntry newSite = new CompositionEntry(comp, ElementList, SortingOrder);
+            CompositionEntry newSite = new CompositionEntry(comp);
             SiteComp[pos++] = newSite;
         }
         if (pos != SiteInfo.NSites()) 
@@ -80,12 +80,11 @@ public class PrototypeEntry extends CompositionEntry {
         this.SiteInfo = SiteInfo;
         // Make all sites have H on them
         this.SiteComp = new CompositionEntry[SiteInfo.NSites()];
-        CompositionEntry blank = new CompositionEntry(new int[]{0}, 
-                new double[]{1.0}, ElementList, SortingOrder);
+        CompositionEntry blank = new CompositionEntry(new int[]{0}, new double[]{1.0});
         for (int i=0; i<SiteComp.length; i++) {
             this.SiteComp[i] = blank.clone();
         }
-        this.Elem_List = ElementList;
+        this.ElementNames = ElementList;
         this.SortingOrder = SortingOrder;
     }
     
@@ -265,7 +264,7 @@ public class PrototypeEntry extends CompositionEntry {
             if (SiteComp[i].Element.length > 1) {
                 output += "{" + SiteComp[i].toHTMLString() + "}";
             } else {
-                output += Elem_List[SiteComp[i].Element[0]];
+                output += ElementNames[SiteComp[i].Element[0]];
             }
             if (SiteInfo.NOnSite(i) != 1)
                 output += df.format(SiteInfo.NOnSite(i));
@@ -281,7 +280,7 @@ public class PrototypeEntry extends CompositionEntry {
             if (SiteComp[i].Element.length > 1) {
                 output += "{" + SiteComp[i].toString() + "}";
             } else {
-                output += Elem_List[SiteComp[i].Element[0]];
+                output += ElementNames[SiteComp[i].Element[0]];
             }
             if (SiteInfo.NOnSite(i) != 1)
                 output += df.format(SiteInfo.NOnSite(i));

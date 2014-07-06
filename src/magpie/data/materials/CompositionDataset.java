@@ -12,6 +12,7 @@ import java.nio.charset.Charset;
 import java.nio.file.*;
 import java.util.*;
 import magpie.data.BaseEntry;
+import magpie.data.materials.util.LookupData;
 import magpie.data.materials.util.PropertyLists;
 import org.apache.commons.math3.stat.*;
 
@@ -66,11 +67,11 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
     /**
      * List of element names
      */
-    public String[] ElementNames;
+    public String[] ElementNames = LookupData.ElementNames;
     /**
      * Order in which elements are sorted (used when printing)
      */
-    protected int[] SortingOrder;
+    protected int[] SortingOrder = LookupData.SortingOrder;
     /**
      * Location of lookup date files
      */
@@ -82,26 +83,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
     /**
      * Map of property names to values
      */
-    public Map<String, double[]> PropertyData = new TreeMap<>();
-
-    public CompositionDataset() {
-        ElementNames = new String[]{"H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na",
-            "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K", "Ca", "Sc", "Ti", "V", "Cr",
-            "Mn", "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Ge", "As", "Se", "Br", "Kr", "Rb",
-            "Sr", "Y", "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn",
-            "Sb", "Te", "I", "Xe", "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", "Sm", "Eu",
-            "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb", "Lu", "Hf", "Ta", "W", "Re", "Os",
-            "Ir", "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Po", "At", "Rn", "Fr", "Ra",
-            "Ac", "Th", "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm",
-            "Md", "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds",
-            "Rg", "Cn"};
-        SortingOrder = new int[]{91, 1, 26, 62, 85, 102, 109, 111, 112, 2, 24, 53, 64, 74, 90,
-            104, 110, 3, 20, 27, 55, 60, 66, 68, 61, 72, 73, 78, 75, 67, 71, 83, 89, 103, 107, 108,
-            21, 25, 36, 54, 63, 88, 76, 92, 97, 93, 79, 69, 70, 80, 86, 87, 106, 105, 19, 22, 28, 30,
-            31, 32, 4, 33, 5, 34, 35, 37, 38, 39, 40, 6, 41, 43, 58, 100, 77, 94, 95, 98, 101, 81, 65,
-            99, 84, 82, 96, 7, 18, 23, 29, 44, 59, 57, 56, 42, 45, 46, 47, 48, 49, 50, 51, 52, 8, 9, 10,
-            11, 12, 13, 14, 15, 16, 17};
-    }
+    public Map<String, double[]> PropertyData = LookupData.ElementalProperties;
 
     @Override
     @SuppressWarnings("CloneDeclaresCloneNotSupported")
@@ -191,7 +173,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
             }
 
             // Make an entry
-            Entry = new CompositionEntry(Words[0], ElementNames, SortingOrder);
+            Entry = new CompositionEntry(Words[0]);
             Entry.setMeasuredProperties(properties);
 
             // Add if the set does not already have it

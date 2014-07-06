@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import magpie.data.materials.*;
+import magpie.data.materials.util.LookupData;
 import magpie.utility.DistinctPermutationGenerator;
 import org.apache.commons.lang3.tuple.*;
 
@@ -281,10 +282,8 @@ public abstract class PhaseDiagramStatistics implements Serializable {
             throw new Error(e);
         }
         // Read in each compound
-        CompositionDataset data = new CompositionDataset();
-        int[] sortingOrder = data.getSortingOrder();
-        ElementNames = data.ElementNames;
-        NElements = sortingOrder.length;
+        ElementNames = LookupData.ElementNames;
+        NElements = LookupData.SortingOrder.length;
         do {
             String Line;
             try {
@@ -296,7 +295,7 @@ public abstract class PhaseDiagramStatistics implements Serializable {
                 break;
             }
             String[] words = Line.split("\t");
-            CompositionEntry entry = new CompositionEntry(words[0], data.ElementNames, sortingOrder);
+            CompositionEntry entry = new CompositionEntry(words[0]);
             compoundList.put(entry, words[1]);
         } while (true);
         return compoundList;
