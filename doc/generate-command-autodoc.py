@@ -9,9 +9,9 @@ from classHTMLRenderer import *
 #  and what commands it can run.
 #
 # To Do List:
-#  - Autodoc of "save" commands
 #  - Be able to tell when a command was overloaded
 #  - Only crash when a single file is ill-formated
+#	= Debatable: Catastrophic failure means documentation would mean that file would be more likely to be fixed
 #
 # Authors:
 #   Logan Ward (ward.logan.t@gmail.com)

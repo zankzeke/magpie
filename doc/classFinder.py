@@ -119,6 +119,8 @@ class ClassInfo:
 	usageParameters = []
 	"""Print commands for this class"""
 	printCommands = []
+	"""Formats in which this class can be saved"""
+	saveFormats = []
 	
 	def printInfo(self):
 		"""
@@ -226,6 +228,9 @@ class ClassInfo:
 		
 		## Look for print commands
 		self.printCommands = set(self._getOperations("print", contents, ind))
+		
+		## Look for save formats
+		self.saveFormats = set(self._getOperations("save", contents, ind))
 		
 	def _getOperations(self, cmdType, contents, start):
 		"""

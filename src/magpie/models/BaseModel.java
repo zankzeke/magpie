@@ -64,13 +64,11 @@ import magpie.utility.interfaces.*;
  * 
  * <print><p><b>selector</b> - Print out attributes used selected by internal {@link BaseAttributeSelector}, if defined</print>
  * 
- * <p><b><u>Implemented Print Commands:</u></b>
- * 
  * @author Logan Ward
  * @version 1.0
  */
 abstract public class BaseModel implements java.io.Serializable, java.lang.Cloneable, 
-        Options, Printable, Commandable, Savable {
+        Options, Printable, Commandable {
     /** Records whether model has been trained */
     protected boolean trained=false;
     /** Records whether model has been validated */
@@ -480,13 +478,4 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                 throw new Exception("ERROR: Model does not contain a " + Name);
         }
     }
-
-    @Override
-    public String saveCommand(String Basename, String Command) throws Exception {
-        if (Command.isEmpty()) {
-            UtilityOperations.saveState(this, Basename + ".obj");
-            return Basename + ".obj";
-        }
-        throw new Exception("Save command not implemented: " + Command);
-    }    
 }

@@ -23,7 +23,7 @@ import magpie.data.utilities.DatasetOutput;
  * <br><pr><i>name</i>: Name of property to use as class variable
  * Any entries without this property will be removed from the dataset.</command>
  * 
- * <p><b><u>Implemented Save Formats:</u>
+ * <p><b><u>Implemented Save Formats:</u></b>
  * 
  * <save><p><b>prop</b>: Print out the measured and predicted properties</save>
  * 

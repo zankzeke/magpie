@@ -26,7 +26,7 @@ class HTMLRenderer:
 			newLine = "<p>\n<b>" + op.usage + "</b> &ndash; " + op.description
 			for prm in op.parameters:
 				newLine += "\n<br><i>" + prm.name + "</i>: " + prm.description
-			if len(op.details) > 1: newLine += "\n" + op.details
+			if len(op.details) > 1: newLine += "\n<br>" + op.details
 			newLine += "\n</p>"
 			toOutput.append(newLine)
 		toOutput.sort()
@@ -89,13 +89,24 @@ class HTMLRenderer:
 			superCls = library.getClass(extends)
 			operations.update(superCls.printCommands)
 			extends = superCls.extends
-		print >>fp, "<h2>Available Print Commands</h2>"
-		print >>fp, "<p>These commands are run by calling &quot;print &lt;variable name&gt; "
-		print >>fp, "&lt;command> [&lt;options>]&quot;. Any output from that command will be "
-		print >>fp, "pinted to standard output.</p>"
-		HTMLRenderer.printOperations(fp, operations)
+		if len(operations) > 0:
+			print >>fp, "<h2>Available Print Commands</h2>"
+			print >>fp, "<p>These commands are run by calling &quot;print &lt;variable name&gt; "
+			print >>fp, "&lt;command> [&lt;options>]&quot;. Any output from that command will be "
+			print >>fp, "pinted to standard output.</p>"
+			HTMLRenderer.printOperations(fp, operations)
 	
-		## TBD: Gather/Print save formats
+		## Gather/Print save formats
+		operations = set(cls.saveFormats)
+		extends = cls.extends
+		while len(extends) > 0:
+			superCls = library.getClass(extends)
+			operations.update(superCls.saveFormats)
+			extends = superCls.extends
+		if len(operations) > 0:
+			print >>fp, "<h2>Available Save Formats</h2>"
+			print >>fp, "<p>Variables representing this class can be saved in the following formats:</p>"
+			HTMLRenderer.printOperations(fp, operations)
 		
 		## Close shop
 		print >>fp, "</body>\n</html>"

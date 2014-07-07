@@ -14,6 +14,7 @@ import magpie.data.materials.PrototypeDataset;
 import magpie.data.materials.PrototypeEntry;
 import magpie.csp.diagramdata.OnTheFlyPhaseDiagramStatistics;
 import magpie.csp.diagramdata.PhaseDiagramStatistics;
+import magpie.utility.interfaces.Savable;
 import org.apache.commons.math3.stat.StatUtils;
 
 /**
@@ -34,9 +35,14 @@ import org.apache.commons.math3.stat.StatUtils;
  * <print><p><b>cumulants [&lt;toPrint&gt;]</b> - Print out the most important cumulant functions for each class
  * <br><pr><i>toPrint</i>: Number of top cumulants to print (default 10)</print>
  * 
+ * <p><b><u>Implemented Save Formats:</b></u>
+ * 
+ * <save><p><b>cumulants</b> - Print the value of the cumulant between each variable and each class
+ * <br>Writes a file for each possible value of the class variable</save>
+ * 
  * @author Logan Ward
  */
-public class CumulantExpansionClassifier extends BaseClassifier {
+public class CumulantExpansionClassifier extends BaseClassifier implements Savable {
     /** Probability that the desired compound is stable */
     private double[] ClassProbability;
     /** Cumulants functions between an entry being each class and each condition */
@@ -178,7 +184,6 @@ public class CumulantExpansionClassifier extends BaseClassifier {
 
     @Override
     public String saveCommand(String Basename, String Command) throws Exception {
-        if (Command.isEmpty()) return super.saveCommand(Basename, Command); 
         switch (Command.toLowerCase()) {
             case "cumulants": {
                 for (int i=0; i<nclasses; i++) {
@@ -189,7 +194,8 @@ public class CumulantExpansionClassifier extends BaseClassifier {
                 }
                 return Basename + "#.cumulants";
             }
-            default: return super.saveCommand(Basename, Command);
+            default: 
+				throw new Exception("Save format not supported: " + Command);
         }
     }
     

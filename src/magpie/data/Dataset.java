@@ -81,7 +81,16 @@ import org.apache.commons.collections.Predicate;
  * 
  * <print><p><b>dist</b> - Print distribution of entries between known classes</print>
  * 
- * <p><b><u>Implemented Save Commands:</u></b> TBD
+ * <p><b><u>Implemented Save Formats:</u></b> TBD
+ * 
+ * <save><p><b>csv</b> - Comma-separated value format. 
+ * <br>The value of each attribute and the measured class variable, if defined.</save>
+ * 
+ * <save><p><b>arff</b> - Weka's ARFF format.
+ * <br>Requires that a measured value is available for the class variable of each entry.</save>
+ * 
+ * <save><p><b>stats</b> - Writes predicted and measured class variables.
+ * <br>This is intended to allow an external program to evaluate model performance.</save>
  * 
  * @author Logan Ward
  * @version 0.1
