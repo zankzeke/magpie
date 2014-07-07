@@ -56,7 +56,7 @@ public class HHICalculationModifier extends BaseDatasetModifier {
 		// Compute and add property to entries
 		for (int i=0; i<p.NEntries(); i++) {
 			CompositionEntry e = p.getEntry(i);
-			double x = e.getMinimum(hhip);
+			double x = e.getMaximum(hhip);
 			if (Double.isNaN(x)) {
 				x = 1e6;
 			}
