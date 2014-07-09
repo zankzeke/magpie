@@ -105,6 +105,11 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
         return (CompositionEntry) super.getEntry(index);
     }
 
+	@Override
+	public void addEntry(String input) {
+		addEntry(new CompositionEntry(input));
+	}
+
     /**
      * Get the order in which elements are sorted when storing a composition. Sorting
      * makes it faster to detect whether compounds are equal

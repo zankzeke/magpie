@@ -212,7 +212,7 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
             }
             siteInfo.addSite(fracs[i], false, equivSites);
         }
-        PrototypeEntry entryToPredict = new PrototypeEntry(siteInfo, composition.getElementNameList(), composition.getSortingOrder());
+        PrototypeEntry entryToPredict = new PrototypeEntry(siteInfo);
         fillPrototypeEntry(entryToPredict, elems);
         
         // --> If this new entry does not have the same stoichiometry as the last entry evaluated, 

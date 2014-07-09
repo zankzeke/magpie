@@ -28,6 +28,16 @@ import org.apache.commons.collections.Predicate;
  * Provides a basic storage container for data-mining tasks. Must be filled 
  * with entries that are subclasses of BaseEntry
  * 
+ * <p>To implement a new Dataset, you first need to create an extension of 
+ *  {@linkplain BaseEntry} that represents the new kind of data. Then, you need 
+ *   to overload the following operations:
+ * 
+ * <ul>
+ * <li>{@linkplain #getEntry(int) } - Might be useful to overload with an operation that returns 
+ * entry type associated with this model
+ * <li>{@link #addEntry(java.lang.String) } - Call the constructor to the associated entry type
+ * </ul>
+ * 
  * <usage><p><b>Usage</b>: *No options to set*</usage>
  * 
  * <p><b><u>Implemented Commands:</u></b>
@@ -361,7 +371,8 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     /** @return Number of entries in Dataset */
     public int NEntries() { return Entries.size(); }
     
-    /** Add an entry to the data structure
+    /** 
+	 * Add an entry 
      * @param e Entry to be added
      */
     public void addEntry(BaseEntry e) {
@@ -369,6 +380,15 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
             throw new Error("Entry has wrong number of features");
         Entries.add(e);
     }
+	
+	/**
+	 * A new entry by parsing an input string. After using this operation, it 
+	 *  may be necessary to recalculate attributes.
+	 * @param input String describing the entry
+	 */
+	public void addEntry(String input) {
+		addEntry(new BaseEntry(input));
+	}
     
     /**
      * Add many entries to a the data set

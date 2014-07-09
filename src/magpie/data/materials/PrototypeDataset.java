@@ -210,7 +210,7 @@ public class PrototypeDataset extends CompositionDataset {
             }
             
             // Make an entry
-            Entry = new PrototypeEntry(SiteInfo, Words[0], ElementNames, SortingOrder);
+            Entry = new PrototypeEntry(SiteInfo, Words[0]);
             Entry.setMeasuredProperties(properties);
             
             acceptedEntries.put(Entry, Entry);
@@ -315,4 +315,11 @@ public class PrototypeDataset extends CompositionDataset {
     public PrototypeEntry getEntry(int index) {
         return (PrototypeEntry) super.getEntry(index); 
     }
+
+	@Override
+	public void addEntry(String input) {
+		addEntry(new PrototypeEntry(SiteInfo, input));
+	}
+	
+	
 }

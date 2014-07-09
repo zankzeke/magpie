@@ -16,6 +16,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import magpie.data.materials.util.LookupData;
 import magpie.data.materials.util.PrototypeSiteInformation;
 import org.apache.commons.math3.stat.StatUtils;
 
@@ -36,14 +37,12 @@ public class PrototypeEntry extends CompositionEntry {
      * Create a new PrototypeEntry. See {@linkplain PrototypeCompositionDataset}
      * @param SiteInfo Information about each site in prototype crystal
      * @param Composition String describing elements on each site
-     * @param ElementList Names of elements (useful for printing)
-     * @param SortingOrder In what order to sort elements of the same type (
      */
-    public PrototypeEntry(PrototypeSiteInformation SiteInfo, String Composition, String[] ElementList, int[] SortingOrder) {
+    public PrototypeEntry(PrototypeSiteInformation SiteInfo, String Composition) {
         // Define the site information 
         this.SiteInfo = SiteInfo;
-        this.ElementNames = ElementList;
-        this.SortingOrder = SortingOrder;
+        this.ElementNames = LookupData.ElementNames;
+        this.SortingOrder = LookupData.SortingOrder;
         
         // Define the array of site compositions
         SiteComp = new CompositionEntry[SiteInfo.NSites()];
@@ -76,7 +75,7 @@ public class PrototypeEntry extends CompositionEntry {
      * @param ElementList Names of elements (useful for printing)
      * @param SortingOrder In what order to sort elements of the same type
      */
-    public PrototypeEntry(PrototypeSiteInformation SiteInfo, String[] ElementList, int[] SortingOrder) {
+    public PrototypeEntry(PrototypeSiteInformation SiteInfo) {
         this.SiteInfo = SiteInfo;
         // Make all sites have H on them
         this.SiteComp = new CompositionEntry[SiteInfo.NSites()];
@@ -84,8 +83,8 @@ public class PrototypeEntry extends CompositionEntry {
         for (int i=0; i<SiteComp.length; i++) {
             this.SiteComp[i] = blank.clone();
         }
-        this.ElementNames = ElementList;
-        this.SortingOrder = SortingOrder;
+        this.ElementNames = LookupData.ElementNames;
+        this.SortingOrder = LookupData.SortingOrder;
     }
     
     @Override
