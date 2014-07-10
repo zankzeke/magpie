@@ -63,6 +63,13 @@ public class MultiPropertyDataset extends Dataset {
         }
     }
 
+	@Override
+	public void addEntry(BaseEntry e) {
+		MultiPropertyEntry p = (MultiPropertyEntry) e;
+		p.setNProperties(NProperties());
+		super.addEntry(e); 
+	}
+
     /**
      * @return Number of properties known by this Dataset
      */

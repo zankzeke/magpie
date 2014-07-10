@@ -83,8 +83,6 @@ public class PrototypeDataset extends CompositionDataset {
         return x; 
     }
     
-    
-    
     /**
      * Read information about a prototype crystal structure from file. See documentation
      *  for this class for format information.

@@ -20,13 +20,13 @@ import magpie.analytics.BaseStatistics;
 import magpie.attributes.selectors.BaseAttributeSelector;
 import magpie.cluster.BaseClusterer;
 import magpie.csp.CSPEngine;
+import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.data.utilities.splitters.BaseDatasetSplitter;
 import magpie.models.BaseModel;
 import magpie.models.classification.AbstractClassifier;
 import magpie.models.regression.AbstractRegressionModel;
 import magpie.optimization.BaseOptimizer;
-import magpie.optimization.algorithms.genetic.operators.BaseCrossoverFunction;
 import magpie.optimization.rankers.EntryRanker;
 import magpie.optimization.rankers.SimpleEntryRanker;
 import magpie.utility.UtilityOperations;
@@ -102,6 +102,10 @@ public class CommandHandler {
                         System.out.print("\"");
                 }
                 System.out.println();
+			} else if (TextCommand.get(0).equalsIgnoreCase("evaluate")) {
+				String output = runEvaluationCommand(expandTextCommand(TextCommand.subList(1, TextCommand.size())));
+				System.out.println();
+				System.out.println(output);
             } else if (TextCommand.get(0).equalsIgnoreCase("print")) {
                 handlePrinting(TextCommand);
             } else if (TextCommand.get(0).equalsIgnoreCase("save")) {
@@ -308,6 +312,54 @@ public class CommandHandler {
         }
         System.out.println();
     }
+	
+	/**
+	 * Run an evaluation command. Given a model to run, a Dataset to generate 
+	 *  attributes, and prints out the predictions.
+	 * 
+	 * <p><b>Usage</b>: $&lt;model&gt; $&lt;dataset&gt; &lt;entries...&gt;
+	 * <br><i>model</i>: Model used to make predictions
+	 * <br><i>dataset</i>: Dataset template used to generate attributes
+	 * <br><i>entries...</i>: Strings representing entries to evaluate
+	 * 
+	 * @param Command Command to evaluate
+	 * @return Table of results
+	 * @throws Exception
+	 */
+	static protected String runEvaluationCommand(List<Object> Command) throws Exception {
+		// Get model, dataset
+		BaseModel model; Dataset data;
+		try {
+			model = (BaseModel) Command.get(0);
+			data = (Dataset) Command.get(1);
+			data = data.emptyClone();
+		} catch (Exception e) {
+			throw new Exception("Usage: $<model> $<dataset template> <entries to evaluate...>");
+		}
+		
+		// Parse entries
+		try {
+			for (String entry : convertCommandToString(Command.subList(2, Command.size()))) {
+				data.addEntry(entry);
+			}
+		} catch (Exception e) {
+			throw new Exception(e);
+		}
+		
+		// Generate attributes for all entries
+		data.generateAttributes(new String[0]);
+		
+		// Run them
+		model.run(data);
+		
+		// Print results
+		String output = "";
+		for (int i=0; i<data.NEntries(); i++) {
+			BaseEntry entry = data.getEntry(i);
+			output += String.format("%s:\t%.5e\n", entry.toString(), entry.getPredictedClass());
+		}
+		return output;
+	}
 
     /**
      * Create new instance of a class given type and options. Class name must be fully 

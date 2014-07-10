@@ -60,6 +60,13 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
     public int NAttributes() {
         return AttributeList.size();
     }
+	
+	/**
+	 * Clear all currently-set attributes.
+	 */
+	public void clearAttributes() {
+		AttributeList.clear();
+	}
     
     /** 
      * Retrieve attributes for this entry

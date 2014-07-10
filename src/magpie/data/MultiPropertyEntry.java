@@ -28,12 +28,12 @@ public class MultiPropertyEntry extends BaseEntry {
     /** List of values of each measured property at this composition. Value is equal
      * to Double.NaN if no measured property has been set.
      */
-    private double[] MeasuredProperty;
+    private double[] MeasuredProperty = new double[0];
     /** List of predictions of each property at this composition. Stores them in a 2-D array
      * so that this same storage device can also hold class probabilities. Value is equal to
      * <code>null</code> if this property has not been predicted.
      */
-    private double[][] PredictedProperty;
+    private double[][] PredictedProperty = new double[0][];
     /** Index of property being used as class variable. Equal to -1 if no property is being used. */
     private int TargetProperty = -1;
 
@@ -50,6 +50,25 @@ public class MultiPropertyEntry extends BaseEntry {
         }
         return x;
     }
+	
+	/**
+	 * Define the number of properties this entry can support.
+	 * 
+	 * @param N Number of properties this entry should be able to store
+	 */
+	public void setNProperties(int N) {
+		if (N > NProperties()) {
+			MeasuredProperty = Arrays.copyOf(MeasuredProperty, N);
+		} else if (N < NProperties()) {
+			int oldLength = NProperties();
+			double[] newMeas = new double[oldLength - N];
+			Arrays.fill(newMeas, Double.NaN);
+			MeasuredProperty = ArrayUtils.addAll(MeasuredProperty, newMeas);
+			double[][] newPred = new double[oldLength - N][];
+			Arrays.fill(newPred, null);
+			PredictedProperty = ArrayUtils.addAll(PredictedProperty, newPred);
+		}
+	}
     
     /** 
      * Add a new property to this entry. 

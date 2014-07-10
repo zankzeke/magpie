@@ -372,12 +372,10 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     public int NEntries() { return Entries.size(); }
     
     /** 
-	 * Add an entry 
+	 * Add an entry. You may need to run {@linkplain #generateAttributes(java.lang.Object[]) }.
      * @param e Entry to be added
      */
     public void addEntry(BaseEntry e) {
-        if (e.NAttributes() != NAttributes())
-            throw new Error("Entry has wrong number of features");
         Entries.add(e);
     }
 	

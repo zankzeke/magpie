@@ -312,6 +312,11 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
      * attributes
      */
     public void generateAttributes(boolean useComposition) {
+		AttributeName.clear();
+		for (BaseEntry e : Entries) {
+			e.clearAttributes();
+		}
+		
         // --> Create attributes based on elemental fractions, if desired
         if (useComposition) {
             generateElementFractionAttributes();
