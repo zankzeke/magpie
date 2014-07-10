@@ -355,8 +355,11 @@ public class CompositionEntry extends MultiPropertyEntry {
             return toHTMLString();
         else {
             String output="";
-            for (int i=0; i<Element.length; i++)
-                output+=String.format("%s%.2f",ElementNames[Element[i]],Fraction[i]*100);
+			String[] Numbers = printNumber(Fraction, NumberInCell);
+			for (int i=0; i<Element.length; i++) {
+				output+=ElementNames[Element[i]];
+				if (Numbers[i].length() > 0) output+=Numbers[i];
+			}
             return output;
         }
     }
