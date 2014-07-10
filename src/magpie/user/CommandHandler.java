@@ -353,10 +353,19 @@ public class CommandHandler {
 		model.run(data);
 		
 		// Print results
-		String output = "";
+		String[] names = new String[data.NEntries()];
+		int nameLength = 0;
 		for (int i=0; i<data.NEntries(); i++) {
 			BaseEntry entry = data.getEntry(i);
-			output += String.format("%s:\t%.5e\n", entry.toString(), entry.getPredictedClass());
+			names[i] = entry.toString();
+			if (names[i].length() > nameLength) {
+				nameLength = names[i].length();
+			}
+		}
+		String output = String.format("%" + (nameLength + 5) + "s\t%16s", "Entry", "Predicted Class");
+		for (int i=0; i<data.NEntries(); i++) {
+			BaseEntry entry = data.getEntry(i);
+			output += String.format("\n%" + (nameLength + 5) + "s\t%16.4g", names[i], entry.getPredictedClass());
 		}
 		return output;
 	}
