@@ -19,9 +19,9 @@ import magpie.data.utilities.DatasetOutput;
  * 
  * <p><b><u>Implemented Commands:</u></b>
  * 
- * <command><p><b>target &lt;name></b> - Set class variable to be a certain property
+ * <command><p><b>target &lt;name&gt; [-keep]</b> - Set class variable to be a certain property
  * <br><pr><i>name</i>: Name of property to use as class variable
- * Any entries without this property will be removed from the dataset.</command>
+ * <br><pr><i>-keep</i>: Whether to keep entries without a measurement for this property</command>
  * 
  * <p><b><u>Implemented Save Formats:</u></b>
  * 
@@ -173,11 +173,12 @@ public class MultiPropertyDataset extends Dataset {
     /**
      * Define which property to use as the class variable.
      * @param Property Name of this property
+	 * @param keepUnmeasured Whether to keep entries without a measurement for this property
      */
-    public void setTargetProperty(String Property) {
+    public void setTargetProperty(String Property, boolean keepUnmeasured) {
         int Index = PNames.indexOf(Property);
         if (Index != -1) {
-            setTargetProperty(Index);
+            setTargetProperty(Index, keepUnmeasured);
         } else {
             throw new Error("Property " + Property + " not found");
         }
@@ -188,29 +189,32 @@ public class MultiPropertyDataset extends Dataset {
      * set this as the target property for each entry. Set to "-1" to use a variable 
      * besides a measured property as the class variable. 
      * 
-     * Note: This removes entries which do not have this property defined. 
-     * 
-     * @param Index Index of the property to be used
+     * @param index Index of the property to be used
+	 * @param keepUnmeasured Whether to keep entries without a measurement for this property
      */
-    public void setTargetProperty(int Index) {
-        if (Index >= NProperties())
+    public void setTargetProperty(int index, boolean keepUnmeasured) {
+        if (index >= NProperties())
             throw new Error("Invalided target property: Greater than number of properties.");
-        if (NEntries() > 0 && Index >= getEntry(0).NProperties())
+        if (NEntries() > 0 && index >= getEntry(0).NProperties())
             throw new Error("Critical Error: Entries have fewer properties than Dataset!");
         Iterator<BaseEntry> iter = Entries.iterator();
-        TargetProperty = Index;
+        TargetProperty = index;
         if (TargetProperty >= 0) {
-            setClassNames(PClassNames.get(Index));
+            setClassNames(PClassNames.get(index));
         }
         
         // Process the entries
         while (iter.hasNext()) {
             MultiPropertyEntry E = (MultiPropertyEntry) iter.next();
             if (TargetProperty >= 0) {
-                if (E.hasMeasuredProperty(Index)) {
-                    E.setTargetProperty(Index);
+                if (E.hasMeasuredProperty(index)) {
+                    E.setTargetProperty(index);
                 } else {
-                    iter.remove();
+					if (! keepUnmeasured) {
+						iter.remove(); 
+					} else {
+						E.setTargetProperty(index);
+					}
                 }
             } else {
                 E.setTargetProperty(-1);
@@ -328,10 +332,23 @@ public class MultiPropertyDataset extends Dataset {
             String Action = Command.get(0).toString().toLowerCase();
             switch (Action) {
                 case "target": {
-                    // Usage: target <name>
-                    String Target = Command.get(1).toString();
+                    // Usage: target <name> [-keep]
+                    String Target;
+					boolean toKeep = false; 
+					try {
+						Target = Command.get(1).toString();
+						if (Command.size() > 2) {
+							if (Command.get(2).toString().equalsIgnoreCase("-keep")) {
+								toKeep = true;
+							} else {
+								throw new Exception();
+							}
+						}
+					} catch (Exception e) {
+						throw new Exception("Usage: <target> [-keep]");
+					}
                     int originalSize = NEntries();
-                    setTargetProperty(Command.get(1).toString());
+                    setTargetProperty(Target, toKeep);
                     String output = "\tSet target property to " + Target;
                     if (originalSize > NEntries()) {
                         output += ". " + (originalSize - NEntries()) 

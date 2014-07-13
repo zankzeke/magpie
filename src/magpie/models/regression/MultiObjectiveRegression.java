@@ -191,14 +191,14 @@ public class MultiObjectiveRegression extends BaseRegression {
                 }
             }
             BaseModel model = Models.get(prop);
-            d.setTargetProperty(prop);
+            d.setTargetProperty(prop, false);
             model.train(TrainData);
         }
         
         // Ensure the measured composite value is calculated for each entry
         ObjFunction.setUseMeasured(true);
         ObjFunction.train(d);
-        d.setTargetProperty(-1); // Preparing to store target variable
+        d.setTargetProperty(-1, true); // Preparing to store target variable
         for (int i=0; i<d.NEntries(); i++) {
             d.getEntry(i).setMeasuredClass(ObjFunction.objectiveFunction(d.getEntry(i)));
         }
@@ -211,13 +211,13 @@ public class MultiObjectiveRegression extends BaseRegression {
         for (Map.Entry<String, BaseModel> entry : Models.entrySet()) {
             String prop = entry.getKey();
             BaseModel model = entry.getValue();
-            d.setTargetProperty(prop);
+            d.setTargetProperty(prop, true);
             model.run(TrainData);
         }
         
         // Ensure the measured composite value is calculated for each entry
         ObjFunction.setUseMeasured(false);
-        d.setTargetProperty(-1); // Prepare to store target variable
+        d.setTargetProperty(-1, true); // Prepare to store target variable
         for (int i=0; i<d.NEntries(); i++) {
             d.getEntry(i).setPredictedClass(ObjFunction.objectiveFunction(d.getEntry(i)));
         }

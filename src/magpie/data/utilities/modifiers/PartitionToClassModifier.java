@@ -80,7 +80,7 @@ public class PartitionToClassModifier extends BaseDatasetModifier {
             MultiPropertyDataset Ptr = (MultiPropertyDataset) Data;
             if (Ptr.getTargetPropertyIndex() != -1) {
                 Ptr.addProperty("Split-" + Ptr.getTargetPropertyName());
-                Ptr.setTargetProperty("Split-" + Ptr.getTargetPropertyName());
+                Ptr.setTargetProperty("Split-" + Ptr.getTargetPropertyName(), true);
             }
         }
         

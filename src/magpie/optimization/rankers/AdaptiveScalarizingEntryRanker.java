@@ -210,7 +210,7 @@ public class AdaptiveScalarizingEntryRanker extends MultiObjectiveEntryRanker {
             // Set class to a certain property
             String property = pair.getKey();
             PropertyIndex[pos] = data.getPropertyIndex(property);
-            data.setTargetProperty(property);
+            data.setTargetProperty(property, true);
             
             // Get the maximum, minimum objective function for this objective
             EntryRanker obj = pair.getValue();
@@ -225,7 +225,7 @@ public class AdaptiveScalarizingEntryRanker extends MultiObjectiveEntryRanker {
         }
         
         // Return to its original state
-        data.setTargetProperty(originalIndex);
+        data.setTargetProperty(originalIndex, true);
     }
 
     @Override

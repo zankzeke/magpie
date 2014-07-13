@@ -41,7 +41,7 @@ public class ClassIsNegativeModifier extends BaseDatasetModifier {
             MultiPropertyDataset Ptr = (MultiPropertyDataset) Data;
             if (Ptr.getTargetPropertyIndex() != -1) {
                 Ptr.addProperty("Negative" + Ptr.getTargetPropertyName());
-                Ptr.setTargetProperty("Negative" + Ptr.getTargetPropertyName());
+                Ptr.setTargetProperty("Negative" + Ptr.getTargetPropertyName(), true);
             }
         }
         

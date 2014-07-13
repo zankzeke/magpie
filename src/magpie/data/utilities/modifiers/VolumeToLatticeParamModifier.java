@@ -81,7 +81,7 @@ public class VolumeToLatticeParamModifier extends BaseDatasetModifier {
         }
         
         // Set the target class to lattice parameter
-        Ptr.setTargetProperty("lat_param");
+        Ptr.setTargetProperty("lat_param", true);
     }
     
     /**

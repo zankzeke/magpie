@@ -89,7 +89,7 @@ public class ClassIntervalModifier extends BaseDatasetModifier {
             MultiPropertyDataset Ptr = (MultiPropertyDataset) Data;
             if (Ptr.getTargetPropertyIndex() != -1) {
                 Ptr.addProperty(Ptr.getTargetPropertyName() + "Bin");
-                Ptr.setTargetProperty(Ptr.getTargetPropertyName() + "Bin");
+                Ptr.setTargetProperty(Ptr.getTargetPropertyName() + "Bin", true);
             }
         }
         

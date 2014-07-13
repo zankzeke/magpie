@@ -46,7 +46,7 @@ public class NonZeroClassModifier extends BaseDatasetModifier {
             MultiPropertyDataset Ptr = (MultiPropertyDataset) Data;
             if (Ptr.getTargetPropertyIndex() != -1) {
                 Ptr.addProperty("NonZero" + Ptr.getTargetPropertyName());
-                Ptr.setTargetProperty("NonZero" + Ptr.getTargetPropertyName());
+                Ptr.setTargetProperty("NonZero" + Ptr.getTargetPropertyName(), true);
             }
         }
         

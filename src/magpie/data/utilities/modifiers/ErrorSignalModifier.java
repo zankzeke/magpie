@@ -57,7 +57,7 @@ public class ErrorSignalModifier extends BaseDatasetModifier {
                 Ptr.addProperty("ErrorSignal");
                 for (int i=0; i<Ptr.NEntries(); i++)
                     Ptr.getEntry(i).addProperty(Double.NaN);
-                Ptr.setTargetProperty("ErrorSignal");
+                Ptr.setTargetProperty("ErrorSignal", true);
             }
         }
 
