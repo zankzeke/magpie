@@ -57,14 +57,15 @@ public class MultiPropertyEntry extends BaseEntry {
 	 * @param N Number of properties this entry should be able to store
 	 */
 	public void setNProperties(int N) {
-		if (N > NProperties()) {
+		if (N < NProperties()) {
 			MeasuredProperty = Arrays.copyOf(MeasuredProperty, N);
-		} else if (N < NProperties()) {
+			PredictedProperty = Arrays.copyOf(PredictedProperty, N);
+		} else if (N > NProperties()) {
 			int oldLength = NProperties();
-			double[] newMeas = new double[oldLength - N];
+			double[] newMeas = new double[N - oldLength];
 			Arrays.fill(newMeas, Double.NaN);
 			MeasuredProperty = ArrayUtils.addAll(MeasuredProperty, newMeas);
-			double[][] newPred = new double[oldLength - N][];
+			double[][] newPred = new double[N - oldLength][];
 			Arrays.fill(newPred, null);
 			PredictedProperty = ArrayUtils.addAll(PredictedProperty, newPred);
 		}
