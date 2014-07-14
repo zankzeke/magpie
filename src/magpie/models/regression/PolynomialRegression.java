@@ -25,13 +25,13 @@ import org.apache.commons.math3.stat.regression.UpdatingMultipleLinearRegression
  */
 public class PolynomialRegression extends BaseRegression {
     /** Desired order of polynomial */
-    int order = 1;
+    protected int order = 1;
     /** Number of attributes used in model */
-    int numAttributes = 0;
+    private int numAttributes = 0;
     /** Coefficients of each term in the polynomial */
-    double[] coefficients = null;
+    private double[] coefficients = null;
     /** Names of attributes */
-    String[] attributeNames;
+    private String[] attributeNames;
 
     @Override
     public void setOptions(List Options) throws Exception {
@@ -57,6 +57,14 @@ public class PolynomialRegression extends BaseRegression {
     public String printUsage() {
         return "Usage: <order of polynomial>";
     }
+
+	/**
+	 * Define order of polynomial.
+	 * @param order Desired order of polynomial.
+	 */
+	public void setOrder(int order) {
+		this.order = order;
+	}
 
     @Override
     protected void train_protected(Dataset TrainData) {
