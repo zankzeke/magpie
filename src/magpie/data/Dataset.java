@@ -817,7 +817,11 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         Iterator<BaseEntry> iter = Entries.iterator();
         while (iter.hasNext()){
             BaseEntry e = iter.next();
-            output[id]=e.getMeasuredClass();
+			if (e.hasMeasurement()) {
+				output[id]=e.getMeasuredClass();
+			} else {
+				throw new Error("Entry " + id + " does not have a measured class variable");
+			}
             id++;
         }
         return output;
@@ -834,7 +838,11 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         Iterator<BaseEntry> iter = Entries.iterator();
         while (iter.hasNext()){
             BaseEntry e = iter.next();
-            output[id]=e.getPredictedClass();
+			if (e.hasPrediction()) {
+				output[id]=e.getPredictedClass();
+			} else {
+				throw new Error("Entry " + id + " does not have a predicted class variable");
+			}
             id++;
         }
         return output;

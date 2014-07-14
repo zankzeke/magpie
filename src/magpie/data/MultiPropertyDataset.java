@@ -286,16 +286,20 @@ public class MultiPropertyDataset extends Dataset {
     /**
      * Get the measured value for a certain property for all entries in the dataset. For entries
      *  without a measurement for that property, will return NaN.
-     * @param Index Index of the desired property
+     * @param index Index of the desired property
      * @return Array containing measured property for each entry.
      */
-    public double[] getMeasuredPropertyArray(int Index) {
-        if (Index < 0) throw new Error("Invalid property index: " + Index);
-        if (Index >= NProperties()) 
-            throw new Error("Requested property " + Index + " only " + NProperties() + " properties in dataset");
+    public double[] getMeasuredPropertyArray(int index) {
+        if (index < 0) throw new Error("Invalid property index: " + index);
+        if (index >= NProperties()) 
+            throw new Error("Requested property " + index + " only " + NProperties() + " properties in dataset");
         double[] output = new double[NEntries()];
-        for (int i=0; i<NEntries(); i++) {
-            output[i] = getEntry(i).getMeasuredProperty(Index);
+        for (int e=0; e<NEntries(); e++) {
+			if (getEntry(e).hasMeasuredProperty(index)) {
+				output[e] = getEntry(e).getMeasuredProperty(index);
+			} else {
+				throw new Error("Entry " + e + " does not have measurement for property " + index);
+			}
         }
         return output;
     }
@@ -303,16 +307,20 @@ public class MultiPropertyDataset extends Dataset {
     /**
      * Get the predicted value for a certain property for all entries in the dataset. For entries
      *  without a measurement for that property, will return NaN.
-     * @param Index Index of the desired property
+     * @param index Index of the desired property
      * @return Array containing predicted property for each entry.
      */
-    public double[] getPredictedPropertyArray(int Index) {
-        if (Index < 0) throw new Error("Invalid property index: " + Index);
-        if (Index >= NProperties()) 
-            throw new Error("Requested property " + Index + " only " + NProperties() + " properties in dataset");
+    public double[] getPredictedPropertyArray(int index) {
+        if (index < 0) throw new Error("Invalid property index: " + index);
+        if (index >= NProperties()) 
+            throw new Error("Requested property " + index + " only " + NProperties() + " properties in dataset");
         double[] output = new double[NEntries()];
-        for (int i=0; i<NEntries(); i++) {
-            output[i] = getEntry(i).getPredictedProperty(Index);
+        for (int e=0; e<NEntries(); e++) {
+			if (getEntry(e).hasPredictedProperty(index)) {
+				output[e] = getEntry(e).getPredictedProperty(index);
+			} else {
+				throw new Error("Entry " + e + " does not have prediction for property " + index);
+			}
         }
         return output;
     }
