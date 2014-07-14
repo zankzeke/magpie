@@ -1,5 +1,5 @@
 Added-By	Added-On	Description	Progress	(Arranged by priority)
-Logan   20June14    Add in a text command to evaluate a certain material. Needs to be made pretty, handle MultiPropertyModels
+Logan	10June14    Allow a dataset to contain entries w/ and w/o a measured property, don't remove those without a measured property when setting a target property (add capability to extract only entries with measured properties to dataset)	Not started
 Logan	5June14	Add in Ratio attributes (idea stolen from Vinay)	Not Started
 Logan	3June14	Ensure "Base" classes contain guides on how to implement them	Logan working on it idly (i.e. when bored on bus)
 Logan	10June14    Make a class to compute population statistics of attributes/class variable of a dataset (i.e. mean of dev_MeltingT, or histogram of bandgap)	Not started
@@ -8,4 +8,3 @@ Logan	3June14	Add in some kind of guide for people who want to contribute to Mag
 Logan 	3June14	Ensure all options can be set from the Java interface	Logan working on it idly (i.e. when bored on bus)
 Logan   12June14    Add license Not Started
 Logan	2July14	Create automated tests for basic functionality	Not started
-Logan	10June14    Allow a dataset to contain entries w/ and w/o a measured property, don't remove those without a measured property when setting a target property (would be a real pain)	Not started

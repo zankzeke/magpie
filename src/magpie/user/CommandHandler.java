@@ -22,10 +22,11 @@ import magpie.cluster.BaseClusterer;
 import magpie.csp.CSPEngine;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
+import magpie.data.MultiPropertyDataset;
 import magpie.data.utilities.splitters.BaseDatasetSplitter;
 import magpie.models.BaseModel;
 import magpie.models.classification.AbstractClassifier;
-import magpie.models.regression.AbstractRegressionModel;
+import magpie.models.regression.*;
 import magpie.optimization.BaseOptimizer;
 import magpie.optimization.rankers.EntryRanker;
 import magpie.optimization.rankers.SimpleEntryRanker;
@@ -352,7 +353,7 @@ public class CommandHandler {
 		// Run them
 		model.run(data);
 		
-		// Print results
+		// Get names of each compound
 		String[] names = new String[data.NEntries()];
 		int nameLength = 0;
 		for (int i=0; i<data.NEntries(); i++) {
@@ -362,12 +363,52 @@ public class CommandHandler {
 				nameLength = names[i].length();
 			}
 		}
-		String output = String.format("%" + (nameLength + 5) + "s\t%16s", "Entry", "Predicted Class");
-		for (int i=0; i<data.NEntries(); i++) {
-			BaseEntry entry = data.getEntry(i);
-			output += String.format("\n%" + (nameLength + 5) + "s\t%16.4g", names[i], entry.getPredictedClass());
+		
+		// Assemble table
+		String output;
+		if (model instanceof MultiObjectiveRegression) {
+			// Print the value of each property for each entry
+			
+			// Start lines of the header and each entry
+			output = String.format("%" + (nameLength + 2) + "s", "Entry");
+			String[] entryLine = new String[data.NEntries()];
+			for (int i=0; i<entryLine.length; i++) {
+				entryLine[i] = String.format("%" + (nameLength + 2) + "s", names[i]);
+			}
+			
+			// Add name of each property to header, and values to each entry
+			MultiObjectiveRegression mptr = (MultiObjectiveRegression) model;
+			MultiPropertyDataset dptr = (MultiPropertyDataset) data;
+			for (String property : mptr.getPropertiesBeingModeled()) {
+				int propLength = Math.max(property.length(), 10);
+				output += String.format("  %" + (propLength) + "s", property);
+				double[] propValues = dptr.getPredictedPropertyArray(property);
+				for (int i=0; i<data.NEntries(); i++) {
+					entryLine[i] += String.format("  %" + (propLength) + ".4g", propValues[i]);
+				}
+			}
+			
+			// If it is not a MultiPropertyRegression, add in predicted class
+			if (! (model instanceof MultiPropertyRegression)) {
+				double[] predClass = data.getPredictedClassArray();
+				output += String.format("  %16s","Predicted Class");
+				for (int i=0; i<data.NEntries(); i++) {
+					entryLine[i] += String.format("  %16.4g", predClass[i]);
+				}
+			}
+			
+			// Compile everything together
+			for (String line: entryLine) {
+				output += "\n" + line;
+			}
+		} else {
+			output = String.format("%" + (nameLength + 2) + "s  %16s", "Entry", "Predicted Class");
+			for (int i=0; i<data.NEntries(); i++) {
+				BaseEntry entry = data.getEntry(i);
+				output += String.format("\n%" + (nameLength + 2) + "s  %16.4g", names[i], entry.getPredictedClass());
+			}
 		}
-		return output;
+		return output + "\n";
 	}
 
     /**

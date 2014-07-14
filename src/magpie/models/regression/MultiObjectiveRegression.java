@@ -96,6 +96,14 @@ public class MultiObjectiveRegression extends BaseRegression {
         x.ObjFunction = ObjFunction.clone();
         return x;
     }
+	
+	/**
+	 * Get a list of properties for which a model is defined.
+	 * @return List of property names
+	 */
+	public String[] getPropertiesBeingModeled() {
+		return Models.keySet().toArray(new String[0]);
+	}
     
     /**
      * Get the model designed to predict a certain property. 

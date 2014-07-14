@@ -16,5 +16,16 @@ model train $data
 // Predict the formation energy of Ni3Al and NaBr
 evaluate $model $data Ni3Al NaBr
 
+// Create a model that predicts both formation energy and volume
+model = new models.regression.MultiPropertyRegression delta_e volume_pa
+leaf = new models.regression.WekaRegression trees.REPTree
+model submodel set delta_e $leaf
+leaf = new models.regression.MixingRuleRegression GSvolume_pa
+model submodel set volume_pa $leaf
+model train $data
+
+// Predict the formation energy and volume of Ni3Al and NaBr
+evaluate $model $data Ni3Al NaBr
+
 // Done
 exit
