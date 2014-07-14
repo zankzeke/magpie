@@ -297,17 +297,6 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     }
     
     /** 
-     * Set list of feature names. 
-     * 
-     * <p>NOTE: This does not effect number of attributes in each entries. You 
-     *  need to do that yourself.
-     * @param newAttributeNames List of new attribute names to use
-     */
-    public void setAttributeNames(ArrayList<String> newAttributeNames) { 
-        AttributeName = newAttributeNames;
-    }
-    
-    /** 
      * Set name of class variable (or possible classes)
      * @param newClassNames New name(s) to use
      */
