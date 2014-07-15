@@ -194,6 +194,20 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         copy.Entries = new ArrayList<>(NEntries());
         return copy;
     }
+	
+	/**
+	 * Get a dataset that only contains entries with a measured class variable.
+	 * @return Dataset with all entries that have a measured class
+	 */
+	public Dataset getTrainingExamples() {
+		Dataset output = emptyClone();
+		for (BaseEntry entry : Entries) {
+			if (entry.hasMeasurement()) {
+				output.addEntry(entry);
+			}
+		}
+		return output;
+	}
     
     /** 
      * Clear out all entries 

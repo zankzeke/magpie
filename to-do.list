@@ -1,5 +1,4 @@
 Added-By	Added-On	Description	Progress	(Arranged by priority)
-Logan	10June14    Allow a dataset to contain entries w/ and w/o a measured property, don't remove those without a measured property when setting a target property (add capability to extract only entries with measured properties to dataset)	Not started
 Logan	14July14	Make "use composition" a setting of composition dataset. Remove options from "generateAttributes" operation	Not started
 Logan	5June14	Add in Ratio attributes (idea stolen from Vinay)	Not Started
 Logan	3June14	Ensure "Base" classes contain guides on how to implement them	Logan working on it idly (i.e. when bored on bus)

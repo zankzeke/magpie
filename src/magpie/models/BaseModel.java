@@ -170,44 +170,43 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
     /** 
      * Train a model on a specified training set and then evaluate performance 
      *  on the training set, if desired
-     * @param TrainingData Dataset to use for training
-     * @param Record_Stats Whether to record training statistics
+     * @param data Dataset to use for training
+     * @param recordStats Whether to record training statistics
      */
-    public void train(Dataset TrainingData, boolean Record_Stats) {
-        if (TrainingData.NEntries() == 0)
-            throw new Error("ERROR: Training data does not contain any entries");
+    public void train(Dataset data, boolean recordStats) {
+		Dataset trainingData = data.getTrainingExamples();
+        if (trainingData.NEntries() == 0)
+            throw new Error("Data does not contain any training entries");
         
         // Perform normalization, if needed
         if (Normalizer != null) {
-            Normalizer.normalize(TrainingData);
+            Normalizer.normalize(trainingData);
         }
         
         // Perform attribute selection, if needed
-        Dataset Data = TrainingData;
         if (AttributeSelector != null) {
-            Data = TrainingData.clone();
-            AttributeSelector.train(Data);
-            AttributeSelector.run(Data);
+            AttributeSelector.train(trainingData);
+            AttributeSelector.run(trainingData);
         }
         
         // Train the model
         if (this instanceof AbstractRegressionModel) {
             // For regression models only: Perform robust training. 
             AbstractRegressionModel Ptr = (AbstractRegressionModel) this;
-            Ptr.robustTraining(Data);
+            Ptr.robustTraining(trainingData);
         } else {
-            train_protected(Data);
+            train_protected(trainingData);
         }
         trained=true; validated=false;
         
         // De-normalize data
         if (Normalizer != null) {
-            Normalizer.restore(TrainingData);
+            Normalizer.restore(trainingData);
         }
         
-        if (Record_Stats) {
-            run(TrainingData);
-            TrainingStats.evaluate(TrainingData);
+        if (recordStats) {
+            run(trainingData);
+            TrainingStats.evaluate(trainingData);
         }
     }
     
