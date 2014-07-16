@@ -9,6 +9,7 @@ import java.io.FileReader;
 import magpie.data.utilities.DatasetHelper;
 import weka.core.*;
 import java.util.*;
+import javax.naming.OperationNotSupportedException;
 import magpie.attributes.evaluators.BaseAttributeEvaluator;
 import magpie.attributes.expansion.BaseAttributeExpander;
 import magpie.data.utilities.DatasetOutput;
@@ -77,8 +78,7 @@ import org.apache.commons.collections.Predicate;
  * <br><pr><i>method</i>: How to expand attributes. Name of a {@linkplain BaseAttributeExpander} ("?" to print available methods)
  * <br><pr><i>options...</i>: Any options for the expansion method</command>
  * 
- * <command><p><b>attributes generate [&lt;options...>]</b> - Generate attributes for each entry
- * <br><pr><i>options...</i>: Options that control how to create attributes</command>
+ * <command><p><b>attributes generate</b> - Generate attributes for each entry</command>
  * 
  * <command><p><b>attributes rank &lt;number> &lt;method> [&lt;options..]</b> - Rank attributes based on predictive power
  * <br><pr><i>number</i>: Number of top attributes to print
@@ -218,13 +218,10 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     
     /**
      * Generate attributes for this dataset
-     * @param Options Any options for this command
      * @throws java.lang.Exception If any error is encountered
      */
-    public void generateAttributes(Object[] Options) throws Exception {
-        if (Options.length != 0) 
-            throw new Exception("Usage: *No options*");
-        // Nothing to do for base class
+    public void generateAttributes() throws Exception {
+        throw new OperationNotSupportedException("Dataset does not support attribute generation");
     }
 
     /**
@@ -1217,9 +1214,11 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 System.out.println("\tExpanded number of attributes to " + NAttributes() + " using a " + Method);
             } break;
             case "generate":
-                // Usage: generate [<options...>]
-                // Generate new attributes for this command
-                generateAttributes(Command.subList(1, Command.size()).toArray());
+                // Usage: generate
+                if (Command.size() > 1) {
+                    throw new Exception("Usage: <dataset> generate");
+                }
+                generateAttributes();
 				System.out.println("\tGenerated " + NAttributes() + " attributes.");
                 break;
             case "rank": {

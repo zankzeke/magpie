@@ -42,8 +42,10 @@ import org.apache.commons.math3.stat.*;
  *
  * <p><b><u>Implemented Commands:</u></b>
  * 
- * <command><p><b>attributes generate [-comp]</b> - Generate attributes for each entry
- * <br><pr><i>-comp</i>: Whether to use fraction of each element as an attribute</command>
+ * <command><p><b>attributes composition &lt;true|false&gt;</b> - 
+ *  Set whether to use composition as attributes
+ * <br><pr><i>true|false</i> - Whether to use composition as attributes
+ * <br>By default, this class does not use composition (by itself) as attributes</command>
  *
  * <command><p><b>attributes properties</b> - List which elemental properties are used to generate attributes</command>
  *
@@ -84,6 +86,8 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
      * Map of property names to values
      */
     public Map<String, double[]> PropertyData = LookupData.ElementalProperties;
+    /** Whether to use composition as attributes */
+    protected boolean UseComposition = false;
 
     @Override
     @SuppressWarnings("CloneDeclaresCloneNotSupported")
@@ -119,8 +123,6 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
         return SortingOrder.clone();
     }
     
-    
-
     /**
      * Read in an dataset from file. See documentation for format information.
      *
@@ -234,24 +236,15 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
         // Copy the entries
         this.Entries = new ArrayList<>(acceptedEntries.keySet());
     }
-
-    @Override
-    public void generateAttributes(Object[] Options) throws Exception {
-        boolean UseComp = false;
-        try {
-            if (Options.length == 1) {
-                if (Options[0].toString().equals("-comp")) {
-                    UseComp = true;
-                } else {
-                    throw new Exception();
-                }
-            } else if (Options.length > 1) {
-                throw new Exception();
-            }
-        } catch (Exception e) {
-            throw new Exception("Usage: [-comp]");
-        }
-        generateAttributes(UseComp);
+    
+    /**
+     * Set whether to use composition (i.e. fraction of each element present) as attributes.
+     * 
+     * <p>By default: This class does not use fractions as attributes.
+     * @param decision Whether to use it or not
+     */
+    public void useCompositionAsAttributes(boolean decision) {
+        this.UseComposition = decision;
     }
 
     /**
@@ -275,7 +268,9 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
      * @param Name Name of property
      */
     public void addElementalProperty(String Name) {
-        ElementalProperties.add(Name);
+        if (! ElementalProperties.contains(Name)) {
+            ElementalProperties.add(Name);
+        }
     }
 
     /**
@@ -307,18 +302,19 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
      * orbital (s/p/d/f)
      * <li><b>Other:</b> Bond ionicity, sum of oxidation states, etc
      * </ol>
-     *
-     * @param useComposition Whether to use the fraction of each element as an
-     * attributes
+     * 
+     * <p>Depending on value of {@linkplain #UseComposition}, may also use fractions
+     * of each element as attributes.
      */
-    public void generateAttributes(boolean useComposition) {
+    @Override
+    public void generateAttributes() {
 		AttributeName.clear();
 		for (BaseEntry e : Entries) {
 			e.clearAttributes();
 		}
 		
         // --> Create attributes based on elemental fractions, if desired
-        if (useComposition) {
+        if (UseComposition) {
             generateElementFractionAttributes();
         }
 
@@ -709,6 +705,25 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
             case "properties": case "prop": {
                 return runPropertyCommand(Command.subList(1, Command.size()));
             }
+            case "composition": {
+                boolean useComp;
+                try {
+                    switch (Command.get(1).toString().toLowerCase()) {
+                        case "true": useComp = true; break;
+                        case "false": useComp = false; break;
+                        default: throw new Exception();
+                    }
+                } catch (Exception e) {
+                    throw new Exception("Usage: <dataset> attributes composition <true|false>");
+                }
+                useCompositionAsAttributes(useComp);
+                if (useComp) {
+                    System.out.println("\tSet dataset to use composition as attributes");
+                } else {
+                    System.out.println("\tSet dataset to not use composition as attributes");
+                }
+                return null;
+            }
             default:
                 return super.runAttributeCommand(Command);
         }
@@ -743,7 +758,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
             case "add": {
                 // Usage: add <name> or add set <name>
                 if (Command.size() < 2) {
-                    throw new Exception("Usage: \"properties add set <set name>\""
+                    throw new Exception("Usage: \"<dataset> attributes properties add set <set name>\""
                             + " or properties add <property names...>");
                 }
                 // Add in new properties
@@ -767,7 +782,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
             case "remove": {
                 // Usage: remove <names...>
                 if (Command.size() < 2) {
-                    throw new Exception("Usage: properties remove <property names...>");
+                    throw new Exception("Usage: <dataset> attributes properties remove <property names...>");
                 }
                 // Remove those property from the set
                 String output = "\tRemoved properties:";
@@ -789,7 +804,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
             case "directory": {
                 // Define the lookup directory
                 if (Command.size() < 2) {
-                    throw new Exception("Usage: properties directory <directory name>");
+                    throw new Exception("Usage: <dataset> attributes properties directory <directory name>");
                 }
                 DataDirectory = Command.get(1).toString();
                 for (int i = 2; i < Command.size(); i++) {

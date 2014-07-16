@@ -348,7 +348,7 @@ public class CommandHandler {
 		}
 		
 		// Generate attributes for all entries
-		data.generateAttributes(new String[0]);
+		data.generateAttributes();
 		
 		// Run them
 		model.run(data);

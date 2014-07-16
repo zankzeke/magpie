@@ -72,7 +72,7 @@ public class CompositionBasedCSPEngine extends CSPEngine {
         temp.setClassNames(trainData.getClassNames());
         
         // Generate attributes
-        temp.generateAttributes(false);
+        temp.generateAttributes();
         
         // Train and return
         newClassifier.train(temp);
@@ -90,7 +90,7 @@ public class CompositionBasedCSPEngine extends CSPEngine {
         runData.addEntry(entryToPredict);
         
         // Calculate attributes and run
-        runData.generateAttributes(false);
+        runData.generateAttributes();
         classifier.run(runData);
         double[] probs = runData.getEntry(0).getClassProbilities();
         return probs;

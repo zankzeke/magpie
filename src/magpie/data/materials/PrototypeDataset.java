@@ -228,7 +228,7 @@ public class PrototypeDataset extends CompositionDataset {
     }
 
     @Override
-    public void generateAttributes(boolean useComposition) {
+    public void generateAttributes() {
         // Generate attritubutes based on elemental properties for each site
         generateSingleSiteAttributes();
         
@@ -236,7 +236,7 @@ public class PrototypeDataset extends CompositionDataset {
         generatePairSiteAttributes();
         
         // Generate attibutes based on composition only
-        super.generateAttributes(useComposition);
+        super.generateAttributes();
     }
     
     /**
