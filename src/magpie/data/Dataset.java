@@ -36,7 +36,8 @@ import org.apache.commons.collections.Predicate;
  * <ul>
  * <li>{@linkplain #getEntry(int) } - Might be useful to overload with an operation that returns 
  * entry type associated with this model
- * <li>{@link #addEntry(java.lang.String) } - Call the constructor to the associated entry type
+ * <li>{@linkplain  #addEntry(java.lang.String) } - Call the constructor to the associated entry type
+ * <li>{@linkplain #calculateAttributes() } - Compute any new attributes for for class
  * </ul>
  * 
  * <usage><p><b>Usage</b>: *No options to set*</usage>
@@ -220,7 +221,25 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * Generate attributes for this dataset
      * @throws java.lang.Exception If any error is encountered
      */
-    public void generateAttributes() throws Exception {
+    final public void generateAttributes() throws Exception {
+        // First things first, clear out old data
+        AttributeName.clear();
+		for (BaseEntry e : Entries) {
+			e.clearAttributes();
+		}
+        
+        // Now compute attributes
+        calculateAttributes();
+        
+        // Reduce memory footprint, where possible
+        finalizeGeneration();
+    }
+    
+    /**
+     * Perform attribute calculation. Should also store names in {@linkplain #AttributeName}.
+     * @throws Exception 
+     */
+    protected void calculateAttributes() throws Exception {
         throw new OperationNotSupportedException("Dataset does not support attribute generation");
     }
 
@@ -1248,5 +1267,16 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 throw new Exception("ERROR: Dataset attribute command not recognized" + Action);
         }
         return null;
+    }
+
+    /**
+     * Run after generating attributes. Performs some operations to reduce the
+     * amount of memory used.
+     */
+    protected void finalizeGeneration() {
+        for (int i = 0; i < NEntries(); i++) {
+            getEntry(i).reduceMemoryFootprint();
+        }
+        System.gc();
     }
 }

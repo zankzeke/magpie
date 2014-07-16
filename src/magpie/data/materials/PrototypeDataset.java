@@ -228,7 +228,7 @@ public class PrototypeDataset extends CompositionDataset {
     }
 
     @Override
-    public void generateAttributes() {
+    public void calculateAttributes() {
         // Generate attritubutes based on elemental properties for each site
         generateSingleSiteAttributes();
         
@@ -236,7 +236,7 @@ public class PrototypeDataset extends CompositionDataset {
         generatePairSiteAttributes();
         
         // Generate attibutes based on composition only
-        super.generateAttributes();
+        super.calculateAttributes();
     }
     
     /**
@@ -246,7 +246,7 @@ public class PrototypeDataset extends CompositionDataset {
     protected void generateSingleSiteAttributes() {
         // Determine number of sites that can be used for generating attributes
         int nGroups = 0; 
-        for (int i=0; i < SiteInfo.NGroups(); i++) 
+        for (int i=0; i < SiteInfo.NGroups(); i++)  
             if (SiteInfo.groupIsIncludedInAttributes(i)) nGroups++;
         
         // Add attribute names
@@ -317,7 +317,5 @@ public class PrototypeDataset extends CompositionDataset {
 	@Override
 	public void addEntry(String input) {
 		addEntry(new PrototypeEntry(SiteInfo, input));
-	}
-	
-	
+	}	
 }

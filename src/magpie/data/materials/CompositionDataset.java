@@ -307,12 +307,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
      * of each element as attributes.
      */
     @Override
-    public void generateAttributes() {
-		AttributeName.clear();
-		for (BaseEntry e : Entries) {
-			e.clearAttributes();
-		}
-		
+    protected void calculateAttributes() {
         // --> Create attributes based on elemental fractions, if desired
         if (UseComposition) {
             generateElementFractionAttributes();
@@ -332,20 +327,6 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
 
         // --> Add attribute based on whether it can form an ionic compound
         generateCanFormIonic();
-
-        // --> Reduce memory footprint, where possible
-        finalizeGeneration();
-    }
-
-    /**
-     * Run after generating attributes. Performs some operations to reduce the
-     * amount of memory used.
-     */
-    protected void finalizeGeneration() {
-        for (int i = 0; i < NEntries(); i++) {
-            getEntry(i).reduceMemoryFootprint();
-        }
-        System.gc();
     }
 
     /**
