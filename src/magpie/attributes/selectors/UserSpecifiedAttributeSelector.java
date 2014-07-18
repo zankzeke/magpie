@@ -27,7 +27,8 @@ public class UserSpecifiedAttributeSelector extends BaseAttributeSelector {
 
     /**
      * Sets the object to select only attributes listed in input
-     * @param Options List of attributes to use
+     * @param OptionsObj List of attributes to use
+	 * @throws java.lang.Exception
      */
     @Override
     public void setOptions(List<Object> OptionsObj) throws Exception {
@@ -53,15 +54,17 @@ public class UserSpecifiedAttributeSelector extends BaseAttributeSelector {
     }
     
     /**
-     * Define a list of attributes (given either name or number) that will be used 
-     *  when training a model
+     * Define a list of attributes that will be used when training a model
      * @param Attributes List of desired attributes
      */
     public void selectAttributes(List<String> Attributes) {
         SelectedAttributes.clear();
-        if (Attributes.isEmpty()) return;
+        if (Attributes.isEmpty()) {
+			throw new Error("You must provide at least one attribute");
+		}
         
         this.SelectedAttributes.addAll(Attributes);
+		trained = false;
     }
 
     @Override

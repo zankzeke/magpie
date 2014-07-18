@@ -91,10 +91,13 @@ public class WekaAttributeSelector extends BaseAttributeSelector {
         } catch (Exception e) {
             throw new Exception(printUsage());
         }
-        if (set_evaluator)
-            Evaluator = getASEvaluator(EvalType, EvalOptions);
-        if (set_searcher)
-            Searcher = getASSearch(SearcherType, SearcherOptions);
+        if (set_evaluator) {
+            setEvaluator(EvalType, EvalOptions);
+		}
+        if (set_searcher) {
+			setSearcher(SearcherType, SearcherOptions);
+		}
+            
     }
 
     @Override
@@ -102,7 +105,27 @@ public class WekaAttributeSelector extends BaseAttributeSelector {
         return "Usage: [-eval <SubsetEvaluator class> [<options...>]] " +
                     "[-search <ASSearch Class> [<options...>]";
     }
-    
+
+	/**
+	 * Set the method used to evaluate subsets of entries.
+	 * @param Name Name of ASEvaluator class
+	 * @param Options Any options for that class
+	 */
+	public void setEvaluator(String Name, String[] Options) {
+		this.Evaluator = getASEvaluator(Name, Options);
+		trained = false;
+	}
+
+	/**
+	 * Set the method used to search for optimal subsets.
+	 * @param Name Name of ASSearch class
+	 * @param Options Any options for that class
+	 */
+	public void setSearcher(String Name, String[] Options) {
+		this.Searcher = getASSearch(Name, Options);
+		trained = false;
+	}
+	
     /**
      * Generates a Weka ASSearch object, given names and options
      * @param Name Name of ASSearch (fully qualified)
