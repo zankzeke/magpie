@@ -55,10 +55,10 @@ data = new data.Dataset
 <p><code>types &lt;type&gt;</code>
 </br>Print out all types of a variable available in your version of Magpie. Accepts things like "models", "datasets", or "csp".</p>
 
-<p>
-	<code>list</code>
-	</br>Write out the types of all variables currently in memory
-</p>
+<p><code>list</code></br>Write out the types of all variables currently in memory</p>
+
+<p><code>timer &lt;start|elapsed&gt; [&lt;name&gt;]</code>
+<br>Simple timer functionality. "start" resets a timer to 0 and "elapsed" prints out how much time has elapsed. Multiple timers with different names can be stored and monitored concurrently. If no name is provided, time will be measured with respect to when Magpie was started.</br>
 
 <p>
 	<code>evaluate $&lt;model&gt; $&lt;dataset&gt; &lt;entries to evaluate...&gt;</code>

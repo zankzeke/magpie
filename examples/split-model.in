@@ -12,6 +12,10 @@ data attributes generate
 data target bandgap
 data modify NonZeroClassModifier
 
+// Create training and validation sets
+train_data = data clone
+run_data = train_data split 0.5
+
 // Create the composite model
 model = new models.classification.SplitClassifier 
 
@@ -22,8 +26,14 @@ model splitter AllMetalsSplitter
 submodel = new models.classification.WekaClassifier trees.REPTree
 model submodel set generic $submodel
 
-// Evaluate predictive ability
-model crossvalidate $data 10
+// Evaluate predictive ability and run times
+timer elapsed
+timer start train
+model train $train_data
+timer elapsed train
+timer start
+model validate $run_data
+timer elapsed
 print model validation stats
 
 // Print out the ROC curve

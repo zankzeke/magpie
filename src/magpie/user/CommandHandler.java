@@ -8,13 +8,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 import magpie.analytics.BaseStatistics;
 import magpie.attributes.selectors.BaseAttributeSelector;
@@ -64,6 +58,10 @@ public class CommandHandler {
     private boolean Forgiving = true;
     /** Development use: Print stack trace on failures */
     final private boolean Debug = true;
+    /** Holds start times of various timers */
+    final private Map<String,Long> Timers = new TreeMap<>();
+    /** Holds start time of default timer */
+    public long StartTime = System.currentTimeMillis();
     
     /**
      * Given a command, run some actions
@@ -117,6 +115,9 @@ public class CommandHandler {
                 readFile(TextCommand.get(1));
             } else if (TextCommand.get(0).equalsIgnoreCase("set")) {
                 handleSettings(TextCommand);
+            } else if (TextCommand.get(0).equalsIgnoreCase("timer")) {
+                String output = runTimerCommand(TextCommand.subList(1, TextCommand.size()));
+                System.out.println("\t" + output);
             } else if (TextCommand.get(0).equalsIgnoreCase("types")) {
                 printTypes(TextCommand);
             } else if (TextCommand.size() > 1 && TextCommand.get(1).equals("=")) {
@@ -427,8 +428,6 @@ public class CommandHandler {
             NewObj = x.newInstance();
         } catch (ClassNotFoundException e) {
             throw new Exception("ERROR: Class " + ClassType + " not found");
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new Error("FATAL ERROR: Something wrong with " + ClassType + "'s implementation\n" + e);
         } catch (Exception e) {
             throw new Error("FATAL ERROR: Something wrong with " + ClassType + "'s implementation\n" + e);
         }
@@ -492,6 +491,52 @@ public class CommandHandler {
 			output += line;
 		}
         return output;
+    }
+    
+    /**
+     * Run a certain time command. Two options:
+     * 
+     * <ul>
+     * <li><b>start [&lt;name&gt;]</b> - Initialize timer. If no name, alters default timer</li>
+     * <li><b>elapsed [&lt;name&gt;]</b> - Return elapsed time. If no name, prints default timer</lI>
+     * </ul>
+     * 
+     * @param Command Timer command to be parsed
+     * @return String describing result
+     * @throws Exception 
+     */
+    protected String runTimerCommand(List<String> Command) throws Exception {
+        if (Command.isEmpty()) {
+            throw new Exception("Possible timer commands: \"start\" and \"elapsed\"");
+        }
+        String Action = Command.get(0).toLowerCase();
+        switch (Action.toLowerCase()) {
+            case "start":
+                if (Command.size() < 2) {
+                    StartTime = System.currentTimeMillis();
+                    return "Zeroed default timer";
+                } else {
+                    String name = Command.get(1);
+                    Timers.put(name, System.currentTimeMillis());
+                    return "Started timer: " + name;
+                }
+            case "elapsed": {
+                long start = StartTime;
+                String wording = "Total time elapsed";
+                if (Command.size() > 1) {
+                    String name = Command.get(1);
+                    if (! Timers.containsKey(name)) {
+                        throw new Exception("Timer not defined: " + name);
+                    }
+                    start = Timers.get(name);
+                    wording = "Time elapsed on " + name;
+                }
+                double elapsed = (double) (System.currentTimeMillis() - start);
+                return String.format("%s: %.3f s", wording, elapsed / 1000.0);
+            } 
+            default:
+                throw new Exception("Timer command not defined: " + Action);
+        }
     }
     
     /**
