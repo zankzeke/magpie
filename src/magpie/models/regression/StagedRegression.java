@@ -4,6 +4,7 @@
  */
 package magpie.models.regression;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import magpie.data.Dataset;
@@ -14,7 +15,9 @@ import magpie.models.utility.MultiModelUtility;
 /**
  * Composite regression where the error signal from a model is used to train the next.
  * 
- * <usage><p><b>Usage</b>: *No options to set*</usage>
+ * <usage><p><b>Usage</b>: &lt;absolute|relative&gt;
+ * <br><pr><i>absolute|relative</i>: Whether to train model on absolute or relative error
+ * </usage>
  * 
  * <p><b><u>Implemented Commands:</u></b>
  * 
@@ -49,9 +52,11 @@ import magpie.models.utility.MultiModelUtility;
  */
 public class StagedRegression extends BaseRegression implements MultiModel, AbstractRegressionModel {
     /** Collections of regression models */
-    public List<BaseModel> Model;
+    private List<BaseModel> Model;
     /** Generic composite regression model */
-    public BaseRegression GenericModel;
+    private BaseRegression GenericModel;
+    /** Whether absolute or relative error is passed */
+    private boolean PropogateAbsolute = true;
 
     public StagedRegression() {
         Model = new LinkedList<>();
@@ -59,15 +64,36 @@ public class StagedRegression extends BaseRegression implements MultiModel, Abst
 
     @Override
     public void setOptions(List Options) throws Exception {
-        /** Nothing to set */
+        try {
+            String word = Options.get(0).toString().toLowerCase();
+            if (word.startsWith("abs")) {
+                useAbsoluteError();
+            } else if (word.startsWith("rel")) {
+                useRelativeError();
+            }
+        } catch (Exception e) {
+            throw new Exception(printUsage());
+        }
+    }
+    
+    /**
+     * Set to train subsequent models on absolute error from previous.
+     */
+    public void useAbsoluteError() {
+        PropogateAbsolute = true;
+    }
+    
+    /**
+     * Set model to train subsequent models on relative error from previous.
+     */
+    public void useRelativeError() {
+        PropogateAbsolute = false;
     }
 
     @Override
     public String printUsage() {
-        return "Usage: *No options*";
+        return "Usage: <absolute|relative>";
     }
-    
-    
 
     @Override
     public BaseModel getModel(int index) {
@@ -102,8 +128,6 @@ public class StagedRegression extends BaseRegression implements MultiModel, Abst
     public BaseRegression getGenericModel() {
         return GenericModel;
     }
-    
-    
 
     @Override
     public void setModel(int index, BaseModel x) {
@@ -111,7 +135,7 @@ public class StagedRegression extends BaseRegression implements MultiModel, Abst
             throw new Error("Model must be a regression model.");
         if (NModels() <= index)
             setNumberOfModels(index + 1);
-        Model.set(index, x);
+        Model.set(index, x.clone());
     }
     
     /**
@@ -145,20 +169,43 @@ public class StagedRegression extends BaseRegression implements MultiModel, Abst
             Model.get(i).train(Clone);
             prediction = Clone.getPredictedClassArray();
             if (i == NModels() - 1) break; // Shortcut for last step
-            for (int j=0; j < measuredClass.length; j++) 
+            for (int j=0; j < measuredClass.length; j++) {
                 errorSignal[j] -= prediction[j];
+                if (! PropogateAbsolute) {
+                    errorSignal[j] /= measuredClass[j];
+                }
+            }
+                
         }
         Clone.setMeasuredClasses(measuredClass);
     }
 
     @Override
     public void run_protected(Dataset TestData) {
-        double[] prediction = new double[TestData.NEntries()];
-        for (int i=0; i<NModels(); i++) {
-            getModel(i).run(TestData);
-            double[] submodelPrediction = TestData.getPredictedClassArray();
-            for (int j=0; j<TestData.NEntries(); j++)
-                prediction[j] += submodelPrediction[j];
+        double[] prediction;
+        if (PropogateAbsolute) {
+            // Mode #1: Absolute error
+            prediction = new double[TestData.NEntries()];
+            for (int i=0; i<NModels(); i++) {
+                getModel(i).run(TestData);
+                double[] submodelPrediction = TestData.getPredictedClassArray();
+                for (int j=0; j<TestData.NEntries(); j++) {
+                    prediction[j] *= submodelPrediction[j] + 1;
+                }
+            }
+        } else {
+            // Mode #2: Relative error
+            // Get last predicted relative error and work backwards:
+            //  N-1 model was off by factors given by model N
+            prediction = new double[TestData.NEntries()];
+            Arrays.fill(prediction, 1.0);
+            for (int j=NModels()-1; j>=0; j--) {
+                getModel(j).run(TestData);
+                double[] submodelPrediction = TestData.getPredictedClassArray();
+                for (int e=0; e<TestData.NEntries(); e++) {
+                    prediction[e] *= submodelPrediction[e] + 1;
+                }
+            }
         }
         TestData.setPredictedClasses(prediction);
     }
