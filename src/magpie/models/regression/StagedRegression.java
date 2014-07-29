@@ -70,6 +70,8 @@ public class StagedRegression extends BaseRegression implements MultiModel, Abst
                 useAbsoluteError();
             } else if (word.startsWith("rel")) {
                 useRelativeError();
+            } else {
+                throw new Exception();
             }
         } catch (Exception e) {
             throw new Exception(printUsage());
