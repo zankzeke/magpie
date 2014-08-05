@@ -668,6 +668,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
 
     @Override
     public Object runCommand(List<Object> Command) throws Exception {
+		if (Command.isEmpty()) return super.runCommand(Command);
         String Action = Command.get(0).toString();
         switch (Action.toLowerCase()) {
             default:
