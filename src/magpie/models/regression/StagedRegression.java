@@ -192,7 +192,7 @@ public class StagedRegression extends BaseRegression implements MultiModel, Abst
                 getModel(i).run(TestData);
                 double[] submodelPrediction = TestData.getPredictedClassArray();
                 for (int j=0; j<TestData.NEntries(); j++) {
-                    prediction[j] *= submodelPrediction[j] + 1;
+                    prediction[j] += submodelPrediction[j];
                 }
             }
         } else {
