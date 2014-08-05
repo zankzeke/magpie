@@ -13,6 +13,8 @@ import magpie.models.BaseModel;
  * Subtract the predicted class from a dataset, leaving only the error signal as the 
  *  measured class variable. Only works with regression models.
  * 
+ * <p>For MultiPropertyDatasets, adds a new property: ErrorSignal
+ * 
  * <usage><p><b>Usage</b>: $&lt;model&gt; &lt;absolute|relative&gt;
  * <br><pr><i>model</i>: Model to use to generate error signal
  * <br><pr><i>absolute|relative</i>: Whether to use absolute or relative error
