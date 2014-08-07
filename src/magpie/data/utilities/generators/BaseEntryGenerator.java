@@ -25,6 +25,7 @@ import magpie.utility.interfaces.Options;
  * <p><b><u>How to implement:</u></b>
  * 
  * <ol>
+ * <li>Create a class name that implies what kind of {@linkplain BaseEntry} is generated
  * <li>Define class variables that hold any user options
  * <li>Create operations that allow the user to set those options
  * <li>Implement the {@linkplain Options} interface
@@ -34,7 +35,7 @@ import magpie.utility.interfaces.Options;
  * 
  * @author Logan Ward
  */
-abstract public class BaseDatasetGenerator implements Options {
+abstract public class BaseEntryGenerator implements Options {
     
     /**
      * Generate a list of new entries according to the currently-defined settings.
