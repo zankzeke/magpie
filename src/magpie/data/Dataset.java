@@ -43,7 +43,9 @@ import org.apache.commons.collections.Predicate;
  * <usage><p><b>Usage</b>: *No options to set*</usage>
  * 
  * <p><b><u>Implemented Commands:</u></b>
- * <command><p><b>clone = &lt;output></b> - Create a copy of this dataset</command>
+ * <command><p><b>&lt;output> = clone [-empty]</b> - Create a copy of this dataset
+ * <br><pr><i>-empty</i>: Do not copy entries from dataset into clone
+ * </command>
  * 
  * <command><p><b>filter &lt;include|exclude> &lt;method> [&lt;options...>]</b> - Run dataset through a filter
  * <br><pr><i>include|exclude</i>: Whether to include/exclude only entries that pass the filter
@@ -1080,8 +1082,14 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
             case "attributes": case "attr": 
                 return runAttributeCommand(Command.subList(1, Command.size()));
             case "clone":
-                // Usage: clone = <output>
-                return clone();
+                // Usage: <output> = clone [-emptyy]
+                if (Command.size() == 1) {
+                    return clone();
+                } else if (Command.get(1).toString().equalsIgnoreCase("-empty")) {
+                    return emptyClone();
+                } else {
+                    throw new Exception("Usage: clone [-empty]");
+                }
             case "filter": {
                 // Usage: <include|exclude> <method> [<options...>]
                 String Method;
