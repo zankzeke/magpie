@@ -14,6 +14,7 @@ import magpie.attributes.evaluators.BaseAttributeEvaluator;
 import magpie.attributes.expansion.BaseAttributeExpander;
 import magpie.data.utilities.DatasetOutput;
 import magpie.data.utilities.filters.BaseDatasetFilter;
+import magpie.data.utilities.generators.BaseEntryGenerator;
 import magpie.data.utilities.modifiers.BaseDatasetModifier;
 import magpie.optimization.rankers.EntryRanker;
 import static magpie.user.CommandHandler.instantiateClass;
@@ -51,6 +52,10 @@ import org.apache.commons.collections.Predicate;
  * <br><pr><i>include|exclude</i>: Whether to include/exclude only entries that pass the filter
  * <br><pr><i>method</i>: Filtering method. Name of a {@linkplain BaseDatasetFilter} ("?" to print available methods)
  * <br><pr><i>options...</i>: Options for the filter</command>
+ * 
+ * <command><p><b>generate &lt;method&gt; [&gt;options&lt;] - Generate new entries</b>
+ * <br><pr><i>method</i>: Name of a {@linkplain BaseEntryGenerator}. ("?" for options)
+ * <br><pr><i>options</i>: Any options for the entry generator</command>
  * 
  * <command><p><b>modify &lt;method> [&lt;options>]</b> - Modify the dataset
  * <br><pr><i>method</i>: How to modify dataset. Name of a {@linkplain BaseDatasetModifier}. ("?" to print available methods)
@@ -1116,6 +1121,27 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 Filter.setExclude(Exclude);
                 Filter.filter(this);
                 System.out.println("\tFiltered using a " + Method + ". New size: " + NEntries());
+            } break;
+            case "generate": {
+                // Generate new entries. Usage: generate <method> [<options...>]
+                String Method = ""; List<Object> MethodOptions;
+                try {
+                    Method = Command.get(1).toString();
+                    if (Method.equalsIgnoreCase("?")) {
+                        System.out.println("Available Entry Generators");
+                        System.out.println(printImplmentingClasses(BaseEntryGenerator.class, false));
+                        return null;
+                    }
+                    MethodOptions = Command.subList(2, Command.size());
+                } catch (Exception e) {
+                    throw new Exception("Usage: generate <method> [<options...>]");
+                }
+                BaseEntryGenerator generator = (BaseEntryGenerator) 
+                        instantiateClass("data.utilities.generators." + Method, MethodOptions);
+                int initialCount = this.NEntries();
+                generator.addEntriesToDataset(this);
+                System.out.println(String.format("\tGenerated %d new entries with a %s. Total Count: %s",
+                        NEntries() - initialCount, Method, NEntries()));
             } break;
             case "import": {
                 // Usage: import <filename> [<options...>]
