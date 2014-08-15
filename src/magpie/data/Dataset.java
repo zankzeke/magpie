@@ -53,7 +53,7 @@ import org.apache.commons.collections.Predicate;
  * <br><pr><i>method</i>: Filtering method. Name of a {@linkplain BaseDatasetFilter} ("?" to print available methods)
  * <br><pr><i>options...</i>: Options for the filter</command>
  * 
- * <command><p><b>generate &lt;method&gt; [&gt;options&lt;] - Generate new entries</b>
+ * <command><p><b>generate &lt;method&gt; [&gt;options&lt;]</b> - Generate new entries
  * <br><pr><i>method</i>: Name of a {@linkplain BaseEntryGenerator}. ("?" for options)
  * <br><pr><i>options</i>: Any options for the entry generator</command>
  * 
