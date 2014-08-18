@@ -18,7 +18,7 @@ import magpie.data.BaseEntry;
  * <br><pr><i>dimension</i>: Number of dimensions in grid
  * <br><pr><i>min</i>: Minimum value in each direction
  * <br><pr><i>step</i>: Distance in each direction between points
- * <br><pr><i>max</i>: Maximum value in each direction
+ * <br><pr><i>max</i>: Maximum value in each direction</usage>
  * @author Logan Ward
  */
 public class GridBaseEntryGenerator extends BaseEntryGenerator {
