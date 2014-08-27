@@ -108,8 +108,8 @@ public class CompositionEntry extends MultiPropertyEntry {
      * @param Amount Amount of each element present
      */
     public CompositionEntry(int[] Element, double[] Amount) {
-        this.Element = Element;
-        this.Fraction = Amount;
+        this.Element = Element.clone();
+        this.Fraction = Amount.clone();
         this.ElementNames = LookupData.ElementNames;
         this.SortingOrder = LookupData.SortingOrder;
         rectifyEntry();
