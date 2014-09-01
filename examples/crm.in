@@ -24,7 +24,7 @@ clusterer selector $selector
 
 // Build a model that splits data using the clusterer
 model = new models.regression.SplitRegression
-model splitter ClustererSplitter $clusterer // Should not work yet
+model splitter ClustererSplitter $clusterer
 
 // Use the the best-fitting quadratic model of a single attribute
 submodel = new models.regression.PolynomialRegression 2
