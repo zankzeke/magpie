@@ -32,10 +32,9 @@ import org.apache.commons.math3.util.Combinations;
  * <usage><b>Usage</b>: &ltorder&gt; [-alloy|-crystal] &lt;number&gt; &lt;elements...&gt;
  * <br><pr><i>order</i>: Order of each phase diagram
  * <br><pr><i>-alloy</i>: Generate evenly-spaced compositions
- * <br><pr><i>-crystal<i>: Generate fractional compositions with small denominators (i.e. AB2, or A2B5)
+ * <br><pr><i>-crystal</i>: Generate fractional compositions with small denominators (i.e. AB2, or A2B5)
  * <br><pr><i>number</i>: Either desired maximum spacing [-alloy], or maximum denominator [-crystal]
- * <br><pr><i>elements</i>: List of elements to include in phase diagrams
- * </usage>
+ * <br><pr><i>elements</i>: List of elements to include in phase diagrams</usage>
  * 
  * @author Logan Ward
  */
