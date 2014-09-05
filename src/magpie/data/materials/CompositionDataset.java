@@ -11,9 +11,11 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.*;
 import java.util.*;
+import java.util.regex.*;
 import magpie.data.BaseEntry;
 import magpie.data.materials.util.LookupData;
 import magpie.data.materials.util.PropertyLists;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.stat.*;
 
 /**
@@ -145,11 +147,32 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
         String Line;
         String[] Words;
 
-        // Read in the header
+        // Read in properties from header
         Line = is.readLine();
-        Words = Line.split(" ");
-        for (int i = 1; i < Words.length; i++) {
-            addProperty(Words[i]);
+		Pattern totalPattern = Pattern.compile("[\\d\\w]+(\\{.*\\})?"), // Captures entire name/classes 
+				namePattern = Pattern.compile("^[\\d\\w]+"), // Given name/classes, get name
+				classPattern = Pattern.compile("\\{.*\\}"); // Get the possible classes
+        Matcher totalMatcher = totalPattern.matcher(Line);
+		totalMatcher.find(); // First match is composition
+		while (totalMatcher.find()) {
+			String total = totalMatcher.group();
+			Matcher tempMatcher = namePattern.matcher(total); tempMatcher.find();
+			String name = tempMatcher.group();
+			if (! total.contains("{")) {
+				addProperty(name);
+			} else {
+				tempMatcher = classPattern.matcher(total); tempMatcher.find();
+				String classList = tempMatcher.group();
+				// Trim off the "{,}"
+				classList = classList.substring(1);
+				classList = classList.substring(0, classList.length()-1);
+				// Get the class names
+				String[] classes = classList.split(",");
+				for (int i=0; i<classes.length; i++) {
+					classes[i] = classes[i].trim();
+				}
+				addProperty(name, classes);
+			}
         }
 
         // Determine which property is the energy ("energy_pa")
@@ -159,7 +182,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
         TreeMap<BaseEntry, CompositionEntry> acceptedEntries = new TreeMap<>();
         TreeMap<BaseEntry, List<double[]>> duplicateProperties = new TreeMap<>();
         CompositionEntry Entry;
-        for (int i = 0; i < Entry_Count; i++) {
+        for (int e = 0; e < Entry_Count; e++) {
             double[] properties;
             // Read a line and tokenize it
             Line = is.readLine();
@@ -170,13 +193,21 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
 
             // Get the properties
             properties = new double[NProperties()];
-            for (int j = 0; j < NProperties(); j++) {
-                try {
-                    properties[j] = Double.parseDouble(Words[j + 1]);
-                } catch (NumberFormatException e) {
-                    // System.err.println("Warning: Entry #"+i+" has an invalid property.");
-                    properties[j] = Double.NaN;
-                }
+            for (int p = 0; p < NProperties(); p++) {
+				try {
+					if (getPropertyClassCount(p) == 1) {
+						properties[p] = Double.parseDouble(Words[p + 1]);
+					} else {
+						int index = ArrayUtils.indexOf(getPropertyClasses(p), Words[p+1]);
+						if (index == -1) {
+							index = Integer.parseInt(Words[p+1]);
+						}
+						properties[p] = index;
+					}
+				} catch (NumberFormatException exc) {
+					// System.err.println("Warning: Entry #"+i+" has an invalid property.");
+					properties[p] = Double.NaN;
+				}
             }
 
             // Make an entry

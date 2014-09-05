@@ -155,6 +155,37 @@ public class MultiPropertyDataset extends Dataset {
     public void setPropertyClasses(int index, String[] classes) {
         PClassNames.set(index, classes);
     }
+	
+	/**
+	 * Get list of possible classes for a certain property
+	 * @param name Name of property
+	 * @return List of classes for that property
+	 */
+	public String[] getPropertyClasses(String name) {
+		int index = getPropertyIndex(name);
+		if (index == -1) {
+			throw new Error("No such property: " + name);
+		}
+		return getPropertyClasses(index);
+	}
+	
+	/**
+	 * Get list of possible classes for a certain property
+	 * @param index Index of property
+	 * @return List of classes for that property
+	 */
+	public String[] getPropertyClasses(int index) {
+		return PClassNames.get(index).clone();
+	}
+	
+	/**
+	 * Get the number of classes for a certain property
+	 * @param index Index of property
+	 * @return Number of classes for that property
+	 */
+	public int getPropertyClassCount(int index) {
+		return PClassNames.get(index).length;
+	}
 
     /**
      * Define all known properties for a dataset. Removes duplicates
@@ -331,6 +362,14 @@ public class MultiPropertyDataset extends Dataset {
         output += "\nNumber of attributes:   " + NAttributes();
         output += "\nNumber of properties: " + NProperties();
         output += "\nTarget property: " + getTargetPropertyName();
+		if (NClasses() > 1) {
+			String[] classes = getClassNames();
+			output += "\n\tPossible classes: {" + classes[0];
+			for (int i=1; i<classes.length; i++) {
+				output += ", " + classes[i];
+			}
+			output += "}";
+		}
         return output;
     }
 
