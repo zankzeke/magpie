@@ -1,0 +1,105 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package magpie.data.utilities.modifiers;
+
+import java.util.List;
+import magpie.data.BaseEntry;
+import magpie.data.Dataset;
+import magpie.data.MultiPropertyDataset;
+import magpie.data.MultiPropertyEntry;
+import org.apache.commons.lang3.ArrayUtils;
+
+/**
+ * Convert multiple, discrete class values to single continuous class. Converts class
+ *  values to the probability of an entry being a user-specified class.
+ * 
+ * <p>If dataset is a {@linkplain MultiPropertyDataset}, this will store result 
+ * as a new property.
+ * 
+ * <usage><b>Usage</b>: &lt;class name&gt;
+ * <pr><br><i>class name</i>: New value will be probability of entry being this class</usage>
+ * 
+ * @author Logan Ward
+ */
+public class DiscreteToContinuousModifier extends BaseDatasetModifier {
+	/** Name of class for which to compute probability. */
+	protected String ClassName;
+	
+	@Override
+    public void setOptions(List<Object> Options) throws Exception {
+        try {
+			setClassName(Options.get(0).toString());
+		} catch (Exception e) {
+			throw new Exception(printUsage());
+		}
+    }
+
+    @Override
+    public String printUsage() {
+        return "Usage: <class name>";
+    }
+
+	/**
+	 * Set name of class for which to compute probability.
+	 * @param className 
+	 */
+	public void setClassName(String className) {
+		this.ClassName = className;
+	}
+	
+	
+	
+	@Override
+    protected void modifyDataset(Dataset Data) {
+		// Get index of target class
+		int index = ArrayUtils.indexOf(Data.getClassNames(), ClassName);
+		if (index == -1) {
+			throw new Error("Class name not found: " + ClassName);
+		}
+        /// Add property to each entry
+        for (BaseEntry entry : Data.getEntries()) {
+			// Get current values
+            double measured, predicted;
+			if (entry.hasMeasurement()) {
+				measured = entry.getMeasuredClass() == (double) index ? 1 : 0;
+			} else {
+				measured = Double.NaN;
+			}
+			if (entry.hasPrediction()) {
+				predicted = entry.getClassProbilities()[index];
+			} else {
+				predicted = Double.NaN;
+			}
+			// Store them
+            if (entry instanceof MultiPropertyEntry) {
+                // Add property
+                MultiPropertyEntry Ptr = (MultiPropertyEntry) entry;
+                if (Ptr.getTargetProperty() != -1)
+                    Ptr.addProperty(measured, predicted);
+				else {
+                    if (entry.hasMeasurement()) entry.setMeasuredClass(measured);
+					if (entry.hasPrediction()) entry.setPredictedClass(predicted);
+				}
+            } else {
+				if (entry.hasMeasurement()) entry.setMeasuredClass(measured);
+				if (entry.hasPrediction()) entry.setPredictedClass(predicted);
+			}
+        }
+		
+        // Add property to dataset if MultiPropertyDataset
+        if (Data instanceof MultiPropertyDataset) {
+            MultiPropertyDataset Ptr = (MultiPropertyDataset) Data;
+            if (Ptr.getTargetPropertyIndex() != -1) {
+				String name;
+				name = String.format("P(%s=%s)", Ptr.getTargetPropertyName(),
+						Ptr.getClassName(index));
+                Ptr.addProperty(name);
+                Ptr.setTargetProperty(name, true);
+            }
+        }
+    }
+}
