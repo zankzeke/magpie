@@ -9,6 +9,8 @@ package magpie.data.utilities.generators;
 import java.util.List;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
+import magpie.data.MultiPropertyDataset;
+import magpie.data.MultiPropertyEntry;
 import magpie.utility.interfaces.Options;
 
 /**
@@ -44,11 +46,20 @@ abstract public class BaseEntryGenerator implements Options {
     abstract public List<BaseEntry> generateEntries();
     
     /**
-     * Generate entries, and add them new a dataset.
+     * Generate entries, and add them new a dataset. Takes care of tedious things
+	 * like adding the appropriate number of properties.
      * @param data Dataset to which to add entries
      */
     public void addEntriesToDataset(Dataset data) {
         List<BaseEntry> toAdd = generateEntries();
+		if (data instanceof MultiPropertyDataset) {
+			MultiPropertyDataset dptr = (MultiPropertyDataset) data;
+			for (BaseEntry entry : toAdd) {
+				MultiPropertyEntry ptr = (MultiPropertyEntry) entry;
+				ptr.setNProperties(dptr.NProperties());
+				ptr.setTargetProperty(dptr.getTargetPropertyIndex());
+			}
+		}
         data.addEntries(toAdd);
     }
 }
