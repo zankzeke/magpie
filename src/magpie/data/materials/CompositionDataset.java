@@ -30,17 +30,27 @@ import org.apache.commons.math3.stat.*;
  * </ul>
  *
  * When reading data in from text using the <code>importText</code> function,
- * the data must be in the following format:
+ * the data must be whitespace-delimited with a header row giving property names
+ * and the composition of the material as the first row:
  *
  * <p>
- * Composition property_1 property_2 ... property_N<br>
- * As,0.2,B,0.8, 0.1 0.4 0.8 ...<br>
- * As,1,B,4, 0.2 0.9 none ...<br>
- * Cu,2,Zr,4, 0.2 0.1 10.8 ...<br>
+ * Composition property_1{class1,class2} property_2 ... property_N<br>
+ * As,0.2,B,0.8, class1 0.4 0.8 ...<br>
+ * AsB4, class2 0.9 none ...<br>
+ * Cu2Zr,4, class1 0.1 10.8 ...<br>
  * &lt;as many entries as you desire&gt;<br>
  *
  * <p>
- * Please see the documentation provided with this package for more information.
+ * A few things to know about this format:
+ * 
+ * <ol>
+ * <li>Format of composition doesn't matter too much. Only real requirement is that
+ * element names are capitalized.
+ * <li>If a property has discrete classes, you can specify what the allowed values
+ * are in the header by adding them to the property name surrounded by "{}"s and separated
+ * by commas.
+ * <li>If the measured value of a property is not known, put down "None"
+ * </ol>
  *
  * <p><b><u>Implemented Commands:</u></b>
  * 
