@@ -315,7 +315,7 @@ public class PrototypeDataset extends CompositionDataset {
     }
 
 	@Override
-	public void addEntry(String input) {
+	public void addEntry(String input) throws Exception {
 		addEntry(new PrototypeEntry(SiteInfo, input));
 	}	
 }

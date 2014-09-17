@@ -409,8 +409,9 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
 	 * A new entry by parsing an input string. After using this operation, it 
 	 *  may be necessary to recalculate attributes.
 	 * @param input String describing the entry
+	 * @throws Exception If conversion fails
 	 */
-	public void addEntry(String input) {
+	public void addEntry(String input) throws Exception {
 		addEntry(new BaseEntry(input));
 	}
     

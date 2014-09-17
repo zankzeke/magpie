@@ -11,9 +11,13 @@ import magpie.models.BaseModel;
 import magpie.models.SplitModel;
 
 /**
- * Abstract class for models that utilize multiple classifiers.
+ * Model that uses several other models to model different parts of a dataset.
  * 
- * <p>Usage: No options to set.
+ * <p><b><u>How to Use this Class</u></b>
+ * 
+ * <p>Use this class in the same way as you would use any {@linkplain SplitModel}.
+ * 
+ * <usage><p><b>Usage</b>: *No options*</usage>
  * 
  * @author Logan Ward
  * @version 0.1

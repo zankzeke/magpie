@@ -37,8 +37,9 @@ public class PrototypeEntry extends CompositionEntry {
      * Create a new PrototypeEntry. See {@linkplain PrototypeCompositionDataset}
      * @param SiteInfo Information about each site in prototype crystal
      * @param Composition String describing elements on each site
+	 * @throws Exception If parse fails
      */
-    public PrototypeEntry(PrototypeSiteInformation SiteInfo, String Composition) {
+    public PrototypeEntry(PrototypeSiteInformation SiteInfo, String Composition) throws Exception {
         // Define the site information 
         this.SiteInfo = SiteInfo;
         this.ElementNames = LookupData.ElementNames;
@@ -53,13 +54,13 @@ public class PrototypeEntry extends CompositionEntry {
         int pos = 0;
         while (compMatch.find()) {
             if (pos >= SiteInfo.NSites() )
-                throw new Error("Composition contains more sites than defined in SiteInfo: " + Composition);
+                throw new Exception("Composition contains more sites than defined in SiteInfo: " + Composition);
             String comp = compMatch.group();
             CompositionEntry newSite = new CompositionEntry(comp);
             SiteComp[pos++] = newSite;
         }
         if (pos != SiteInfo.NSites()) 
-            throw new Error("Composition contains fewer sites than defined in SiteInfo: " + Composition);
+            throw new Exception("Composition contains fewer sites than defined in SiteInfo: " + Composition);
         
         // Get composition of this crystal
         calculateComposition();

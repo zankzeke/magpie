@@ -47,8 +47,9 @@ public class CompositionEntry extends MultiPropertyEntry {
      * An element can be appear more than once.
      * 
      * @param Composition Composition of entry
+	 * @throws Exception If parse fails
      */
-    public CompositionEntry(String Composition) {
+    public CompositionEntry(String Composition) throws Exception {
         this.ElementNames = LookupData.ElementNames;
 		this.SortingOrder = LookupData.SortingOrder;
         // Add up all the constituents
@@ -66,7 +67,7 @@ public class CompositionEntry extends MultiPropertyEntry {
             if (element.equals("D") || element.equals("T")) element = "H";// Special case for D/T
             Integer elementNumber = Arrays.asList(ElementNames).indexOf(element);
             if (elementNumber == -1)
-                throw new Error("Element " + element + " not recognized");
+                throw new Exception("Element " + element + " not recognized");
             
             // Get the amount of this element
             Matcher fracMatcher = fracPattern.matcher(component);
@@ -76,7 +77,7 @@ public class CompositionEntry extends MultiPropertyEntry {
                 try {
                     elementFraction = Double.valueOf(fraction);
                 } catch (NumberFormatException e) {
-                    throw new Error("Element amount " + fraction + " not a valid number.");
+                    throw new Exception("Element amount " + fraction + " not a valid number.");
                 }
             }
             

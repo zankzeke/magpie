@@ -41,8 +41,9 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
 	/**
 	 * Generate an entry by parsing a text string
 	 * @param input String representing entry 
+	 * @throws Exception If parse fails
 	 */
-	public BaseEntry(String input) {
+	public BaseEntry(String input) throws Exception {
 		// Find anything in the input that matches a number
 		Matcher numMatcher = Pattern.compile("[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?").matcher(input);
 		AttributeList = new LinkedList<>();

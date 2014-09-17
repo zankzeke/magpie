@@ -7,7 +7,6 @@
 package magpie.csp;
 
 import magpie.data.materials.CompositionEntry;
-import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.PrototypeEntry;
 import magpie.csp.diagramdata.*;
 import java.io.BufferedReader;
@@ -141,8 +140,12 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
                 break;
             }
             String[] words = Line.split("\t");
-            CompositionEntry entry = new CompositionEntry(words[0]);
-            KnownCompounds.put(entry, words[1]);
+			try {
+				CompositionEntry entry = new CompositionEntry(words[0]);
+				KnownCompounds.put(entry, words[1]);
+			} catch (Exception e) {
+				System.err.println("Problem parsing entry: " + words[0]);
+			}
         } while (true);
     }
 
@@ -160,9 +163,10 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
      *
      * @param Composition Composition to be evaluated
      * @return List of names of prototypes and their probabilities
+	 * @throws Exception If Composition does not parse correctly
      */
-    public List<Pair<String, Double>> predictStructure(String Composition) {
-        CompositionEntry comp = new CompositionEntry(Composition);
+    public List<Pair<String, Double>> predictStructure(String Composition) throws Exception {
+		CompositionEntry comp = new CompositionEntry(Composition);
         return predictStructure(comp);
     }
 

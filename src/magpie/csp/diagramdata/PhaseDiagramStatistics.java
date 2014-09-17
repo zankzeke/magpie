@@ -7,7 +7,6 @@
 package magpie.csp.diagramdata;
 
 import magpie.data.materials.CompositionEntry;
-import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.PrototypeEntry;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -295,8 +294,12 @@ public abstract class PhaseDiagramStatistics implements Serializable {
                 break;
             }
             String[] words = Line.split("\t");
-            CompositionEntry entry = new CompositionEntry(words[0]);
-            compoundList.put(entry, words[1]);
+			try {
+				CompositionEntry entry = new CompositionEntry(words[0]);
+				compoundList.put(entry, words[1]);
+			} catch (Exception e) {
+				System.err.println("Problem parsing entry: " + words[0]);
+			}
         } while (true);
         return compoundList;
     }

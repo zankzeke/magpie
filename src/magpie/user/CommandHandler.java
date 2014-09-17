@@ -593,7 +593,7 @@ public class CommandHandler {
                 toPrint += printImplmentingClasses(Dataset.class, true);
                 break;
             case "split": case "splitter":
-                toPrint += "\tAvailable Dataset Splitters:";
+                toPrint += "\tAvailable Dataset Splitters:\n";
                 toPrint += printImplmentingClasses(BaseDatasetSplitter.class, true);
                 break;
             case "model": case "models":
@@ -610,11 +610,11 @@ public class CommandHandler {
                 toPrint += printImplmentingClasses(AbstractRegressionModel.class, true);
                 break;
             case "opt": case "optimizer": 
-                toPrint += "\tAvailable Optimization Algorithms\n";
+                toPrint += "\tAvailable Optimization Algorithms:\n";
                 toPrint += printImplmentingClasses(BaseOptimizer.class, true);
                 break;
             case "csp":
-                toPrint += "\tAvailable Crystal Structure Predictors\n";
+                toPrint += "\tAvailable Crystal Structure Predictors:\n";
                 toPrint += printImplmentingClasses(CSPEngine.class, true);
                 break;
             default:
