@@ -52,6 +52,7 @@ public class CompositionEntry extends MultiPropertyEntry {
     public CompositionEntry(String Composition) throws Exception {
         this.ElementNames = LookupData.ElementNames;
 		this.SortingOrder = LookupData.SortingOrder;
+		
         // Add up all the constituents
         Matcher compMatcher = Pattern.compile("[A-Z][^A-Z]*").matcher(Composition);
         Pattern elemPattern = Pattern.compile("[A-Z][a-z]?");
@@ -89,6 +90,11 @@ public class CompositionEntry extends MultiPropertyEntry {
                 compMap.put(elementNumber, elementFraction);
         }
         
+		// Crash if nothing read
+		if (compMap.isEmpty()) {
+			throw new Exception("No composition was read");
+		}
+		
         // Store values
         this.Element =  new int[compMap.keySet().size()];
         this.Fraction = new double[Element.length];
