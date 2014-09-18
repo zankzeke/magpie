@@ -51,7 +51,7 @@ public class NonZeroClassModifier extends BaseDatasetModifier {
         }
         
         // Define new class names
-        String[] ClassNames = new String[]{"Zero", "NonZero"};
+        String[] ClassNames = new String[]{"NonZero", "Zero"};
         Data.setClassNames(ClassNames);
     }
 
