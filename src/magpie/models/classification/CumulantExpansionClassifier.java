@@ -170,7 +170,7 @@ public class CumulantExpansionClassifier extends BaseClassifier implements Savab
                     throw new Exception("Usage: culumants [<toPrint>]");
                 }
                 String output = "";
-                for (int i=0; i<nclasses; i++) {
+                for (int i=0; i<NClasses; i++) {
                     output += "Cumulants for Class #" + i + "\n";
                     output += "Factor\tg(class="+i+",factor)";
                     output += PhaseDiagramStats.printCumulants(Cumulants[i], toPrint);
@@ -186,7 +186,7 @@ public class CumulantExpansionClassifier extends BaseClassifier implements Savab
     public String saveCommand(String Basename, String Command) throws Exception {
         switch (Command.toLowerCase()) {
             case "cumulants": {
-                for (int i=0; i<nclasses; i++) {
+                for (int i=0; i<NClasses; i++) {
                     String filename = Basename + i + ".cumulants";
                     try (PrintWriter fp = new PrintWriter(new BufferedWriter(new FileWriter(filename)))) {
                         fp.print(PhaseDiagramStats.printCumulants(Cumulants[i], -1));

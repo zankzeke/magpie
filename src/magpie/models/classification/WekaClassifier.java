@@ -107,7 +107,7 @@ public class WekaClassifier extends BaseClassifier implements WekaModel  {
 
     @Override protected void train_protected(Dataset TrainingData) {
         try { 
-            Instances wekadata = TrainingData.convertToWeka(discrete_class);
+            Instances wekadata = TrainingData.convertToWeka(DiscreteClass);
             Model.buildClassifier(wekadata); 
         }
         catch (Exception e) { 

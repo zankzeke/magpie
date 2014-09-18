@@ -24,9 +24,11 @@ import magpie.data.Dataset;
  */
 abstract public class BaseClassifier extends BaseModel implements AbstractClassifier {
     /** Whether the class variable is treated as discrete */
-    protected boolean discrete_class=true;
+    protected boolean DiscreteClass = true;
     /** Number of classes to distinguish between */
-    protected int nclasses=0;
+    protected int NClasses = 0;
+	/** Names of classes this model can distinguish between */
+	protected String[] ClassNames = null;
     
     
     public BaseClassifier() {
@@ -37,7 +39,7 @@ abstract public class BaseClassifier extends BaseModel implements AbstractClassi
     
     @Override public BaseClassifier clone() {
         BaseClassifier x = (BaseClassifier) super.clone();
-        x.discrete_class = discrete_class;
+        x.DiscreteClass = DiscreteClass;
         if (! classIsDiscrete())
             x.setClassCutoff(this.getClassCutoff());
         return x;
@@ -46,12 +48,12 @@ abstract public class BaseClassifier extends BaseModel implements AbstractClassi
     // Operations to control whether class variable is treated as discrete
     @Override
     public boolean classIsDiscrete() { 
-        return discrete_class; 
+        return DiscreteClass; 
     }
     
     @Override
     final public void setClassDiscrete() { 
-        discrete_class = true; 
+        DiscreteClass = true; 
         ClassificationStatistics Ptr = (ClassificationStatistics) ValidationStats;
         Ptr.setClassDiscrete();
         Ptr = (ClassificationStatistics) TrainingStats;
@@ -60,7 +62,7 @@ abstract public class BaseClassifier extends BaseModel implements AbstractClassi
     
     @Override
     final public void setClassContinuous() { 
-        discrete_class = false; 
+        DiscreteClass = false; 
         ClassificationStatistics Ptr = (ClassificationStatistics) ValidationStats;
         Ptr.setClassContinuous();
         Ptr = (ClassificationStatistics) TrainingStats;
@@ -86,13 +88,23 @@ abstract public class BaseClassifier extends BaseModel implements AbstractClassi
     }
     
     @Override
-    public int getNClasses() { return nclasses; };
+    public int getNClasses() { return NClasses; };
     
     
     @Override public void train(Dataset D, boolean b) {
         if (D.NClasses() == 1)
             throw new Error("ERROR: Dataset must have at least 2 classes");
+		NClasses = D.NClasses();
+		ClassNames = D.getClassNames();
         super.train(D, b);
-        nclasses = D.NClasses();
     }
+
+	@Override
+	public void run(Dataset TestData) {
+		if (TestData.NClasses() != NClasses) {
+			// Force it to have the correct numbers of classes
+			TestData.setClassNames(ClassNames);
+		}
+		super.run(TestData);
+	}
 }

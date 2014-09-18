@@ -28,7 +28,9 @@ public class SplitClassifier extends SplitModel implements AbstractClassifier {
     /** Pointer to ClassificationStatistics interface of ValidationStates*/
     protected ClassificationStatistics ValidationStatsPtr;
     /** Number of classes model can distinguish between */
-    protected int nclasses;
+    protected int NClasses;
+	/** Names of classes this model can distinguish between */
+	protected String[] ClassNames = null;
     
     /** 
      * Create a blank SplitClassifier
@@ -90,11 +92,23 @@ public class SplitClassifier extends SplitModel implements AbstractClassifier {
     @Override
     public double getClassCutoff() { return ValidationStatsPtr.getClassCutoff(); }
     @Override
-    public int getNClasses() { return nclasses; };
+    public int getNClasses() { return NClasses; };
 
     @Override
     protected void train_protected(Dataset TrainingData) {
-        nclasses = TrainingData.NClasses();
+        NClasses = TrainingData.NClasses();
+		ClassNames = TrainingData.getClassNames();
         super.train_protected(TrainingData);
-    }    
+    }
+
+	@Override
+	public void run_protected(Dataset Data) {
+		if (Data.NClasses() != NClasses) {
+			// Force it to have the correct numbers of classes
+			Data.setClassNames(ClassNames);
+		}
+		super.run_protected(Data); 
+	}
+	
+	
 }
