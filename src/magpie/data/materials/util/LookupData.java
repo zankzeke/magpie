@@ -44,4 +44,9 @@ abstract public class LookupData {
 	 * Holds elemental property data. 
 	 */
 	static public Map<String,double[]> ElementalProperties = new TreeMap<>();
+	
+	/**
+	 * Holds oxidation states of individual elements
+	 */
+	static public double[][] OxidationStates = null;
 }

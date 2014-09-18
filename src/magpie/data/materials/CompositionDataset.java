@@ -98,6 +98,9 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
      * Map of property names to values
      */
     public Map<String, double[]> PropertyData = LookupData.ElementalProperties;
+	/** Oxidation states of every element */
+	public double[][] OxidationStates = LookupData.OxidationStates;
+	
     /** Whether to use composition as attributes */
     protected boolean UseComposition = false;
 
@@ -656,7 +659,10 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
         double x, y;
         AttributeName.add("CanFormIonic");
 
-        double[][] states = getOxidationStates(DataDirectory);
+		if (OxidationStates == null) {
+			OxidationStates = getOxidationStates(DataDirectory);
+			LookupData.OxidationStates = OxidationStates;
+		}
         for (int i = 0; i < NEntries(); i++) {
             int[] elem = getEntry(i).getElements();
             double[] frac = getEntry(i).getFractions();
@@ -664,7 +670,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
 
             // If any of the compounds are noble gasses, it cannot form an ionic compound
             for (int j = 0; j < elem.length; j++) {
-                if (states[elem[j]] == null) {
+                if (OxidationStates[elem[j]] == null) {
                     x = -1;
                     break;
                 }
@@ -682,7 +688,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
                 // Calculate the charge
                 y = 0; // Start the charge out at zero
                 for (int j = 0; j < elem.length; j++) {
-                    y += frac[j] * states[elem[j]][guess[j]];
+                    y += frac[j] * OxidationStates[elem[j]][guess[j]];
                 }
 
                 // If the charge is equal to zero, we have found a valid compound
@@ -695,7 +701,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
                 was_incremented = false;
                 for (int j = 0; j < guess.length; j++) {
                     guess[j]++;
-                    if (guess[j] == states[elem[j]].length) {
+                    if (guess[j] == OxidationStates[elem[j]].length) {
                         guess[j] = 0;
                     } else {
                         was_incremented = true;
