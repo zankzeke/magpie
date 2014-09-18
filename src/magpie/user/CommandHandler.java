@@ -566,7 +566,7 @@ public class CommandHandler {
                             + " not implement the Savable interface");
         } else { // Just serialize it
             UtilityOperations.saveState(Obj, Basename + ".obj");
-            System.out.println("\tSerialized " + ObjectName + " to " + ObjectName + ".obj");
+            System.out.println("\tSerialized " + ObjectName + " to " + Basename + ".obj");
         }
     }
     
