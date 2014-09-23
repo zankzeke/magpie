@@ -34,7 +34,7 @@ public class BaseRegressionTest {
 	}
 	
 	@Test
-	public void testMixedTraining() {
+	public void testMixedTraining() throws Exception {
 		PolynomialRegression model = new PolynomialRegression();
 		model.setOrder(2);
 		

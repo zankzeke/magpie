@@ -32,14 +32,14 @@ public class DatasetTest {
     }
     
     @Test
-    public void testEntryAddition() {
+    public void testEntryAddition() throws Exception {
         Dataset data = getEasyDataset();
         assertEquals("Attribute count wrong.", 2, data.NAttributes());
         assertEquals("Entry count wrong", 1, data.NEntries());
     }
     
     @Test
-    public void testClone() {
+    public void testClone() throws Exception {
         Dataset data = getEasyDataset();
         Dataset clone = data.clone();
         
@@ -59,7 +59,7 @@ public class DatasetTest {
      * Generate a dataset with only one entry and two attributes.
      * @return Dataset with one entry
      */
-    protected Dataset getEasyDataset() {
+    protected Dataset getEasyDataset() throws Exception {
         Dataset data = new Dataset();
         List<String> attributeNames = new LinkedList<>();
         attributeNames.add("X");

@@ -125,8 +125,10 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
     }
 
 	@Override
-	public void addEntry(String input) throws Exception {
-		addEntry(new CompositionEntry(input));
+	public CompositionEntry addEntry(String input) throws Exception {
+		CompositionEntry toAdd = new CompositionEntry(input);
+		addEntry(toAdd);
+		return toAdd;
 	}
 
     /**
