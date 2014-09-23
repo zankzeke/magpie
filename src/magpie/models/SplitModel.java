@@ -17,7 +17,7 @@ import magpie.user.CommandHandler;
  * several submodels. It contains functions necessary to do this partitioning and keep track
  * of the submodels.
  * 
- * <p><b><u>How to Use a SplitModel</u><b>
+ * <p><b><u>How to Use a SplitModel</u></b>
  * 
  * <p>SplitModels work by first partitioning a Dataset using a {@linkplain BaseDatasetSplitter}
  * and then training several models 

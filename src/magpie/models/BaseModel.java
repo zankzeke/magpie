@@ -213,7 +213,10 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
     /**
      * Run a model on provided data. Results will be stored as the predicted
      *  class variable.
-     * @param TestData Dataset to evaluate
+	 * 
+	 * <p>Note: This will not ensure that entries stay in the same order. 
+	 * 
+     * @param TestData Dataset to evaluate. 
      */
     public void run(Dataset TestData) {
         if (!isTrained())
