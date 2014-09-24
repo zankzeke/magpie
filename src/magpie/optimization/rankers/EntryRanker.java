@@ -133,4 +133,10 @@ abstract public class EntryRanker implements java.lang.Cloneable, Options {
         this.setUseMeasured(original);
         return ranks;
     }
+	
+	/**
+	 * Train ranker.
+	 * @param data Data to use as training set
+	 */
+	abstract public void train(Dataset data);
 }

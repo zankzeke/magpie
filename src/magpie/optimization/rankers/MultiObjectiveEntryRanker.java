@@ -6,6 +6,7 @@
 
 package magpie.optimization.rankers;
 
+import magpie.data.Dataset;
 import magpie.data.MultiPropertyDataset;
 
 /**
@@ -42,5 +43,13 @@ abstract public class MultiObjectiveEntryRanker extends EntryRanker {
      * @return Array of properties currently in use
      */
     abstract public String[] getObjectives();
-    
+
+	@Override
+	public void train(Dataset data) {
+		if (! (data instanceof MultiPropertyDataset)) {
+			throw new Error("Data must be a MultiPropertyDataset");
+		}
+		MultiPropertyDataset ptr = (MultiPropertyDataset) data;
+		train(ptr);
+	}
 }

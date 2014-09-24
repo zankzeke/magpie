@@ -6,6 +6,7 @@ package magpie.optimization.rankers;
 
 import java.util.List;
 import magpie.data.BaseEntry;
+import magpie.data.Dataset;
 
 /**
  * EntryRanker that ranks entries based on class variable.
@@ -26,12 +27,15 @@ public class SimpleEntryRanker extends EntryRanker {
     public String printUsage() {
         return "Usage: *No options*";
     }
-    
-    
-    
+       
     @Override 
     public double objectiveFunction(BaseEntry Entry) {
             if (isUsingMeasured()) return Entry.getMeasuredClass();
             else return Entry.getPredictedClass();
     }
+
+	@Override
+	public void train(Dataset data) {
+		/* Nothing to do */
+	}
 }

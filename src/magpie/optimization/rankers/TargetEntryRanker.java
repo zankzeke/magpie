@@ -6,6 +6,7 @@ package magpie.optimization.rankers;
 
 import java.util.List;
 import magpie.data.BaseEntry;
+import magpie.data.Dataset;
 
 /**
  * Rank entries based on the distance of their class variable from a target.
@@ -56,4 +57,11 @@ public class TargetEntryRanker extends EntryRanker {
         else error = Entry.getPredictedClass()-Target;
         return Math.abs(error);
     }
+
+	@Override
+	public void train(Dataset data) {
+		/** Nothing to do */
+	}
+	
+	
 }
