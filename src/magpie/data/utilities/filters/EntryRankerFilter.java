@@ -104,7 +104,7 @@ public class EntryRankerFilter extends BaseDatasetFilter {
         boolean[] passes = new boolean[D.NEntries()];
         Arrays.fill(passes, false);
         int[] ranks = Ranker.rankEntries(D);
-        for (int i=0; i<NumberToFilter; i++) passes[ranks[i]] = true;
+        for (int i=0; i<Math.min(NumberToFilter, D.NEntries()); i++) passes[ranks[i]] = true;
         return passes;
     }
 
