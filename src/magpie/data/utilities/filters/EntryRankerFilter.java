@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 import magpie.data.Dataset;
 import magpie.optimization.rankers.EntryRanker;
+import magpie.optimization.rankers.MultiObjectiveEntryRanker;
 import magpie.user.CommandHandler;
 
 /**
@@ -29,29 +30,27 @@ public class EntryRankerFilter extends BaseDatasetFilter {
     private int NumberToFilter = 200;
     /** Entry ranking method */
     private EntryRanker Ranker;
-    /** Whether to select the maximum or minimum values */
-    private boolean Maximize;
-    /** Whether to use the selected or predicted class */
-    private boolean Measured;
 
     @Override
     public void setOptions(List<Object> OptionsObj) throws Exception {
         String Options[] = CommandHandler.convertCommandToString(OptionsObj);
         String RankingMethod;
         List<Object> MethodOptions;
+		boolean measured;
+		boolean maximize;
         try {
             NumberToFilter = Integer.parseInt(Options[0]);
             if (Options[1].toLowerCase().contains("max"))
-                Maximize = true;
+                maximize = true;
             else if (Options[1].toLowerCase().contains("min"))
-                Maximize = false;
+                maximize = false;
             else 
                 throw new Exception();
                     
             if (Options[2].equalsIgnoreCase("measured"))
-                Measured = true;
+                measured = true;
             else if (Options[2].equalsIgnoreCase("predicted"))
-                Measured = false;
+                measured = false;
             else 
                 throw new Exception();
             
@@ -63,8 +62,8 @@ public class EntryRankerFilter extends BaseDatasetFilter {
         
         // Make the EntryRanker
         Ranker = (EntryRanker) CommandHandler.instantiateClass("optimization.rankers." + RankingMethod, MethodOptions);
-        Ranker.setMaximizeFunction(Maximize);
-        Ranker.setUseMeasured(Measured);
+        Ranker.setMaximizeFunction(maximize);
+        Ranker.setUseMeasured(measured);
     }
 
     @Override
@@ -80,16 +79,26 @@ public class EntryRankerFilter extends BaseDatasetFilter {
         this.NumberToFilter = NumberToFilter;
     }
 
+	/**
+	 * Define the ranker used to filter entries. 
+	 * @param Ranker Desired ranker
+	 */
+	public void setRanker(EntryRanker Ranker) {
+		this.Ranker = Ranker;
+	}
+	
+	
+
     @Override
     public void train(Dataset TrainingSet) {
-        /* Nothing to train */
+        Ranker.train(TrainingSet);
     }
 
     @Override
     protected boolean[] label(Dataset D) {
-        if (Measured && (! D.getEntry(0).hasMeasurement()))
+        if (Ranker.isUsingMeasured() && (! D.getEntry(0).hasMeasurement()))
             throw new Error("Missing measured class.");
-        if (! Measured && (! D.getEntry(0).hasPrediction()))
+        if (! Ranker.isUsingMeasured() && (! D.getEntry(0).hasPrediction()))
             throw new Error("Missing predicted class.");
         
         boolean[] passes = new boolean[D.NEntries()];
