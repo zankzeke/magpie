@@ -281,7 +281,7 @@ public class MultiPropertyDataset extends Dataset {
      */
     public void addProperty(String name, String[] possibleClasses) {
         if (PNames.contains(name))
-            throw new Error("Duplicate names not supported.");
+            return;
         PNames.add(name);
         PClassNames.add(possibleClasses);
     }
