@@ -6,11 +6,15 @@ package magpie.models;
 
 import magpie.models.interfaces.MultiModel;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.data.utilities.splitters.BaseDatasetSplitter;
 import magpie.models.utility.MultiModelUtility;
 import magpie.user.CommandHandler;
+import org.apache.commons.lang3.math.NumberUtils;
 
 /**
  * Abstract class for a model that splits the dataset and trains
@@ -171,15 +175,37 @@ abstract public class SplitModel extends BaseModel implements MultiModel {
     }
     
     @Override public void run_protected(Dataset Data) {
-        List<Dataset> SplitData = Partitioner.split(Data);
+		// Determine / act on split
+		int[] label = Partitioner.label(Data);
+        List<Dataset> SplitData = new LinkedList<>();
+		for (int i=0; i <= NumberUtils.max(label); i++) {
+			SplitData.add(Data.emptyClone());
+		}
+        Iterator<BaseEntry> iter = Data.getEntries().iterator();
+        int i=0; 
+        while (iter.hasNext()) {
+            BaseEntry E = iter.next();
+            SplitData.get(label[i]).addEntry(E);
+            i++; iter.remove();
+        }
+		
+		// Run the models
         checkModelCount(SplitData.size());
-        for (int i=0; i<SplitData.size(); i++) 
+        for (i=0; i<SplitData.size(); i++) 
             if (SplitData.get(i).NEntries() > 0)
                 if (Model.get(i).isTrained())
                     Model.get(i).run(SplitData.get(i));
                 else 
                     throw new Error("ERROR: Submodel #" + i + "has not yet been trained");
-        Data.combine(SplitData);
+		
+		// Combine results (preserving order)
+		List<Iterator<BaseEntry>> iters = new ArrayList<>(SplitData.size());
+		for (i=0; i < SplitData.size(); i++) {
+			iters.add(SplitData.get(i).getEntries().iterator());
+		}
+		for (i=0; i < label.length; i++) {
+			Data.addEntry(iters.get(label[i]).next());
+		}
     }
 
     @Override
