@@ -17,9 +17,6 @@ import magpie.optimization.rankers.PropertyFormulaRanker;
  * <usage><p><b>Usage</b>: &lt;properties...&gt;
  * <br><pr><i>properties</i>: Properties to be modeled</usage>
  * 
- * <p><b><u>Implemented Commands:</u></b>
- * 
- * 
  * @author Logan Ward
  */
 public class MultiPropertyRegression extends MultiObjectiveRegression {
