@@ -48,7 +48,12 @@ public class HHICalculationModifier extends BaseDatasetModifier {
 		CompositionDataset p = (CompositionDataset) Data;
 		
 		// Get the HHI data 
-		double[] hhip = p.getPropertyLookupTable("HHIp");
+		double[] hhip;
+		try {
+			hhip = p.getPropertyLookupTable("HHIp");
+		} catch (Exception e) {
+			throw new Error("Failed to load HHI data");
+		}
 		
 		// Add property to dataset
 		p.addProperty("HHI");

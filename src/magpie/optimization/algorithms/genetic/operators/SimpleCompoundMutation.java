@@ -72,6 +72,6 @@ public class SimpleCompoundMutation extends BaseMutationFunction {
                 }
             }
         }
-        Entry.rectifyEntry();
+        Entry.rectifyEntry(true);
     }
 }

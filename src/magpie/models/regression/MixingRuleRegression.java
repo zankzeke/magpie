@@ -157,7 +157,11 @@ public class MixingRuleRegression extends BaseRegression {
         CompositionDataset DataPtr = (CompositionDataset) TrainData;
         
         // Get the lookup table
-        LookupTable = DataPtr.getPropertyLookupTable(PropertyName);        
+		try {
+			LookupTable = DataPtr.getPropertyLookupTable(PropertyName);
+		} catch (Exception e) {
+			throw new Error("Failed to load property data");
+		}
         
         // Invert the property if requested
         if (UseInverse)

@@ -95,7 +95,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
      */
     public List<String> ElementalProperties = new LinkedList<>();
     /**
-     * Map of property names to values
+     * Map of elemental property names to values
      */
     public Map<String, double[]> PropertyData = LookupData.ElementalProperties;
 	/** Oxidation states of every element */
@@ -159,36 +159,12 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
 
         // Define the reader
         BufferedReader is = Files.newBufferedReader(Paths.get(filename), Charset.forName("US-ASCII"));
-        String Line;
-        String[] Words;
+        String line;
+        String[] words;
 
         // Read in properties from header
-        Line = is.readLine();
-		Pattern totalPattern = Pattern.compile("[\\d\\w]+(\\{.*\\})?"), // Captures entire name/classes 
-				namePattern = Pattern.compile("^[\\d\\w]+"), // Given name/classes, get name
-				classPattern = Pattern.compile("\\{.*\\}"); // Get the possible classes
-        Matcher totalMatcher = totalPattern.matcher(Line);
-		totalMatcher.find(); // First match is composition
-		while (totalMatcher.find()) {
-			String total = totalMatcher.group();
-			Matcher tempMatcher = namePattern.matcher(total); tempMatcher.find();
-			String name = tempMatcher.group();
-			if (! total.contains("{")) {
-				addProperty(name);
-			} else {
-				tempMatcher = classPattern.matcher(total); tempMatcher.find();
-				String classList = tempMatcher.group();
-				// Trim off the "{,}"
-				classList = classList.substring(1);
-				classList = classList.substring(0, classList.length()-1);
-				// Get the class names
-				String[] classes = classList.split(",");
-				for (int i=0; i<classes.length; i++) {
-					classes[i] = classes[i].trim();
-				}
-				addProperty(name, classes);
-			}
-        }
+        line = is.readLine();
+		importPropertyNames(line);
 
         // Determine which property is the energy ("energy_pa")
         int energy_id = getPropertyIndex("energy_pa");
@@ -200,22 +176,22 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
         for (int e = 0; e < Entry_Count; e++) {
             double[] properties;
             // Read a line and tokenize it
-            Line = is.readLine();
-            if (Line == null) {
+            line = is.readLine();
+            if (line == null) {
                 break;
             }
-            Words = Line.split("\\s+");
+            words = line.split("\\s+");
 
             // Get the properties
             properties = new double[NProperties()];
             for (int p = 0; p < NProperties(); p++) {
 				try {
 					if (getPropertyClassCount(p) == 1) {
-						properties[p] = Double.parseDouble(Words[p + 1]);
+						properties[p] = Double.parseDouble(words[p + 1]);
 					} else {
-						int index = ArrayUtils.indexOf(getPropertyClasses(p), Words[p+1]);
+						int index = ArrayUtils.indexOf(getPropertyClasses(p), words[p+1]);
 						if (index == -1) {
-							index = Integer.parseInt(Words[p+1]);
+							index = Integer.parseInt(words[p+1]);
 						}
 						properties[p] = index;
 					}
@@ -226,7 +202,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
             }
 
             // Make an entry
-            Entry = new CompositionEntry(Words[0]);
+            Entry = new CompositionEntry(words[0]);
             Entry.setMeasuredProperties(properties);
 
             // Add if the set does not already have it
@@ -282,6 +258,41 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
         // Copy the entries
         this.Entries = new ArrayList<>(acceptedEntries.keySet());
     }
+
+	
+	/**
+	 * Given the line describing property names in the input file, read in property
+	 * names and possible classes.
+	 * @param line Line describing property names
+	 * @see CompositionDataset
+	 */
+	protected void importPropertyNames(String line) {
+		Pattern totalPattern = Pattern.compile("[\\d\\w]+(\\{.*\\})?"), // Captures entire name/classes 
+				namePattern = Pattern.compile("^[\\d\\w]+"), // Given name/classes, get name
+				classPattern = Pattern.compile("\\{.*\\}"); // Get the possible classes
+		Matcher totalMatcher = totalPattern.matcher(line);
+		totalMatcher.find(); // First match is composition
+		while (totalMatcher.find()) {
+			String total = totalMatcher.group();
+			Matcher tempMatcher = namePattern.matcher(total); tempMatcher.find();
+			String name = tempMatcher.group();
+			if (! total.contains("{")) {
+				addProperty(name);
+			} else {
+				tempMatcher = classPattern.matcher(total); tempMatcher.find();
+				String classList = tempMatcher.group();
+				// Trim off the "{,}"
+				classList = classList.substring(1);
+				classList = classList.substring(0, classList.length()-1);
+				// Get the class names
+				String[] classes = classList.split(",");
+				for (int i=0; i<classes.length; i++) {
+					classes[i] = classes[i].trim();
+				}
+				addProperty(name, classes);
+			}
+		}
+	}
     
     /**
      * Set whether to use composition (i.e. fraction of each element present) as attributes.
@@ -383,7 +394,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
      * @param PropertyName MeasuredProperty of interest
      * @return That property for each element
      */
-    public double[] getPropertyLookupTable(String PropertyName) {
+    public double[] getPropertyLookupTable(String PropertyName) throws Exception {
         // Check if it has been loaded in yet
         if (PropertyData.containsKey(PropertyName)) {
             return PropertyData.get(PropertyName);
@@ -412,7 +423,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
             PropertyData.put(PropertyName, output);
             return output;
         } catch (IOException e) {
-            throw new Error("Property " + PropertyName + " failed to read due to " + e);
+            throw new Exception("Property " + PropertyName + " failed to read due to " + e);
         }
     }
 
@@ -546,7 +557,12 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
             // Generate data for each property
             for (String prop : ElementalProperties) {
                 // Get the lookup table for this property
-                double[] lookup = getPropertyLookupTable(prop);
+				double[] lookup;
+				try {
+					lookup = getPropertyLookupTable(prop);
+				} catch (Exception ex) {
+					throw new Error("Failed to retrieve property: " + prop);
+				}
 
                 // Check if any required lookup data is missing;
                 for (int i = 0; i < entry.getElements().length; i++) {
@@ -601,9 +617,13 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
         // Load in the number of electrons in each shell
         Character[] shell = new Character[]{'s', 'p', 'd', 'f'};
         double[][] n_valance = new double[4][];
-        for (int i = 0; i < 4; i++) {
-            n_valance[i] = getPropertyLookupTable("N" + shell[i] + "Valence");
-        }
+		try {
+			for (int i = 0; i < 4; i++) {
+				n_valance[i] = getPropertyLookupTable("N" + shell[i] + "Valence");
+			}
+		} catch (Exception ex) {
+			throw new Error("Failed to import number of valence electrons");
+		}
 
         // Determine the fraction of electrons in each valence cell
         for (int i = 0; i < 4; i++) {
@@ -634,7 +654,12 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
     protected void generateIonicCharacter() {
         double x;
         // --> Calculate the maximum and mean %Ionic character
-        double[] en = getPropertyLookupTable("Electronegativity");
+		double[] en;
+		try {
+			en = getPropertyLookupTable("Electronegativity");
+		} catch (Exception e) {
+			throw new Error("Failed to import electronegativity");
+		}
         AttributeName.add("MaxIonicChar");
         AttributeName.add("MeanIonicChar");
         for (int i = 0; i < NEntries(); i++) {

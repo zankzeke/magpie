@@ -66,7 +66,7 @@ public class PrototypeEntry extends CompositionEntry {
         calculateComposition();
         
         // Rectify compositions (for printing order)
-        rectifyEntry();
+        rectifyEntry(true);
     }
 
     /**
@@ -144,7 +144,7 @@ public class PrototypeEntry extends CompositionEntry {
     public void setSiteComposition(int index, CompositionEntry composition) {
         SiteComp[index] = composition.clone();
         calculateComposition();
-        rectifyEntry();
+        rectifyEntry(true);
     }
 
     @Override

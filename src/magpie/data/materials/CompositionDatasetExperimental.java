@@ -46,7 +46,12 @@ public class CompositionDatasetExperimental extends CompositionDataset {
         // Find lookup properties that have positive (non-zero) values for all entries
         RatioElementalProperties.clear();
         for (String prop : ElementalProperties) {
-            double[] lookup = getPropertyLookupTable(prop);
+			double[] lookup;
+			try {
+				lookup = getPropertyLookupTable(prop);
+			} catch (Exception e) {
+				throw new Error("Failed to get data for property: " + prop);
+			}
             boolean isGood = true;
             for (double value : lookup) {
                 if (Double.isNaN(value) || value <= 0) {
@@ -109,7 +114,12 @@ public class CompositionDatasetExperimental extends CompositionDataset {
             // Otherwise, for each property
             int count = 0;
             for (String property : RatioElementalProperties) {
-                double[] lookup = getPropertyLookupTable(property);
+				double[] lookup;
+				try {
+					lookup = getPropertyLookupTable(property);
+				} catch (Exception e) {
+					throw new Error("Failed to load data for property: " + property);
+				}
                 
                 // Get maximum ratio 
                 attributes[count++] = entry.getMaximum(lookup) / entry.getMinimum(lookup);

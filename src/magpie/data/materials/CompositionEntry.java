@@ -106,7 +106,7 @@ public class CompositionEntry extends MultiPropertyEntry {
             Fraction[i] = entry.getValue();
             i++;
         }
-        rectifyEntry();
+        rectifyEntry(true);
     }
 
     /**
@@ -115,12 +115,24 @@ public class CompositionEntry extends MultiPropertyEntry {
      * @param Amount Amount of each element present
      */
     public CompositionEntry(int[] Element, double[] Amount) {
-        this.Element = Element.clone();
-        this.Fraction = Amount.clone();
-        this.ElementNames = LookupData.ElementNames;
-        this.SortingOrder = LookupData.SortingOrder;
-        rectifyEntry();
+        setComposition(Element, Amount, true);
     }
+
+	/**
+	 * Set the composition of this entry
+	 * @param elements Elements in sample (listed by index 
+	 * in {@linkplain LookupData#ElementNames})
+	 * @param amount Amount of each element
+     * @param toSort Whether to store elements in sorted order
+	 */
+	final protected void setComposition(int[] elements, double[] amount, 
+            boolean toSort) {
+		this.Element = elements.clone();
+		this.Fraction = amount.clone();
+		this.ElementNames = LookupData.ElementNames;
+		this.SortingOrder = LookupData.SortingOrder;
+		rectifyEntry(toSort);
+	}
     
     
     
@@ -217,12 +229,15 @@ public class CompositionEntry extends MultiPropertyEntry {
      * Makes sure this entry is in a proper format. <B>Must be run from constructor</B>
      * <p>Performs the following operations:
      * <ul>
-     * <li>Ensure Element and Fraction are sorted according to the order listed in {@link #SortingOrder}.</li>
-     * <li>Ensure that the sum of Fraction is equal to 1.</li>
-     * <li>Set {@link #NumberInCell} is equal to the original sum of Fraction.</li>
+     * <li>Optional: Ensure Element and Fraction are sorted according to the order 
+     * listed in {@linkplain #SortingOrder}.</li>
+     * <li>Ensure that the sum of {@linkplain #Fraction} is equal to 1.</li>
+     * <li>Set {@linkplain #NumberInCell} is equal to the original 
+     * sum of {@linkplain #Fraction}.</li>
      * </ul>
+     * @param toSort Whether to sort elements in "Sorting order"
      */
-    final public void rectifyEntry() {
+    final public void rectifyEntry(boolean toSort) {
         // Makes sure we have a sorting order
         if (SortingOrder == null) {
             SortingOrder = new int[ElementNames.length];
@@ -230,23 +245,25 @@ public class CompositionEntry extends MultiPropertyEntry {
         }
         
         // Simple bubble sort (we are dealing with small lists)
-        int n=Element.length, i, new_n, i_temp; 
-        double d_temp;
-        do {
-            new_n=0;
-            for (i=1; i<n; i++)
-                if ( SortingOrder[Element[i-1]]>SortingOrder[Element[i]]) {
-                    i_temp=Element[i]; Element[i]=Element[i-1]; Element[i-1]=i_temp;
-                    d_temp=Fraction[i]; Fraction[i]=Fraction[i-1]; Fraction[i-1]=d_temp;
-                    new_n=i;
-                }
-            n = new_n;
-        } while (n != 0);
+        if (toSort) {
+            int n=Element.length, i, new_n, i_temp; 
+            double d_temp;
+            do {
+                new_n=0;
+                for (i=1; i<n; i++)
+                    if ( SortingOrder[Element[i-1]]>SortingOrder[Element[i]]) {
+                        i_temp=Element[i]; Element[i]=Element[i-1]; Element[i-1]=i_temp;
+                        d_temp=Fraction[i]; Fraction[i]=Fraction[i-1]; Fraction[i-1]=d_temp;
+                        new_n=i;
+                    }
+                n = new_n;
+            } while (n != 0);
+        }
         
         // Normalize fraction, if it has not been already
         if (NumberInCell == Double.NEGATIVE_INFINITY) {
             NumberInCell = StatUtils.sum(Fraction);
-            for (i=0; i<Fraction.length; i++) Fraction[i] /= NumberInCell;
+            for (int i=0; i<Fraction.length; i++) Fraction[i] /= NumberInCell;
         }
     }
         

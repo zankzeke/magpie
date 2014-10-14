@@ -262,7 +262,12 @@ public class PrototypeDataset extends CompositionDataset {
             int pos = 0;
             double[] newAttr = new double[nAttr];
             for (String p : ElementalProperties) {
-                double[] lookup = getPropertyLookupTable(p);
+				double[] lookup;
+				try {
+					lookup = getPropertyLookupTable(p);
+				} catch (Exception ex) {
+					throw new Error("Failed to load property data:" + p);
+				}
                 for (int g=0; g<SiteInfo.NGroups(); g++)
                     if (SiteInfo.groupIsIncludedInAttributes(g))
                         newAttr[pos++] = E.getSiteGroupMean(g, lookup);
@@ -297,7 +302,12 @@ public class PrototypeDataset extends CompositionDataset {
             int pos = 0;
             double[] newAttr = new double[nAttr];
             for (String p : ElementalProperties) {
-                double[] lookup = getPropertyLookupTable(p);
+				double[] lookup;
+				try {
+					lookup = getPropertyLookupTable(p);
+				} catch (Exception ex) {
+					throw new Error("Failed to load data for property: " + p);
+				}
                 for (int g1=0; g1<SiteInfo.NGroups(); g1++)
                     for (int g2=g1+1; g2<SiteInfo.NGroups(); g2++)
                         if (SiteInfo.groupIsIncludedInAttributes(g1) && 

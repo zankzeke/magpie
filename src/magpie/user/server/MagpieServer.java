@@ -196,6 +196,8 @@ public class MagpieServer {
             threadEngine.submit(newWorker);
         }
         
+        // Wait until threads finish
+        threadEngine.shutdown();
         
         // We're done, close up shop
         try {
