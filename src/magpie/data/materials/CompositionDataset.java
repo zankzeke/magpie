@@ -64,13 +64,13 @@ import org.apache.commons.math3.stat.*;
  * <command><p><b>attributes properties add &lt;names...></b> - Add elemental properties to use when generating attributes</command>
  * <br><pr><i>name...</i>: Name of a elemental properties</command>
  *
- * <command><p><b>attributes properties add set &lt;name</b> - Add in all elemental properties from a pre-defined set
+ * <command><p><b>attributes properties add set &lt;name&gt;</b> - Add in all elemental properties from a pre-defined set
  * <br><pr><i>name</i>: Name of the pre-defined set</command>
  *
  * <command><p><b>attributes properties remove &lt;names...></b> - Remove properties from list of those used when generating attributes
  * <br><pr><i>names...</i>: Name of properties to remove</command>
  *
- * <command><p><b>properties &lt;directory></b> - Specify directory that contains the elemental property lookup files
+ * <command><p><b>attributes properties &lt;directory></b> - Specify directory that contains the elemental property lookup files
  * <br><pr><i>directory</i>: Desired directory</command>
  *
  * @author Logan Ward
