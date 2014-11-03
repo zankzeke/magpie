@@ -50,6 +50,10 @@ import org.apache.commons.math3.stat.*;
  * are in the header by adding them to the property name surrounded by "{}"s and separated
  * by commas.
  * <li>If the measured value of a property is not known, put down "None"
+ * <li>For entries with duplicate compositions: Either select the values from 
+ * lowest-energy duplicate entry or, if energy is not available, the average 
+ * value of continuous properties or the lowest-index class value (i.e. which
+ * ever one is listed first in the header of the input file)
  * </ol>
  *
  * <p><b><u>Implemented Commands:</u></b>
@@ -239,15 +243,31 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
             CompositionEntry accepted = acceptedEntries.get(E);
             List<double[]> dupProps = duplicateProperties.get(E);
             for (int p = 0; p < NProperties(); p++) {
-                double sum = 0, count = 0;
-                for (double[] props : dupProps) {
-                    double toAdd = props[p];
-                    if (! Double.isNaN(toAdd)) {
-                        sum += toAdd; count++;
+                if (getPropertyClassCount(p) == 1) {
+                    double sum = 0, count = 0;
+                    for (double[] props : dupProps) {
+                        double toAdd = props[p];
+                        if (! Double.isNaN(toAdd)) {
+                            sum += toAdd; count++;
+                        }
                     }
-                }
-                if (count > 0) {
-                    accepted.setMeasuredProperty(p, sum / count);
+                    if (count > 0) {
+                        accepted.setMeasuredProperty(p, sum / count);
+                    }
+                } else {
+                    double value = Double.MAX_VALUE;
+                    boolean wasFound = false;
+                    for (double[] props : dupProps) {
+                        if (! Double.isNaN(props[p])) {
+                            wasFound = true;
+                            if (props[p] < value) {
+                               value = props[p];
+                            }
+                        }                
+                    }
+                    if (wasFound) {
+                        accepted.setMeasuredProperty(p, value);
+                    }
                 }
             }
         }
