@@ -195,10 +195,11 @@ public class TargetRegressionStatistics extends RegressionStatistics {
         int[] rank = OptimizationHelper.sortAndGetRanks(predictedClone, false);
         
         // Gradually step up window size
-        int stepSize = predicted.length <= MaxCandidates ? 1 : MaxCandidates / NSteps;
+        double stepSize = predicted.length <= MaxCandidates ? 1.0 :
+                (double) MaxCandidates / (double) NSteps;
         rankAnalysis = new double[Math.min(predicted.length, NSteps)][3];
         for (int step = 0; step < rankAnalysis.length; step++) {
-            int nCands = (step + 1) * stepSize;
+            int nCands = (int) Math.round((step + 1) * stepSize);
             // Get the measureddistances of the top candidates
             double[] topMeasured = new double[nCands];
             for (int i=0; i<nCands; i++)
