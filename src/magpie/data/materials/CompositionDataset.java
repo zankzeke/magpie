@@ -13,6 +13,7 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.regex.*;
 import magpie.data.BaseEntry;
+import magpie.data.materials.util.CompositionDatasetOutput;
 import magpie.data.materials.util.LookupData;
 import magpie.data.materials.util.PropertyLists;
 import org.apache.commons.lang3.ArrayUtils;
@@ -76,6 +77,11 @@ import org.apache.commons.math3.stat.*;
  *
  * <command><p><b>attributes properties &lt;directory></b> - Specify directory that contains the elemental property lookup files
  * <br><pr><i>directory</i>: Desired directory</command>
+ * 
+ * <p><b><u>Implemented Save Formats</u></b>
+ * 
+ * <save><p><b>comp</b> - All properties with composition written by element fraction
+ * <br>Very similar to the "prop" format"</save>
  *
  * @author Logan Ward
  * @version 0.2
@@ -185,6 +191,9 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
                 break;
             }
             words = line.split("\\s+");
+            if (words.length < 2) {
+                continue;
+            }
 
             // Get the properties
             properties = new double[NProperties()];
@@ -894,4 +903,21 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
         return null;
     }
 
+    @Override
+    public String saveCommand(String Basename, String Format) throws Exception {
+        String filename;
+        switch (Format.toLowerCase()) {
+            case "comp":
+                filename = Basename + ".csv";
+                CompositionDatasetOutput.saveCompositionProperties(this,
+                        filename);
+                return filename;
+            default:
+                return super.saveCommand(Basename, Format); 
+        }
+    }
+
+    
+
+    
 }
