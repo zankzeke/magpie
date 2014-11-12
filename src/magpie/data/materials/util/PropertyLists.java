@@ -30,20 +30,20 @@ abstract public class PropertyLists {
     public static String[] getPropertySet(String name) throws Exception {
         switch (name) {
             case "heusler":
-                return new String[]{"Number", "MendelevNumber", "AtomicWeight", "MeltingT",
+                return new String[]{"Number", "MendeleevNumber", "AtomicWeight", "MeltingT",
                     "Column", "Row", "CovalentRadius", "Electronegativity", "NsValence",
                     "NpValence", "NdValence", "NfValence", "NValance", "NsUnfilled",
                     "NpUnfilled", "NdUnfilled", "NfUnfilled", "NUnfilled", "GSvolume_pa",
                     "GSbandgap", "GSmagmom", "BCCvolume_pa", "BCCefflatcnt",
                     "BCCenergydiff", "BCCvolume_padiff", "GSefflatcnt", "SpaceGroupNumber"};
             case "general":
-                return new String[]{"Number", "MendelevNumber", "AtomicWeight",
+                return new String[]{"Number", "MendeleevNumber", "AtomicWeight",
                     "MeltingT", "Column", "Row", "CovalentRadius", "Electronegativity",
                     "NsValence", "NpValence", "NdValence", "NfValence", "NValance",
                     "NsUnfilled", "NpUnfilled", "NdUnfilled", "NfUnfilled", "NUnfilled",
                     "GSvolume_pa", "GSbandgap", "GSmagmom", "SpaceGroupNumber"};
             case "yue":
-                return new String[]{"Number", "MendelevNumber", "AtomicWeight",
+                return new String[]{"Number", "MendeleevNumber", "AtomicWeight",
                     "MeltingT", "Column", "Row", "CovalentRadius", "Electronegativity",
                     "NsValence", "NpValence", "NdValence", "NfValence", "NValance",
                     "NsUnfilled", "NpUnfilled", "NdUnfilled", "NfUnfilled", "NUnfilled",
