@@ -19,8 +19,6 @@ import magpie.user.CommandHandler;
  * algorithm has many possible options. One can vary the mutation rate, ranking
  * weight depending on fitness, number of previous generations used in breeding pool,
  * and number of elite candidates held in the breeding pool as well.
- * 
- * FIX getCandidates()!!!
  *
  * <usage><p><b>Usage</b>: &lt;Crossover Function> &lt;Mutation Function> [-weight &lt;weight>] [-mutprob &lt;mutprob>] [-prev &lt;prev>] [-elite &lt;elite>]
  * <br><pr><i>Mutation Function</i>: Function used to perform mutation operations. Type "?" for available options
@@ -28,7 +26,7 @@ import magpie.user.CommandHandler;
  * <br><pr><i>weight</i>: How much weight to apply to better-ranking entries (default: 10)
  * <br><pr><i>mutprob</i>: Probability that a candidate will be mutated after crossover (default: 0.1)
  * <br><pr><i>prev</i>: How many previous generations to include in breeding pool (default: 1)
- * <br><pr><i>elite</i>: How many of the best-performing entries to include in breedingbool (default: 0)</usage>
+ * <br><pr><i>elite</i>: How many of the best-performing entries to include in breeding pool (default: 0)</usage>
  *
  *
  * @author Logan Ward
