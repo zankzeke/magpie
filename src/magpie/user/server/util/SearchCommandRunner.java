@@ -135,7 +135,10 @@ abstract public class SearchCommandRunner {
 		int[] ranking = ranker.rankEntries(data);
 		for (int i : ranking) {
 			BaseEntry entry = data.getEntry(i);
-			output.add(String.format("%s\t%.4f", entry.toString(), entry.getPredictedClass()));
+			output.add(String.format("%s\t%.4f", entry.toString(), 
+				ranker instanceof ClassProbabilityRanker ? 
+				ranker.objectiveFunction(entry) * 100 :
+				entry.getPredictedClass()));
 		}
 		return output;
 	}
