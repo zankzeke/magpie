@@ -164,11 +164,20 @@ abstract public class SearchCommandRunner {
 				try {
 					double target = Double.parseDouble(words[2]);
 					ranker = new TargetEntryRanker(target);
+                    ranker.setMaximizeFunction(false);
 				} catch (Exception e) {
 					throw new Exception("Expected number as third arguement of objective");
 				}
 				ranker.setMaximizeFunction(false);
 				break;
+            case "class":
+                try {
+                    String className = words[2];
+                    ranker = new ClassProbabilityRanker(className);
+                    ranker.setMaximizeFunction(true);
+                } catch (Exception e) {
+                    throw new Exception("Expected class name as third arguement of objective");
+                }
 			default:
 				throw new Exception("Objective not recognized: " + words[2]);
 		}
@@ -262,6 +271,7 @@ abstract public class SearchCommandRunner {
 	/**
 	 * Parse the number of entries to report
 	 * @param command Command being executed
+     * @return Number of entries to report
 	 * @throws NumberFormatException 
 	 */
 	protected static int getNumberToReport(List<String> command) throws Exception {

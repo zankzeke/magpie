@@ -86,7 +86,7 @@ import magpie.optimization.rankers.PropertyFormulaRanker;
  * a single objective function. This method only takes one input line to define, which
  * must be in the following format: 
  * <br>objective &lt;property name&lt; 
- * &lt;minimize|maximize|target&gt; [&lt;target value&gt;]
+ * &lt;minimize|maximize|target|class&gt; [&lt;target value|class name&gt;]
  * <li><b>Multi-Objective: Scalarizing</b> - <i>Not yet implemented</i> Find entries 
  * that fit multiple goals simultaneously by combining multiple objectives using a 
  * {@linkplain AdaptiveScalarizingEntryRanker}. To define this kind of search,
