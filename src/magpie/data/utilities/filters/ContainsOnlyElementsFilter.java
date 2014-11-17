@@ -30,7 +30,7 @@ public class ContainsOnlyElementsFilter extends ContainsElementFilter {
         if (! (D instanceof CompositionDataset))
             throw new Error("Dataset must be a CompositionDataset");
         CompositionDataset Data = (CompositionDataset) D;
-        int[] ExcludedIndex = getElementIndices(ElementList, Data);
+        int[] ExcludedIndex = getElementIndices(ElementList);
         
         // Find entries that contain one of those elements
         boolean[] containsOnly = new boolean[D.NEntries()];

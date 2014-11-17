@@ -17,6 +17,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import magpie.data.materials.*;
 import magpie.data.materials.util.PrototypeSiteInformation;
+import magpie.data.utilities.filters.ContainsElementFilter;
 import magpie.models.classification.BaseClassifier;
 import magpie.utility.interfaces.*;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -41,7 +42,11 @@ import org.apache.commons.lang3.tuple.Pair;
  * 
  * <p><b><u>Implemented Commands:</u></b>
  * 
- * <command><p><b>get model</b> - Get the classifier used to predict last crystal structure</command>
+ * <command><p><b>exclude &lt;elements...&gt;</b> - Remove entries containing certain elements 
+ * from the list of known compounds
+ * <br><pr><i>elements</i>: List of elements abbreviations</command>
+ * 
+ * <command><p><b>get model = $&ltmodel&gt;</b> - Get the classifier used to predict last crystal structure</command>
  * 
  * <command><p><b>predict &lt;composition> [&lt;# to show>]</b> - Predict what 
  *  structural prototypes are most likely for a certain compound
@@ -71,14 +76,6 @@ import org.apache.commons.lang3.tuple.Pair;
  *  crystal structure will form given composition. Composition is supplied as a {@linkplain PrototypeEntry}
  *  where the least-prevalent element is on "A" site, the second least is on the "B", and so on. 
  *  Any sites with equal fractions are treated as equal (which is a key feature of {@linkplain PrototypeEntry}).
- * 
- * 
- * 
- * <p><b>TO DO LIST:</b>
- * 
- * <ol>
- * <li>Clean up make an run classifiers. Classifier should be private
- * </ol>
  * 
  * @author Logan Ward
  */
@@ -156,6 +153,26 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
      */
     public void setKnownCompounds(Map<CompositionEntry, String> KnownCompounds) {
         this.KnownCompounds = KnownCompounds;
+    }
+    
+    /**
+     * Given a list of elements, remove all entries that contain those elements
+     * from the list of known compounds. 
+     * @param ElementList List of elements to be removed
+     */
+    public void removeKnownCompoundsContainingElements(List<String> ElementList) {
+        // Generate filter
+        ContainsElementFilter filter = new ContainsElementFilter();
+        filter.setElementList(ElementList.toArray(new String[0]));
+        
+        // Remove entries that fail
+        Iterator<CompositionEntry> iter = KnownCompounds.keySet().iterator();
+        while (iter.hasNext()) {
+            CompositionEntry e = iter.next();
+            if (filter.entryContainsElement(e)) {
+                iter.remove();
+            }
+        }
     }
 
     /**
@@ -448,6 +465,14 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
         }
         String Action = Command.get(0).toString().toLowerCase();
         switch (Action) {
+            case "exclude": {
+                List<String> elems = new ArrayList<>(Command.size() - 1);
+                for (Object obj : Command.subList(1, Command.size())) {
+                    elems.add(obj.toString());
+                }
+                removeKnownCompoundsContainingElements(elems);
+                return null;
+            }
             case "get":
                 if (Command.size() != 2) {
                     throw new Exception("Usage: get <component>");

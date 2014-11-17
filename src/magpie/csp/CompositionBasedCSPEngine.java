@@ -22,9 +22,9 @@ import magpie.models.classification.BaseClassifier;
  * 
  * <p><b><u>Implemented Commands:</u></b>
  * 
- * <command><p><b>properties [&lt;command...>]</b> - Set the properties used to generate  
- * attributes based on the composition of each compound
- * <br><pr><i>command</i>: Property command from {@linkplain PrototypeDataset}</command>
+ * <command><p><b>attributes [&lt;command...>]</b> - Configure how attributes
+ * are generated
+ * <br><pr><i>command</i>: Attribute command from {@linkplain PrototypeDataset}</command>
  * 
  * @author Logan Ward
  */
@@ -110,7 +110,7 @@ public class CompositionBasedCSPEngine extends CSPEngine {
             return super.runCommand(Command);
         String Action = Command.get(0).toString().toLowerCase();
         switch (Action) {
-            case "properties":
+            case "attributes":
                 return datasetTemplate.runCommand(Command);
             default:
                 return super.runCommand(Command);

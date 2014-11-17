@@ -9,6 +9,7 @@ import java.util.List;
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.CompositionEntry;
+import magpie.data.materials.util.LookupData;
 import magpie.user.CommandHandler;
 
 /**
@@ -22,16 +23,27 @@ import magpie.user.CommandHandler;
 public class ContainsElementFilter extends BaseDatasetFilter {
     /** Elements that compounds are not allowed to contain */
     protected String[] ElementList;
+    /** List of IDs of those elements */
+    private int[] ExcludedIndex;
 
     @Override
     public void setOptions(List<Object> OptionsObj) throws Exception {
         String[] Options = CommandHandler.convertCommandToString(OptionsObj);
         try {
             if (Options.length == 0) throw new Exception();
-            ElementList = Arrays.copyOf(Options, Options.length);
+            setElementList(ElementList);
         } catch (Exception e) {
             throw new Exception(printUsage());
         }
+    }
+
+    /**
+     * Define list of elements to use for filter.
+     * @param ElementList List of element abbreviations
+     */
+    public void setElementList(String[] ElementList) {
+        this.ElementList = ElementList.clone();
+        ExcludedIndex = getElementIndices(ElementList);
     }
 
     @Override
@@ -50,31 +62,40 @@ public class ContainsElementFilter extends BaseDatasetFilter {
         if (! (D instanceof CompositionDataset))
             throw new Error("Dataset must be a CompositionDataset");
         CompositionDataset Data = (CompositionDataset) D;
-        int[] ExcludedIndex = getElementIndices(ElementList, Data);
         
         // Find entries that contain one of those elements
         boolean[] contains = new boolean[D.NEntries()];
         for (int i=0; i<D.NEntries(); i++) {
             contains[i] = false;
             CompositionEntry E = Data.getEntry(i);
-            for (int j=0; j<ElementList.length; j++)
-                if (E.getElementFraction(ExcludedIndex[j]) > 0) {
-                    contains[i] = true; break;
-                }           
+            contains[i] = entryContainsElement(E);
         }
         return contains;
     }
 
     /**
-     * Given a list of elements, return their indices. Uses element list from a CompositionDataset
+     * Determine whether an entry contains one of the specified elements.
+     * @param entry Entry in question
+     * @return Whether it contains at least one of the specified elements
+     */
+    public boolean entryContainsElement(CompositionEntry entry) {
+        for (int j=0; j<ElementList.length; j++) {
+            if (entry.getElementFraction(ExcludedIndex[j]) > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Given a list of elements, return their indices. 
      * @param ElementList List of element names to operate on
-     * @param Data Dataset containing list of element names
      * @return Array containing index of each element in ElementList
      */
-    static protected int[] getElementIndices(String[] ElementList, CompositionDataset Data) {
+    static protected int[] getElementIndices(String[] ElementList) {
         // Get the index of each element
         int[] ElementIndex = new int[ElementList.length];
-        List<String> ElementNamesAsList = Arrays.asList(Data.ElementNames);
+        List<String> ElementNamesAsList = Arrays.asList(LookupData.ElementNames);
         for (int i=0; i<ElementIndex.length; i++) {
             int index = ElementNamesAsList.indexOf(ElementList[i]);
             if (index == -1) throw new Error(ElementList[i] + " is not a valid element");
