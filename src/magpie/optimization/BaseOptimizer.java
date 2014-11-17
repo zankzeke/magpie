@@ -13,7 +13,7 @@ import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.data.MultiPropertyDataset;
 import magpie.data.utilities.filters.BaseDatasetFilter;
-import magpie.optimization.rankers.EntryRanker;
+import magpie.optimization.rankers.BaseEntryRanker;
 import magpie.optimization.analytics.OptimizationStatistics;
 import magpie.optimization.oracles.BaseOracle;
 import magpie.optimization.rankers.MultiObjectiveEntryRanker;
@@ -66,7 +66,7 @@ import magpie.utility.interfaces.Printable;
  *
  * <command><p><b>set objective &lt;min|max> &lt;method> [&lt;options...>]</b> - Set the objective function
  * <br><pr><i>min|max</i>: Whether to minimize or maximize the objective function.
- * <br><pr><i>method</i>: Desired objective function. Name of an {@linkplain EntryRanker} class. ("?" for options)
+ * <br><pr><i>method</i>: Desired objective function. Name of an {@link BaseEntryRanker} class. ("?" for options)
  * <br><pr><i>options...</i>: Options for objective function</command>
  *
  * <command><p><b>set oracle &lt;method> [&lt;options...>]</b> - Define method used to calculate properties of selected candidates
@@ -124,7 +124,7 @@ abstract public class BaseOptimizer implements java.io.Serializable,
     /**
      * Entry ranker used for objective function
      */
-    protected EntryRanker ObjectiveFunction = null;
+    protected BaseEntryRanker ObjectiveFunction = null;
     /**
      * Oracle used as a method for evaluating new iterations
      */
@@ -224,7 +224,7 @@ abstract public class BaseOptimizer implements java.io.Serializable,
      *
      * @param ObjectiveFunction Desired objective function
      */
-    public void setObjectiveFunction(EntryRanker ObjectiveFunction) {
+    public void setObjectiveFunction(BaseEntryRanker ObjectiveFunction) {
         errorIfStarted();
         this.ObjectiveFunction = ObjectiveFunction;
     }
@@ -232,7 +232,7 @@ abstract public class BaseOptimizer implements java.io.Serializable,
     /**
      * @return Objective function used by this optimizer
      */
-    public EntryRanker getObjectiveFunction() {
+    public BaseEntryRanker getObjectiveFunction() {
         return ObjectiveFunction;
     }
 	
@@ -626,7 +626,7 @@ abstract public class BaseOptimizer implements java.io.Serializable,
                     // Read Method name
                     Method = Command.get(2).toString();
                     if (Method.equals("?")) {
-                        System.out.println(printImplmentingClasses(EntryRanker.class, false));
+                        System.out.println(printImplmentingClasses(BaseEntryRanker.class, false));
                         return;
                     }
                     // Get method options
@@ -635,7 +635,7 @@ abstract public class BaseOptimizer implements java.io.Serializable,
                     throw new Exception("Usage: set objective <max|min> <method> [<method options..>]");
                 }
                 // Make the ranker, attach it
-                EntryRanker objFun = (EntryRanker) instantiateClass("optimization.rankers." + Method, Options);
+                BaseEntryRanker objFun = (BaseEntryRanker) instantiateClass("optimization.rankers." + Method, Options);
                 objFun.setUseMeasured(true);
                 objFun.setMaximizeFunction(toMaximize);
                 setObjectiveFunction(objFun);

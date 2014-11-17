@@ -15,12 +15,22 @@ import magpie.utility.interfaces.Options;
  * function. The final user must decide whether it uses measured or predicted data and
  * whether the goal is to maximize or minimize the objective function.
  * 
- * <p>TODO: Make this an "objective" function class
+ * <p><b>Implementation Guide</b>
+ * 
+ * <p>Only two operations and the {@linkplain Options} interface need to be defined:
+ * 
+ * <ol>
+ * <li><b>{@linkplain #objectiveFunction(magpie.data.BaseEntry) }</b>:
+ * Compute the value of an objective function based on an entry. This value is
+ * used to sort entries.
+ * <li><b>{@linkplain #train(magpie.data.Dataset) }</b>: Perform any operations
+ * required before running the objective function. Not always necessary.
+ * </ol> 
  * 
  * @author Logan Ward
  * @version 0.1
  */
-abstract public class EntryRanker implements java.lang.Cloneable, Options {
+abstract public class BaseEntryRanker implements java.lang.Cloneable, Options {
     /** Whether to maximize or minimize the objective function */
     private boolean MaximizeFunction = false; 
     /** Whether to use the measured or predicted class variable */
@@ -28,10 +38,10 @@ abstract public class EntryRanker implements java.lang.Cloneable, Options {
 
     @Override
     @SuppressWarnings("CloneDeclaresCloneNotSupported")
-    protected EntryRanker clone() {
-        EntryRanker x; 
+    protected BaseEntryRanker clone() {
+        BaseEntryRanker x; 
         try {
-            x = (EntryRanker) super.clone(); 
+            x = (BaseEntryRanker) super.clone(); 
         } catch (CloneNotSupportedException e) {
             throw new Error(e); // Do nothing (should never end up here)
         }

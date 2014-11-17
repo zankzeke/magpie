@@ -7,7 +7,7 @@ package magpie.data.utilities.filters;
 import java.util.Arrays;
 import java.util.List;
 import magpie.data.Dataset;
-import magpie.optimization.rankers.EntryRanker;
+import magpie.optimization.rankers.BaseEntryRanker;
 import magpie.optimization.rankers.MultiObjectiveEntryRanker;
 import magpie.user.CommandHandler;
 
@@ -19,7 +19,7 @@ import magpie.user.CommandHandler;
  * <usage><p><b>Usage</b>: &lt;number> &lt;maximum|minimum> &lt;predicted|measured> &lt;method> [&lt;options...>]
  * <br><pr><i>number</i>: Number of entries that pass this filter
  * <br><pr><i>maximum|minimum</i>: Whether entries with a max/minimum value pass the filter
- * <br><pr><i>method</i>: Objective function used to rank entries. Name of an {@linkplain EntryRanker} ("?" for available methods)
+ * <br><pr><i>method</i>: Objective function used to rank entries. Name of an {@link BaseEntryRanker} ("?" for available methods)
  * <br><pr><i>options...</i>: Any options for the objective function</usage>
  * 
  * @author Logan Ward
@@ -29,7 +29,7 @@ public class EntryRankerFilter extends BaseDatasetFilter {
     /** Number of entries to filter */
     private int NumberToFilter = 200;
     /** Entry ranking method */
-    private EntryRanker Ranker;
+    private BaseEntryRanker Ranker;
 
     @Override
     public void setOptions(List<Object> OptionsObj) throws Exception {
@@ -60,8 +60,8 @@ public class EntryRankerFilter extends BaseDatasetFilter {
             throw new Exception(printUsage());
         }
         
-        // Make the EntryRanker
-        Ranker = (EntryRanker) CommandHandler.instantiateClass("optimization.rankers." + RankingMethod, MethodOptions);
+        // Make the BaseEntryRanker
+        Ranker = (BaseEntryRanker) CommandHandler.instantiateClass("optimization.rankers." + RankingMethod, MethodOptions);
         Ranker.setMaximizeFunction(maximize);
         Ranker.setUseMeasured(measured);
     }
@@ -83,7 +83,7 @@ public class EntryRankerFilter extends BaseDatasetFilter {
 	 * Define the ranker used to filter entries. 
 	 * @param Ranker Desired ranker
 	 */
-	public void setRanker(EntryRanker Ranker) {
+	public void setRanker(BaseEntryRanker Ranker) {
 		this.Ranker = Ranker;
 	}
 	

@@ -19,7 +19,7 @@ import magpie.data.MultiPropertyDataset;
  * 
  * @author Logan Ward
  */
-abstract public class MultiObjectiveEntryRanker extends EntryRanker {
+abstract public class MultiObjectiveEntryRanker extends BaseEntryRanker {
 
     @Override
     @SuppressWarnings("CloneDeclaresCloneNotSupported")

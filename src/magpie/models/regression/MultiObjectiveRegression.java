@@ -12,7 +12,7 @@ import java.util.TreeMap;
 import magpie.data.Dataset;
 import magpie.data.MultiPropertyDataset;
 import magpie.models.BaseModel;
-import magpie.optimization.rankers.EntryRanker;
+import magpie.optimization.rankers.BaseEntryRanker;
 import magpie.optimization.rankers.MultiObjectiveEntryRanker;
 import magpie.user.CommandHandler;
 
@@ -66,7 +66,7 @@ public class MultiObjectiveRegression extends BaseRegression {
         } catch (Exception e) {
             throw new Exception(printUsage());
         }
-        EntryRanker obj = (EntryRanker) CommandHandler.instantiateClass(
+        BaseEntryRanker obj = (BaseEntryRanker) CommandHandler.instantiateClass(
                 "optimization.rankers." + method, rankerOptions);
         if (! (obj instanceof MultiObjectiveEntryRanker)) {
             throw new Exception("Ranker must be a MultiObjectiveEntryRanker");

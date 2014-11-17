@@ -16,7 +16,7 @@ import magpie.data.utilities.DatasetOutput;
 import magpie.data.utilities.filters.BaseDatasetFilter;
 import magpie.data.utilities.generators.BaseEntryGenerator;
 import magpie.data.utilities.modifiers.BaseDatasetModifier;
-import magpie.optimization.rankers.EntryRanker;
+import magpie.optimization.rankers.BaseEntryRanker;
 import static magpie.user.CommandHandler.instantiateClass;
 import static magpie.user.CommandHandler.printImplmentingClasses;
 import magpie.utility.UtilityOperations;
@@ -69,7 +69,7 @@ import org.apache.commons.collections.Predicate;
  * <br><pr><i>number</i>: Number of top entries to print
  * <br><pr><i>maximum|minimum</i>: Whether to print entries with the largest or smallest objection function
  * <br><pr><i>measured|predicted</i>: Whether to use the measured or predicted values when calculation
- * <br><pr><i>method</i>: Object function used to rank entries. Name of a {@linkplain EntryRanker} ("?" for available methods)
+ * <br><pr><i>method</i>: Object function used to rank entries. Name of a {@link BaseEntryRanker} ("?" for available methods)
  * <br><pr><i>options...</i>: Any options for the objective function</command>
  * 
  * <command><p><b>&lt;output> = split &lt;number|fraction></b> - Randomly select and remove entries from dataset
@@ -1199,7 +1199,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                     } catch (Exception e) {
                         throw new Exception("Usage: <dataset> rank <number> <maximum|minimum> <measured|predicted> <method> [<options>]");
                     }
-                    EntryRanker Ranker = (EntryRanker) instantiateClass("magpie.optimization.rankers." + Method, Options);
+                    BaseEntryRanker Ranker = (BaseEntryRanker) instantiateClass("magpie.optimization.rankers." + Method, Options);
                     Ranker.setMaximizeFunction(maximize);
                     Ranker.setUseMeasured(measured);
                     System.out.println(DatasetOutput.printTopEntries(this, Ranker, numberToPrint));

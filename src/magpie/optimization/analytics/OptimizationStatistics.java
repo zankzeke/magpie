@@ -13,7 +13,7 @@ import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.data.MultiPropertyDataset;
 import magpie.data.utilities.filters.BaseDatasetFilter;
-import magpie.optimization.rankers.EntryRanker;
+import magpie.optimization.rankers.BaseEntryRanker;
 import magpie.optimization.BaseOptimizer;
 import magpie.optimization.rankers.MultiObjectiveEntryRanker;
 import magpie.utility.interfaces.Printable;
@@ -119,7 +119,7 @@ public class OptimizationStatistics implements java.io.Serializable, java.lang.C
      * @param IterationNumber Which iteration we are one
      */
     protected void evaluateEntries(Dataset Generation,
-            Dataset Population, EntryRanker Ranker, int IterationNumber) {
+            Dataset Population, BaseEntryRanker Ranker, int IterationNumber) {
         Ranker.setUseMeasured(true);
         
         // If necessary, train the objective function on the total population
@@ -207,7 +207,7 @@ public class OptimizationStatistics implements java.io.Serializable, java.lang.C
      * @param searchSpace Search space from which to pull top entries
      * @param ranker Objective function to use for ranking entries
      */
-    protected void findTopEntries(Dataset searchSpace, EntryRanker ranker) {
+    protected void findTopEntries(Dataset searchSpace, BaseEntryRanker ranker) {
         try {
             // If necessary, train the objective function on the total population
             if (ranker instanceof MultiObjectiveEntryRanker) {

@@ -18,7 +18,7 @@ import org.apache.commons.lang3.ArrayUtils;
  * 
  * @author Logan Ward
  */
-public class ClassProbabilityRanker extends EntryRanker {
+public class ClassProbabilityRanker extends BaseEntryRanker {
     /** Name of target class */
     private String TargetClass;
     /** Index of target class */

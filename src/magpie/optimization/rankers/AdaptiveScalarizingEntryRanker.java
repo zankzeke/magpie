@@ -39,7 +39,7 @@ import org.apache.commons.math3.stat.StatUtils;
  * <br><pr><i>p</i>: Trade-off parameter between favoring entries that are best in a single category, and those that are good in many (default=1.0)
  * <br><pr><i>property</i>: Name of property to be optimized using this ranker
  * <br><pr><i>maximize|minimize</i>: Whether the goal is to minimize this objective function
- * <br><pr><i>ranker method</i>: Name of an {@linkplain EntryRanker}. Avoid using another multi-objective ranker
+ * <br><pr><i>ranker method</i>: Name of an {@link BaseEntryRanker}. Avoid using another multi-objective ranker
  * <br><pr><i>ranker options</i>: Any options for that entry ranker
  * <br>The "-opt" flag can be used multiple times, and the syntax for each additional flag is identical. Also, this function
  * is designed to be minimized.</usage>
@@ -50,7 +50,7 @@ public class AdaptiveScalarizingEntryRanker extends MultiObjectiveEntryRanker {
     /** Trade-off between best in single objective, and generally-good */
     protected double P = 1.0;
     /** Map of property name to objective function */
-    protected SortedMap<String,EntryRanker> ObjectiveFunction = new TreeMap<>();
+    protected SortedMap<String,BaseEntryRanker> ObjectiveFunction = new TreeMap<>();
     /** Maximum value of each objective function in training data */
     protected double[] ObjectiveMaximum;
     /** Minimum value of each objective function in training data*/
@@ -103,7 +103,7 @@ public class AdaptiveScalarizingEntryRanker extends MultiObjectiveEntryRanker {
                 throw new Exception(printUsage());
             }
             
-            EntryRanker obj = (EntryRanker) CommandHandler.instantiateClass(
+            BaseEntryRanker obj = (BaseEntryRanker) CommandHandler.instantiateClass(
                     "optimization.rankers." + objName, objOptions);
             obj.setMaximizeFunction(toMaximize);
             obj.setUseMeasured(true);
@@ -118,7 +118,7 @@ public class AdaptiveScalarizingEntryRanker extends MultiObjectiveEntryRanker {
 
 	@Override
 	public void setUseMeasured(boolean useMeasured) {
-		for (EntryRanker ranker : ObjectiveFunction.values()) {
+		for (BaseEntryRanker ranker : ObjectiveFunction.values()) {
 			ranker.setUseMeasured(useMeasured);
 		}
 		super.setUseMeasured(useMeasured); //To change body of generated methods, choose Tools | Templates.
@@ -172,7 +172,7 @@ public class AdaptiveScalarizingEntryRanker extends MultiObjectiveEntryRanker {
      * @param property Name of property to be optimized
      * @param function Objective function for that property
      */
-    public void addObjectiveFunction(String property, EntryRanker function) {
+    public void addObjectiveFunction(String property, BaseEntryRanker function) {
         ObjectiveFunction.put(property, function.clone());
     }
 
@@ -181,7 +181,7 @@ public class AdaptiveScalarizingEntryRanker extends MultiObjectiveEntryRanker {
      * @param property Name of property
      * @return Objective function (null if not defined)
      */
-    public EntryRanker getObjectiveFunction(String property) {
+    public BaseEntryRanker getObjectiveFunction(String property) {
         return ObjectiveFunction.get(property);
     }
 
@@ -206,14 +206,14 @@ public class AdaptiveScalarizingEntryRanker extends MultiObjectiveEntryRanker {
         // Main work
         int pos = 0;
 		double[] objValues = new double[data.NEntries()];
-        for (Map.Entry<String,EntryRanker> pair : ObjectiveFunction.entrySet()) {
+        for (Map.Entry<String,BaseEntryRanker> pair : ObjectiveFunction.entrySet()) {
             // Set class to a certain property
             String property = pair.getKey();
             PropertyIndex[pos] = data.getPropertyIndex(property);
             data.setTargetProperty(property, true);
             
             // Get the maximum, minimum objective function for this objective
-            EntryRanker obj = pair.getValue();
+            BaseEntryRanker obj = pair.getValue();
 			for (int i=0; i<data.NEntries(); i++) {
                 objValues[i] = obj.objectiveFunction(data.getEntry(i));
             }
@@ -235,7 +235,7 @@ public class AdaptiveScalarizingEntryRanker extends MultiObjectiveEntryRanker {
         // Get the value of each optimization algorithm
         int pos = 0;
         MultiPropertyEntry p = (MultiPropertyEntry) Entry;
-        for (EntryRanker obj : ObjectiveFunction.values()) {
+        for (BaseEntryRanker obj : ObjectiveFunction.values()) {
             p.setTargetProperty(PropertyIndex[pos]);
             f[pos] = obj.objectiveFunction(Entry);
             f[pos] = obj.isMaximizing() ? 

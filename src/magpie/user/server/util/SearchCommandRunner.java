@@ -110,7 +110,7 @@ abstract public class SearchCommandRunner {
 		// Parse the objective command
 		String[] words = command.get(1).split("\\s+");
 		String property = words[1];
-		EntryRanker ranker;
+		BaseEntryRanker ranker;
 		ranker = getObjectiveFunction(Arrays.copyOfRange(words, 1, words.length));
 		
 		// Get the number of entries
@@ -149,11 +149,11 @@ abstract public class SearchCommandRunner {
 	 * <p>Format: &lt;property name&lt; 
 	 * &lt;minimize|maximize|target&gt; [&lt;target value&gt;]
 	 * @param words Words describing objective function
-	 * @return EntryRanker describing this objective function
+	 * @return BaseEntryRanker describing this objective function
 	 * @throws Exception 
 	 */
-	protected static EntryRanker getObjectiveFunction(String[] words) throws Exception {
-		EntryRanker ranker;
+	protected static BaseEntryRanker getObjectiveFunction(String[] words) throws Exception {
+		BaseEntryRanker ranker;
 		switch (words[1].toLowerCase()) {
 			case "minimize":
 				ranker = new SimpleEntryRanker();
@@ -220,7 +220,7 @@ abstract public class SearchCommandRunner {
 			words = line.split("\\s+");
 			try {
 				String prop = words[0];
-				EntryRanker obj = getObjectiveFunction(words);
+				BaseEntryRanker obj = getObjectiveFunction(words);
 				ranker.addObjectiveFunction(prop, obj);
 				properties.add(prop);
 			} catch (Exception e) {

@@ -14,7 +14,7 @@ import magpie.models.BaseModel;
 import magpie.models.classification.AbstractClassifier;
 import magpie.models.classification.WekaClassifier;
 import magpie.optimization.algorithms.OptimizationHelper;
-import magpie.optimization.rankers.EntryRanker;
+import magpie.optimization.rankers.BaseEntryRanker;
 import magpie.optimization.rankers.SimpleEntryRanker;
 import magpie.user.CommandHandler;
 import org.apache.commons.math3.stat.StatUtils;
@@ -23,7 +23,7 @@ import org.apache.commons.math3.stat.StatUtils;
  * Use a classification algorithm to perform regression. This method works by spliting
  *  all training examples into two sets: one where the class variable is
  *  past a threshold and one where it is not. This threshold is set by specifying
- *  the objective algorithm (with an {@linkplain EntryRanker}) and the treshold on which
+ *  the objective algorithm (with an {@link BaseEntryRanker}) and the treshold on which
  *  to split the data.
  * 
  * <p>Regression is performed by predicting that an entry 100% probability of being 
@@ -34,7 +34,7 @@ import org.apache.commons.math3.stat.StatUtils;
  * <usage><p><b>Usage</b>: $&lt;classifier> &lt;threshold> &lt;objective function> [&lt;o.f. options...>]
  * <br><pr><i>classifier</i>: {@linkplain BaseModel} that fills {@linkplain AbstractClassifier}, used to make predictions
  * <br><pr><i>threshold</i>: Desired threshold for the objective function value
- * <br><pr><i>objective function</i>: {@linkplain EntryRanker} used to rank the entries based on their class variable.
+ * <br><pr><i>objective function</i>: {@link BaseEntryRanker} used to rank the entries based on their class variable.
  * ("?" to list all available options)
  * <br><pr><i>o.f. options</i>: Any options for the objective function</usage>
  * @author Logan Ward
@@ -43,7 +43,7 @@ public class ClassificationRegression extends BaseRegression {
     /** Classification algorithm that this class wraps around */
     private BaseModel Clfr = new WekaClassifier();
     /** Entry ranker used to order entries */
-    private EntryRanker ObjFunction = new SimpleEntryRanker();
+    private BaseEntryRanker ObjFunction = new SimpleEntryRanker();
     /** Threshold on which to split data into classes */
     private double Threshold = 0.0;
     /** Minimum value of objective function of all entries in training set*/
@@ -64,7 +64,7 @@ public class ClassificationRegression extends BaseRegression {
             setThreshold(Double.valueOf(Options.get(1).toString()));
             OFMethod = Options.get(2).toString();
             if (OFMethod.equalsIgnoreCase("?")) {
-                System.out.println(CommandHandler.printImplmentingClasses(EntryRanker.class, false));
+                System.out.println(CommandHandler.printImplmentingClasses(BaseEntryRanker.class, false));
                 return;
             }
             OFOptions = Options.subList(3, Options.size());
@@ -74,7 +74,7 @@ public class ClassificationRegression extends BaseRegression {
         // Set classifier
         setClassifier(NewClfr);
         // Set objective function
-        EntryRanker objFun = (EntryRanker) CommandHandler.instantiateClass(
+        BaseEntryRanker objFun = (BaseEntryRanker) CommandHandler.instantiateClass(
                 "optimization.rankers." + OFMethod, OFOptions);
         setObjectiveFunction(objFun);
     }
@@ -88,7 +88,7 @@ public class ClassificationRegression extends BaseRegression {
      * Define the objective function used to order entries
      * @param ObjFunction Desired objective function
      */
-    public void setObjectiveFunction(EntryRanker ObjFunction) {
+    public void setObjectiveFunction(BaseEntryRanker ObjFunction) {
         this.ObjFunction = ObjFunction;
     }
 

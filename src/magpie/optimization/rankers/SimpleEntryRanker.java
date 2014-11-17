@@ -9,14 +9,14 @@ import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 
 /**
- * EntryRanker that ranks entries based on class variable.
+ * BaseEntryRanker that ranks entries based on class variable.
  * 
  * <usage><p><b>Usage</b>: *No options to set*</usage>
  * 
  * @author Logan Ward
  * @version 0.1
  */
-public class SimpleEntryRanker extends EntryRanker {
+public class SimpleEntryRanker extends BaseEntryRanker {
 
     @Override
     public void setOptions(List Options) throws Exception {

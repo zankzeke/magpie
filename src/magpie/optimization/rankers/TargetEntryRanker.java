@@ -17,7 +17,7 @@ import magpie.data.Dataset;
  * @author Logan Ward
  * @version 0.1
  */
-public class TargetEntryRanker extends EntryRanker {
+public class TargetEntryRanker extends BaseEntryRanker {
     /** Target value of class */
     protected double Target = 0.0;
 

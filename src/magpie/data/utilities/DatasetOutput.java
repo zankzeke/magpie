@@ -12,7 +12,7 @@ import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.data.MultiPropertyDataset;
 import magpie.data.MultiPropertyEntry;
-import magpie.optimization.rankers.EntryRanker;
+import magpie.optimization.rankers.BaseEntryRanker;
 import org.apache.commons.math3.stat.StatUtils;
 
 /**
@@ -62,7 +62,7 @@ abstract public class DatasetOutput extends Dataset {
      * @param Number Number of entries to print
      * @return A string displaying the results of the entry ranking
      */
-    static public String printTopEntries(Dataset Data, EntryRanker Ranker, int Number) {
+    static public String printTopEntries(Dataset Data, BaseEntryRanker Ranker, int Number) {
         double[] values = new double[Data.NEntries()];
         int[] rank = Ranker.rankEntries(Data, values);
         

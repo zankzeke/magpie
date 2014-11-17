@@ -7,13 +7,13 @@ package magpie.models.regression;
 import java.util.Arrays;
 import java.util.List;
 import magpie.data.Dataset;
-import magpie.optimization.rankers.EntryRanker;
+import magpie.optimization.rankers.BaseEntryRanker;
 import magpie.user.CommandHandler;
 
 /**
  * Guess a single, user-specified value for the class variable of all entries.
  * <p>User can add jitter to the guess, which adds a small random value to the guess. This has the effect of 
- * forcing the entries to be randomly ranked by an {@link EntryRanker}, but without
+ * forcing the entries to be randomly ranked by an {@link BaseEntryRanker}, but without
  * changing the actual guess by that much. The actual size of this step is set by the 
  * value of {@link #Jitter}.
  * 

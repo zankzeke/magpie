@@ -22,7 +22,7 @@ import magpie.models.BaseModel;
 import magpie.models.classification.AbstractClassifier;
 import magpie.models.regression.*;
 import magpie.optimization.BaseOptimizer;
-import magpie.optimization.rankers.EntryRanker;
+import magpie.optimization.rankers.BaseEntryRanker;
 import magpie.optimization.rankers.SimpleEntryRanker;
 import magpie.utility.UtilityOperations;
 import magpie.utility.WekaUtility;
@@ -53,7 +53,7 @@ public class CommandHandler {
     /** Whether to echo commands to screen */
     public boolean EchoCommands = false;
     /** Method used to rank entries */
-    public EntryRanker EntryRanker = new SimpleEntryRanker();
+    public BaseEntryRanker EntryRanker = new SimpleEntryRanker();
     /** Whether to exit on errors */
     private boolean Forgiving = true;
     /** Development use: Print stack trace on failures */
