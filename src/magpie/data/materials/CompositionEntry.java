@@ -388,10 +388,7 @@ public class CompositionEntry extends MultiPropertyEntry {
         }
     }
     
-    /**
-     * Print out string for display in HTML
-     * @return An HTML-Formatted composition (with &lt;sub&gt; tags)
-     */
+    @Override
     public String toHTMLString() {
         String output="";
         String[] Numbers = printNumber(Fraction, NumberInCell);

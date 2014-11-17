@@ -232,7 +232,8 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
         return Probability; 
     }
     
-    @Override public String toString() {
+    @Override 
+    public String toString() {
         if (NAttributes() > 0) {
             String output = String.format("(%.3f", AttributeList.get(0));
             for(int i=1; i<NAttributes(); i++)
@@ -241,6 +242,14 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
             return output;
         } else 
             return "Nameless";
+    }
+    
+    /**
+     * Print entry in a HTML-friendly format.
+     * @return Entry as a string
+     */
+    public String toHTMLString() {
+        return toString();
     }
     
     /**

@@ -135,7 +135,7 @@ abstract public class SearchCommandRunner {
 		int[] ranking = ranker.rankEntries(data);
 		for (int i : ranking) {
 			BaseEntry entry = data.getEntry(i);
-			output.add(String.format("%s\t%.4f", entry.toString(), 
+			output.add(String.format("%s\t%.4f", entry.toHTMLString(), 
 				ranker instanceof ClassProbabilityRanker ? 
 				ranker.objectiveFunction(entry) * 100 :
 				entry.getPredictedClass()));
@@ -262,7 +262,7 @@ abstract public class SearchCommandRunner {
 		int[] ranking = ranker.rankEntries(data);
 		for (int i : ranking) {
 			MultiPropertyEntry entry = (MultiPropertyEntry) data.getEntry(i);
-			String toAdd = entry.toString();
+			String toAdd = entry.toHTMLString();
 			for (String prop : properties) {
 				int index = dataptr.getPropertyIndex(prop);
 				toAdd += String.format("\t%.4f", entry.getPredictedProperty(index));
