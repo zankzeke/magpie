@@ -170,14 +170,15 @@ abstract public class SearchCommandRunner {
 				}
 				ranker.setMaximizeFunction(false);
 				break;
-            case "class":
-                try {
-                    String className = words[2];
-                    ranker = new ClassProbabilityRanker(className);
-                    ranker.setMaximizeFunction(true);
-                } catch (Exception e) {
-                    throw new Exception("Expected class name as third arguement of objective");
-                }
+			case "class":
+				try {
+					String className = words[2];
+					ranker = new ClassProbabilityRanker(className);
+					ranker.setMaximizeFunction(true);
+				} catch (Exception e) {
+					throw new Exception("Expected class name as third arguement of objective");
+		                }
+				break;
 			default:
 				throw new Exception("Objective not recognized: " + words[2]);
 		}
