@@ -4,6 +4,7 @@
  */
 package magpie.data.materials;
 
+import java.text.DecimalFormat;
 import magpie.data.MultiPropertyEntry;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -382,7 +383,7 @@ public class CompositionEntry extends MultiPropertyEntry {
 			String[] Numbers = printNumber(Fraction, NumberInCell);
 			for (int i=0; i<Element.length; i++) {
 				output+=ElementNames[Element[i]];
-				if (Numbers[i].length() > 0) output+=Numbers[i];
+				if (Numbers[i].length() > 0) output += Numbers[i];
 			}
             return output;
         }
@@ -407,13 +408,14 @@ public class CompositionEntry extends MultiPropertyEntry {
      * @return Result formatted as a string
      */
     static public String[] printNumber(double[] fraction, double NInFormulaUnit) {
+        DecimalFormat format = new DecimalFormat("#.###");
         String[] output = new String[fraction.length];
         for (int i=0; i<fraction.length; i++) {
             double expanded = fraction[i] * NInFormulaUnit;
             if (Math.abs(expanded - Math.round(expanded)) < 0.0001)
                 output[i] = (int) expanded == 1 ? "" : String.format("%d", (int) expanded);
             else 
-                output[i] = String.format("%.3f", expanded);
+                output[i] = format.format(expanded);
         }
         return output;
     }
