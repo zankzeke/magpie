@@ -17,12 +17,15 @@ import magpie.utility.interfaces.*;
 /**
  * Base class for any model. 
  * 
+ * <p><b>Implementation Guide</b>
+ * 
  * <p>Operations that must be implemented:
  * <ul>
- * <li>{@link #clone()} - Fulfills java.lang.Cloneable, ValidationStats and TrainingStats must be new instances.
+ * <li>{@linkplain #clone()} - Fulfills java.lang.Cloneable, ValidationStats and TrainingStats must be new instances.
  * And, you probably want to create a new instance of any submodels</li>
- * <li>{@link #train_protected} - Trains the model on a training set, does not set TrainingStats</li>
- * <li>run_protected - Run a model on a Dataset</li>
+ * <li>{@linkplain  #train_protected(magpie.data.Dataset) } -
+ * Trains the model on a training set, does not set TrainingStats</li>
+ * <li>{@linkplain #run_protected(magpie.data.Dataset) } - Run a model on a Dataset</li>
  * </ul>
  * 
  * <p><b><u>Implemented Commands:</u></b>
