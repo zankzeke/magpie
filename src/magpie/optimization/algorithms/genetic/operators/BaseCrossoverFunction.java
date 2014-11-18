@@ -6,10 +6,14 @@ package magpie.optimization.algorithms.genetic.operators;
 
 import java.io.Serializable;
 import magpie.data.BaseEntry;
-import magpie.data.Dataset;
 
 /**
  * Operation that performs crossover for a genetic algorithm. 
+ * 
+ * <p><b>Implementation Guide</b>
+ * 
+ * <p>Only one operation in this class, {@linkplain #crossover(magpie.data.BaseEntry, magpie.data.BaseEntry) },
+ * and it needs to be defined.
  * 
  * @author Logan Ward
  * @version 0.1
