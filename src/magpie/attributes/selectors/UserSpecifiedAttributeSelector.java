@@ -23,7 +23,7 @@ import org.apache.commons.lang3.ArrayUtils;
 
 public class UserSpecifiedAttributeSelector extends BaseAttributeSelector {
     /** Names of attributes to be used */
-    protected List<String> SelectedAttributes = new LinkedList<>();
+    private List<String> SelectedAttributes = new LinkedList<>();
 
     /**
      * Sets the object to select only attributes listed in input
