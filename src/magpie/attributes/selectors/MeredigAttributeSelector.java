@@ -20,7 +20,7 @@ import magpie.data.materials.util.PropertyLists;
  * <p><b>Note</b> You must generate the fraction of each element present in the 
  * sample as attributes. 
  * 
- * <usage><p><b>Usage:</b> * No Options *</usage>
+ * <usage><p><b>Usage</b>: * No Options *</usage>
  * 
  * @author Logan Ward
  */
