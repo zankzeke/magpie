@@ -30,8 +30,10 @@ public class ContainsElementFilter extends BaseDatasetFilter {
     public void setOptions(List<Object> OptionsObj) throws Exception {
         String[] Options = CommandHandler.convertCommandToString(OptionsObj);
         try {
-            if (Options.length == 0) throw new Exception();
-            setElementList(ElementList);
+            if (Options.length == 0) {
+                  throw new Exception();
+            }
+            setElementList(Options);
         } catch (Exception e) {
             throw new Exception(printUsage());
         }
