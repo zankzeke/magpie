@@ -196,6 +196,9 @@ public class MultiPropertyEntry extends BaseEntry {
      * @return Whether it has been measured
      */
     public boolean hasMeasuredProperty(int index) {
+	if (index >= MeasuredProperty.length) {
+		return false;
+	}
         return ! Double.isNaN(getMeasuredProperty(index));
     }
     
