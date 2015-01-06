@@ -1,12 +1,6 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 
 package magpie.models.regression;
 
-import java.util.ArrayList;
 import java.util.List;
 import magpie.data.Dataset;
 import org.apache.commons.math3.stat.regression.MillerUpdatingRegression;

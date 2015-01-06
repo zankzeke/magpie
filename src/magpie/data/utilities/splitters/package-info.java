@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 /**
  * Operations to partition a Dataset into multiple subsets.
  */

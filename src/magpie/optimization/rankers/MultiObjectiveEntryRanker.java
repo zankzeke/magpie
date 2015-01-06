@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 
 package magpie.optimization.rankers;
 
@@ -34,6 +29,7 @@ abstract public class MultiObjectiveEntryRanker extends BaseEntryRanker {
      * <p>Note: This might be an opportune operation to map the name
      * of each property with their index to allow for faster operation of 
      * the {@linkplain EntryRanker#objectiveFunction(magpie.data.BaseEntry)}
+     * @param data Dataset to use for training
      */
     abstract public void train(MultiPropertyDataset data);
     

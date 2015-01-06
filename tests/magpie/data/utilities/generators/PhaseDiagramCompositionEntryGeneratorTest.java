@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package magpie.data.utilities.generators;
 
 import org.junit.BeforeClass;
@@ -21,17 +16,17 @@ public class PhaseDiagramCompositionEntryGeneratorTest {
 	@Test
 	public void testGenerateAlloyCompositions() {
 		PhaseDiagramCompositionEntryGenerator generator = new PhaseDiagramCompositionEntryGenerator();
-		generator.setEvenSpacing(false);
+		generator.setEvenSpacing(true);
 		try {
 			generator.setSize(5);
 			generator.setOrder(3);
 		} catch (Exception e) {
 			throw new Error(e);
 		}
-		Map<Integer, List<double[]>> comps = generator.generateCrystalCompositions();
+		Map<Integer, List<double[]>> comps = generator.generateAlloyCompositions();
 		assertEquals(1, comps.get(1).size());
 		assertEquals(3, comps.get(2).size());
-		assertEquals(3, comps.get(2).size());
+		assertEquals(3, comps.get(3).size());
 	}
 
 	/**
@@ -50,6 +45,6 @@ public class PhaseDiagramCompositionEntryGeneratorTest {
 		Map<Integer, List<double[]>> comps = generator.generateCrystalCompositions();
 		assertEquals(1, comps.get(1).size());
 		assertEquals(3, comps.get(2).size());
-		assertEquals(1, comps.get(2).size());
+		assertEquals(1, comps.get(3).size());
 	}
 }

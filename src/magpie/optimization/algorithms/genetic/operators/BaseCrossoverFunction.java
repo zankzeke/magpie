@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package magpie.optimization.algorithms.genetic.operators;
 
 import java.io.Serializable;

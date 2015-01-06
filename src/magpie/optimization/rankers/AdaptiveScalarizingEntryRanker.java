@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 
 package magpie.optimization.rankers;
 
@@ -35,7 +30,7 @@ import org.apache.commons.math3.stat.StatUtils;
  *  this code uses the 99% and 1% percentiles. This is used to prevent a single outlier from drastically 
  *  effecting the normalized values of each objective function. 
  * 
- * <usage><p><b>Usage</b>: &lt;p&gt; -obj &lt;maximize|minimize&gt; &lt;property&gt; &lt;ranker name&gt; [&lt;ranker options...&gt;] [-opt &lt;...&gt;]
+ * <usage><p><b>Usage</b>: &lt;p&gt; -opt &lt;maximize|minimize&gt; &lt;property&gt; &lt;ranker name&gt; [&lt;ranker options...&gt;] [-opt &lt;...&gt;]
  * <br><pr><i>p</i>: Trade-off parameter between favoring entries that are best in a single category, and those that are good in many (default=1.0)
  * <br><pr><i>property</i>: Name of property to be optimized using this ranker
  * <br><pr><i>maximize|minimize</i>: Whether the goal is to minimize this objective function
@@ -173,6 +168,8 @@ public class AdaptiveScalarizingEntryRanker extends MultiObjectiveEntryRanker {
      * @param function Objective function for that property
      */
     public void addObjectiveFunction(String property, BaseEntryRanker function) {
+        BaseEntryRanker newObj = function.clone();
+        newObj.setUseMeasured(isUsingMeasured());
         ObjectiveFunction.put(property, function.clone());
     }
 

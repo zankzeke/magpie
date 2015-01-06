@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package magpie.optimization.rankers;
 
 import magpie.data.BaseEntry;
@@ -125,7 +121,7 @@ abstract public class BaseEntryRanker implements java.lang.Cloneable, Options {
      * @param Data Dataset containing entries to be ranked
      * @return Entry numbers descending in rank (0 is the best).
      */
-    public int[] rankEntries(Dataset Data) {
+    final public int[] rankEntries(Dataset Data) {
         double[] value = new double[Data.NEntries()];
         return rankEntries(Data, value);
     }
@@ -136,7 +132,7 @@ abstract public class BaseEntryRanker implements java.lang.Cloneable, Options {
      * @param useMeasured Whether to use measured class variable
      * @return Entry numbers descending in rank (0 is the best)
      */
-    public int[] rankEntries(Dataset Data, boolean useMeasured) {
+    final public int[] rankEntries(Dataset Data, boolean useMeasured) {
         boolean original = UseMeasured;
         this.setUseMeasured(useMeasured);
         int[] ranks = rankEntries(Data);

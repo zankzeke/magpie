@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 
 package magpie.models.regression;
 
@@ -17,7 +12,6 @@ import magpie.optimization.algorithms.OptimizationHelper;
 import magpie.optimization.rankers.BaseEntryRanker;
 import magpie.optimization.rankers.SimpleEntryRanker;
 import magpie.user.CommandHandler;
-import org.apache.commons.math3.stat.StatUtils;
 
 /**
  * Use a classification algorithm to perform regression. This method works by spliting
