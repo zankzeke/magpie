@@ -79,9 +79,9 @@ caption									{ top:8px; margin-bottom:18px; text-align: left; font-weight: no
 
 /* 3.Typography */
 h1, h2, h3, h4, h5, h6					{ position: relative; }
-p, blockquote							{ line-height:150%; margin:10px 0 15px 0; text-align:justify; font-size: 1.1em;}
+p, blockquote							{ line-height:150%; margin:10px 0 15px 0; text-align:justify; font-size: 1em;}
 cite									{ font-style:normal; display:block; margin:10px 0;}
-code									{ font-family:courier,monospace; background:#fffcdc; border-bottom:1px solid #ccc; font-size:1.1em; letter-spacing:1px; line-height:150%; }
+code									{ font-family:courier,monospace; background:#fffcdc; border-bottom:1px solid #ccc; font-size:1em; letter-spacing:1px; line-height:150%; }
 acronym, abbr							{ cursor:help; border-bottom:1px dotted #999; }
 /* End Typography */
 
