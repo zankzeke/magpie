@@ -10,13 +10,15 @@
 	</div>
 	<center><h1>Contributing to Magpie</h1></center>
 	<p>Magpie is designed to be easy to modify and adapt to new problems. This part of the manual explains how to build Magpie from source and describes how to add new features.</p>
+
+	<p>The the latest version of the source code for Magpie is available on <a href="https://bitbucket.org/wolverton/magpie/">BitBucket</a>.
 	
 	<h2>Building Magpie</h2>
 	<p>There are two methods for compiling a new version of Magpie: using an automated build script provided with Magpie and through an Integrated Development Environment (IDE). For both methods, you will need to install version 7 (or greater) the Java Development Kit (JDK).
 	
 	<p>The first method for building Magpie is using Apache ANT, which is kind of a Java-centric version of Make (if that helps). To use it, simply copy or link <code>simple-build.xml</code> to <code>build.xml</code> in the Magpie root directory. Then, call <code>ant jar</code> and Ant will take care of compiling the source code, linking the libraries, and storing it all in the <code>dist</code> directory.</p>
 	
-	<p>The alternative (and recommended) method is to use an IDE to build Magpie. If you haven't already used one, IDEs are tools that provide a single platform for editing, debugging, and preparing software for distribution. Many (like <a href="netbeans.org">Netbeans</a>), have handy features like automatic code generation, error checking, and tools for automatically restructuring your code. There are a variety of IDEs available for writing Java programs, and you are probably better off reading their own guides for setting up a new project. Just keep in mind that you may need to tell the IDE to link with all of the libraries in the <code>required-libraries</code>&nbsp;directory.</p>
+	<p>The alternative (and recommended) method is to use an IDE to build Magpie. If you haven't already used one, IDEs are tools that provide a single platform for editing, debugging, and preparing software for distribution. Many (like <a href="http://netbeans.org">Netbeans</a>), have handy features like automatic code generation, error checking, and tools for automatically restructuring your code. There are a variety of IDEs available for writing Java programs, and you are probably better off reading their own guides for setting up a new project. Just keep in mind that you may need to tell the IDE to link with all of the libraries in the <code>required-libraries</code>&nbsp;directory.</p>
 	
 	<h2>Extending Magpie</h2>
 	<p>Now that you have a good understanding how to compile your new changes and how to make sense of what code is already in Magpie, its time to discuss how to write new components.</p>
