@@ -1,0 +1,66 @@
+<html>
+<head>
+	<title>Magpie Text Interface</title>
+	<link rel="stylesheet" href="style.css" type="text/css" media="screen" />
+</head>
+<body>
+<div id="wrapper">
+	<div class="footer">
+		<center><a href="index.html">Manual Home</a></center>	
+	</div>
+	<center><h1>Text Interface for Magpie</h1></center>
+	<p>A Magpie script works by creating variables and operating on them with commands specific to their type. The following example demonstrates how to import data from file, train a decison tree model on that data, and printing out performance statistics.</p>
+
+	<code>
+	data = new data.Dataset
+	</br>data import data.csv
+	</br>model = new models.regression.WekaRegression trees.REPTree
+	</br>model train $data
+	</br>print model training stats
+	</code>
+
+	<p>Magpie currently supports several kinds of variables, which include datasets, models, statistics calculators, optimization algorithms, and crystal-structure predictors. While each of these types are designed to perform a different tasks and, consequently, have different available commands, they all support the following operations:
+
+	<p>A variable is created in Magpie using the following command:</p>
+	<center><code> &lt;variable name&gt; = new &lt;class name&gt; &lt;options...&gt; </code></center>
+
+	<p>Once created, you can perform many operations on a variable by issuing commands specific its type. Documentation for each of these commands for each known class are in the subsequent sections. Regardless of the type, commands are called by the syntax:</p>
+	<center><code> [&lt;output&gt; = ] &lt;variable name&gt; &lt;command...&gt; </code></center>
+
+	<p>For reference:  &lt;&gt;'s denote parameters in a command. If a parameter is surrounded by []'s, it is optional. If the name contains &apos;...&apos;, then you can supply multiple words for that parameter. Lastly, if there is a &apos;$&apos; in front of the parameter name, Magpie is expecting the value of a variable. The &apos;$&apos; symbol tells the program to access the value of the variable name whose name that symbol is affixed to.</p>
+
+	<p>Values stored in a variable are accessed using the print command: </p>
+	<center><code>print &lt;variable name&gt; &lt;print command...&gt;</code></center>
+
+	<p>The variables themselves can be saved to disk using the command:
+	<center><code>save &lt;variable name&gt; &lt;filename&gt; [&lt;format&gt;]</code></center>
+	<p>If no format is provided, the class will be saved to disk using serialization and 
+	 can be loaded back into memory:</p>
+	<center><code>&lt;variable name&gt; = load &lt;path&gt;</code></center>
+
+	<h2>General Commands</h2>
+	<p>Outside of commands that operate on variables, a few other commands may be required for a complete script:</p>
+
+	<p><code>read &lt;filename&gt;</code>
+	</br>Reads all commands from a certain file. Returns control the calling script once complete.</p>
+
+	<p><code>types &lt;type&gt;</code>
+	</br>Print out all types of a variable available in your version of Magpie. Accepts things like "models", "datasets", or "csp".</p>
+
+	<p><code>list</code></br>Write out the types of all variables currently in memory</p>
+
+	<p><code>timer &lt;start|elapsed&gt; [&lt;name&gt;]</code>
+	<br>Simple timer functionality. "start" resets a timer to 0 and "elapsed" prints out how much time has elapsed. Multiple timers with different names can be stored and monitored concurrently. If no name is provided, time will be measured with respect to when Magpie was started.</br>
+
+	<p>
+		<code>evaluate $&lt;model&gt; $&lt;dataset&gt; &lt;entries to evaluate...&gt;</code>
+		</br>Given a model and dataset template to generate attributes, evaluate a series of entries.
+	</p>
+
+	<p><code>exit</code>
+	</br>Done. Close Magpie and get on with your life.</p>
+	
+	<h2>Variable-Specific Commands</h2>
+	<p>These commands are specific to the type of variable and are described in <a href="variables.html">another part of the manual</a>.
+</div>
+</html>
