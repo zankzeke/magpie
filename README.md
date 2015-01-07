@@ -4,7 +4,7 @@ Magpie, the Materials-Agnostic Platform for Informatics and Exploration, is desi
 
 ## How do I learn to use Magpie? ##
 
-Documentation for Magpie is available on (oqmd.org)[http://josquin.northwestern.edu/data-mining/magpie/nightly/doc/]. 
+Documentation for Magpie is available on [oqmd.org](http://josquin.northwestern.edu/data-mining/magpie/nightly/doc/).
 
 LW 7Jan2015: Note, this link currently points to Josquin, not oqmd.org. Make sure to change this before making Magpie public. 
 
@@ -23,7 +23,7 @@ ant jar
 
 ### Downloading a Precompiled Version ###
 
-A complete version of Magpie is available for [download](http://josquin.northwestern.edu/data-mining/magpie/Magpie.zip). Given that Magpie is written entirely in Java, this version should work without modification on any system with the Java Runtime Environment installed.
+A complete version of Magpie that has already been compiled is available for [download](http://josquin.northwestern.edu/data-mining/magpie/nightly/Magpie.zip). Given that Magpie is written entirely in Java, this version should work without modification on any system with the Java Runtime Environment installed.
 
 ## Who can answer my questions? ##
 
