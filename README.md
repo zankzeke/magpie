@@ -1,6 +1,6 @@
 # Magpie #
 
-Magpie, the Materials-Agnostic Platform for Informatics and Exploration, is designed to simplify use of machine learning to predict properties of materials. 
+Magpie, the Materials-Agnostic Platform for Informatics and Exploration, is designed to simplify the use of machine learning to predict properties of materials. 
 
 ## How do I learn to use Magpie? ##
 
