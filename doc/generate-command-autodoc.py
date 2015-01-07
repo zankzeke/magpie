@@ -69,7 +69,7 @@ print >>fp, "\t<center><a href=\"index.html\">Manual Home</a></center>"
 print >>fp, "</div>"
 
 print >>fp, "<center><h1>Variable Types</h1></center>"
-print >>fp, "<p>Magpie comes equipped with many different kinds of datasets, models, crystal structure prediction algorithms, and other kinds of variables. This section includes all of the currently available variable types and links to pages that describe what operations they&nbsp;support. If you are not yet familiar with how to call these operations, please consult the <a href=\"text-interface\">documentation for the text&nbsp;interface</a>.</p>"
+print >>fp, "<p>Magpie comes equipped with many different kinds of datasets, models, crystal structure prediction algorithms, and other kinds of variables. This section includes all of the currently available variable types and links to pages that describe what operations they&nbsp;support. If you are not yet familiar with how to call these operations, please consult the <a href=\"text-interface.html\">documentation for the text&nbsp;interface</a>.</p>"
 
 ## Print dataset classes
 print >>fp, "<h2>Datasets</h2>"
@@ -88,15 +88,15 @@ print >>fp, "models for classifying data into known subsets or predicting the va
 classes = lib.getCompleteSubclasses("BaseModel")
 
 print >>fp, "<h3>Classification Models</h3>"
-print >>fp, "<p>Classifiers decide which group an entry belongs out of a finite list of options.</p>"
+print >>fp, "<p>Classifiers are used decide which group an entry belongs out of a finite list of options.</p>"
 subClasses = [ x for x in classes if "classifi" in x.package ]
 printClassSummary(fp, subClasses)
 for cls in subClasses: 
 	HTMLRenderer.writeDocumentationFile(docDir, cls, lib)
 
 print >>fp, "<h3>Regression Models</h3>"
-print >>fp, "<p>Regression models attempt to approximate an unknown, continuous"
-print >>fp, " function (think y = f(x) = a + b * x).</p>"
+print >>fp, "<p>Regression models are used to approximate unknown, continuous"
+print >>fp, " functions (think y = f(x) = a + b * x).</p>"
 subClasses = [ x for x in classes if "regression" in x.package ]
 printClassSummary(fp, subClasses)
 for cls in subClasses: 
@@ -105,7 +105,7 @@ for cls in subClasses:
 
 ## Print statistics classes
 print >>fp, "<h2>Statistics Calculators</h2>"
-print >>fp, "<p>Each of these objects calculate different statistics about the peroformance of a model.</p>"
+print >>fp, "<p>Each of these objects can be used calculate different statistics about the performance of a model.</p>"
 
 classes = lib.getCompleteSubclasses("BaseStatistics")
 printClassSummary(fp, classes)
@@ -116,7 +116,7 @@ for cls in classes:
 print >>fp, "<h2>Clusterers</h2>"
 print >>fp, "<p>Clustering algorithms perform unsupervised learning, which recognizes "
 print >>fp, "groups of data with similar attributes and provides rules for how to distinguish between them. "
-print >>fp, "These groups <i>are not</i> known beforehand, classification algorithms to build rules for "
+print >>fp, "These groups <i>are not</i> known beforehand, use classification algorithms to build rules for "
 print >>fp, "separating data into already-known groups.</p>"
 
 classes = lib.getCompleteSubclasses("BaseClusterer")
@@ -126,8 +126,8 @@ for cls in classes:
 
 ## Print Optimization Classes
 print >>fp, "<h2>Optimizers</h2>"
-print >>fp, "<p>Optimization algorithms are designed to help find optimal candidates out of a large space "
-print >>fp, "of possibilities faster than randomly selecting candidates.</p>"
+print >>fp, "<p>Optimization algorithms are designed to quickly locate optimal candidates out of a large space "
+print >>fp, "of possibilities.</p>"
 
 classes = lib.getCompleteSubclasses("BaseOptimizer")
 printClassSummary(fp, classes)
@@ -137,8 +137,8 @@ for cls in classes:
 	
 ## Print Optimization Classes
 print >>fp, "<h2>Crystal Structure Predictors</h2>"
-print >>fp, "<p>These crystal structure prediction algorithms are designed to predict which crystal structure "
-print >>fp, "(out of a list of known prototypes) is most probable for a compound given only its composition.</p>"
+print >>fp, "<p>Crystal structure prediction algorithms are used to predict which crystal structure "
+print >>fp, "is most probable out of a list of known prototypes to be stable at a certain composition.</p>"
 
 classes = lib.getCompleteSubclasses("CSPEngine")
 printClassSummary(fp, classes)

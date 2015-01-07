@@ -53,7 +53,7 @@ class HTMLRenderer:
 		print >>fp, "<body>"
 		print >>fp, "\t<h1>" + cls.name + "</h1>"
 	
-		## Write introducton to class
+		## Write introduction to class
 		toJDClass = "../"
 		for i in range(cls.package.count(".") + 1): toJDClass += "../"
 		toJDClass = toJDClass + jdPath + "/" + library._packageName + "/";
@@ -79,7 +79,7 @@ class HTMLRenderer:
 		## Print out operations
 		print >>fp, "<h2>Available Operations</h2>"
 		print >>fp, "<p>These commands can be used to perform a variety of tasks, ranging from defining important"
-		print >>fp, "settings about the object to actually using it</p>"
+		print >>fp, "settings about the object to actually using it.</p>"
 		HTMLRenderer.printOperations(fp, operations)
 	
 		## Gather/Print print commands
@@ -93,7 +93,7 @@ class HTMLRenderer:
 			print >>fp, "<h2>Available Print Commands</h2>"
 			print >>fp, "<p>These commands are run by calling &quot;print &lt;variable name&gt; "
 			print >>fp, "&lt;command> [&lt;options>]&quot;. Any output from that command will be "
-			print >>fp, "pinted to standard output.</p>"
+			print >>fp, "printed to standard output.</p>"
 			HTMLRenderer.printOperations(fp, operations)
 	
 		## Gather/Print save formats
@@ -105,7 +105,7 @@ class HTMLRenderer:
 			extends = superCls.extends
 		if len(operations) > 0:
 			print >>fp, "<h2>Available Save Formats</h2>"
-			print >>fp, "<p>Variables representing this class can be saved in the following formats:</p>"
+			print >>fp, "<p>Variables of this type can be saved in the following formats:</p>"
 			HTMLRenderer.printOperations(fp, operations)
 		
 		## Close shop
