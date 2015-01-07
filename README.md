@@ -6,7 +6,7 @@ Magpie, the Materials-Agnostic Platform for Informatics and Exploration, is desi
 
 Documentation for Magpie is available on (oqmd.org)[http://josquin.northwestern.edu/data-mining/magpie/nightly/doc/]. 
 
-LW 7Jul2015: Note, this link currently points to Josquin, not oqmd.org. Make sure to change this before making Magpie public. 
+LW 7Jan2015: Note, this link currently points to Josquin, not oqmd.org. Make sure to change this before making Magpie public. 
 
 ## How do I get Magpie? ##
 
