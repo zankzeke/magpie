@@ -160,11 +160,15 @@ public class CompositionEntry extends MultiPropertyEntry {
     /**
      * @return List of elements contained in an entry
      */
-    public int[] getElements() { return Element; }
+    public int[] getElements() { 
+        return Element.clone(); 
+    }
     /**
      * @return Fractions of each element in array in same order as {@link #getElements()}
      */
-    public double[] getFractions() { return Fraction; }    
+    public double[] getFractions() {
+        return Fraction.clone(); 
+    }    
 
     /** 
      * Return the fraction of a certain element found in an entry
