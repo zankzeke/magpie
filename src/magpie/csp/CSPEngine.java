@@ -131,7 +131,7 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
             if (Line == null) {
                 break;
             }
-            String[] words = Line.split("\t");
+            String[] words = Line.split("\\s+");
 			try {
 				CompositionEntry entry = new CompositionEntry(words[0]);
 				KnownCompounds.put(entry, words[1]);
