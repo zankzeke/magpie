@@ -8,7 +8,7 @@
 csp = new csp.DMSPEngine
 
 // Load in known compounds and their prototype structure
-csp prototypes ./datasets/icsd.prototypes.mine
+csp prototypes ./datasets/prototypes.list
 
 // List top 20 most likely structures for Na5Pb2 (should be Li5Tl2-166)
 csp predict Na5Pb2 20

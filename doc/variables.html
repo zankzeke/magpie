@@ -9,66 +9,7 @@
 	<center><a href="index.html">Manual Home</a></center>
 </div>
 <center><h1>Variable Types</h1></center>
-<p>Magpie comes equipped with many different kinds of datasets, models, crystal structure prediction algorithms, and other kinds of variables. This section includes all of the currently available variable types and links to pages that describe what operations they&nbsp;support. If you are not yet familiar with how to call these operations, please consult the <a href="text-interface.html">documentation for the text&nbsp;interface</a>.</p>
-<h2>Datasets</h2>
-<p>Each of these dataset objects can be used to represent different kinds of data, both in terms of
- how Magpie represents an entry internally and what kind of attributes it can generate.</p>
-<b><a href="./classes/data/Dataset.html">data.Dataset</a></b>: Usage: *No options to set*
-</br><b><a href="./classes/data/MultiPropertyDataset.html">data.MultiPropertyDataset</a></b>: Usage: *No options*
-</br><b><a href="./classes/data/materials/CompositionDataset.html">data.materials.CompositionDataset</a></b>: Usage: *No options*
-</br><b><a href="./classes/data/materials/CompositionDatasetExperimental.html">data.materials.CompositionDatasetExperimental</a></b>: Usage: *No options*
-</br><b><a href="./classes/data/materials/CrystalStructureDataset.html">data.materials.CrystalStructureDataset</a></b>: Usage: *No options*
-</br><b><a href="./classes/data/materials/PrototypeDataset.html">data.materials.PrototypeDataset</a></b>: Usage: &lt;Structure description filename>
-<h2>Models</h2>
-<p>Magpie is equipped with the ability to generate many different kinds of models. This includes 
-models for classifying data into known subsets or predicting the value of some property.</p>
-<h3>Classification Models</h3>
-<p>Classifiers decide which group an entry belongs out of a finite list of options.</p>
-<b><a href="./classes/models/classification/CumulantExpansionClassifier.html">models.classification.CumulantExpansionClassifier</a></b>: Usage: &lt;filename&gt; &lt;order&gt;
-</br><b><a href="./classes/models/classification/SplitClassifier.html">models.classification.SplitClassifier</a></b>: Usage: *No options*
-</br><b><a href="./classes/models/classification/WekaClassifier.html">models.classification.WekaClassifier</a></b>: Usage: &lt;Weka classifier> [&lt;classifier ptions...>]
-<h3>Regression Models</h3>
-<p>Regression models attempt to approximate an unknown, continuous
- function (think y = f(x) = a + b * x).</p>
-<b><a href="./classes/models/regression/ClassificationRegression.html">models.regression.ClassificationRegression</a></b>: Usage: $&lt;classifier> &lt;threshold> &lt;objective function> [&lt;o.f. options...>]
-</br><b><a href="./classes/models/regression/CompositeRegression.html">models.regression.CompositeRegression</a></b>: Usage: *No options to set*
-</br><b><a href="./classes/models/regression/GuessMeanRegression.html">models.regression.GuessMeanRegression</a></b>: Usage: [-jitter &lt;jitter>]
-</br><b><a href="./classes/models/regression/LASSORegression.html">models.regression.LASSORegression</a></b>: Usage: -maxterms &lt;terms>
-</br><b><a href="./classes/models/regression/MetallurgicalHeuristicRegression.html">models.regression.MetallurgicalHeuristicRegression</a></b>: Usage: $&lt;hull data>
-</br><b><a href="./classes/models/regression/MixingRuleRegression.html">models.regression.MixingRuleRegression</a></b>: Usage: &lt;property> [-invert] [-correct] [-fit &lt;ElementNames>]
-</br><b><a href="./classes/models/regression/MultiObjectiveRegression.html">models.regression.MultiObjectiveRegression</a></b>: Usage: &lt;ranker method&gt; [&lt;ranker options...&gt;]
-</br><b><a href="./classes/models/regression/MultiPropertyRegression.html">models.regression.MultiPropertyRegression</a></b>: Usage: &lt;properties...&gt;
-</br><b><a href="./classes/models/regression/NonlinearRegressionExpr.html">models.regression.NonlinearRegressionExpr</a></b>: Usage: &lt;equation to be fit...&gt;
-</br><b><a href="./classes/models/regression/PerceptronRegression.html">models.regression.PerceptronRegression</a></b>: Usage: [-val &lt;val>] [-nstall &lt;number>] [&lt;# in hidden layers...>]
-</br><b><a href="./classes/models/regression/PolynomialRegression.html">models.regression.PolynomialRegression</a></b>: Usage: &lt;order>
-</br><b><a href="./classes/models/regression/RandomGuessRegression.html">models.regression.RandomGuessRegression</a></b>: Usage: &lt;lower bound> &lt;upper bound>
-</br><b><a href="./classes/models/regression/SingleGuessRegression.html">models.regression.SingleGuessRegression</a></b>: Usage: &lt;guess> [-jitter &lt;jitter>]
-</br><b><a href="./classes/models/regression/SplitRegression.html">models.regression.SplitRegression</a></b>: Usage: *No options*
-</br><b><a href="./classes/models/regression/StagedRegression.html">models.regression.StagedRegression</a></b>: Usage: &lt;absolute|relative&gt;
-</br><b><a href="./classes/models/regression/WekaRegression.html">models.regression.WekaRegression</a></b>: Usage: &lt;Weka classifier> [&lt;classifier ptions...>]
-</br><b><a href="./classes/models/regression/nonlinear/SimpleLinearModelExample.html">models.regression.nonlinear.SimpleLinearModelExample</a></b>: Usage: *No options*
-</br><b><a href="./classes/models/regression/nonlinear/VolumeCorrectionTest.html">models.regression.nonlinear.VolumeCorrectionTest</a></b>: Usage: *No options*
-<h2>Statistics Calculators</h2>
-<p>Each of these objects calculate different statistics about the peroformance of a model.</p>
-<b><a href="./classes/analytics/ClassificationStatistics.html">analytics.ClassificationStatistics</a></b>: Usage: *No options*
-</br><b><a href="./classes/analytics/RegressionStatistics.html">analytics.RegressionStatistics</a></b>: Usage: *No options*
-</br><b><a href="./classes/analytics/TargetRegressionStatistics.html">analytics.TargetRegressionStatistics</a></b>: Usage: &lt;target> [-accept &lt;Acceptance Tolerance>] [-window &lt;Max Window Size>] [-cands &lt;Max Number Candidates>]
-<h2>Clusterers</h2>
-<p>Clustering algorithms perform unsupervised learning, which recognizes 
-groups of data with similar attributes and provides rules for how to distinguish between them. 
-These groups <i>are not</i> known beforehand, classification algorithms to build rules for 
-separating data into already-known groups.</p>
-<b><a href="./classes/cluster/WekaClusterer.html">cluster.WekaClusterer</a></b>: Usage: &lt;method> [&lt;options...>]
-<h2>Optimizers</h2>
-<p>Optimization algorithms are designed to help find optimal candidates out of a large space 
-of possibilities faster than randomly selecting candidates.</p>
-<b><a href="./classes/optimization/algorithms/ActiveLearningOptimizer.html">optimization.algorithms.ActiveLearningOptimizer</a></b>: Usage: &lt;Random fraction> &lt;Worst fraction>
-</br><b><a href="./classes/optimization/algorithms/genetic/GeneticAlgorithm.html">optimization.algorithms.genetic.GeneticAlgorithm</a></b>: Usage: &lt;Crossover Function> &lt;Mutation Function> [-weight &lt;weight>] [-mutprob &lt;mutprob>] [-prev &lt;prev>] [-elite &lt;elite>]
-<h2>Crystal Structure Predictors</h2>
-<p>These crystal structure prediction algorithms are designed to predict which crystal structure 
-(out of a list of known prototypes) is most probable for a compound given only its composition.</p>
-<b><a href="./classes/csp/CompositionBasedCSPEngine.html">csp.CompositionBasedCSPEngine</a></b>: Usage: $&lt;model template>
-</br><b><a href="./classes/csp/DMSPEngine.html">csp.DMSPEngine</a></b>: Usage: *No options*
 </div>
+<p>This page is automatically generated by generate-command-autodoc.py</p>
 </body>
 </html>

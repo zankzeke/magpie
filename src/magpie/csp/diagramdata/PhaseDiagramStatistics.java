@@ -288,7 +288,7 @@ public abstract class PhaseDiagramStatistics implements Serializable {
             if (Line == null) {
                 break;
             }
-            String[] words = Line.split("\t");
+            String[] words = Line.split("\\s+");
 			try {
 				CompositionEntry entry = new CompositionEntry(words[0]);
 				compoundList.put(entry, words[1]);
