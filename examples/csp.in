@@ -16,4 +16,8 @@ csp predict Na5Pb2 20
 // List 10 most likely structures for Al2NiCu (not sure what the answer is)
 csp predict Al2NiCu
 
+// Run test of predictive ability of DMSP for binary compounds
+csp validate 2 20
+print csp stats list-length
+
 exit
