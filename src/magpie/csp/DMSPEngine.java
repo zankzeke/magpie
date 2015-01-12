@@ -41,9 +41,10 @@ public class DMSPEngine extends CSPEngine {
     }
     
     
-
-    @Override
-    protected BaseClassifier makeClassifier(PhaseDiagramStatistics statistics, PrototypeDataset trainData) {
+ 
+   @Override
+    protected BaseClassifier makeClassifier(PhaseDiagramStatistics statistics,
+            PrototypeDataset trainData) {
         CumulantExpansionClassifier clfr = new CumulantExpansionClassifier();
         clfr.setPhaseDiagramStats(statistics);
         clfr.train(trainData);

@@ -410,7 +410,7 @@ public class CommandHandler {
 
     /**
      * Create new instance of a class given type and options. Class name must be fully 
-     *  specified within the magpie package (i.e. "data.oqmd.CompositionDataset")
+     *  specified within the magpie package (i.e. "data.materials.CompositionDataset")
      *    
      * @param ClassType Full name of class to create minus "magpie"
      * @param Options Array specifying option commands (can be empty/null)
