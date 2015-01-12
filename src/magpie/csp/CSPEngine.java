@@ -20,14 +20,14 @@ import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * Predict what structure is likely to form at a specific composition from 
- *  a list of already-known prototypes.
+ *  a list of possible candidates.
  * 
  * <p>
  * <b><u>Usage Guide</u></b>
  * <p>To predict the probability that a crystal structure will form:
  * <ol>
- * <li>Load an instance of one of this classes implementations, and set any appropriate
- * options.
+ * <li>Create an instance of one of the implementations of this class,
+ * and set any appropriate options.
  * <li>Import a list of all known compounds, and their prototypes using either the
  * "prototypes" command in the text interface, or {@linkplain #importKnownCompounds(java.lang.String)}
  * <li>Supply the composition of the compound of interest. Use the "predict" command
@@ -191,6 +191,7 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
     public List<Pair<String, Double>> predictStructure(CompositionEntry composition) {
         // --> Whether to rebuild classifier
         boolean toRebuid = false;
+        
         // --> Get the appropriate phase diagram statistics
         int nComp = composition.getElements().length;
         if (nComp != LastNComponents) toRebuid = true;
