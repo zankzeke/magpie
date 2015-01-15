@@ -122,7 +122,8 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
      * Note: If you change the value of 
      * @return Clone
      */
-    @Override public BaseEntry clone() {
+    @Override 
+    public BaseEntry clone() {
         BaseEntry copy;
         try { copy = (BaseEntry) super.clone(); }
         catch (CloneNotSupportedException c) { throw new Error(c); }
@@ -225,7 +226,7 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
      * @return Class probabilities
      */
     public double[] getClassProbilities() { 
-        return Probability; 
+        return Probability.clone(); 
     }
     
     @Override 

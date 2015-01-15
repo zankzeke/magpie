@@ -142,7 +142,11 @@ public class MultiPropertyEntry extends BaseEntry {
     @Override
     public double[] getClassProbilities() {
         if (usingPropertyAsClass()) {
-            return PredictedProperty[TargetProperty];
+            if (PredictedProperty[TargetProperty] == null) {
+                return null;
+            }
+            return PredictedProperty[TargetProperty].length > 1 ? 
+                    PredictedProperty[TargetProperty] : null;
         } else {
             return super.getClassProbilities();
         }
