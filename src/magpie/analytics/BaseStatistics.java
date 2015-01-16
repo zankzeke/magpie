@@ -42,7 +42,10 @@ abstract public class BaseStatistics extends java.lang.Object implements
     public int NumberTested=0;  
     /** Receiver operating characteristic curve*/
     public double[][] ROC;
-    /** Area under receiver operating characteristic curve */
+    /** 
+     *  Area under receiver operating characteristic curve normalized such that 1.0
+     *  is a perfect classifier and 0.0 is a perfectly-random classifier. 
+     */
     public double ROC_AUC;
 
     @Override
@@ -109,10 +112,12 @@ abstract public class BaseStatistics extends java.lang.Object implements
         ROC_AUC = integrateROCCurve(ROC);
     }
     
-     /** Integrate area between ROC curve and random guessing. Note that random guessing is
+    /** 
+     * Integrate area between ROC curve and random guessing. Note that random guessing is
      * defined by the line where FPR = Sensitivity.
      * @param ROC Receiver operating characteristic curve data (see getROCCurve)
-     * @return Area between ROC Curve and random guessing
+     * @return Area between ROC Curve and random guessing normalized such that 1.0 is a 
+     * perfect classifier and 0.0 is a perfectly-random classifier
      */
     public static double integrateROCCurve(double[][] ROC) {
         double value = 0;
