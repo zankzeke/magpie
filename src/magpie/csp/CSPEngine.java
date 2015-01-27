@@ -51,9 +51,11 @@ import org.apache.commons.lang3.tuple.Pair;
  * <command><p><b>prototypes &lt;filename></b> - Import list of known prototypes
  * <br><pr><i>filename</i>: Path to file containing composition of known compounds, and name of their prototype structure</command>
  * 
- * <command><p><b>validate &lt;ncomp> [&lt;folds>]</b> - Validate performance of CSP algorithm
+ * <command><p><b>validate &lt;ncomp> [&lt;folds>]</b> - Evaluate performance of CSP algorithm 
+ * using cross-validation.
  * <br><pr><i>ncomp</i>: Only attempt to predict structures of compounds with this number of constituents
- * <br><pr><i>folds</i>: Number of folds in which to split known compounds (default = 20)</command>
+ * <br><pr><i>folds</i>: Number of folds in which to split known compounds. Can use "loocv" to perform
+ * leave-one-out cross-validation (default = 20)</command>
  * 
  * <p><b><u>Implemented Print Commands:</u></b>
  * 
@@ -369,7 +371,7 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
      * recorded.
      * 
      * @param nComp Only attempt to predict structures of compounds with these many elements
-     * @param folds Number of folds to use 
+     * @param folds Number of folds to use (if &le;0, preform leave-one-out cross-validation)
      */
     public void crossvalidate(int nComp, int folds) {
         PerformanceStats.clear();
@@ -413,6 +415,10 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
                 alwaysKept.add(entry);
             }
         }
+        // Check if user requests LOOCV
+        if (folds <= 0) {
+            folds = fullSet.size();
+        }
         Collections.shuffle(fullSet);
         List<List<Map.Entry<CompositionEntry,String>>> subSets = new ArrayList<>(folds);
         for (int i=0; i<folds; i++) 
@@ -449,7 +455,6 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
                 List<Pair<String,Double>> predictions = predictStructure(entry.getKey());
                 PerformanceStats.addResult(entry.getValue(), predictions);
             }
-            return;
         }
     }
 
@@ -509,13 +514,22 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
                 try {
                     NComp = Integer.parseInt(Command.get(1).toString());
                     if (Command.size() > 2) {
-                        NFolds = Integer.parseInt(Command.get(2).toString());
+                        String temp = Command.get(2).toString().toLowerCase();
+                        if (temp.startsWith("loocv")) {
+                            NFolds = 0;
+                        } else {
+                            NFolds = Integer.parseInt(Command.get(2).toString());
+                        }
                     }
                 } catch (Exception e) {
                     throw new Exception("Usage: validate <ncomp> [<folds = 20>]");
                 }
                 crossvalidate(NComp, NFolds);
-                System.out.println("\tRan " + NFolds + "-fold crossvalidation.");
+                if (NFolds > 0) {
+                    System.out.println("\tRan " + NFolds + "-fold cross-validation.");
+                } else {
+                    System.out.println("\tRan leave-one-out cross-validation.");
+                }
             } break;
             default:
                 throw new Exception("CSP Command not recognized: " + Action);
