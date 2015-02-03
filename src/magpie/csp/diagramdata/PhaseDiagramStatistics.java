@@ -192,8 +192,10 @@ public abstract class PhaseDiagramStatistics implements Serializable {
             }
             elems[i] = siteElems[0];
         }
+        
         // ---> Get the identity of compounds from corresponding the phase diagram
         int[] compoundList = getCompoundVector(elems);
+        
         // ---> Make it into the variable vector
         int[] output = new int[compoundList.length + elems.length];
         System.arraycopy(compoundList, 0, output, 0, compoundList.length);
@@ -232,9 +234,9 @@ public abstract class PhaseDiagramStatistics implements Serializable {
      * @param DesiredNBins Number of composition bins for each number of compounds. Should
      * be an array where x[i] is the number of desired composition bins for compositions
      * with i+1 components.
-     * @param DesiredNBins Desired number of composition bins
      */
-    public void importKnownCompounds(Map<CompositionEntry, String> compounds, int DiagramOrder, int[] DesiredNBins) {
+    public void importKnownCompounds(Map<CompositionEntry, String> compounds, 
+            int DiagramOrder, int[] DesiredNBins) {
         // --> Get all compounds relevant for this diagram
         Map<CompositionEntry,String> compoundList = new TreeMap<>();
         NComponents = DiagramOrder;
@@ -288,7 +290,7 @@ public abstract class PhaseDiagramStatistics implements Serializable {
             if (Line == null) {
                 break;
             }
-            String[] words = Line.split("\t");
+            String[] words = Line.split("\\s+");
 			try {
 				CompositionEntry entry = new CompositionEntry(words[0]);
 				compoundList.put(entry, words[1]);
@@ -411,12 +413,15 @@ public abstract class PhaseDiagramStatistics implements Serializable {
 				trainingExamples.add(new ImmutablePair<>(equiv, hasCondition[i]));
 			}
 		}
+        
         // --> Determine probably of condition being true
         int hitCount = 0;
         for (boolean ex : hasCondition) if (ex) hitCount++;
-        double conditionProbability = ((double) hitCount + 1.0 / trainingData.NEntries()) / (double) hasCondition.length;
+        double conditionProbability = ((double) hitCount + 1.0 / 
+                trainingData.NEntries()) / (double) hasCondition.length;
+        
         // --> Prepare arrays to calculate how many times a condition is a certain value
-        // is true and the entry has class==0
+        // and a training entry has the condition of interest
         int[][] bothTrue = new int[CommonCompositions.size() + NComponents][];
         for (int i = 0; i < CommonCompositions.size(); i++) {
             bothTrue[i] = new int[CommonCompositions.get(i).getRight().size() + 1];
@@ -424,15 +429,17 @@ public abstract class PhaseDiagramStatistics implements Serializable {
         for (int i = 0; i < NComponents; i++) {
             bothTrue[CommonCompositions.size() + i] = new int[NElements];
         }
-        // ---> For each compound where class == 0, mark values of each variable
+        
+        // ---> For each compound where condition is true, mark values of each variable
 		for (Pair<PrototypeEntry,Boolean> ex : trainingExamples) {
             if (ex.getValue()) {
                 int[] variableVector = getVariableVector(ex.getKey());
                 for (int j = 0; j < variableVector.length; j++) {
-                    bothTrue[j][variableVector[j]]++;
+                        bothTrue[j][variableVector[j]]++;
                 }
             }
         }
+        
         // --> Use results to calculate cumulants
         double[][] cumulant = new double[bothTrue.length][];
         for (int v = 0; v < cumulant.length; v++) {

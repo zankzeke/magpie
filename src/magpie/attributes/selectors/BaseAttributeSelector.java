@@ -97,7 +97,8 @@ abstract public class BaseAttributeSelector implements java.io.Serializable,
         }
     }    
 
-    @Override public BaseAttributeSelector clone() {
+    @Override
+    public BaseAttributeSelector clone() {
         BaseAttributeSelector x;
         try { x = (BaseAttributeSelector) super.clone(); }
         catch (CloneNotSupportedException c) { throw new Error(c); }

@@ -20,14 +20,14 @@ import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * Predict what structure is likely to form at a specific composition from 
- *  a list of already-known prototypes.
+ *  a list of possible candidates.
  * 
  * <p>
  * <b><u>Usage Guide</u></b>
  * <p>To predict the probability that a crystal structure will form:
  * <ol>
- * <li>Load an instance of one of this classes implementations, and set any appropriate
- * options.
+ * <li>Create an instance of one of the implementations of this class,
+ * and set any appropriate options.
  * <li>Import a list of all known compounds, and their prototypes using either the
  * "prototypes" command in the text interface, or {@linkplain #importKnownCompounds(java.lang.String)}
  * <li>Supply the composition of the compound of interest. Use the "predict" command
@@ -51,9 +51,11 @@ import org.apache.commons.lang3.tuple.Pair;
  * <command><p><b>prototypes &lt;filename></b> - Import list of known prototypes
  * <br><pr><i>filename</i>: Path to file containing composition of known compounds, and name of their prototype structure</command>
  * 
- * <command><p><b>validate &lt;ncomp> [&lt;folds>]</b> - Validate performance of CSP algorithm
+ * <command><p><b>validate &lt;ncomp> [&lt;folds>]</b> - Evaluate performance of CSP algorithm 
+ * using cross-validation.
  * <br><pr><i>ncomp</i>: Only attempt to predict structures of compounds with this number of constituents
- * <br><pr><i>folds</i>: Number of folds in which to split known compounds (default = 20)</command>
+ * <br><pr><i>folds</i>: Number of folds in which to split known compounds. Can use "loocv" to perform
+ * leave-one-out cross-validation (default = 20)</command>
  * 
  * <p><b><u>Implemented Print Commands:</u></b>
  * 
@@ -131,7 +133,7 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
             if (Line == null) {
                 break;
             }
-            String[] words = Line.split("\t");
+            String[] words = Line.split("\\s+");
 			try {
 				CompositionEntry entry = new CompositionEntry(words[0]);
 				KnownCompounds.put(entry, words[1]);
@@ -169,6 +171,92 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
             }
         }
     }
+    
+    /**
+     * Get a list of possible structure types for a structure, given composition.
+     * @param composition Composition of structure in question
+     * @return List of names of possible prototypes
+     * @throws java.lang.Exception
+     */
+    public List<String> getPossibleStructures(String composition) 
+            throws Exception {
+        return getPossibleStructures(new CompositionEntry(composition));
+    }
+    
+    /**
+     * Get a list of possible structure types for a structure, given composition.
+     * @param composition Composition of structure in question
+     * @return List of names of possible prototypes
+     */
+    public List<String> getPossibleStructures(CompositionEntry composition) {
+        // Check if phase-diagram stats need to be computed
+        int nComp = composition.getElements().length;
+        PhaseDiagramStatistics statistics = DiagramStatistics.get(nComp);
+        if (statistics == null) {
+            // It has not been calculated yet
+            statistics = new OnTheFlyPhaseDiagramStatistics();
+            int[] NBins = new int[]{30, 120, 180, 240};
+            statistics.importKnownCompounds(KnownCompounds, nComp, NBins);
+            DiagramStatistics.put(nComp, statistics);
+        }
+        
+        // Get the nearset composition bin
+        int[] elems = composition.getElements();
+        double[] fracs = composition.getFractions();
+        orderComposition(elems, fracs);
+        int compositionBin = statistics.getClosestBin(fracs);
+        List<String> knownPrototypes = statistics.getPrototypeNames(fracs);
+        return knownPrototypes;
+    }
+    
+    /**
+     * Get a training set of all examples of all possible crystal structures
+     * at a certain composition
+     * @param composition Composition of interest
+     * @return Training set
+     */
+    public PrototypeDataset getTrainingSet(CompositionEntry composition) {
+        // Get the possible prototypes
+        List<String> knownPrototypes = getPossibleStructures(composition);
+        
+        // Get the composition bin for this entry
+        int[] elems = composition.getElements();
+        double[] fracs = composition.getFractions();
+        orderComposition(elems, fracs);
+        PhaseDiagramStatistics statistics = DiagramStatistics.get(elems.length);
+        int compositionBin = statistics.getClosestBin(fracs);
+        
+        // Get siteInfo for this entry
+        PrototypeSiteInformation siteInfo = makeSiteInfo(fracs);
+        
+        // Now, create a PrototypeDataset out of all known examples with same stoichiometry
+        PrototypeDataset trainData = new PrototypeDataset();
+        trainData.setClassNames(knownPrototypes.toArray(new String[0]));
+        trainData.setSiteInfo(siteInfo);
+        for (Map.Entry<CompositionEntry, String> entry : KnownCompounds.entrySet()) {
+            // Skip entries where number of elem != nComp
+            if (entry.getKey().getElements().length != elems.length) {
+                continue;
+            }
+            // See if it maps to the same composition bin
+            elems = entry.getKey().getElements();
+            fracs = entry.getKey().getFractions();
+            orderComposition(elems, fracs);
+            if (compositionBin != statistics.getClosestBin(fracs)) {
+                continue;
+            }
+            // If it fits both criteria, add it to the dataset
+            PrototypeEntry newEntry = new PrototypeEntry(siteInfo);
+            fillPrototypeEntry(newEntry, elems);
+            int prototypeID = knownPrototypes.indexOf(entry.getValue());
+            if (prototypeID == -1) {
+                throw new Error("Unknown prototype structure: " + entry.getKey() + " = " + entry.getValue());
+            }
+            newEntry.setMeasuredClass((double) prototypeID);
+            trainData.addEntry(newEntry);
+        }
+        return trainData;
+    }
 
     /**
      * Predict what structure is most likely at a certain composition
@@ -189,79 +277,39 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
      * @return List of names of prototypes and their probabilities
      */
     public List<Pair<String, Double>> predictStructure(CompositionEntry composition) {
-        // --> Whether to rebuild classifier
-        boolean toRebuid = false;
-        // --> Get the appropriate phase diagram statistics
+        // --> Get lookup data
         int nComp = composition.getElements().length;
-        if (nComp != LastNComponents) toRebuid = true;
-        LastNComponents = nComp;
-        PhaseDiagramStatistics statistics = DiagramStatistics.get(nComp);
-        if (statistics == null) {
-            // It has not been calculated yet
-            statistics = new OnTheFlyPhaseDiagramStatistics();
-            int[] NBins = new int[]{30, 120, 180, 240};
-            statistics.importKnownCompounds(KnownCompounds, nComp, NBins);
-            DiagramStatistics.put(nComp, statistics);
-        }
-        
-        // --> Gather a training set (prototypes of all compounds with this composition)
-        // First part, find the appropriate composition bin for this compound and
-        //  get the names of all possible prototypes
         int[] elems = composition.getElements();
         double[] fracs = composition.getFractions();
+        
+        // --> Get list of possible structures
+        List<String> knownPrototypes = getPossibleStructures(composition);
+        
+        // --> Get phase diagram statistics
+        PhaseDiagramStatistics statistics = DiagramStatistics.get(nComp);
+        
+        // --> Whether to rebuild classifier
+        boolean toRebuid = false;
         orderComposition(elems, fracs);
         int compositionBin = statistics.getClosestBin(fracs);
-        List<String> knownPrototypes = statistics.getPrototypeNames(fracs);
-        if (compositionBin != LastCompositionBin) toRebuid = true;
-        LastCompositionBin = compositionBin;
-        
-        // Second, make a PrototypeSiteInformation object appropraite for this structure. That means
-        //  map the lowest-fraction site to the A site, second-lowest to the B,
-        //  and so on. Any sites with the same fraction will be identified as
-        //  equivalent (may or may not be important depending on what model you use)
-        PrototypeSiteInformation siteInfo = new PrototypeSiteInformation();
-        siteInfo.addSite(fracs[0], false, new LinkedList<Integer>());
-        for (int i = 1; i < fracs.length; i++) {
-            List<Integer> equivSites = new LinkedList<>();
-            if (fracs[i] == fracs[i - 1]) {
-                equivSites.add(i - 1);
-            }
-            siteInfo.addSite(fracs[i], false, equivSites);
+        if (nComp != LastNComponents || compositionBin != LastCompositionBin) {
+            toRebuid = true;
+            LastNComponents = nComp;
+            LastCompositionBin = compositionBin;
         }
+        
+        // --> Generate entry to be predicted
+        PrototypeSiteInformation siteInfo = makeSiteInfo(fracs);
         PrototypeEntry entryToPredict = new PrototypeEntry(siteInfo);
         fillPrototypeEntry(entryToPredict, elems);
         
         // --> If this new entry does not have the same stoichiometry as the last entry evaluated, 
         //     train a new classifier
         if (toRebuid) {
-            // Now, create a PrototypeDataset out of all known examples with same stoichiometry
-            PrototypeDataset trainData = new PrototypeDataset();
-            trainData.setClassNames(knownPrototypes.toArray(new String[0]));
-            trainData.setSiteInfo(siteInfo);
-            for (Map.Entry<CompositionEntry, String> entry : KnownCompounds.entrySet()) {
-                // Skip entries where number of elem != nComp
-                if (entry.getKey().getElements().length != nComp) {
-                    continue;
-                }
-                // See if it maps to the same composition bin
-                elems = entry.getKey().getElements();
-                fracs = entry.getKey().getFractions();
-                orderComposition(elems, fracs);
-                if (compositionBin != statistics.getClosestBin(fracs)) {
-                    continue;
-                }
-                // If it fits both criteria, add it to the dataset
-                PrototypeEntry newEntry = entryToPredict.clone();
-                fillPrototypeEntry(newEntry, elems);
-                int prototypeID = knownPrototypes.indexOf(entry.getValue());
-                if (prototypeID == -1) {
-                    throw new Error("Unknown prototype structure: " + entry.getKey() + " = " + entry.getValue());
-                }
-                newEntry.setMeasuredClass((double) prototypeID);
-                trainData.addEntry(newEntry);
-            }
-
-            // --> Train a CumulantExpansion model on this dataset
+            // Get training set
+            PrototypeDataset trainData = getTrainingSet(composition);
+            
+            // Train a CumulantExpansion model on this dataset
             Classifier = makeClassifier(statistics, trainData);
         }
         
@@ -280,6 +328,25 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
             }
         });
         return output;
+    }
+
+    /**
+     * Generate {@linkplain PrototypeSiteInformation} appropriate for a certain 
+     * crystal prototype. Assumes any sites with the same fraction are equivalent
+     * @param fracs Fractions of elements on each site. Sorted in ascending order
+     * @return Appropriate {@linkplain PrototypeSiteInformation}
+     */
+    protected PrototypeSiteInformation makeSiteInfo(double[] fracs) {
+        PrototypeSiteInformation siteInfo = new PrototypeSiteInformation();
+        siteInfo.addSite(fracs[0], false, new LinkedList<Integer>());
+        for (int i = 1; i < fracs.length; i++) {
+            List<Integer> equivSites = new LinkedList<>();
+            if (fracs[i] == fracs[i - 1]) {
+                equivSites.add(i - 1);
+            }
+            siteInfo.addSite(fracs[i], false, equivSites);
+        }
+        return siteInfo;
     }
 
     /**
@@ -368,7 +435,7 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
      * recorded.
      * 
      * @param nComp Only attempt to predict structures of compounds with these many elements
-     * @param folds Number of folds to use 
+     * @param folds Number of folds to use (if &le;0, preform leave-one-out cross-validation)
      */
     public void crossvalidate(int nComp, int folds) {
         PerformanceStats.clear();
@@ -412,6 +479,10 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
                 alwaysKept.add(entry);
             }
         }
+        // Check if user requests LOOCV
+        if (folds <= 0) {
+            folds = fullSet.size();
+        }
         Collections.shuffle(fullSet);
         List<List<Map.Entry<CompositionEntry,String>>> subSets = new ArrayList<>(folds);
         for (int i=0; i<folds; i++) 
@@ -448,7 +519,6 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
                 List<Pair<String,Double>> predictions = predictStructure(entry.getKey());
                 PerformanceStats.addResult(entry.getValue(), predictions);
             }
-            return;
         }
     }
 
@@ -508,13 +578,22 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
                 try {
                     NComp = Integer.parseInt(Command.get(1).toString());
                     if (Command.size() > 2) {
-                        NFolds = Integer.parseInt(Command.get(2).toString());
+                        String temp = Command.get(2).toString().toLowerCase();
+                        if (temp.startsWith("loocv")) {
+                            NFolds = 0;
+                        } else {
+                            NFolds = Integer.parseInt(Command.get(2).toString());
+                        }
                     }
                 } catch (Exception e) {
                     throw new Exception("Usage: validate <ncomp> [<folds = 20>]");
                 }
                 crossvalidate(NComp, NFolds);
-                System.out.println("\tRan " + NFolds + "-fold crossvalidation.");
+                if (NFolds > 0) {
+                    System.out.println("\tRan " + NFolds + "-fold cross-validation.");
+                } else {
+                    System.out.println("\tRan leave-one-out cross-validation.");
+                }
             } break;
             default:
                 throw new Exception("CSP Command not recognized: " + Action);

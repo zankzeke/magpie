@@ -1,7 +1,10 @@
 package magpie.models;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import magpie.analytics.BaseStatistics;
 import magpie.attributes.selectors.BaseAttributeSelector;
+import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.data.utilities.normalizers.BaseDatasetNormalizer;
 import magpie.models.regression.AbstractRegressionModel;
@@ -177,13 +180,21 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         if (trainingData.NEntries() == 0)
             throw new Error("Data does not contain any training entries");
         
-        // Perform normalization, if needed
+        // Perform normalization, if desired
         if (Normalizer != null) {
             Normalizer.normalize(trainingData);
         }
         
-        // Perform attribute selection, if needed
+        // Perform attribute selection, if desired
+        List<double[]> attributes = new ArrayList<>(trainingData.NEntries());
+        String[] attributeNames = null;
         if (AttributeSelector != null) {
+            // Store original names
+            for (BaseEntry entry : trainingData.getEntries()) {
+                attributes.add(entry.getAttributes());
+            }
+            attributeNames = data.getAttributeNames();
+            // Run the 
             AttributeSelector.train(trainingData);
             AttributeSelector.run(trainingData);
         }
@@ -197,6 +208,14 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
             train_protected(trainingData);
         }
         trained=true; validated=false;
+        
+        // Restore attributes
+        if (AttributeSelector != null) {
+            trainingData.setAttributeNames(Arrays.asList(attributeNames));
+            for (int i=0; i<attributes.size(); i++) {
+                trainingData.getEntry(i).setAttributes(attributes.get(i));
+            }
+        }
         
         // De-normalize data
         if (Normalizer != null) {
@@ -213,34 +232,34 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
      * Run a model on provided data. Results will be stored as the predicted
      *  class variable.
 	 * 
-     * @param TestData Dataset to evaluate. 
+     * @param testData Dataset to evaluate. 
      */
-    public void run(Dataset TestData) {
+    public void run(Dataset testData) {
         if (!isTrained())
             throw new Error("Model not yet trained");
-              
+        
         // Perform normalization, if needed
         if (Normalizer != null) {
-            Normalizer.normalize(TestData);
+            Normalizer.normalize(testData);
         }
         
         // Perform any attribute filtering 
-        Dataset Data = TestData;
+        Dataset data = testData;
         if (AttributeSelector != null) {
-            Data = TestData.clone();
-            AttributeSelector.run(Data);
+            data = testData.clone();
+            AttributeSelector.run(data);
         }
         
-        if (MaxNumberOfThreads > 1 && Data.NEntries() > SerialCutoff) {
+        if (MaxNumberOfThreads > 1 && data.NEntries() > SerialCutoff) {
             // Determine how many threads to use
             System.err.print("WARNING: Multithreading currently sucks.");
-            int thread_count = Data.NEntries() / SerialCutoff + 1;
+            int thread_count = data.NEntries() / SerialCutoff + 1;
             thread_count = Math.min(thread_count, MaxNumberOfThreads);
            // thread_count = 1;
             // Start each new thread
             try { 
                 Thread[] workers = new Thread[thread_count - 1];
-                Dataset[] split_data = Data.splitForThreading(thread_count);
+                Dataset[] split_data = data.splitForThreading(thread_count);
                 for (int i=0; i<workers.length; i++) {
                     BaseModel model_copy = this.clone();
                     workers[i] = new Thread(new ModelRunningThread(model_copy, split_data[i]));
@@ -248,28 +267,29 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                 }
                 run_protected(split_data[thread_count-1]);
                 // Wait until they complete
-                for (int i=0; i<workers.length; i++)
-                    workers[i].join();
+                for (Thread worker : workers) {
+                    worker.join();
+                }
                 // Collect the results
-                Data.combine(split_data);
+                data.combine(split_data);
             }
             catch (Exception e) { throw new Error(e); }
         } else {
             // Run it serially 
-            run_protected(Data);
+            run_protected(data);
         }
         
         // Copy results to original array, if attribute selection was used
         if (AttributeSelector != null) {
-            if (Data.getEntry(0).getClassProbilities() == null)
-                TestData.setPredictedClasses(Data.getPredictedClassArray());
+            if (data.getEntry(0).getClassProbilities() == null)
+                testData.setPredictedClasses(data.getPredictedClassArray());
             else 
-                TestData.setClassProbabilities(Data.getClassProbabilityArray());
+                testData.setClassProbabilities(data.getClassProbabilityArray());
         }
         
         // Restore data to original ranges
         if (Normalizer != null) {
-            Normalizer.restore(TestData);
+            Normalizer.restore(testData);
         }
     }
     
