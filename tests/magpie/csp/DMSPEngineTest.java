@@ -1,5 +1,6 @@
 package magpie.csp;
 
+import magpie.data.materials.CompositionEntry;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -8,11 +9,21 @@ import static org.junit.Assert.*;
  * @author Logan Ward
  */
 public class DMSPEngineTest {
-
+    
     @Test
     public void testImportCompounds() throws Exception {
         DMSPEngine csp = new DMSPEngine();
         csp.importKnownCompounds("datasets/prototypes.list");
+    }
+    
+    @Test
+    public void testGetTrainingSet() throws Exception {
+        // Initilize the engine
+        DMSPEngine csp = new DMSPEngine();
+        csp.importKnownCompounds("datasets/prototypes.list");
+        
+        // Compute structure for Na5Pb2
+        csp.getTrainingSet(new CompositionEntry("Na5Pb2"));
     }
     
     @Test
