@@ -14,7 +14,12 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.stat.StatUtils;
 
 /**
- * Holds a entries that represent structures.
+ * Holds a entries that represent crystal structures. Here, the attributes are
+ * designed to be relatively insensitive to the length scale of the structure. 
+ * As an example, this would be useful to predict the properties of a new material
+ * in an already-known structure (e.g., the energy of a perovskite crystal
+ * with a yet-unstudied composition). In order to model the effects of 
+ * changing length scales, consider {@linkplain AtomicStructureDataset}.
  * 
  * <p><b>How to Import Files:</b>
  * 
@@ -41,19 +46,13 @@ import org.apache.commons.math3.stat.StatUtils;
  * <li>Attributes based on the crystal structure. 
  * </ol>
  * 
- * <p>Attributes based on the crystal structure fall in to two categories as well.
- *
- * <p>First, there are attributes that do not depend on lattice parameters and should
- * be similar for all crystals based on the same prototype (e.g. number of 
+ * <p>The crystal-structure-based attributes are design to be similar, if not
+ * equal) for all crystals based on the same prototype (e.g. number of 
  * atoms, coordination number statistics). The intention for these attributes
  * is that they can be used before determining the equilibrium lattice parameter
  * or atom positions in a crystal using a tool like DFT. For example, this would
  * be useful if you wanted to predict the formation energy of a hypothetical 
  * structure.
- * 
- * <p>If atomic positions and lattice parameter are known, a second set of 
- * structural attributes can be used. These attributes include measures such
- * as bond distances and packing efficiency.
  * 
  * <usage><p><b>Usage</b>: *No options*</usage>
  * @author Logan Ward
@@ -111,12 +110,12 @@ public class CrystalStructureDataset extends CompositionDataset {
 		}
         
         // Import each file
-        List<CrystalStructureEntry> toAdd = new LinkedList<>();
+        List<AtomicStructureEntry> toAdd = new LinkedList<>();
         for (File file : files) {
             try {
                 Cell strc = new VASP5IO().parseFile(file.getAbsolutePath());
-                CrystalStructureEntry entry = 
-						new CrystalStructureEntry(strc, file.getName(), radii);
+                AtomicStructureEntry entry = 
+						new AtomicStructureEntry(strc, file.getName(), radii);
 				// See if we have properties for this entry
 				if (properties.containsKey(file.getName())) {
 					entry.setMeasuredProperties(properties.get(file.getName()));
@@ -132,8 +131,8 @@ public class CrystalStructureDataset extends CompositionDataset {
 	}
 
     @Override
-    public CrystalStructureEntry getEntry(int index) {
-        return (CrystalStructureEntry) super.getEntry(index); 
+    public AtomicStructureEntry getEntry(int index) {
+        return (AtomicStructureEntry) super.getEntry(index); 
     }
 
     @Override
@@ -165,7 +164,7 @@ public class CrystalStructureDataset extends CompositionDataset {
         attributesAdded = AttributeName.size() - attributesAdded;
         double[] newAttr = new double[attributesAdded];
         for (BaseEntry entry : Entries) {
-            CrystalStructureEntry ptr = (CrystalStructureEntry) entry;
+            AtomicStructureEntry ptr = (AtomicStructureEntry) entry;
             
             // Call analysis
             SimpleStructureAnalysis tool = new SimpleStructureAnalysis();
@@ -229,7 +228,7 @@ public class CrystalStructureDataset extends CompositionDataset {
         attributesAdded = AttributeName.size() - attributesAdded;
         double[] newAttr = new double[attributesAdded];
         for (BaseEntry entry : Entries) {
-            CrystalStructureEntry ptr = (CrystalStructureEntry) entry;
+            AtomicStructureEntry ptr = (AtomicStructureEntry) entry;
             
             // Call analysis
             VoronoiCellBasedAnalysis tool = new VoronoiCellBasedAnalysis(false);

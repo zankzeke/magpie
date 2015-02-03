@@ -10,7 +10,7 @@ import org.apache.commons.lang3.ArrayUtils;
  * Represents a crystal structure.
  * @author Logan Ward
  */
-public class CrystalStructureEntry extends CompositionEntry {
+public class AtomicStructureEntry extends CompositionEntry {
 	/** Crystal structure */
 	final private Cell Structure;
 	/** Name of entry */
@@ -23,7 +23,7 @@ public class CrystalStructureEntry extends CompositionEntry {
 	 * @param name Name of structure (used for debugging purposes)
 	 * @throws java.lang.Exception 
 	 */
-	public CrystalStructureEntry(Cell structure, String name, double[] radii) throws Exception {
+	public AtomicStructureEntry(Cell structure, String name, double[] radii) throws Exception {
 		this.Structure = structure;
 		this.Name = name;
 		
@@ -56,8 +56,8 @@ public class CrystalStructureEntry extends CompositionEntry {
 
     @Override
     public boolean equals(Object other) {
-        if (other instanceof CrystalStructureEntry) {
-            CrystalStructureEntry you = (CrystalStructureEntry) other;
+        if (other instanceof AtomicStructureEntry) {
+            AtomicStructureEntry you = (AtomicStructureEntry) other;
             return Structure.equals(you.Structure);
         }
         return false;
@@ -65,8 +65,8 @@ public class CrystalStructureEntry extends CompositionEntry {
 
     @Override
     public int compareTo(Object B) {
-        if (B instanceof CrystalStructureEntry) {
-            CrystalStructureEntry Bobj = (CrystalStructureEntry) B;
+        if (B instanceof AtomicStructureEntry) {
+            AtomicStructureEntry Bobj = (AtomicStructureEntry) B;
             // First: Check for equality
             if (equals(Bobj)) return 0;
             // Second: Extreme measures
