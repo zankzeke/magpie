@@ -111,6 +111,7 @@ abstract public class BaseDatasetSplitter implements
                     throw new Exception("Only " + splits.size() + " partitions." +
                             " Requested #" + index);
                 }
+                System.out.println("\tRetrieved partition " + index + ".");
                 return splits.get(index);
             }
             case "save": {
@@ -137,6 +138,10 @@ abstract public class BaseDatasetSplitter implements
                         splits.get(s).saveCommand(name, format);
                     }
                 }
+                System.out.format("\tSaved %d partitions to files starting with %s%s.\n",
+                        splits.size(),
+                        filename,
+                        format == null ? "" : " in " + format + " format");
                 return null;
             }
             default:
