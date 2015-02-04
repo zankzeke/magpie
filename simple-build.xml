@@ -12,7 +12,6 @@
         order to run Magpie (fixed classpath)
     
     Author: Logan Ward
-    Date: 2 June 2014
 -->
 
 <project>
@@ -31,7 +30,7 @@
 
         <target name="compile">
                 <mkdir dir="build/classes"/>
-                <javac srcdir="src" destdir="build/classes" classpathref="classpath"/>
+                <javac debug="True" srcdir="src" destdir="build/classes" classpathref="classpath"/>
         </target>
 
         <target name="jar" depends="compile">
@@ -49,7 +48,6 @@
                 </manifestclasspath>
 
                 <!-- Compile Jar -->
-
                 <jar destfile="dist/Magpie.jar" basedir="build/classes">
                         <manifest>
                                 <attribute name="Main-Class" value="magpie.Magpie"/>
@@ -63,5 +61,31 @@
 			author="false"
 			version="false"
 			/>
+	</target>
+
+	<target name="test" depends="compile">
+		<!-- Compile Tests -->
+		<mkdir dir="build/tests"/>
+		<javac debug="True" srcdir="tests" destdir="build/tests" classpathref="classpath">
+			<classpath path="build/classes"/>
+		</javac>
+
+		<!-- Run Tests -->
+		<mkdir dir="test-logs"/>
+		<junit printsummary="yes" showoutput="true">
+			<formatter type="plain"/>
+			<classpath>
+				<fileset dir="${lib.dir}">
+					<include name="*.jar"/>
+				</fileset>
+				<pathelement path="build/classes"/>
+				<pathelement path="build/tests"/>
+			</classpath>
+			<batchtest todir="test-logs">
+				<fileset dir="./build/tests">
+					<include name="**/*.class"/>
+				</fileset>
+			</batchtest>
+		</junit>
 	</target>
 </project>
