@@ -214,6 +214,7 @@ abstract public class BaseClusterer implements Options, Printable,
     public Object runCommand(List<Object> Command) throws Exception {
         if (Command.isEmpty()) {
             System.out.println(about());
+            return null;
         }
         String Action = Command.get(0).toString();
         switch (Action) {
