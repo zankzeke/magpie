@@ -19,9 +19,9 @@ import magpie.data.MultiPropertyEntry;
  *
  * <p>For MultiPropertyDatasets, adds a new property and sets it as the target class.</p>
  * 
- * <usage><p><b>Usage</b>: &lt;interval Edges...&gt;
- * <br><pr><i>interval Edges...</i>: Values that define Edges of class variable bins.
- </usage>
+ * <usage><p><b>Usage</b>: &lt;interval edges...&gt;
+ * <br><pr><i>interval edges...</i>: Values that define edges of class variable bins.
+ * </usage>
  * 
  * @author Logan Ward
  * @version 0.1
@@ -113,12 +113,20 @@ public class ClassIntervalModifier extends BaseDatasetModifier {
 
     @Override
     public void setOptions(List Options) throws Exception {
-        /* Nothing to do, ignore all input */
+        double[] edges = new double[Options.size()];
+        try {
+            for (int i=0; i<Options.size(); i++) {
+                edges[i] = Double.parseDouble(Options.get(i).toString());
+            }
+        } catch (Exception e) {
+            throw new Exception(printUsage());
+        }
+        setEdges(edges);
     }
 
     @Override
     public String printUsage() {
-        return "Usage: *No options*";
+        return "Usage: <edges...>";
     }
     
     
