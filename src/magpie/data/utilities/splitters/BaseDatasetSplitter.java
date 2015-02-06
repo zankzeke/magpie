@@ -24,7 +24,7 @@ import magpie.utility.interfaces.Options;
  * <command><p><b>&lt;output&gt; = get &lt;partition number&gt; $&lt;dataset&gt;</b> - 
  *  Get a certain partition from a dataset
  * <br><pr><i>partition number</i>: Index (starting at 0) of desired partition
- * <br><pr><i>dataset</it>: Dataset to be split</command>
+ * <br><pr><i>dataset</i>: Dataset to be split</command>
  * 
  * <command><p><b>save $&lt;data&gt; &lt;filename&gt; [&lt;format&gt;]</b> -
  *  Split a dataset, then print it out to files
