@@ -62,8 +62,11 @@ import org.apache.commons.lang3.tuple.Pair;
  * <print><p><b>stats</b> - Print out the number of predictions used to generate
  * performance statistics.</print>
  * 
- * <print><p><b>stats list-length</b> - Print out the minimum number of prototypes
- *  that need to be calculated for a certain prediction success probability</print>
+ * <print><p><b>stats list-length [&lt;min prob&gt;] [&lt;max length&gt;]</b> - 
+ *  Print out the minimum number of prototypes that need to be calculated for 
+ *  a certain prediction success probability
+ * <br><pr><i>min prob</i>: Minimum success probability to print (default = 0.7)
+ * <br><pr><i>max length</i>: Maximum length list to print (default = 20)</print>
  * 
  * <p><b><u>Implementation Guide:</u></b>
  * 

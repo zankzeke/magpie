@@ -62,28 +62,39 @@ public class CSPPerformanceStats implements Printable {
     /**
      * Compute the minimum length of a list required to find the correct structure
      * @param minSuccess Minimum probability to predict the correct structure (between 0 and 1)
-     * @param nPoints Number of at which to evaluate this value in the range
-     * [minSuccess, 1). Points will be equally spaced.
-     * @return 
+     * @param maxLength Maximum list length to evaluate
+     * @return List where [][0] is the prediction accuracy, and [][1] is the 
+     * corresponding list length.
      */
-    public double[][] computeListLengthCurve(double minSuccess, int nPoints) {
+    public double[][] computeListLengthCurve(double minSuccess, int maxLength) {
         // --> Step 1: Sort the listPosition array
         List<Integer> positionCopy = new ArrayList<>(listPosition);
         Collections.sort(positionCopy);
         
-        // --> Step 2: Determine step size
-        nPoints = Math.min(nPoints, listPosition.size() - 1);
-        int stepSize = (int) Math.ceil((1.0 - minSuccess) * 
-                (double) (listPosition.size() - nPoints) / (double) (nPoints + 1));
-        int startSize = (int) Math.floor(minSuccess * listFraction.size());
+        // --> Step 2: Determine starting position
+        int pos = (int) Math.floor(minSuccess * listFraction.size()) - 1;
         
         // --> Step 3: Compute minimum list size such that x% of the data is underneath 
         //   a certain fraction
         List<double[]> output = new LinkedList<>();
-        for (int size = startSize; size < listPosition.size(); size += stepSize) {
-            int listLength = positionCopy.get(size);
-            output.add(new double[]{(double) size / listPosition.size(),
-                listLength});
+        int lastLength = -1;
+        while (pos < positionCopy.size() && positionCopy.get(pos) <= maxLength) {
+            // If the length at this position is different than the last recorded
+            if (positionCopy.get(pos) != lastLength) {
+                // Save the fraction of entries with list lengths shorter than
+                //  this one, that is the minimum fraction of correctly-determined 
+                //  structures with this list-length or shorter
+                output.add(new double[]{(double) pos / positionCopy.size(), 
+                    positionCopy.get(pos)
+                });
+                lastLength = positionCopy.get(pos);
+            }
+            pos++;
+        }
+        if (pos < positionCopy.size()) {
+            output.add(new double[]{(double) pos / positionCopy.size(), 
+                        positionCopy.get(pos)
+                    });
         }
         return output.toArray(new double[0][]);
     }
@@ -101,8 +112,20 @@ public class CSPPerformanceStats implements Printable {
         String Action = Command.get(0).toLowerCase();
         switch(Action) {
             case "list-length": {
+                double minProb = 0.7;
+                int maxLength = 20;
+                try {
+                    if (Command.size() > 1) {
+                        minProb = Double.parseDouble(Command.get(1));
+                    }
+                    if (Command.size() > 2) {
+                        maxLength = Integer.parseInt(Command.get(2));
+                    }
+                } catch (Exception e) {
+                    throw new Exception("Usage: list-length [<min prob>] [<max length>]");
+                }
                 String output = String.format("%24s\t%10s\n", "Prediction Accuracy", "List Length");
-                double[][] listLength = computeListLengthCurve(0.7, 20);
+                double[][] listLength = computeListLengthCurve(minProb, maxLength);
                 for (double[] value : listLength) {
                     output += String.format("%24.3f\t%10.0f\n", value[0], value[1]);
                 }
