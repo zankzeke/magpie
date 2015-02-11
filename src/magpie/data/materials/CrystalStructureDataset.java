@@ -69,6 +69,9 @@ public class CrystalStructureDataset extends CompositionDataset {
 	public void importText(String directory, Object[] options) throws Exception {
 		// Get all files in that directory
         File dir = new File(directory);
+        if (! dir.exists()) {
+            throw new Exception("No such directory.");
+        }
         if (! dir.isDirectory()) {
             throw new Exception("Expected an input directory, not file");
         }
@@ -203,14 +206,14 @@ public class CrystalStructureDataset extends CompositionDataset {
         int attributesAdded = AttributeName.size();
         // Add names
         AttributeName.add("mean_Coordination");
-        AttributeName.add("var_Coordination"); 
-		AttributeName.add("min_Coordination"); 
-		AttributeName.add("max_Coordination"); 
-		AttributeName.add("var_CellVolumeFraction");
+        AttributeName.add("var_Coordination");
+        AttributeName.add("min_Coordination");
+        AttributeName.add("max_Coordination");
+        AttributeName.add("var_CellVolumeFraction");
         AttributeName.add("min_CellVolumeFraction");
         AttributeName.add("max_CellVolumeFraction");
-		AttributeName.add("NUniquePolyhedronShapes");
-		AttributeName.add("MaxPackingEfficiency");
+        AttributeName.add("NUniquePolyhedronShapes");
+        AttributeName.add("MaxPackingEfficiency");
         AttributeName.add("mean_WCMagnitude_1stShell");
         AttributeName.add("mean_WCMagnitude_2ndShell");
         AttributeName.add("mean_WCMagnitude_3rdShell");
