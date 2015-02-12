@@ -8,7 +8,7 @@ data = new data.materials.CrystalStructureDataset
 data attributes properties directory ./Lookup Data/
 
 // Load in data
-data import ./big-datasets/elemental-prototypes/
+data import ../../../Datasets/icsd-all/
 // data = data subset 100
 
 // Select which set of elemental properties to use for attributes
