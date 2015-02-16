@@ -14,13 +14,15 @@ import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
-import org.junit.Test;
+import org.junit.*;
+import org.junit.Assert.*;
 
 /**
- * Run basic tests on Magpie server
+ * Run basic tests on Magpie Server
  * @author Logan Ward
  */
 public class ServerLauncherTest {
+    public TServer Server = null;
 
     public ServerLauncherTest() throws Exception {
         // Make a fake dataset
@@ -39,14 +41,16 @@ public class ServerLauncherTest {
         new File("ms-deltae.obj").deleteOnExit();
     }
     
-    private MagpieServer.Client getClient() {
+    private MagpieServer.Client getClient() throws Exception {
         TTransport t = new TSocket("127.0.0.1", 4581);
+        t.open();
         TProtocol prot = new TBinaryProtocol(t);
         MagpieServer.Client client = new MagpieServer.Client(prot);
         return client;
     }
     
-    private TServer launchServer() throws Exception {
+    @Before
+    public void launchServer() throws Exception {
         List<String> args = new LinkedList<>();
         args.add("-data");
         args.add("ms-data.obj");
@@ -54,29 +58,31 @@ public class ServerLauncherTest {
         args.add("delta_e");
         args.add("ms-deltae.obj");
                 
-        return ServerLauncher.main(args.toArray(new String[0]));
+        Server = ServerLauncher.main(args.toArray(new String[0]));
+        Thread.sleep(1000);
+    }
+    
+    @After
+    public void afterTest() {
+        Server.stop();
     }
 
     @Test
     public void testServerStarting() throws Exception {
-        TServer s = launchServer();
-        s.stop();
+        Assert.assertTrue(Server.isServing());
     }
     
     @Test
     public void testEvaluateCommand() throws Exception {
-        TServer s = launchServer();
-        if (! s.isServing()) {
-            throw new Error("Server not running");
-        }
         MagpieServer.Client client = getClient();
         List<Entry> entries = new LinkedList<>();
         entries.add(new Entry("NaCl", new TreeMap<String, Double>()));
         entries.add(new Entry("Mg3Al", new TreeMap<String, Double>()));
         List<String> props = new LinkedList<>();
         props.add("delta_e");
-        client.evaluateProperties(entries, props);
-        s.stop();
+        List<List<String>> output = client.evaluateProperties(entries, props);
+        Assert.assertEquals(2, output.size());
+        Assert.assertEquals(2, output.get(0).size());
     }
 	
 //	/**
@@ -85,7 +91,7 @@ public class ServerLauncherTest {
 //    public void testSingleObjectiveSearch() throws Exception {
 //        ServerLauncher.NToAccept = 1;
 //        
-//        // Test server
+//        // Test Server
 //        launchServer(new String[]{"-data", "models/data.obj", "-model", 
 //            "volume", "models/volume.obj"});
 //		Thread.sleep(2000);
@@ -103,7 +109,7 @@ public class ServerLauncherTest {
 //    public void testMultiObjectiveSearch() throws Exception {
 //        ServerLauncher.NToAccept = 1;
 //        
-//        // Test server
+//        // Test Server
 //        launchServer(new String[]{"-data", "models/data.obj", "-model", 
 //            "volume", "models/volume.obj", "-model", "bandgap", "models/bandgap.obj" });
 //		Thread.sleep(2000);
