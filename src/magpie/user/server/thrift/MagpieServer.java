@@ -97,6 +97,31 @@ public class MagpieServer {
      */
     public List<Entry> searchSingleObjective(String obj, String gen_method, int to_list) throws org.apache.thrift.TException;
 
+    /**
+     * Search for optimal materials based on a multiple objectives in a
+     * user-defined space. Combines multiple objective functions using
+     * the AdaptiveScalarizingEntryRanker.
+     * 
+     * Individual objective functions are defined in the same way as in the
+     * single objective search.
+     * 
+     * Relevant Documentation Pages:
+     * 
+     * ./javadoc/magpie/optimization/rankers/AdaptiveScalarizingEntryRanker.html
+     * 
+     * @param p [in] Tradeoff Parameter
+     * @param objs [in] Objective functions
+     * @param gen_method [in] Definition of search space
+     * @param to_list [in] Number of top candidates to return
+     * @return List of the top-performing entries
+     * 
+     * @param p
+     * @param objs
+     * @param gen_method
+     * @param to_list
+     */
+    public List<Entry> searchMultiObjective(double p, List<String> objs, String gen_method, int to_list) throws org.apache.thrift.TException;
+
   }
 
   public interface AsyncIface {
@@ -104,6 +129,8 @@ public class MagpieServer {
     public void evaluateProperties(List<Entry> entries, List<String> props, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void searchSingleObjective(String obj, String gen_method, int to_list, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+
+    public void searchMultiObjective(double p, List<String> objs, String gen_method, int to_list, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
   }
 
@@ -174,6 +201,32 @@ public class MagpieServer {
         return result.success;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "searchSingleObjective failed: unknown result");
+    }
+
+    public List<Entry> searchMultiObjective(double p, List<String> objs, String gen_method, int to_list) throws org.apache.thrift.TException
+    {
+      send_searchMultiObjective(p, objs, gen_method, to_list);
+      return recv_searchMultiObjective();
+    }
+
+    public void send_searchMultiObjective(double p, List<String> objs, String gen_method, int to_list) throws org.apache.thrift.TException
+    {
+      searchMultiObjective_args args = new searchMultiObjective_args();
+      args.setP(p);
+      args.setObjs(objs);
+      args.setGen_method(gen_method);
+      args.setTo_list(to_list);
+      sendBase("searchMultiObjective", args);
+    }
+
+    public List<Entry> recv_searchMultiObjective() throws org.apache.thrift.TException
+    {
+      searchMultiObjective_result result = new searchMultiObjective_result();
+      receiveBase(result, "searchMultiObjective");
+      if (result.isSetSuccess()) {
+        return result.success;
+      }
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "searchMultiObjective failed: unknown result");
     }
 
   }
@@ -267,6 +320,47 @@ public class MagpieServer {
       }
     }
 
+    public void searchMultiObjective(double p, List<String> objs, String gen_method, int to_list, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+      checkReady();
+      searchMultiObjective_call method_call = new searchMultiObjective_call(p, objs, gen_method, to_list, resultHandler, this, ___protocolFactory, ___transport);
+      this.___currentMethod = method_call;
+      ___manager.call(method_call);
+    }
+
+    public static class searchMultiObjective_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private double p;
+      private List<String> objs;
+      private String gen_method;
+      private int to_list;
+      public searchMultiObjective_call(double p, List<String> objs, String gen_method, int to_list, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+        super(client, protocolFactory, transport, resultHandler, false);
+        this.p = p;
+        this.objs = objs;
+        this.gen_method = gen_method;
+        this.to_list = to_list;
+      }
+
+      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("searchMultiObjective", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        searchMultiObjective_args args = new searchMultiObjective_args();
+        args.setP(p);
+        args.setObjs(objs);
+        args.setGen_method(gen_method);
+        args.setTo_list(to_list);
+        args.write(prot);
+        prot.writeMessageEnd();
+      }
+
+      public List<Entry> getResult() throws org.apache.thrift.TException {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
+          throw new IllegalStateException("Method call not finished!");
+        }
+        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
+        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
+        return (new Client(prot)).recv_searchMultiObjective();
+      }
+    }
+
   }
 
   public static class Processor<I extends Iface> extends org.apache.thrift.TBaseProcessor<I> implements org.apache.thrift.TProcessor {
@@ -282,6 +376,7 @@ public class MagpieServer {
     private static <I extends Iface> Map<String,  org.apache.thrift.ProcessFunction<I, ? extends  org.apache.thrift.TBase>> getProcessMap(Map<String,  org.apache.thrift.ProcessFunction<I, ? extends  org.apache.thrift.TBase>> processMap) {
       processMap.put("evaluateProperties", new evaluateProperties());
       processMap.put("searchSingleObjective", new searchSingleObjective());
+      processMap.put("searchMultiObjective", new searchMultiObjective());
       return processMap;
     }
 
@@ -325,6 +420,26 @@ public class MagpieServer {
       }
     }
 
+    public static class searchMultiObjective<I extends Iface> extends org.apache.thrift.ProcessFunction<I, searchMultiObjective_args> {
+      public searchMultiObjective() {
+        super("searchMultiObjective");
+      }
+
+      public searchMultiObjective_args getEmptyArgsInstance() {
+        return new searchMultiObjective_args();
+      }
+
+      protected boolean isOneway() {
+        return false;
+      }
+
+      public searchMultiObjective_result getResult(I iface, searchMultiObjective_args args) throws org.apache.thrift.TException {
+        searchMultiObjective_result result = new searchMultiObjective_result();
+        result.success = iface.searchMultiObjective(args.p, args.objs, args.gen_method, args.to_list);
+        return result;
+      }
+    }
+
   }
 
   public static class AsyncProcessor<I extends AsyncIface> extends org.apache.thrift.TBaseAsyncProcessor<I> {
@@ -340,6 +455,7 @@ public class MagpieServer {
     private static <I extends AsyncIface> Map<String,  org.apache.thrift.AsyncProcessFunction<I, ? extends  org.apache.thrift.TBase,?>> getProcessMap(Map<String,  org.apache.thrift.AsyncProcessFunction<I, ? extends  org.apache.thrift.TBase, ?>> processMap) {
       processMap.put("evaluateProperties", new evaluateProperties());
       processMap.put("searchSingleObjective", new searchSingleObjective());
+      processMap.put("searchMultiObjective", new searchMultiObjective());
       return processMap;
     }
 
@@ -442,6 +558,57 @@ public class MagpieServer {
 
       public void start(I iface, searchSingleObjective_args args, org.apache.thrift.async.AsyncMethodCallback<List<Entry>> resultHandler) throws TException {
         iface.searchSingleObjective(args.obj, args.gen_method, args.to_list,resultHandler);
+      }
+    }
+
+    public static class searchMultiObjective<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, searchMultiObjective_args, List<Entry>> {
+      public searchMultiObjective() {
+        super("searchMultiObjective");
+      }
+
+      public searchMultiObjective_args getEmptyArgsInstance() {
+        return new searchMultiObjective_args();
+      }
+
+      public AsyncMethodCallback<List<Entry>> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+        final org.apache.thrift.AsyncProcessFunction fcall = this;
+        return new AsyncMethodCallback<List<Entry>>() { 
+          public void onComplete(List<Entry> o) {
+            searchMultiObjective_result result = new searchMultiObjective_result();
+            result.success = o;
+            try {
+              fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
+              return;
+            } catch (Exception e) {
+              LOGGER.error("Exception writing to internal frame buffer", e);
+            }
+            fb.close();
+          }
+          public void onError(Exception e) {
+            byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
+            org.apache.thrift.TBase msg;
+            searchMultiObjective_result result = new searchMultiObjective_result();
+            {
+              msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
+              msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
+            }
+            try {
+              fcall.sendResponse(fb,msg,msgType,seqid);
+              return;
+            } catch (Exception ex) {
+              LOGGER.error("Exception writing to internal frame buffer", ex);
+            }
+            fb.close();
+          }
+        };
+      }
+
+      protected boolean isOneway() {
+        return false;
+      }
+
+      public void start(I iface, searchMultiObjective_args args, org.apache.thrift.async.AsyncMethodCallback<List<Entry>> resultHandler) throws TException {
+        iface.searchMultiObjective(args.p, args.objs, args.gen_method, args.to_list,resultHandler);
       }
     }
 
@@ -2438,6 +2605,1138 @@ public class MagpieServer {
               _elem48 = new Entry();
               _elem48.read(iprot);
               struct.success.add(_elem48);
+            }
+          }
+          struct.setSuccessIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class searchMultiObjective_args implements org.apache.thrift.TBase<searchMultiObjective_args, searchMultiObjective_args._Fields>, java.io.Serializable, Cloneable, Comparable<searchMultiObjective_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("searchMultiObjective_args");
+
+    private static final org.apache.thrift.protocol.TField P_FIELD_DESC = new org.apache.thrift.protocol.TField("p", org.apache.thrift.protocol.TType.DOUBLE, (short)1);
+    private static final org.apache.thrift.protocol.TField OBJS_FIELD_DESC = new org.apache.thrift.protocol.TField("objs", org.apache.thrift.protocol.TType.LIST, (short)2);
+    private static final org.apache.thrift.protocol.TField GEN_METHOD_FIELD_DESC = new org.apache.thrift.protocol.TField("gen_method", org.apache.thrift.protocol.TType.STRING, (short)3);
+    private static final org.apache.thrift.protocol.TField TO_LIST_FIELD_DESC = new org.apache.thrift.protocol.TField("to_list", org.apache.thrift.protocol.TType.I32, (short)4);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new searchMultiObjective_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new searchMultiObjective_argsTupleSchemeFactory());
+    }
+
+    public double p; // required
+    public List<String> objs; // required
+    public String gen_method; // required
+    public int to_list; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      P((short)1, "p"),
+      OBJS((short)2, "objs"),
+      GEN_METHOD((short)3, "gen_method"),
+      TO_LIST((short)4, "to_list");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 1: // P
+            return P;
+          case 2: // OBJS
+            return OBJS;
+          case 3: // GEN_METHOD
+            return GEN_METHOD;
+          case 4: // TO_LIST
+            return TO_LIST;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    private static final int __P_ISSET_ID = 0;
+    private static final int __TO_LIST_ISSET_ID = 1;
+    private byte __isset_bitfield = 0;
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.P, new org.apache.thrift.meta_data.FieldMetaData("p", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.DOUBLE)));
+      tmpMap.put(_Fields.OBJS, new org.apache.thrift.meta_data.FieldMetaData("objs", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+              new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
+      tmpMap.put(_Fields.GEN_METHOD, new org.apache.thrift.meta_data.FieldMetaData("gen_method", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+      tmpMap.put(_Fields.TO_LIST, new org.apache.thrift.meta_data.FieldMetaData("to_list", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(searchMultiObjective_args.class, metaDataMap);
+    }
+
+    public searchMultiObjective_args() {
+    }
+
+    public searchMultiObjective_args(
+      double p,
+      List<String> objs,
+      String gen_method,
+      int to_list)
+    {
+      this();
+      this.p = p;
+      setPIsSet(true);
+      this.objs = objs;
+      this.gen_method = gen_method;
+      this.to_list = to_list;
+      setTo_listIsSet(true);
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public searchMultiObjective_args(searchMultiObjective_args other) {
+      __isset_bitfield = other.__isset_bitfield;
+      this.p = other.p;
+      if (other.isSetObjs()) {
+        List<String> __this__objs = new ArrayList<String>(other.objs);
+        this.objs = __this__objs;
+      }
+      if (other.isSetGen_method()) {
+        this.gen_method = other.gen_method;
+      }
+      this.to_list = other.to_list;
+    }
+
+    public searchMultiObjective_args deepCopy() {
+      return new searchMultiObjective_args(this);
+    }
+
+    @Override
+    public void clear() {
+      setPIsSet(false);
+      this.p = 0.0;
+      this.objs = null;
+      this.gen_method = null;
+      setTo_listIsSet(false);
+      this.to_list = 0;
+    }
+
+    public double getP() {
+      return this.p;
+    }
+
+    public searchMultiObjective_args setP(double p) {
+      this.p = p;
+      setPIsSet(true);
+      return this;
+    }
+
+    public void unsetP() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __P_ISSET_ID);
+    }
+
+    /** Returns true if field p is set (has been assigned a value) and false otherwise */
+    public boolean isSetP() {
+      return EncodingUtils.testBit(__isset_bitfield, __P_ISSET_ID);
+    }
+
+    public void setPIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __P_ISSET_ID, value);
+    }
+
+    public int getObjsSize() {
+      return (this.objs == null) ? 0 : this.objs.size();
+    }
+
+    public java.util.Iterator<String> getObjsIterator() {
+      return (this.objs == null) ? null : this.objs.iterator();
+    }
+
+    public void addToObjs(String elem) {
+      if (this.objs == null) {
+        this.objs = new ArrayList<String>();
+      }
+      this.objs.add(elem);
+    }
+
+    public List<String> getObjs() {
+      return this.objs;
+    }
+
+    public searchMultiObjective_args setObjs(List<String> objs) {
+      this.objs = objs;
+      return this;
+    }
+
+    public void unsetObjs() {
+      this.objs = null;
+    }
+
+    /** Returns true if field objs is set (has been assigned a value) and false otherwise */
+    public boolean isSetObjs() {
+      return this.objs != null;
+    }
+
+    public void setObjsIsSet(boolean value) {
+      if (!value) {
+        this.objs = null;
+      }
+    }
+
+    public String getGen_method() {
+      return this.gen_method;
+    }
+
+    public searchMultiObjective_args setGen_method(String gen_method) {
+      this.gen_method = gen_method;
+      return this;
+    }
+
+    public void unsetGen_method() {
+      this.gen_method = null;
+    }
+
+    /** Returns true if field gen_method is set (has been assigned a value) and false otherwise */
+    public boolean isSetGen_method() {
+      return this.gen_method != null;
+    }
+
+    public void setGen_methodIsSet(boolean value) {
+      if (!value) {
+        this.gen_method = null;
+      }
+    }
+
+    public int getTo_list() {
+      return this.to_list;
+    }
+
+    public searchMultiObjective_args setTo_list(int to_list) {
+      this.to_list = to_list;
+      setTo_listIsSet(true);
+      return this;
+    }
+
+    public void unsetTo_list() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __TO_LIST_ISSET_ID);
+    }
+
+    /** Returns true if field to_list is set (has been assigned a value) and false otherwise */
+    public boolean isSetTo_list() {
+      return EncodingUtils.testBit(__isset_bitfield, __TO_LIST_ISSET_ID);
+    }
+
+    public void setTo_listIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __TO_LIST_ISSET_ID, value);
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case P:
+        if (value == null) {
+          unsetP();
+        } else {
+          setP((Double)value);
+        }
+        break;
+
+      case OBJS:
+        if (value == null) {
+          unsetObjs();
+        } else {
+          setObjs((List<String>)value);
+        }
+        break;
+
+      case GEN_METHOD:
+        if (value == null) {
+          unsetGen_method();
+        } else {
+          setGen_method((String)value);
+        }
+        break;
+
+      case TO_LIST:
+        if (value == null) {
+          unsetTo_list();
+        } else {
+          setTo_list((Integer)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case P:
+        return Double.valueOf(getP());
+
+      case OBJS:
+        return getObjs();
+
+      case GEN_METHOD:
+        return getGen_method();
+
+      case TO_LIST:
+        return Integer.valueOf(getTo_list());
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case P:
+        return isSetP();
+      case OBJS:
+        return isSetObjs();
+      case GEN_METHOD:
+        return isSetGen_method();
+      case TO_LIST:
+        return isSetTo_list();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof searchMultiObjective_args)
+        return this.equals((searchMultiObjective_args)that);
+      return false;
+    }
+
+    public boolean equals(searchMultiObjective_args that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_p = true;
+      boolean that_present_p = true;
+      if (this_present_p || that_present_p) {
+        if (!(this_present_p && that_present_p))
+          return false;
+        if (this.p != that.p)
+          return false;
+      }
+
+      boolean this_present_objs = true && this.isSetObjs();
+      boolean that_present_objs = true && that.isSetObjs();
+      if (this_present_objs || that_present_objs) {
+        if (!(this_present_objs && that_present_objs))
+          return false;
+        if (!this.objs.equals(that.objs))
+          return false;
+      }
+
+      boolean this_present_gen_method = true && this.isSetGen_method();
+      boolean that_present_gen_method = true && that.isSetGen_method();
+      if (this_present_gen_method || that_present_gen_method) {
+        if (!(this_present_gen_method && that_present_gen_method))
+          return false;
+        if (!this.gen_method.equals(that.gen_method))
+          return false;
+      }
+
+      boolean this_present_to_list = true;
+      boolean that_present_to_list = true;
+      if (this_present_to_list || that_present_to_list) {
+        if (!(this_present_to_list && that_present_to_list))
+          return false;
+        if (this.to_list != that.to_list)
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      List<Object> list = new ArrayList<Object>();
+
+      boolean present_p = true;
+      list.add(present_p);
+      if (present_p)
+        list.add(p);
+
+      boolean present_objs = true && (isSetObjs());
+      list.add(present_objs);
+      if (present_objs)
+        list.add(objs);
+
+      boolean present_gen_method = true && (isSetGen_method());
+      list.add(present_gen_method);
+      if (present_gen_method)
+        list.add(gen_method);
+
+      boolean present_to_list = true;
+      list.add(present_to_list);
+      if (present_to_list)
+        list.add(to_list);
+
+      return list.hashCode();
+    }
+
+    @Override
+    public int compareTo(searchMultiObjective_args other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+
+      lastComparison = Boolean.valueOf(isSetP()).compareTo(other.isSetP());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetP()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.p, other.p);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetObjs()).compareTo(other.isSetObjs());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetObjs()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.objs, other.objs);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetGen_method()).compareTo(other.isSetGen_method());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetGen_method()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.gen_method, other.gen_method);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetTo_list()).compareTo(other.isSetTo_list());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetTo_list()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.to_list, other.to_list);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("searchMultiObjective_args(");
+      boolean first = true;
+
+      sb.append("p:");
+      sb.append(this.p);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("objs:");
+      if (this.objs == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.objs);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("gen_method:");
+      if (this.gen_method == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.gen_method);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("to_list:");
+      sb.append(this.to_list);
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bitfield = 0;
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class searchMultiObjective_argsStandardSchemeFactory implements SchemeFactory {
+      public searchMultiObjective_argsStandardScheme getScheme() {
+        return new searchMultiObjective_argsStandardScheme();
+      }
+    }
+
+    private static class searchMultiObjective_argsStandardScheme extends StandardScheme<searchMultiObjective_args> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, searchMultiObjective_args struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 1: // P
+              if (schemeField.type == org.apache.thrift.protocol.TType.DOUBLE) {
+                struct.p = iprot.readDouble();
+                struct.setPIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // OBJS
+              if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+                {
+                  org.apache.thrift.protocol.TList _list50 = iprot.readListBegin();
+                  struct.objs = new ArrayList<String>(_list50.size);
+                  String _elem51;
+                  for (int _i52 = 0; _i52 < _list50.size; ++_i52)
+                  {
+                    _elem51 = iprot.readString();
+                    struct.objs.add(_elem51);
+                  }
+                  iprot.readListEnd();
+                }
+                struct.setObjsIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 3: // GEN_METHOD
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.gen_method = iprot.readString();
+                struct.setGen_methodIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 4: // TO_LIST
+              if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+                struct.to_list = iprot.readI32();
+                struct.setTo_listIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, searchMultiObjective_args struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        oprot.writeFieldBegin(P_FIELD_DESC);
+        oprot.writeDouble(struct.p);
+        oprot.writeFieldEnd();
+        if (struct.objs != null) {
+          oprot.writeFieldBegin(OBJS_FIELD_DESC);
+          {
+            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.objs.size()));
+            for (String _iter53 : struct.objs)
+            {
+              oprot.writeString(_iter53);
+            }
+            oprot.writeListEnd();
+          }
+          oprot.writeFieldEnd();
+        }
+        if (struct.gen_method != null) {
+          oprot.writeFieldBegin(GEN_METHOD_FIELD_DESC);
+          oprot.writeString(struct.gen_method);
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldBegin(TO_LIST_FIELD_DESC);
+        oprot.writeI32(struct.to_list);
+        oprot.writeFieldEnd();
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class searchMultiObjective_argsTupleSchemeFactory implements SchemeFactory {
+      public searchMultiObjective_argsTupleScheme getScheme() {
+        return new searchMultiObjective_argsTupleScheme();
+      }
+    }
+
+    private static class searchMultiObjective_argsTupleScheme extends TupleScheme<searchMultiObjective_args> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, searchMultiObjective_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetP()) {
+          optionals.set(0);
+        }
+        if (struct.isSetObjs()) {
+          optionals.set(1);
+        }
+        if (struct.isSetGen_method()) {
+          optionals.set(2);
+        }
+        if (struct.isSetTo_list()) {
+          optionals.set(3);
+        }
+        oprot.writeBitSet(optionals, 4);
+        if (struct.isSetP()) {
+          oprot.writeDouble(struct.p);
+        }
+        if (struct.isSetObjs()) {
+          {
+            oprot.writeI32(struct.objs.size());
+            for (String _iter54 : struct.objs)
+            {
+              oprot.writeString(_iter54);
+            }
+          }
+        }
+        if (struct.isSetGen_method()) {
+          oprot.writeString(struct.gen_method);
+        }
+        if (struct.isSetTo_list()) {
+          oprot.writeI32(struct.to_list);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, searchMultiObjective_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(4);
+        if (incoming.get(0)) {
+          struct.p = iprot.readDouble();
+          struct.setPIsSet(true);
+        }
+        if (incoming.get(1)) {
+          {
+            org.apache.thrift.protocol.TList _list55 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+            struct.objs = new ArrayList<String>(_list55.size);
+            String _elem56;
+            for (int _i57 = 0; _i57 < _list55.size; ++_i57)
+            {
+              _elem56 = iprot.readString();
+              struct.objs.add(_elem56);
+            }
+          }
+          struct.setObjsIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.gen_method = iprot.readString();
+          struct.setGen_methodIsSet(true);
+        }
+        if (incoming.get(3)) {
+          struct.to_list = iprot.readI32();
+          struct.setTo_listIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class searchMultiObjective_result implements org.apache.thrift.TBase<searchMultiObjective_result, searchMultiObjective_result._Fields>, java.io.Serializable, Cloneable, Comparable<searchMultiObjective_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("searchMultiObjective_result");
+
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.LIST, (short)0);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new searchMultiObjective_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new searchMultiObjective_resultTupleSchemeFactory());
+    }
+
+    public List<Entry> success; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      SUCCESS((short)0, "success");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 0: // SUCCESS
+            return SUCCESS;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, Entry.class))));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(searchMultiObjective_result.class, metaDataMap);
+    }
+
+    public searchMultiObjective_result() {
+    }
+
+    public searchMultiObjective_result(
+      List<Entry> success)
+    {
+      this();
+      this.success = success;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public searchMultiObjective_result(searchMultiObjective_result other) {
+      if (other.isSetSuccess()) {
+        List<Entry> __this__success = new ArrayList<Entry>(other.success.size());
+        for (Entry other_element : other.success) {
+          __this__success.add(new Entry(other_element));
+        }
+        this.success = __this__success;
+      }
+    }
+
+    public searchMultiObjective_result deepCopy() {
+      return new searchMultiObjective_result(this);
+    }
+
+    @Override
+    public void clear() {
+      this.success = null;
+    }
+
+    public int getSuccessSize() {
+      return (this.success == null) ? 0 : this.success.size();
+    }
+
+    public java.util.Iterator<Entry> getSuccessIterator() {
+      return (this.success == null) ? null : this.success.iterator();
+    }
+
+    public void addToSuccess(Entry elem) {
+      if (this.success == null) {
+        this.success = new ArrayList<Entry>();
+      }
+      this.success.add(elem);
+    }
+
+    public List<Entry> getSuccess() {
+      return this.success;
+    }
+
+    public searchMultiObjective_result setSuccess(List<Entry> success) {
+      this.success = success;
+      return this;
+    }
+
+    public void unsetSuccess() {
+      this.success = null;
+    }
+
+    /** Returns true if field success is set (has been assigned a value) and false otherwise */
+    public boolean isSetSuccess() {
+      return this.success != null;
+    }
+
+    public void setSuccessIsSet(boolean value) {
+      if (!value) {
+        this.success = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case SUCCESS:
+        if (value == null) {
+          unsetSuccess();
+        } else {
+          setSuccess((List<Entry>)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case SUCCESS:
+        return getSuccess();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case SUCCESS:
+        return isSetSuccess();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof searchMultiObjective_result)
+        return this.equals((searchMultiObjective_result)that);
+      return false;
+    }
+
+    public boolean equals(searchMultiObjective_result that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_success = true && this.isSetSuccess();
+      boolean that_present_success = true && that.isSetSuccess();
+      if (this_present_success || that_present_success) {
+        if (!(this_present_success && that_present_success))
+          return false;
+        if (!this.success.equals(that.success))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      List<Object> list = new ArrayList<Object>();
+
+      boolean present_success = true && (isSetSuccess());
+      list.add(present_success);
+      if (present_success)
+        list.add(success);
+
+      return list.hashCode();
+    }
+
+    @Override
+    public int compareTo(searchMultiObjective_result other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+
+      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(other.isSetSuccess());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSuccess()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+      }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("searchMultiObjective_result(");
+      boolean first = true;
+
+      sb.append("success:");
+      if (this.success == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.success);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class searchMultiObjective_resultStandardSchemeFactory implements SchemeFactory {
+      public searchMultiObjective_resultStandardScheme getScheme() {
+        return new searchMultiObjective_resultStandardScheme();
+      }
+    }
+
+    private static class searchMultiObjective_resultStandardScheme extends StandardScheme<searchMultiObjective_result> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, searchMultiObjective_result struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 0: // SUCCESS
+              if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+                {
+                  org.apache.thrift.protocol.TList _list58 = iprot.readListBegin();
+                  struct.success = new ArrayList<Entry>(_list58.size);
+                  Entry _elem59;
+                  for (int _i60 = 0; _i60 < _list58.size; ++_i60)
+                  {
+                    _elem59 = new Entry();
+                    _elem59.read(iprot);
+                    struct.success.add(_elem59);
+                  }
+                  iprot.readListEnd();
+                }
+                struct.setSuccessIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, searchMultiObjective_result struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.success != null) {
+          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
+          {
+            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.success.size()));
+            for (Entry _iter61 : struct.success)
+            {
+              _iter61.write(oprot);
+            }
+            oprot.writeListEnd();
+          }
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class searchMultiObjective_resultTupleSchemeFactory implements SchemeFactory {
+      public searchMultiObjective_resultTupleScheme getScheme() {
+        return new searchMultiObjective_resultTupleScheme();
+      }
+    }
+
+    private static class searchMultiObjective_resultTupleScheme extends TupleScheme<searchMultiObjective_result> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, searchMultiObjective_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetSuccess()) {
+          optionals.set(0);
+        }
+        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetSuccess()) {
+          {
+            oprot.writeI32(struct.success.size());
+            for (Entry _iter62 : struct.success)
+            {
+              _iter62.write(oprot);
+            }
+          }
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, searchMultiObjective_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(1);
+        if (incoming.get(0)) {
+          {
+            org.apache.thrift.protocol.TList _list63 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.success = new ArrayList<Entry>(_list63.size);
+            Entry _elem64;
+            for (int _i65 = 0; _i65 < _list63.size; ++_i65)
+            {
+              _elem64 = new Entry();
+              _elem64.read(iprot);
+              struct.success.add(_elem64);
             }
           }
           struct.setSuccessIsSet(true);

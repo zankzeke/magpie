@@ -1,14 +1,15 @@
 package magpie.user.server.thrift;
 
 import java.util.*;
-import magpie.data.BaseEntry;
-import magpie.data.Dataset;
+import magpie.data.*;
 import magpie.data.utilities.filters.EntryRankerFilter;
 import magpie.data.utilities.generators.BaseEntryGenerator;
+import magpie.data.utilities.modifiers.AddPropertyModifier;
 import magpie.models.BaseModel;
 import magpie.models.regression.AbstractRegressionModel;
-import magpie.optimization.rankers.BaseEntryRanker;
+import magpie.optimization.rankers.*;
 import magpie.user.CommandHandler;
+import org.apache.commons.lang3.tuple.*;
 import org.apache.thrift.TException;
 
 /**
@@ -138,30 +139,9 @@ public class MagpieServerHandler implements MagpieServer.Iface {
             String gen_method, int to_list) throws TException {
 
         try {
-            // Get the Components
-            String[] obj_command = obj.split("\\s+");
-            String property;
-            boolean toMinimize;
-            try {
-                property = obj_command[0];
-                if (obj_command[1].toLowerCase().startsWith("min")) {
-                    toMinimize = true;
-                } else if (obj_command[1].toLowerCase().startsWith("max")) {
-                    toMinimize = false;
-                } else {
-                    throw new Exception();
-                }
-                if (obj_command.length < 3) {
-                    throw new Exception();
-                }
-            } catch (Exception e) {
-                throw new Exception("Objective function format: <property> " +
-                        "<minimize|maximize> <method> <options...>");
-            }
-            
-            BaseEntryRanker ranker = getObjectiveFunction( obj_command[2],
-                    Arrays.asList(obj_command).subList(3, obj_command.length));
-            ranker.setMaximizeFunction(!toMinimize);
+            Pair<String,BaseEntryRanker> objective = getObjective(obj);
+            String property = objective.getLeft();
+            BaseEntryRanker ranker = objective.getRight();
             BaseEntryGenerator generator = getGenerator(gen_method);
             
             // Generate the dataset
@@ -198,6 +178,40 @@ public class MagpieServerHandler implements MagpieServer.Iface {
     }
 
     /**
+     * Parse objective function command.
+     * @param command Command defining objective function
+     * @return Pair: Property considered : EntryRanker for that property
+     * @throws Exception 
+     */
+    protected static Pair<String,BaseEntryRanker> getObjective(String command)
+            throws Exception {
+        // Get the Components
+        String[] obj_command = command.split("\\s+");
+        String property;
+        boolean toMinimize;
+        try {
+            property = obj_command[0];
+            if (obj_command[1].toLowerCase().startsWith("min")) {
+                toMinimize = true;
+            } else if (obj_command[1].toLowerCase().startsWith("max")) {
+                toMinimize = false;
+            } else {
+                throw new Exception();
+            }
+            if (obj_command.length < 3) {
+                throw new Exception();
+            }
+        } catch (Exception e) {
+            throw new Exception("Objective function format: <property> "
+                    + "<minimize|maximize> <method> <options...>");
+        }
+        BaseEntryRanker ranker = getEntryRanker(obj_command[2],
+                Arrays.asList(obj_command).subList(3, obj_command.length));
+        ranker.setMaximizeFunction(!toMinimize);
+        return new ImmutablePair<>(property, ranker);
+    }
+    
+    /**
      * Given the first line of user command, get the entry generator.
      *
      * @param command First line of command sent to thread
@@ -225,7 +239,7 @@ public class MagpieServerHandler implements MagpieServer.Iface {
      * @return BaseEntryRanker describing this objective function
      * @throws Exception
      */
-    protected static BaseEntryRanker getObjectiveFunction(String method, 
+    protected static BaseEntryRanker getEntryRanker(String method, 
             List<String> options) throws Exception {
         // Convert options
         List<Object> options_obj = new ArrayList<Object>(options);
@@ -237,89 +251,68 @@ public class MagpieServerHandler implements MagpieServer.Iface {
         return ranker;
     }
 
-//    /**
-//     * Evaluate a multi-objective entry ranker that uses adaptive scalarization.
-//     *
-//     * @param command Command describing objective
-//     * @param data Dataset to be evaluated
-//     * @param models Models to be used
-//     * @return Table of results of search (i.e. entry name)
-//     */
-//    protected static List<String> runMultiObjectiveScalarized(List<String> command, Dataset data,
-//            Map<String, BaseModel> models) throws Exception {
-//        List<String> output = new LinkedList<>();
-//
-//        // Parse the objective command
-//        String[] words = command.get(1).split("\\s+");
-//        double p;
-//        try {
-//            p = Double.parseDouble(words[1]);
-//        } catch (Exception e) {
-//            throw new Exception("Expected second word of multi to be the P value");
-//        }
-//
-//        // Get the entry ranker
-//        AdaptiveScalarizingEntryRanker ranker = new AdaptiveScalarizingEntryRanker();
-//        ranker.setP(p);
-//        ranker.setUseMeasured(false);
-//
-//        // Get all of the propeties
-//        List<String> properties = new LinkedList<>();
-//        for (String line : command.subList(2, command.size() - 1)) {
-//            words = line.split("\\s+");
-//            try {
-//                String prop = words[0];
-//                BaseEntryRanker obj = getObjectiveFunction(words);
-//                ranker.addObjectiveFunction(prop, obj);
-//                properties.add(prop);
-//            } catch (Exception e) {
-//                throw new Exception("Failed parsing objective on line: " + line);
-//            }
-//        }
-//
-//        // Get the number of entries
-//        int number = getNumberToReport(command);
-//
-//        // Add properties to dataset
-//        if (!(data instanceof MultiPropertyDataset)) {
-//            throw new Exception("Dataset template is not a MultiPropertyDataset");
-//        }
-//        MultiPropertyDataset dataptr = (MultiPropertyDataset) data;
-//        AddPropertyModifier mdfr = new AddPropertyModifier();
-//        mdfr.setPropertiesToAdd(properties);
-//        mdfr.transform(data);
-//
-//        // Run model
-//        for (String prop : properties) {
-//            BaseModel model = models.get(prop);
-//            if (model == null) {
-//                throw new Exception("No model for property: " + prop);
-//            }
-//            dataptr.setTargetProperty(prop, true);
-//            model.run(data);
-//        }
-//
-//        // Filter the entries
-//        EntryRankerFilter filter = new EntryRankerFilter();
-//        filter.setNumberToFilter(number);
-//        filter.setExclude(false);
-//        filter.setRanker(ranker);
-//        filter.train(data);
-//        filter.filter(data);
-//
-//        // Print out the results
-//        int[] ranking = ranker.rankEntries(data);
-//        for (int i : ranking) {
-//            MultiPropertyEntry entry = (MultiPropertyEntry) data.getEntry(i);
-//            String toAdd = entry.toHTMLString();
-//            for (String prop : properties) {
-//                int index = dataptr.getPropertyIndex(prop);
-//                toAdd += String.format("\t%.4f", entry.getPredictedProperty(index));
-//            }
-//            output.add(toAdd);
-//        }
-//        return output;
-//    }
+    @Override
+    public List<Entry> searchMultiObjective(double p, List<String> objs, String gen_method, int to_list) throws TException {
+        // Get the entry ranker
+        AdaptiveScalarizingEntryRanker ranker = new AdaptiveScalarizingEntryRanker();
+        ranker.setP(p);
+        ranker.setUseMeasured(false);
+        
+        // Generate the dataset
+        Dataset data = TemplateDataset.emptyClone();
+        try {
+            BaseEntryGenerator generator = getGenerator(gen_method);
+            generator.addEntriesToDataset(data);
+        } catch (Exception e) {
+            throw new TException(e.getMessage());
+        }
 
-    
+        // Get all of the objectives
+        for (String obj : objs) {
+            try {
+                Pair<String,BaseEntryRanker> objective = getObjective(obj);
+                ranker.addObjectiveFunction(objective.getLeft(),
+                    objective.getRight());
+            } catch (Exception e) {
+                throw new TException(e.getMessage());
+            }
+        }
+
+        // Add properties to dataset
+        if (!(data instanceof MultiPropertyDataset)) {
+            throw new TException("Dataset template is not a MultiPropertyDataset");
+        }
+        MultiPropertyDataset dataptr = (MultiPropertyDataset) data;
+        AddPropertyModifier mdfr = new AddPropertyModifier();
+        mdfr.setPropertiesToAdd(Arrays.asList(ranker.getObjectives()));
+        mdfr.transform(data);
+
+        // Run models
+        for (String prop : ranker.getObjectives()) {
+            BaseModel model = Models.get(prop);
+            if (model == null) {
+                throw new TException("No model for property: " + prop);
+            }
+            dataptr.setTargetProperty(prop, true);
+            model.run(data);
+        }
+
+        // Filter the entries
+        EntryRankerFilter filter = new EntryRankerFilter();
+        filter.setNumberToFilter(to_list);
+        filter.setExclude(false);
+        filter.setRanker(ranker);
+        filter.train(data);
+        filter.filter(data);
+
+        // Print out the results
+        int[] ranking = ranker.rankEntries(data);
+        List<Entry> output = new ArrayList<>(to_list);
+        for (int i : ranking) {
+            MultiPropertyEntry entry = (MultiPropertyEntry) data.getEntry(i);
+            output.add(new Entry(entry.toString(), new TreeMap<String, Double>()));
+        }
+        return output;
+    }
+
 }

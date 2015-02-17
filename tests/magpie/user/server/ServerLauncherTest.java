@@ -34,11 +34,17 @@ public class ServerLauncherTest {
         template.saveState("ms-data.obj");
         new File("ms-data.obj").deleteOnExit();
         
-        // Make a fake model
+        // Make a fake model for delta_e
         BaseModel model = new GuessMeanRegression();
         model.train(template);
         model.saveState("ms-deltae.obj");
         new File("ms-deltae.obj").deleteOnExit();
+        
+        // Make a fake model for volume
+        template.setTargetProperty("volume_pa", true);
+        model.train(template);
+        model.saveState("ms-volume.obj");
+        new File("ms-volume.obj").deleteOnExit();
     }
     
     private MagpieServer.Client getClient() throws Exception {
@@ -57,6 +63,9 @@ public class ServerLauncherTest {
         args.add("-model");
         args.add("delta_e");
         args.add("ms-deltae.obj");
+        args.add("-model");
+        args.add("volume_pa");
+        args.add("ms-volume.obj");
                 
         Server = ServerLauncher.main(args.toArray(new String[0]));
         Thread.sleep(1000);
@@ -94,24 +103,17 @@ public class ServerLauncherTest {
                 20);
         Assert.assertEquals(20, output.size());
     }
-//	
-//	/**
-//     * Test evaluate command
-//     */
-//    public void testMultiObjectiveSearch() throws Exception {
-//        ServerLauncher.NToAccept = 1;
-//        
-//        // Test Server
-//        launchServer(new String[]{"-data", "models/data.obj", "-model", 
-//            "volume", "models/volume.obj", "-model", "bandgap", "models/bandgap.obj" });
-//		Thread.sleep(2000);
-//       List<String> linesRead = runCommand(new String[]{
-//			"search PhaseDiagramCompositionEntryGenerator 3 -crystal 5 Al Zr Ti Mg",
-//			"multi 10", 
-//			"volume target 20",
-//			"bandgap maximize",
-//			"number 10",
-//			"#done"});
-//		assertEquals(10, linesRead.size());
-//    }
+    
+    @Test
+    public void testMultiObjectiveSearch() throws Exception {
+        MagpieServer.Client client = getClient();
+        List<String> objs = new LinkedList<>();
+        objs.add("delta_e minimize SimpleEntryRanker");
+        objs.add("volume_pa minimize TargetEntryRanker 20.0");
+        List<Entry> output = client.searchMultiObjective(10.0, objs,
+                "PhaseDiagramCompositionEntryGenerator 2 -alloy 2 Al Ni Zr",
+                20);
+        Assert.assertEquals(20, output.size());
+    }
+
 }

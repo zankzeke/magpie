@@ -54,4 +54,25 @@ service MagpieServer {
 	 */
 	list<Entry> searchSingleObjective(1:string obj, 2:string gen_method, 3:i32 to_list)
 	
+	/**
+	 * Search for optimal materials based on a multiple objectives in a 
+	 * user-defined space. Combines multiple objective functions using
+	 * the AdaptiveScalarizingEntryRanker. 
+	 *
+	 * Individual objective functions are defined in the same way as in the
+	 * single objective search.
+	 *
+	 * Relevant Documentation Pages:
+	 *
+	 * ./javadoc/magpie/optimization/rankers/AdaptiveScalarizingEntryRanker.html
+	 *
+	 * @param p [in] Tradeoff Parameter
+	 * @param objs [in] Objective functions
+	 * @param gen_method [in] Definition of search space
+	 * @param to_list [in] Number of top candidates to return
+	 * @return List of the top-performing entries
+	 */
+	list<Entry> searchMultiObjective(1:double p, 2:list<string> objs, 
+	    3:string gen_method, 4:i32 to_list)
+	
 }
