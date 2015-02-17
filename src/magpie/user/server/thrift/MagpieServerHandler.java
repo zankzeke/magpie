@@ -3,8 +3,12 @@ package magpie.user.server.thrift;
 import java.util.*;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
+import magpie.data.utilities.filters.EntryRankerFilter;
+import magpie.data.utilities.generators.BaseEntryGenerator;
 import magpie.models.BaseModel;
 import magpie.models.regression.AbstractRegressionModel;
+import magpie.optimization.rankers.BaseEntryRanker;
+import magpie.user.CommandHandler;
 import org.apache.thrift.TException;
 
 /**
@@ -115,11 +119,7 @@ public class MagpieServerHandler implements MagpieServer.Iface {
                 }
             }
 		} catch (Exception e) {
-            results.clear();
-            List<String> temp = new LinkedList<>();
-			temp.add("Failure during evaluation: " + e.getLocalizedMessage());
-            results.add(temp);
-            return results;
+            throw new TException(e);
 		}
 		
 		// Add unparseable entries
@@ -132,4 +132,194 @@ public class MagpieServerHandler implements MagpieServer.Iface {
 		
 		return results;
     }
+
+    @Override
+    public List<Entry> searchSingleObjective(String obj,
+            String gen_method, int to_list) throws TException {
+
+        try {
+            // Get the Components
+            String[] obj_command = obj.split("\\s+");
+            String property;
+            boolean toMinimize;
+            try {
+                property = obj_command[0];
+                if (obj_command[1].toLowerCase().startsWith("min")) {
+                    toMinimize = true;
+                } else if (obj_command[1].toLowerCase().startsWith("max")) {
+                    toMinimize = false;
+                } else {
+                    throw new Exception();
+                }
+                if (obj_command.length < 3) {
+                    throw new Exception();
+                }
+            } catch (Exception e) {
+                throw new Exception("Objective function format: <property> " +
+                        "<minimize|maximize> <method> <options...>");
+            }
+            
+            BaseEntryRanker ranker = getObjectiveFunction( obj_command[2],
+                    Arrays.asList(obj_command).subList(3, obj_command.length));
+            ranker.setMaximizeFunction(!toMinimize);
+            BaseEntryGenerator generator = getGenerator(gen_method);
+            
+            // Generate the dataset
+            Dataset data = TemplateDataset.emptyClone();
+            generator.addEntriesToDataset(data);
+            
+            // Execute the search
+            BaseModel model = Models.get(property);
+            if (model == null) {
+                throw new Exception("No model for property: " + property);
+            }
+            model.run(data);
+
+            // Filter the entries
+            EntryRankerFilter filter = new EntryRankerFilter();
+            filter.setNumberToFilter(to_list);
+            filter.setExclude(false);
+            filter.setRanker(ranker);
+            filter.train(data);
+            filter.filter(data);
+
+            // Print out the results
+            int[] ranking = ranker.rankEntries(data);
+            List<Entry> output = new ArrayList<>(to_list);
+            for (int i : ranking) {
+                BaseEntry entry = data.getEntry(i);
+                output.add(new Entry(entry.toString(), 
+                        new TreeMap<String, Double>()));
+            }
+            return output;
+        } catch (Exception e) {
+            throw new TException(e.getMessage());
+        }
+    }
+
+    /**
+     * Given the first line of user command, get the entry generator.
+     *
+     * @param command First line of command sent to thread
+     * @return {@linkplain BaseEntryGenerator}, as specified by command
+     * @throws Exception
+     */
+    protected static BaseEntryGenerator getGenerator(String command) throws Exception {
+        // Get the search space
+        String[] topCommand = command.split("\\s+");
+        String method = topCommand[0];
+        List<Object> options = new LinkedList<>();
+        for (int i = 1; i < topCommand.length; i++) {
+            options.add(topCommand[i]);
+        }
+        BaseEntryGenerator generator = (BaseEntryGenerator) CommandHandler.instantiateClass(
+                "data.utilities.generators." + method, options);
+        return generator;
+    }
+
+    /**
+     * Get an entry ranker for a single property.
+     *
+     * @param method Name of entry ranker
+     * @param options Options for entry ranker
+     * @return BaseEntryRanker describing this objective function
+     * @throws Exception
+     */
+    protected static BaseEntryRanker getObjectiveFunction(String method, 
+            List<String> options) throws Exception {
+        // Convert options
+        List<Object> options_obj = new ArrayList<Object>(options);
+        
+        // Instantiate ranker
+        BaseEntryRanker ranker = (BaseEntryRanker) CommandHandler.instantiateClass(
+                "optimization.rankers." + method, options_obj);
+        ranker.setUseMeasured(false);
+        return ranker;
+    }
+
+//    /**
+//     * Evaluate a multi-objective entry ranker that uses adaptive scalarization.
+//     *
+//     * @param command Command describing objective
+//     * @param data Dataset to be evaluated
+//     * @param models Models to be used
+//     * @return Table of results of search (i.e. entry name)
+//     */
+//    protected static List<String> runMultiObjectiveScalarized(List<String> command, Dataset data,
+//            Map<String, BaseModel> models) throws Exception {
+//        List<String> output = new LinkedList<>();
+//
+//        // Parse the objective command
+//        String[] words = command.get(1).split("\\s+");
+//        double p;
+//        try {
+//            p = Double.parseDouble(words[1]);
+//        } catch (Exception e) {
+//            throw new Exception("Expected second word of multi to be the P value");
+//        }
+//
+//        // Get the entry ranker
+//        AdaptiveScalarizingEntryRanker ranker = new AdaptiveScalarizingEntryRanker();
+//        ranker.setP(p);
+//        ranker.setUseMeasured(false);
+//
+//        // Get all of the propeties
+//        List<String> properties = new LinkedList<>();
+//        for (String line : command.subList(2, command.size() - 1)) {
+//            words = line.split("\\s+");
+//            try {
+//                String prop = words[0];
+//                BaseEntryRanker obj = getObjectiveFunction(words);
+//                ranker.addObjectiveFunction(prop, obj);
+//                properties.add(prop);
+//            } catch (Exception e) {
+//                throw new Exception("Failed parsing objective on line: " + line);
+//            }
+//        }
+//
+//        // Get the number of entries
+//        int number = getNumberToReport(command);
+//
+//        // Add properties to dataset
+//        if (!(data instanceof MultiPropertyDataset)) {
+//            throw new Exception("Dataset template is not a MultiPropertyDataset");
+//        }
+//        MultiPropertyDataset dataptr = (MultiPropertyDataset) data;
+//        AddPropertyModifier mdfr = new AddPropertyModifier();
+//        mdfr.setPropertiesToAdd(properties);
+//        mdfr.transform(data);
+//
+//        // Run model
+//        for (String prop : properties) {
+//            BaseModel model = models.get(prop);
+//            if (model == null) {
+//                throw new Exception("No model for property: " + prop);
+//            }
+//            dataptr.setTargetProperty(prop, true);
+//            model.run(data);
+//        }
+//
+//        // Filter the entries
+//        EntryRankerFilter filter = new EntryRankerFilter();
+//        filter.setNumberToFilter(number);
+//        filter.setExclude(false);
+//        filter.setRanker(ranker);
+//        filter.train(data);
+//        filter.filter(data);
+//
+//        // Print out the results
+//        int[] ranking = ranker.rankEntries(data);
+//        for (int i : ranking) {
+//            MultiPropertyEntry entry = (MultiPropertyEntry) data.getEntry(i);
+//            String toAdd = entry.toHTMLString();
+//            for (String prop : properties) {
+//                int index = dataptr.getPropertyIndex(prop);
+//                toAdd += String.format("\t%.4f", entry.getPredictedProperty(index));
+//            }
+//            output.add(toAdd);
+//        }
+//        return output;
+//    }
+
+    
 }

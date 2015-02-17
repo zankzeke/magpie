@@ -85,23 +85,15 @@ public class ServerLauncherTest {
         Assert.assertEquals(2, output.get(0).size());
     }
 	
-//	/**
-//     * Test single objective search
-//     */
-//    public void testSingleObjectiveSearch() throws Exception {
-//        ServerLauncher.NToAccept = 1;
-//        
-//        // Test Server
-//        launchServer(new String[]{"-data", "models/data.obj", "-model", 
-//            "volume", "models/volume.obj"});
-//		Thread.sleep(2000);
-//        List<String> linesRead = runCommand(new String[]{
-//			"search PhaseDiagramCompositionEntryGenerator 3 -crystal 5 Al Zr Ti Mg",
-//			"objective volume target 20", 
-//			"number 10",
-//			"#done"});
-//		assertEquals(10, linesRead.size());
-//    }
+	@Test
+    public void testSingleObjectiveSearch() throws Exception {
+        MagpieServer.Client client = getClient();
+        List<Entry> output = client.searchSingleObjective(
+                "delta_e minimize SimpleEntryRanker",
+                "PhaseDiagramCompositionEntryGenerator 2 -alloy 2 Al Ni Zr",
+                20);
+        Assert.assertEquals(20, output.size());
+    }
 //	
 //	/**
 //     * Test evaluate command
