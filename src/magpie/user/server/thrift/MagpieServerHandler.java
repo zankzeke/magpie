@@ -147,6 +147,7 @@ public class MagpieServerHandler implements MagpieServer.Iface {
             // Generate the dataset
             Dataset data = TemplateDataset.emptyClone();
             generator.addEntriesToDataset(data);
+            data.generateAttributes();
             
             // Execute the search
             BaseModel model = Models.get(property);
@@ -263,6 +264,7 @@ public class MagpieServerHandler implements MagpieServer.Iface {
         try {
             BaseEntryGenerator generator = getGenerator(gen_method);
             generator.addEntriesToDataset(data);
+            data.generateAttributes();
         } catch (Exception e) {
             throw new TException(e.getMessage());
         }
