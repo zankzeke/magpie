@@ -174,12 +174,11 @@ public class PrototypeDataset extends CompositionDataset {
         
         // Read in the header
         Line = is.readLine();
-        Words = Line.split("[\t ]");
-        for (int i=1; i<Words.length; i++)  addProperty(Words[i]);
-                
+        importPropertyNames(Line);
+        
         // Read in each entry
-        TreeMap<BaseEntry,CompositionEntry> acceptedEntries = new TreeMap<>();
-        CompositionEntry Entry;
+        TreeMap<BaseEntry,PrototypeEntry> acceptedEntries = new TreeMap<>();
+        PrototypeEntry Entry;
         for (int i=0; i<Entry_Count; i++){
             double[] properties;
             // Read a line and tokenize it
@@ -191,16 +190,7 @@ public class PrototypeDataset extends CompositionDataset {
                 continue;
             
             // Get the properties
-            properties = new double[NProperties()];
-            for (int j=0; j<NProperties(); j++) {
-                try { properties[j]=Double.parseDouble(Words[j+1]); }
-                catch (NumberFormatException e) { 
-                    properties[j]=Double.NaN;
-                } catch (ArrayIndexOutOfBoundsException e) {
-                    System.err.println("\tEntry with name \"" + Words[0] 
-                        + "\" only has " + (Words.length - 1) + " properties" );
-                }
-            }
+            properties = importEntryProperties(Words);
             
             // Make an entry
             Entry = new PrototypeEntry(SiteInfo, Words[0]);
