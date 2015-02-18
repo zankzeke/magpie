@@ -35,10 +35,6 @@ try:
   # Connect!
   transport.open()
 
-  # Make the entry
-  entry2 = Entry()
-  entry2.name = "LiFePO4"
-
   # Evaluate properties of NaCl 
   entry = Entry()
   entry.name = "NaCl"
@@ -67,5 +63,4 @@ try:
 
 except Thrift.TException, tx:
   print '%s' % (tx.message)
-
 
