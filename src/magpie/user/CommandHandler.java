@@ -402,7 +402,16 @@ public class CommandHandler {
 			output = String.format("%" + (nameLength + 2) + "s  %16s", "Entry", "Predicted Class");
 			for (int i=0; i<data.NEntries(); i++) {
 				BaseEntry entry = data.getEntry(i);
-				output += String.format("\n%" + (nameLength + 2) + "s  %16.4g", names[i], entry.getPredictedClass());
+                if (model instanceof AbstractRegressionModel) {
+                    output += String.format("\n%" + (nameLength + 2) + "s  %16.4g", 
+                            names[i], entry.getPredictedClass());
+                } else {
+                    int cls = (int) entry.getPredictedClass();
+                    double prob = entry.getClassProbilities()[cls] * 100.0;
+                    output += String.format("\n%" + (nameLength + 2) 
+                            + "s   %s (%.2f %%)", 
+                            names[i], data.getClassName(cls), prob);
+                }
 			}
 		}
 		return output + "\n";
