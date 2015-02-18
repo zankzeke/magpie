@@ -17,9 +17,8 @@ import org.apache.thrift.transport.TServerTransport;
  * 
  * <p><b>How to start server</b>
  * 
- * <p>ServerLauncher can be started simply by calling java -jar /path/to/ServerLauncher.jar
-
- <p>This jar file takes several command-line arguments;
+ * <p>ServerLauncher can be started simply by starting Magpie with the "-server" 
+ * flag. Invoked in this why, Magpie takes a few command line arguments:
  * 
  * <br>-template &lt;dataset&gt; : Give path to (serialized) Dataset that can be used
  *  to generate attributes
@@ -91,7 +90,7 @@ public class ServerLauncher {
         TServerTransport trans = new TServerSocket(ListenPort);
         server = new TThreadPoolServer(new TThreadPoolServer.Args(trans)
                 .processor(processor));
-       
+        
         // Fork server to the background
         Thread thr = new Thread(new Runnable() {
             @Override
