@@ -191,24 +191,8 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
                 continue;
             }
 
-            // Get the properties
-            properties = new double[NProperties()];
-            for (int p = 0; p < NProperties(); p++) {
-				try {
-					if (getPropertyClassCount(p) == 1) {
-						properties[p] = Double.parseDouble(words[p + 1]);
-					} else {
-						int index = ArrayUtils.indexOf(getPropertyClasses(p), words[p+1]);
-						if (index == -1) {
-							index = Integer.parseInt(words[p+1]);
-						}
-						properties[p] = index;
-					}
-				} catch (NumberFormatException exc) {
-					// System.err.println("Warning: Entry #"+i+" has an invalid property.");
-					properties[p] = Double.NaN;
-				}
-            }
+            // Read properties
+            properties = importEntryProperties(words);
 
             // Make an entry
             Entry = new CompositionEntry(words[0]);
@@ -282,6 +266,36 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
 
         // Copy the entries
         this.Entries = new ArrayList<>(acceptedEntries.keySet());
+    }
+
+    /**
+     * Used by {@linkplain #importText(java.lang.String, java.lang.Object[]) } 
+     * to import property measurments for each entry.
+     * 
+     * @param words Line describing entry, split into words
+     * @return Property measurements for this entry
+     */
+    protected double[] importEntryProperties(String[] words) {
+        double[] properties;
+        // Get the properties
+        properties = new double[NProperties()];
+        for (int p = 0; p < NProperties(); p++) {
+            try {
+                if (getPropertyClassCount(p) == 1) {
+                    properties[p] = Double.parseDouble(words[p + 1]);
+                } else {
+                    int index = ArrayUtils.indexOf(getPropertyClasses(p), words[p+1]);
+                    if (index == -1) {
+                        index = Integer.parseInt(words[p+1]);
+                    }
+                    properties[p] = index;
+                }
+            } catch (NumberFormatException exc) {
+                // System.err.println("Warning: Entry #"+i+" has an invalid property.");
+                properties[p] = Double.NaN;
+            }
+        }
+        return properties;
     }
 
 	
