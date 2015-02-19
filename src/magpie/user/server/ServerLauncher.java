@@ -8,6 +8,8 @@ import magpie.data.Dataset;
 import magpie.models.BaseModel;
 import magpie.user.server.thrift.MagpieServer;
 import magpie.user.server.thrift.MagpieServerHandler;
+import magpie.utility.WekaUtility;
+import org.apache.thrift.protocol.TJSONProtocol;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.server.*;
 import org.apache.thrift.transport.TServerTransport;
@@ -58,9 +60,10 @@ public class ServerLauncher {
                     handler.setTemplateDataset(Dataset.loadState(args[++pos]));
                     break;
                 case "-model":
+                    WekaUtility.importWekaHome();
                     String property = args[++pos];
-					System.out.print("Loading model for " + property + " from " 
-							+ args[pos+1] + "...");
+                    System.out.print("Loading model for " + property + " from " 
+			+ args[pos+1] + "...");
                     BaseModel model = BaseModel.loadState(args[++pos]);
                     handler.addModel(property, model);
 					System.out.println(" Done.");
