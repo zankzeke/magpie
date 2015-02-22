@@ -1,6 +1,6 @@
 # Magpie #
 
-[![Build Status](https://drone.io/bitbucket.org/wolverton/magpie/status.png)](https://drone.io/bitbucket.org/wolverton/magpie/latest)
+[![Build Status](https://drone.io/bitbucket.org/wolverton/magpie/status.png)](https://drone.io/bitbucket.org/wolverton/magpie/latest) [![Statistics](https://www.openhub.net/p/wolverton_magpie/widgets/project_thin_badge.gif)](https://www.openhub.net/p/wolverton_magpie)
 
 Magpie, the Materials-Agnostic Platform for Informatics and Exploration, is designed to simplify the use of machine learning to predict properties of materials. 
 
