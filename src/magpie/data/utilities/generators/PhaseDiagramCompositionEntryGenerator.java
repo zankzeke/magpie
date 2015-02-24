@@ -218,16 +218,33 @@ public class PhaseDiagramCompositionEntryGenerator extends BaseEntryGenerator {
 		// Add in diagrams of greater orders
 		for (int o=2; o<=order; o++) {
 			toAdd = new LinkedList<>();
+            List<double[]> reducedExamples = new LinkedList<>();
 			for (int d=o; d<=size; d++) {
 				for (int[] compI : new EqualSumCombinations(d, o)) {
+                    // Don't add compositions form a lower-order diagram
 					if (ArrayUtils.contains(compI, 0)) {
-						continue; // Don't add compositions form a lower-order diagram
+						continue; 
 					}
+                    // Convert to double array
 					double[] comp = new double[o];
+                    double[] redComp = new double[o];
 					for (int i=0; i<o; i++) {
 						comp[i] = (double) compI[i];
+                        redComp[i] = comp[i] / d;
 					}
-					toAdd.add(comp);
+                    
+                    // Check if this composition is already represented 
+                    boolean wasFound = false;
+                    for (double[] ex : reducedExamples) {
+                        if (Arrays.equals(ex, redComp)) {
+                            wasFound = true;
+                            break;
+                        }
+                    }
+                    if (! wasFound) {
+                        toAdd.add(comp);
+                        reducedExamples.add(redComp);
+                    }
 				}
 			}
 			output.put(o, toAdd);
