@@ -1,6 +1,10 @@
 
 package magpie.data.materials.util;
 
+import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -8,6 +12,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import magpie.utility.DistinctPermutationGenerator;
+import magpie.utility.UtilityOperations;
 import org.apache.commons.lang3.ArrayUtils;
 
 /**
@@ -43,6 +48,74 @@ public class PrototypeSiteInformation implements java.io.Serializable, Cloneable
 		if (! Arrays.equals(IsIncluded, B.IsIncluded))
 			return false;
 		return SiteGroup == B.SiteGroup;
+    }
+    
+    /**
+     * Read site information from a specially-formatted file. See 
+     * {@linkplain PrototypeDataset} for format.
+     * @param filename Path to site information file
+     * @return New site information object
+     * @throws Exception If file fails to parse
+     */
+    static public PrototypeSiteInformation readFromFile(String filename) 
+            throws Exception {
+        // Craete output
+        PrototypeSiteInformation output = new PrototypeSiteInformation();
+        
+        // Open file
+        BufferedReader is;
+        is = Files.newBufferedReader(Paths.get(filename), Charset.forName("US-ASCII"));
+
+        // Read in information about each site
+        while (true) {
+            String Line;
+            try {
+                Line = is.readLine();
+            } catch (IOException e) {
+                throw new Error(e);
+            }
+            if (Line == null) {
+                break;
+            }
+            String[] Words = Line.split(" ");
+
+            // Get the number of atoms on this site
+            double NAtoms;
+            try {
+                NAtoms = Double.parseDouble(Words[0]);
+            } catch (NumberFormatException n) {
+                throw new Exception("Site information file format error");
+            }
+
+            // Check for any other flags (setting equivalent sites, etc.)
+            int p = 1;
+            boolean isOmitted = false;
+            List<Integer> equivSites = new LinkedList<>();
+            while (p < Words.length) {
+                switch (Words[p].toLowerCase()) {
+                    case "-omit":
+                        isOmitted = true;
+                        break;
+                    case "-equiv":
+                        p++;
+                        while (p < Words.length
+                                && UtilityOperations.isInteger(Words[p + 1])) {
+                            equivSites.add(Integer.parseInt(Words[p++]));
+                            if (p == Words.length) {
+                                break;
+                            }
+                        }
+                        break;
+                    default:
+                        throw new Exception("Site information file format error.");
+                }
+                p++;
+            }
+
+            // Store the site in list
+            output.addSite(NAtoms, !isOmitted, equivSites);
+        }
+        return output;
     }
 
     @Override
