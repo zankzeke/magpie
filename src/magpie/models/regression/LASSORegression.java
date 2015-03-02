@@ -42,7 +42,8 @@ public class LASSORegression extends BaseRegression {
         LASSORegression x = (LASSORegression) super.clone();
         x.Coefficients = new LinkedList<>(Coefficients);
         x.Terms = new LinkedList<>(Terms);
-        return super.clone(); 
+        x.TermNames = new LinkedList<>(TermNames);
+        return x;
     }
 
     @Override
@@ -133,6 +134,7 @@ public class LASSORegression extends BaseRegression {
             results = linearFit(features[toAdd], residual, true);
             Coefficients.add(results[1]);
             Terms.add(toAdd);
+            TermNames.add(TrainData.getAttributeName(toAdd));
             Intercept += results[0];
             includable[toAdd] = false;
             residual = getResidual(observations, targetClass);
