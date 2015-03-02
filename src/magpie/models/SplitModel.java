@@ -142,17 +142,23 @@ abstract public class SplitModel extends BaseModel implements MultiModel {
         this.Partitioner = S;
     }
     
-    /** Checks if we have enough models defined 
+    /** 
+     * Checks if enough models are defined. Throw error otherwise
      * @param n Number of models required
-     * @return 
      */
     protected void checkModelCount(int n) {
         if (NModels() < n)
             throw new Error("Insufficent number of models. Need: "
                         +n+" - Available: "+NModels());
-        for (int i=0; i<n; i++)
-            if (Model.get(i) == null)
-                throw new Error("Model " + i + " not defined.");
+        for (int i=0; i<n; i++) {
+            if (Model.get(i) == null) {
+                if (GenericModel == null) {
+                    throw new Error("Model " + i + " not defined.");
+                } else {
+                    Model.set(i, GenericModel.clone());
+                }
+            }
+        }
     }
     
     @Override protected void train_protected(Dataset TrainingData) {
