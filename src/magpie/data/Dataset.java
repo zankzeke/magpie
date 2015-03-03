@@ -1191,14 +1191,22 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                         }
                         // Get Method and its options
                         Method = Command.get(4).toString();
+                        if (Method.equalsIgnoreCase("?")) {
+                            System.out.println("Available EntryRankers:");
+                            System.out.println(printImplmentingClasses(
+                                    BaseEntryRanker.class, false));
+                            return null;
+                        }
                         Options = Command.subList(5, Command.size());
                     } catch (Exception e) {
                         throw new Exception("Usage: <dataset> rank <number> <maximum|minimum> <measured|predicted> <method> [<options>]");
                     }
-                    BaseEntryRanker Ranker = (BaseEntryRanker) instantiateClass("magpie.optimization.rankers." + Method, Options);
-                    Ranker.setMaximizeFunction(maximize);
-                    Ranker.setUseMeasured(measured);
-                    System.out.println(DatasetOutput.printTopEntries(this, Ranker, numberToPrint));
+                    BaseEntryRanker ranker = (BaseEntryRanker) instantiateClass(
+                            "optimization.rankers." + Method, Options);
+                    ranker.setMaximizeFunction(maximize);
+                    ranker.setUseMeasured(measured);
+                    ranker.train(this);
+                    System.out.println(DatasetOutput.printTopEntries(this, ranker, numberToPrint));
                 }
                 break;
             case "subset": case "split": {
