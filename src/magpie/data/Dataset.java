@@ -21,6 +21,7 @@ import magpie.utility.interfaces.Options;
 import magpie.utility.interfaces.Printable;
 import magpie.utility.interfaces.Savable;
 import org.apache.commons.collections.Predicate;
+import weka.core.converters.ArffLoader;
 
 /**
  * Provides a basic storage container for data-mining tasks. Must be filled 
@@ -292,11 +293,82 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * @throws java.lang.Exception If text import fails
      */
     public void importText(String filename, Object[] options) throws Exception {
+        // Open the file
         BufferedReader fp = new BufferedReader(new FileReader(filename));
+        
+        // Clear out old data
+        AttributeName.clear();
+        Entries.clear();
+        
+        // If the file is a Weka arff
+        if (filename.toLowerCase().contains("arff")) {
+            // Import an ARFF file
+            Instances arff = new ArffLoader.ArffReader(fp).getData();
+            
+            // Determine which attribute is the class index. If none is 
+            //  specified in the ARFF, assume it is the last one
+            int classIndex = arff.classIndex();
+            if (classIndex == -1) {
+                classIndex = arff.numAttributes() - 1;
+            }
+            
+            // Get possible values of the class index
+            if (arff.attribute(classIndex).enumerateValues() == null) {
+                ClassName = new String[] { arff.attribute(classIndex).name() }; 
+            } else {
+                List<String> classNames = new LinkedList<>();
+                Enumeration enums = arff.attribute(classIndex).enumerateValues();
+                while (enums.hasMoreElements()) {
+                    classNames.add(enums.nextElement().toString());
+                }
+                ClassName = classNames.toArray(new String[0]);
+            }
+            
+            // Read in attributes (only get the numeric ones)
+            Set<Integer> excludedAttributes = new TreeSet<>();
+            for (int i=0; i<arff.numAttributes(); i++) {
+                if (i == classIndex) {
+                    continue;
+                }
+                if (arff.attribute(i).isNumeric()) {
+                    AttributeName.add(arff.attribute(i).name());
+                } else if (i != classIndex) {
+                    excludedAttributes.add(i);
+                }
+            }
+            
+            // Read in data
+            Entries.ensureCapacity(arff.numInstances());
+            for (Instance inst : arff) {
+                double[] attr = new double[NAttributes()];
+                
+                // Read in attributes
+                int counter=0;
+                for (int a=0; a<inst.numAttributes(); a++) {
+                    if (! (a == classIndex || excludedAttributes.contains(a))) {
+                        attr[counter++] = inst.value(a);
+                    }
+                }
+                
+                // Store values 
+                BaseEntry entry = new BaseEntry();
+                entry.setAttributes(attr);
+                
+                // Set class variable
+                try {
+                    entry.setMeasuredClass(inst.classValue());
+                } catch (Exception e) {
+                    // do nothing
+                }
+                addEntry(entry);
+            }
+            return;
+        }
+        
+        
         // Process header
         String Line = fp.readLine();
         String[] Words = Line.split("[, \t]");
-        AttributeName.clear();
         AttributeName.addAll(Arrays.asList(Arrays.copyOfRange(Words, 0, Words.length -1)));
         ClassName = new String[]{ Words[Words.length-1] };
     

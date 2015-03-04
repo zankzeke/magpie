@@ -1,6 +1,7 @@
 
 package magpie.data;
 
+import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 import org.junit.Test;
@@ -64,5 +65,28 @@ public class DatasetTest {
         return data;
     }
     
+    @Test
+    public void testARFF() throws Exception {
+        // Read it in
+        Dataset data = new Dataset();
+        data.importText("datasets/simple-data.csv", null);
+        
+        // Write it out in ARFF format
+        data.saveCommand("temp", "arff");
+        
+        // Read it back in
+        Dataset dataARFF = new Dataset();
+        dataARFF.importText("temp.arff", null);
+        
+        // Check that they are equal
+        // assertArrayEquals(data.getClassNames(), dataARFF.getClassNames());
+        assertArrayEquals(data.getAttributeNames(),
+                dataARFF.getAttributeNames());
+        assertArrayEquals(data.getEntry(0).getAttributes(), 
+                dataARFF.getEntry(0).getAttributes(), 1e-6);
+        
+        // Delete files
+        new File("temp.arff").deleteOnExit();
+    }
     
 }
