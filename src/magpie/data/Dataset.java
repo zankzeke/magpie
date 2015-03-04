@@ -310,6 +310,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
             int classIndex = arff.classIndex();
             if (classIndex == -1) {
                 classIndex = arff.numAttributes() - 1;
+                arff.setClassIndex(classIndex);
             }
             
             // Get possible values of the class index
