@@ -79,7 +79,7 @@ abstract public class DatasetOutput extends Dataset {
                 Ranker.setUseMeasured(true);
             }
         } else {
-            if (Data.getEntry(0).hasPrediction()) {
+            if (Data.getEntry(0).hasMeasurement()) {
                 extra = true;
                 output += String.format("\t%10s","Measured");
                 Ranker.setUseMeasured(true);
