@@ -207,7 +207,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         } else {
             train_protected(trainingData);
         }
-        trained=true; validated=false;
+        trained=true;
         
         // Restore attributes
         if (AttributeSelector != null) {
