@@ -173,7 +173,7 @@ abstract public class SplitModel extends BaseModel implements MultiModel {
                 Model.get(i).train(SplitData.get(i), true);
         }
         TrainingData.combine(SplitData);
-        trained=true; validated=false;
+        trained=true; 
     }
     
     @Override public void run_protected(Dataset Data) {
