@@ -2,6 +2,7 @@ package magpie.models;
 
 import magpie.data.Dataset;
 import magpie.models.BaseModel;
+import magpie.models.regression.GuessMeanRegression;
 import magpie.models.regression.PolynomialRegression;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -10,33 +11,33 @@ import static org.junit.Assert.*;
  * Test regression model capabilities.
  * @author Logan Ward
  */
-abstract public class BaseModelTest {
-	private Dataset data = new Dataset();
-	
-	public BaseModelTest() {
-		try {
-			data.clearData();
-			data.importText("datasets/simple-data.csv", null);
-		} catch (Exception e) {
-			fail(e.getLocalizedMessage());
-		}
-	}
+public class BaseModelTest {
     
     /**
      * Create a new instance of the model
      * @return New instance
      */
-    public abstract BaseModel generateModel();
+    public BaseModel generateModel() {
+        return new GuessMeanRegression();
+    }
+    
+    public Dataset getData() throws Exception {
+        Dataset data = new Dataset();
+        data.importText("datasets/simple-data.csv", null);
+        return data;
+    }
 
 	@Test
-	public void testSimpleTraining() {
+	public void testSimpleTraining() throws Exception {
 		BaseModel model = generateModel();
+        Dataset data = getData();
 		model.train(data);
 	}
 	
 	@Test
 	public void testMixedTraining() throws Exception {
 		BaseModel model = generateModel();
+        Dataset data = getData();
 		
 		Dataset clone = data.clone();
 		clone.addEntry("0.0, -1.5");
@@ -45,19 +46,21 @@ abstract public class BaseModelTest {
 	}
 	
     @Test
-	public void testCrossValidation() {
-		PolynomialRegression model = new PolynomialRegression();
+	public void testCrossValidation() throws Exception {
+		BaseModel model = generateModel();
+        Dataset data = getData();
 		
 		model.crossValidate(10, data);
 	}
     
     @Test
-    public void testClone() {
+    public void testClone() throws Exception {
         BaseModel model1 = generateModel();
         BaseModel model2 = model1.clone();
         
         // Train a model on a random subset, 
         //   get its perforamnce on the whole dataset
+        Dataset data = getData();
         model1.train(data.getRandomSubset(0.5));
         model1.externallyValidate(data);
         String Stats1 = model1.ValidationStats.toString();
