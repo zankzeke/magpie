@@ -85,7 +85,7 @@ import weka.core.converters.ArffLoader;
  * 
  * <command><p><b>attributes generate</b> - Generate attributes for each entry</command>
  * 
- * <command><p><b>attributes rank &lt;number> &lt;method> [&lt;options..]</b> - Rank attributes based on predictive power
+ * <command><p><b>attributes rank &lt;number> &lt;method> [&lt;options...&gt;]</b> - Rank attributes based on predictive power
  * <br><pr><i>number</i>: Number of top attributes to print
  * <br><pr><i>method</i>: Method used to rank attributes. Name of a {@linkplain BaseAttributeEvaluator} ("?" to print available methods)
  * <br><pr><i>options...</i>: Options for the evaluation method.</command>
