@@ -81,6 +81,14 @@ public class ParsedFunction implements MultivariateFunction {
         }
         return output;
     }
+
+    /**
+     * Get the string that was provided as input
+     * @return Input string
+     */
+    public String getInput() {
+        return Input;
+    }
     
     /**
      * Define the value of a certain variable in this expression
