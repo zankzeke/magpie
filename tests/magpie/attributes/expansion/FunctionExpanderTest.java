@@ -30,6 +30,7 @@ public class FunctionExpanderTest {
         int initialCount = data.NAttributes();
         expdr.expand(data);
         assertEquals(initialCount * 2, data.NAttributes());
+        assertEquals(initialCount * 2, data.getEntry(0).NAttributes());
         assertTrue(ArrayUtils.contains(data.getAttributeNames(), data.getAttributeName(0) + "^2"));
         assertEquals(Math.pow(data.getEntry(0).getAttribute(0), 2), 
                 data.getEntry(0).getAttribute(initialCount), 1e-6);

@@ -61,15 +61,18 @@ public class FunctionExpander extends BaseAttributeExpander {
     @Override
     public void expand(Dataset Data) {
         // Get list of attribute names
-        String[] attrNames = Data.getAttributeNames();
+        String[] oldNames = Data.getAttributeNames();
         
+        // Generate names
+        List<String> newNames = new LinkedList(
+                Arrays.asList(Data.getAttributeNames()));
         for (ParsedFunction f : Functions) {
             // Get information about this function
             List<String> variableNames = f.getVariableNames();
             String inputString = f.getInput();
             
             // Generate combinations
-            Combinations combins = new Combinations(attrNames.length, 
+            Combinations combins = new Combinations(oldNames.length, 
                     f.numVariables());
             
             for (int[] comb : combins) {
@@ -77,28 +80,42 @@ public class FunctionExpander extends BaseAttributeExpander {
                 String newName = inputString;
                 for (int i=0; i<variableNames.size(); i++) {
                     newName = inputString.replace("${" + variableNames.get(i) + "}",
-                            attrNames[comb[i]]);
+                            oldNames[comb[i]]);
                 }
-                
+                newNames.add(newName);
+            }
+        }
+        Data.setAttributeNames(newNames);
+        
+        // Compute attributes
+        for (BaseEntry e : Data.getEntries()) {
+            for (ParsedFunction f : Functions) {
+                // Generate combinations
+                Combinations combins = new Combinations(oldNames.length,
+                        f.numVariables());
+                int nCombins = (int) CombinatoricsUtils.binomialCoefficient(
+                        oldNames.length, f.numVariables());
+
                 // Compute the values for each etnry
-                double[] newVals = new double[Data.NEntries()];
+                double[] newVals = new double[nCombins];
                 double[] attrs = new double[f.numVariables()];
-                for (int e=0; e<Data.NEntries(); e++) {
+                int count = 0;
+                for (int[] comb : combins) {
                     // Get the entry
-                    BaseEntry entry = Data.getEntry(e);
-                    for (int a=0; a<f.numVariables(); a++) {
-                        attrs[a] = entry.getAttribute(comb[a]);
+                    for (int a = 0; a < f.numVariables(); a++) {
+                        attrs[a] = e.getAttribute(comb[a]);
                     }
-                    
+
                     // Evaluate function
-                    newVals[e] = f.value(attrs);
+                    newVals[count++] = f.value(attrs);
                 }
                 
                 // Add the new attribute
-                Data.addAttribute(newName, newVals);
+                e.addAttributes(newVals);
             }
+
         }
-        
+
         // Call garbage collection
         for (BaseEntry e : Data.getEntries()) {
             e.reduceMemoryFootprint();
