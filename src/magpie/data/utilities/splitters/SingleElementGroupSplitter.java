@@ -20,7 +20,14 @@ import magpie.user.CommandHandler;
  */
 public class SingleElementGroupSplitter extends BaseDatasetSplitter {
     /** List of elements that define a subclass */
-    final private List<String> Elements = new LinkedList<>();
+    private List<String> Elements = new LinkedList<>();
+
+    @Override
+    public SingleElementGroupSplitter clone() {
+        SingleElementGroupSplitter x = (SingleElementGroupSplitter) super.clone();
+        x.Elements = new LinkedList<>(Elements);
+        return x;
+    }
 
     @Override
     public void setOptions(List OptionsObj) throws Exception {

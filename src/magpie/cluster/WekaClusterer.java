@@ -28,7 +28,7 @@ public class WekaClusterer extends BaseClusterer {
     }
 
     @Override
-    protected WekaClusterer clone() {
+    public WekaClusterer clone() {
         WekaClusterer x = (WekaClusterer) super.clone(); 
         try {
             WekaUtility.importWekaHome();

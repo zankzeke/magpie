@@ -28,6 +28,15 @@ public class PredictedClassIntervalSplitter extends BaseDatasetSplitter {
     private double[] Edges = new double[]{0};
 
     @Override
+    public PredictedClassIntervalSplitter clone() {
+        PredictedClassIntervalSplitter x = 
+                (PredictedClassIntervalSplitter) super.clone();
+        x.Clfr = Clfr.clone();
+        x.Edges = Edges.clone();
+        return x;
+    }
+
+    @Override
     @SuppressWarnings({"BroadCatchBlock", "TooBroadCatch"})
     public void setOptions(List<Object> Options) throws Exception {
         try {
