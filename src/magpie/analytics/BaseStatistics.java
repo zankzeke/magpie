@@ -14,8 +14,9 @@ import org.apache.commons.math3.stat.StatUtils;
  * This class stores basic statistics about model performance and contains methods 
  * to calculate each of these statistics.
  * 
- * Implementations of this case need to supply {@linkplain #evaluate(magpie.data.Dataset)}, 
- *  which actually performs the statistical calculations. It is also up to the implementation
+ * <p>Implementations of this case need to supply {@linkplain #evaluate(magpie.data.Dataset)}, 
+ *  which actually performs the statistical calculations. Make sure to store the 
+ *  measurements and predicted class variables! It is also up to the implementation
  *  to provide some way of storing results and printing them using the toString() operation.
  * 
  * <usage><p><b>Usage</b>: *No options to set*</usage>
@@ -36,12 +37,15 @@ import org.apache.commons.math3.stat.StatUtils;
 
 abstract public class BaseStatistics extends java.lang.Object implements
         java.io.Serializable, java.lang.Cloneable, Printable, Options, Commandable {
-    
-    // Statistics useful regardless the type of model
     /** Number of entries evaluated */
     public int NumberTested=0;  
     /** Receiver operating characteristic curve*/
     public double[][] ROC;
+    /** Measured value of class variable */
+    protected double[] Measured;
+    /** Predicted value of class variable */
+    protected double[] Predicted;
+    
     /** 
      *  Area under receiver operating characteristic curve normalized such that 1.0
      *  is a perfect classifier and 0.0 is a perfectly-random classifier. 
@@ -70,7 +74,8 @@ abstract public class BaseStatistics extends java.lang.Object implements
         return x;
     }
     
-    /** Generates statistics about the performance on a model.
+    /** 
+     * Generates statistics about the performance on a model.
      * @param Results Dataset containing both measured and predicted classes.
      */
     abstract public void evaluate(Dataset Results);

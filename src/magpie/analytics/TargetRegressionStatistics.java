@@ -155,23 +155,23 @@ public class TargetRegressionStatistics extends RegressionStatistics {
 
     @Override
     public void evaluate(Dataset Results) {
-        double[] measured = Results.getMeasuredClassArray();
-        double[] predicted = Results.getPredictedClassArray();
-        for (int i=0; i<measured.length; i++) {
-            measured[i] = Math.abs(measured[i] - Target);
-            predicted[i] = Math.abs(predicted[i] - Target);
+        Measured = Results.getMeasuredClassArray();
+        Predicted = Results.getPredictedClassArray();
+        for (int i=0; i<Measured.length; i++) {
+            Measured[i] = Math.abs(Measured[i] - Target);
+            Predicted[i] = Math.abs(Predicted[i] - Target);
         }
         
         // Get simple population statistics
-        getStatistics(measured, predicted);
+        getStatistics(Measured, Predicted);
         
         // If max candidates is set, perform candidate analysis
         if (MaxCandidates > 0) 
-            runCandidateAnalysis(measured, predicted);
+            runCandidateAnalysis(Measured, Predicted);
         
         // If max window size is set, perform filter analysis
         if (MaxWindowSize > 0)
-            runWindowAnalysis(measured, predicted);
+            runWindowAnalysis(Measured, Predicted);
     }
     
     /**
