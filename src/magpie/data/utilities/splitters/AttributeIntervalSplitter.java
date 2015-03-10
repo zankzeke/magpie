@@ -25,6 +25,14 @@ public class AttributeIntervalSplitter extends BaseDatasetSplitter {
     protected double[] BinEdges = null;
 
     @Override
+    public AttributeIntervalSplitter clone() {
+        AttributeIntervalSplitter x = 
+                (AttributeIntervalSplitter) super.clone();
+        x.BinEdges = BinEdges.clone();
+        return x;
+    }
+
+    @Override
     public int[] label(Dataset D) {
         int[] output = new int[D.NEntries()];
         for (int i=0; i<output.length; i++) {

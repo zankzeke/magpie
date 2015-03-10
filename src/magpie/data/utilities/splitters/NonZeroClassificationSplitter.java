@@ -27,6 +27,14 @@ public class NonZeroClassificationSplitter extends BaseDatasetSplitter {
     protected BaseModel Clfr = new WekaClassifier("trees.REPTree", null);
     /** Probability of being of class #0 below which entry gets placed in entry #1 */
     protected double ProbabilityThreshold = 0.5;
+    
+    @Override
+    public NonZeroClassificationSplitter clone() {
+        NonZeroClassificationSplitter x = (NonZeroClassificationSplitter) super.clone();
+        x.Clfr = this.Clfr.clone();
+        return x;
+    }
+    
 
     @Override
     public void setOptions(List Options) throws Exception {
@@ -95,13 +103,5 @@ public class NonZeroClassificationSplitter extends BaseDatasetSplitter {
         new NonZeroClassModifier().transform(Copy);
         Clfr.train(Copy);
     }    
-
-    @Override
-    protected Object clone() throws CloneNotSupportedException {
-        NonZeroClassificationSplitter x = (NonZeroClassificationSplitter) super.clone();
-        x.Clfr = this.Clfr.clone();
-        return x;
-    }
-    
     
 }

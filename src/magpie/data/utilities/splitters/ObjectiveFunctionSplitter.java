@@ -27,6 +27,13 @@ public class ObjectiveFunctionSplitter extends BaseDatasetSplitter {
     private double Threshold = 0.0;
     /** Objective function used to split entries */
     private BaseEntryRanker objFun = new SimpleEntryRanker();
+
+    @Override
+    public ObjectiveFunctionSplitter clone() {
+        ObjectiveFunctionSplitter x = (ObjectiveFunctionSplitter) super.clone();
+        x.objFun = objFun.clone();
+        return x;
+    }
     
     @Override
     public void setOptions(List<Object> Options) throws Exception {

@@ -22,12 +22,21 @@ public class ClustererSplitter extends BaseDatasetSplitter {
     /** If it was provided as a trained clusterer */
     private boolean trainedPreviously = false;
 
-    /** Set the clusterer used for splitting. If this Clusterer is already trained, it
+    @Override
+    public ClustererSplitter clone() {
+        ClustererSplitter x = (ClustererSplitter) super.clone();
+        x.Clusterer = Clusterer.clone();
+        return x;
+    }
+    
+    /** 
+     * Set the clusterer used for splitting. If this Clusterer is already trained, it
      * will be used as provided. 
+     * @param x Clusterer to be used for splitting
      */
-    public void setClusterer(BaseClusterer Clusterer) {
-        trainedPreviously = Clusterer.isTrained();
-        this.Clusterer = Clusterer;
+    public void setClusterer(BaseClusterer x) {
+        trainedPreviously = x.isTrained();
+        this.Clusterer = x;
     }
 
     @Override

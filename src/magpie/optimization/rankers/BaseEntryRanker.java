@@ -34,7 +34,7 @@ abstract public class BaseEntryRanker implements java.lang.Cloneable, Options {
 
     @Override
     @SuppressWarnings("CloneDeclaresCloneNotSupported")
-    protected BaseEntryRanker clone() {
+    public BaseEntryRanker clone() {
         BaseEntryRanker x; 
         try {
             x = (BaseEntryRanker) super.clone(); 

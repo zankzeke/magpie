@@ -26,6 +26,17 @@ public class MultipleElementGroupsSplitter extends SingleElementGroupSplitter {
     List<String[]> ElementGroups = new LinkedList<>();
 
     @Override
+    public MultipleElementGroupsSplitter clone() {
+        MultipleElementGroupsSplitter x = 
+                (MultipleElementGroupsSplitter) super.clone();
+        x.ElementGroups = new LinkedList<>();
+        for (String[] group : ElementGroups) {
+            x.ElementGroups.add(group.clone());
+        }
+        return x;
+    }
+
+    @Override
     public void setOptions(List OptionsObj) throws Exception {
         String[] Options = CommandHandler.convertCommandToString(OptionsObj);
         if (Options.length == 0) 

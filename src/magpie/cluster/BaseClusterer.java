@@ -60,7 +60,7 @@ abstract public class BaseClusterer implements Options, Printable,
 
     @Override
     @SuppressWarnings("CloneDeclaresCloneNotSupported")
-    protected BaseClusterer clone() {
+    public BaseClusterer clone() {
         BaseClusterer x;
         try {
             x = (BaseClusterer) super.clone(); 

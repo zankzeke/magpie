@@ -27,7 +27,6 @@ public class PropertyFormulaRanker extends MultiObjectiveEntryRanker {
     private int[] PropertyIndex;
 
     @Override
-    @SuppressWarnings("CloneDeclaresCloneNotSupported")
     public PropertyFormulaRanker clone() {
         PropertyFormulaRanker x = (PropertyFormulaRanker) super.clone();
         if (PropertyIndex != null) {
