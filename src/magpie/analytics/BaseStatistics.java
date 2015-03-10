@@ -1,5 +1,7 @@
 package magpie.analytics;
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -7,6 +9,7 @@ import magpie.data.Dataset;
 import magpie.utility.interfaces.Commandable;
 import magpie.utility.interfaces.Options;
 import magpie.utility.interfaces.Printable;
+import magpie.utility.interfaces.Savable;
 import org.apache.commons.math3.stat.StatUtils;
 
 /**
@@ -31,12 +34,17 @@ import org.apache.commons.math3.stat.StatUtils;
  * 
  * <print><p><b>roc</b> - Print out Receiver Operating Characteristic curve</print>
  * 
+ * <p><b><u>Implemented Save Commands</u></b></u>
+ * 
+ * <save><p><b>data</b> - Save predicted and measured class values used to compute
+ * statistics</save>
+ * 
  * @author Logan Ward
  * @version 1.0
  */
 
-abstract public class BaseStatistics extends java.lang.Object implements
-        java.io.Serializable, java.lang.Cloneable, Printable, Options, Commandable {
+abstract public class BaseStatistics implements java.io.Serializable, 
+        java.lang.Cloneable, Printable, Options, Commandable, Savable {
     /** Number of entries evaluated */
     public int NumberTested=0;  
     /** Receiver operating characteristic curve*/
@@ -210,5 +218,32 @@ abstract public class BaseStatistics extends java.lang.Object implements
                         + " not recognized.");
         }
         return null;
+    }
+
+    @Override
+    public String saveCommand(String Basename, String Format) throws Exception {
+        if (Format.equalsIgnoreCase("data")) {
+            String filename = Basename + ".csv";
+            savePerformanceData(filename);
+            return filename;
+        }
+        throw new Exception("Format not supported: " + Format);
+    }
+
+    /**
+     * Write out measured and predicted class variables used to compute statistics.
+     * Prints into csv format.
+     * @param filename Name of output file
+     */
+    public void savePerformanceData(String filename) throws Exception {
+        if (NumberTested == 0) {
+            throw new Exception("No performance data");
+        }
+        PrintWriter fp = new PrintWriter(filename);
+        fp.println("measured, predicted");
+        for (int i=0; i<Measured.length; i++) {
+            fp.format("%.7e, %.7e\n", Measured[i], Predicted[i]);
+        }
+        fp.close();
     }
 }

@@ -54,7 +54,7 @@ import magpie.utility.interfaces.*;
  * <br><pr><i>method</i>: Method used to normalize attributes ("?" for available options)
  * <br><pr><i>options...</i>: Any options for the normalizer</command>
  * 
- * <p><b><u>Implemented Print Commands:</u></b>
+ * <p><b><u>Implemented Print Commands</u></b>
  * 
  * <print><p><b>model</b> - Print out the model</print>
  * 
@@ -66,11 +66,17 @@ import magpie.utility.interfaces.*;
  * 
  * <print><p><b>selector</b> - Print out attributes used selected by internal {@link BaseAttributeSelector}, if defined</print>
  * 
+ * <p><b><u>Implemented Save Commands</u></b>
+ * 
+ * <save><p><b>training</b> - Print out performance data for training set</save>
+ * 
+ * <save><p><b>validation</b> - Print out performance data for validation set</save>
+ * 
  * @author Logan Ward
  * @version 1.0
  */
 abstract public class BaseModel implements java.io.Serializable, java.lang.Cloneable, 
-        Options, Printable, Commandable {
+        Options, Printable, Commandable, Savable {
     /** Records whether model has been trained */
     protected boolean trained=false;
     /** Records whether model has been validated */
@@ -120,7 +126,6 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         this.AttributeSelector = AttributeSelector;
     }
     
-    // Validation options
     /** Perform an n-fold cross validation
      * @param folds Number of folds in CV test
      * @param TestData Data to use for CV
@@ -497,4 +502,18 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                 throw new Exception("ERROR: Model does not contain a " + Name);
         }
     }
+
+    @Override
+    public String saveCommand(String Basename, String Format) throws Exception {
+        switch (Format.toLowerCase()) {
+            case "training":
+                return TrainingStats.saveCommand(Basename, "data");
+            case "validation":
+                return ValidationStats.saveCommand(Basename, "data");
+            default:
+                throw new Exception("Format not recognized: " + Format);
+        }
+    }
+    
+    
 }
