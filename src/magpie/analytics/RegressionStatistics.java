@@ -20,9 +20,9 @@ public class RegressionStatistics extends BaseStatistics {
     public double R;  
     
     @Override public void evaluate(Dataset Results) {
-        double[] measured = Results.getMeasuredClassArray();
-        double[] predicted = Results.getPredictedClassArray();
-        getStatistics(measured, predicted);        
+        Measured = Results.getMeasuredClassArray();
+        Predicted = Results.getPredictedClassArray();
+        getStatistics(Measured, Predicted);        
     }
 
     /**

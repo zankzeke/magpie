@@ -56,15 +56,15 @@ public class ClassificationStatistics extends BaseStatistics {
     
     @Override public void evaluate(Dataset Data) {
         NumberTested = Data.NEntries(); NumberCorrect=0;
-        double[] measured = Data.getMeasuredClassArray(),
-                predicted = Data.getPredictedClassArray();
-        double[] predicted_discrete = applyClassCutoff(predicted, Data.NClasses());
+        Measured = Data.getMeasuredClassArray();
+        Predicted = Data.getPredictedClassArray();
+        double[] predicted_discrete = applyClassCutoff(Predicted, Data.NClasses());
         
         // Build a contigency table
         ContingencyTable = new int[Data.NClasses()][Data.NClasses()];
         for (int i=0; i<Data.NEntries(); i++) {
-            ContingencyTable[(int)measured[i]][(int)predicted_discrete[i]]++;
-            if (measured[i]==predicted_discrete[i])
+            ContingencyTable[(int)Measured[i]][(int)predicted_discrete[i]]++;
+            if (Measured[i]==predicted_discrete[i])
                 NumberCorrect++;
         }
         FractionCorrect = (double) NumberCorrect / (double) NumberTested;
@@ -77,7 +77,7 @@ public class ClassificationStatistics extends BaseStatistics {
             ConfusionMatrix = new int[2][2];
             int actual, pred;
             for (int i=0; i<Data.NEntries(); i++) {
-                actual = (measured[i] == 0) ? 0 : 1;
+                actual = (Measured[i] == 0) ? 0 : 1;
                 pred = (predicted_discrete[i] == 0) ? 0 : 1;
                 ConfusionMatrix[pred][actual]++;
             }
@@ -108,14 +108,14 @@ public class ClassificationStatistics extends BaseStatistics {
             classprobs = Data.getClassProbabilityArray();
             for (int i=0; i<NumberTested; i++)
                 ranking[i]=1.0-classprobs[i][0];
-            getROCCurve(measured, ranking, 50);
+            getROCCurve(Measured, ranking, 50);
         } else {
-            double[] predicted_adj = Arrays.copyOf(predicted, Data.NEntries());
-            for (int i=0; i<measured.length; i++) 
+            double[] predicted_adj = Arrays.copyOf(Predicted, Data.NEntries());
+            for (int i=0; i<Measured.length; i++) 
                 if (predicted_adj[i] < 0) predicted_adj[i] = 0.0;
                 else if (predicted_adj[i] > Data.NClasses() - 1)
                     predicted_adj[i] = Data.NClasses() - 1;
-            getROCCurve(measured, predicted_adj, 50);
+            getROCCurve(Measured, predicted_adj, 50);
         }
         ROC_AUC = integrateROCCurve(ROC);
     }
