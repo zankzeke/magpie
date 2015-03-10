@@ -67,7 +67,9 @@ abstract public class BaseClusterer implements Options, Printable,
         } catch (CloneNotSupportedException c) {
             throw new Error(c);
         }
-        x.AttributeSelector = AttributeSelector.clone();
+        if (AttributeSelector != null) {
+            x.AttributeSelector = AttributeSelector.clone();
+        }
         return x;
     }
 
