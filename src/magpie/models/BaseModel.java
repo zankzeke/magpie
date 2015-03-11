@@ -286,7 +286,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         
         // Copy results to original array, if attribute selection was used
         if (AttributeSelector != null) {
-            if (data.getEntry(0).getClassProbilities() == null)
+            if (data.NClasses() == 1)
                 testData.setPredictedClasses(data.getPredictedClassArray());
             else 
                 testData.setClassProbabilities(data.getClassProbabilityArray());
