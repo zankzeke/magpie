@@ -54,7 +54,7 @@ try:
 	["bandgap minimize TargetEntryRanker 5.4", "volume minimize SimpleEntryRanker"],
 	"PhaseDiagramCompositionEntryGenerator 2 -crystal 5 Ni Fe O Si F S Cu Au Zn Ge Na Cl",
 	10)
-  print "Materials with a band gap close to 5.4 eV:"
+  print "Materials with a band gap close to 5.4 eV and minimum specific volume:"
   for e in res:
 	print "\t%s"%e.name
 
