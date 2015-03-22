@@ -17,8 +17,13 @@ import org.apache.commons.math3.optim.linear.*;
  * <li>Load in phase equilibria data with {@linkplain #addPhase(magpie.data.materials.CompositionEntry, double) }, 
  * {@linkplain #setMu(java.lang.String, double) }, or {@linkplain #addPhases(magpie.data.materials.CompositionDataset) }.
  * <li>Compute equilibrium with {@linkplain #doGCLP(magpie.data.materials.CompositionEntry) }
- * <li>Access ground state energy with 
+ * <li>Access ground state energy with {@linkplain #getGroundStateEnergy() }
+ * and equilibrium with {@linkplain #getPhaseEquilibria() }
  * </ol>
+ * 
+ * <p>Reference: <a href="http://onlinelibrary.wiley.com/doi/10.1002/adma.200700843">
+ * Akbarzadeh, Ozolins, Wolverton. <u>Advanced Materials</u>.
+ * 19 (2007), 3233.</a>
  * @author Logan Ward
  */
 public class GCLPCalculator {
@@ -201,7 +206,7 @@ public class GCLPCalculator {
     
     /**
      * Get computed phase equilibria of last composition computed with this solver.
-     * @return Ground state phase equilibrium
+     * @return Ground state phase equilibrium (compositions) and their relative fractions
      * @throws java.lang.Exception
      */
     public Map<CompositionEntry, Double> getPhaseEquilibria() throws Exception {
