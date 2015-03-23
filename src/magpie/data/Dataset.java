@@ -844,18 +844,18 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         }
         
         Instances weka_out = new Instances("Output", Attributes, NEntries()); 
-        double[][] entries = getEntryArray();
         int j;
         for (int i=0; i<NEntries(); i++) {
+            BaseEntry entry = Entries.get(i);
             DenseInstance inst = new DenseInstance(Attributes.size());
             inst.setDataset(weka_out);
             for (j=0; j<NAttributes(); j++)
-                inst.setValue(j, entries[i][j]);
+                inst.setValue(j, entry.getAttribute(j));
             if (!useClass) { }// Do nothing 
             else if (useDiscreteClass)
-                inst.setValue(j, getClassNames()[(int) entries[i][j]]);
+                inst.setValue(j, getClassNames()[(int) entry.getMeasuredClass()]);
             else 
-                inst.setValue(j, entries[i][j]);
+                inst.setValue(j, entry.getMeasuredClass());
             weka_out.add(inst);
         }
         if (useClass)
