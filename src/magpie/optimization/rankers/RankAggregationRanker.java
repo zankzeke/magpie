@@ -236,7 +236,6 @@ class RankAggregator {
         for (int i=0; i<subLists[0].length; i++) {
             initialGuess.add(i);
         }
-        Collections.shuffle(initialGuess); // DEBUG
         
         // Generate initial population
         List<List<Integer>> population = new ArrayList<>(PopulationSize);
