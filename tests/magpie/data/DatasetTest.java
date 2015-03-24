@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import weka.core.Instances;
 
 /**
  *
@@ -87,6 +88,22 @@ public class DatasetTest {
         
         // Delete files
         new File("temp.arff").deleteOnExit();
+    }
+    
+    @Test
+    public void testWekaTransfer() throws Exception {
+        // Read data
+        Dataset data = new Dataset();
+        data.importText("datasets/simple-data.csv", null);
+        
+        // Make a copy
+        Dataset original = data.clone();
+        
+        // Transfer to weka format
+        Instances weka = data.transferToWeka(true, false);
+        assertEquals(0, data.getEntry(0).NAttributes());
+        data.restoreAttributes(weka);
+        assertEquals(original.NAttributes(), data.getEntry(0).NAttributes());
     }
     
 }

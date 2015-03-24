@@ -111,8 +111,9 @@ public class WekaRegression extends BaseRegression implements WekaModel {
 
     @Override protected void train_protected(Dataset TrainingData) {
         try { 
-            Instances wekadata = TrainingData.convertToWeka();
+            Instances wekadata = TrainingData.transferToWeka(true, false);
             Model.buildClassifier(wekadata); 
+            TrainingData.restoreAttributes(wekadata);
         }
         catch (Exception e) { 
             throw new Error("Model failed to train." + e); 
@@ -122,11 +123,12 @@ public class WekaRegression extends BaseRegression implements WekaModel {
     @Override 
     public void run_protected(Dataset TestData) {
         try { 
-            Instances wekadata = TestData.convertToWeka();
+            Instances wekadata = TestData.transferToWeka(false, false);
             double[] prediction = new double [TestData.NEntries()];
             for (int i=0; i<wekadata.numInstances(); i++) 
                 prediction[i]=Model.classifyInstance(wekadata.instance(i));
             TestData.setPredictedClasses(prediction);
+            TestData.restoreAttributes(wekadata);
         } catch (Exception e) { 
             throw new Error(e); 
         }
@@ -140,7 +142,5 @@ public class WekaRegression extends BaseRegression implements WekaModel {
     @Override
     protected String printModel_protected() {
         return this.Model.toString();
-    }
-    
-    
+    }    
 }
