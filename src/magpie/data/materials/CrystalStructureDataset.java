@@ -174,8 +174,6 @@ public class CrystalStructureDataset extends CompositionDataset {
         AttributeName.add("min_Coordination");
         AttributeName.add("max_Coordination");
         AttributeName.add("var_CellVolumeFraction");
-        AttributeName.add("min_CellVolumeFraction");
-        AttributeName.add("max_CellVolumeFraction");
         AttributeName.add("NUniquePolyhedronShapes");
         AttributeName.add("MaxPackingEfficiency");
         AttributeName.add("mean_WCMagnitude_1stShell");
@@ -213,9 +211,8 @@ public class CrystalStructureDataset extends CompositionDataset {
             newAttr[2] = tool.faceCountMinimum();
 			newAttr[3] = tool.faceCountMaximum();
             newAttr[4] = tool.volumeFractionVariance();
-            newAttr[5] = tool.volumeFractionMinimum();
-            newAttr[6] = tool.volumeFractionMaximum();
-			newAttr[7] = (double) tool.getUniquePolyhedronShapes().size();
+			newAttr[7] = (double) tool.getUniquePolyhedronShapes().size() 
+                    / ptr.getStructure().nAtoms();
 			newAttr[8] = tool.maxPackingEfficiency();
             newAttr[9] = tool.warrenCowleyOrderingMagnituide(1);
             newAttr[10] = tool.warrenCowleyOrderingMagnituide(2);
