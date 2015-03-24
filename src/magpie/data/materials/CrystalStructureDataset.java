@@ -139,48 +139,12 @@ public class CrystalStructureDataset extends CompositionDataset {
     }
 
     @Override
-    protected void calculateAttributes() {
-        // Generate simple attributes
-        generateSimpleStructuralAttributes();
-        
+    protected void calculateAttributes() {       
         // Generate Voronoi-based attributes
         generateVoronoiCellBasedAttributes();
         
         // Calculate composition-based attributes
         super.calculateAttributes(); 
-    }
-    
-    /**
-     * Compute attributes based on simple measures of the structure.
-     * 
-     * <p>Current list:
-     * <ol>
-     * <li>Number of atoms
-     * </ol>
-     */
-    private void generateSimpleStructuralAttributes() {
-        int attributesAdded = AttributeName.size();
-        // Add names
-        AttributeName.add("NAtoms");
-        
-        // Evaluate each entry
-        attributesAdded = AttributeName.size() - attributesAdded;
-        double[] newAttr = new double[attributesAdded];
-        for (BaseEntry entry : Entries) {
-            AtomicStructureEntry ptr = (AtomicStructureEntry) entry;
-            
-            // Call analysis
-            SimpleStructureAnalysis tool = new SimpleStructureAnalysis();
-            try {
-                tool.analyzeStructre(ptr.getStructure());
-            } catch (Exception e) {
-                throw new Error(e);
-            }
-            
-            // Get results
-            newAttr[0] = ptr.getStructure().nAtoms();
-            entry.addAttributes(newAttr);
-        }
     }
     
     /**
