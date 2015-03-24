@@ -863,6 +863,82 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         return weka_out;
     }
     
+    /**
+     * Convert to Weka Instances object, delete attribute information in each entry.
+     * This can be used to conserve memory when using Weka. 
+     * @param useClass Whether to output class data
+     * @param useDiscreteClass Whether to treat class variable as discrete
+     * @return Dataset in Weka format
+     * @see Dataset#restoreAttributes(weka.core.Instances) 
+     */
+    public Instances transferToWeka(boolean useClass, boolean useDiscreteClass) {
+        // Create an array of attribute names
+        ArrayList<Attribute> Attributes = new ArrayList<>();
+        for (int i=0; i<NAttributes(); i++) {
+            Attribute att = new Attribute(AttributeName.get(i));
+            Attributes.add(att);
+        }
+        if (!useClass) {
+          // Do nothing  
+        } else if (useDiscreteClass) { 
+            Attributes.add(new Attribute("Class", Arrays.asList(getClassNames()))); 
+        } else { 
+            Attributes.add(new Attribute("Class")); 
+        }
+        
+        Instances weka_out = new Instances("Output", Attributes, NEntries()); 
+        int j;
+        for (int i=0; i<NEntries(); i++) {
+            BaseEntry entry = Entries.get(i);
+            DenseInstance inst = new DenseInstance(Attributes.size());
+            inst.setDataset(weka_out);
+            for (j=0; j<NAttributes(); j++)
+                inst.setValue(j, entry.getAttribute(j));
+            if (!useClass) { }// Do nothing 
+            else if (useDiscreteClass)
+                inst.setValue(j, getClassNames()[(int) entry.getMeasuredClass()]);
+            else 
+                inst.setValue(j, entry.getMeasuredClass());
+            weka_out.add(inst);
+            entry.clearAttributes();
+        }
+        if (useClass)
+            weka_out.setClassIndex(NAttributes());
+        return weka_out;
+    }
+    
+    /**
+     * Restore attribute data to each entry.
+     * @param weka Weka object containing attribute information. Assumes last
+     * variable has class variable
+     * @throws java.lang.Exception
+     * @see Dataset#transferToWeka(boolean, boolean) 
+     */
+    public void restoreAttributes(Instances weka) throws Exception {
+        // Check input
+        if (weka.numInstances() != NEntries()) {
+            throw new Exception("Wrong number of entries");
+        }
+        boolean hasClass = weka.classIndex() >= 0;
+        if ((weka.numAttributes() != NAttributes() && !hasClass) || 
+               (weka.numAttributes() - 1 != NAttributes() && hasClass)) {
+            throw new Exception("Wrong number of attributes");
+        }
+        
+        // Transfer data
+        Iterator<Instance> iter = weka.iterator();
+        for (int i=0; i<this.NEntries(); i++) {
+            Entries.get(i).clearAttributes();
+            Instance inst = iter.next();
+            double[] attr = inst.toDoubleArray();
+            iter.remove();
+            if (!hasClass) {
+                Entries.get(i).addAttributes(attr);
+            } else {
+                Entries.get(i).addAttributes(Arrays.copyOf(attr, NAttributes()));
+            }
+        }
+    }
 
     /** 
      * Output the attributes and class of each entry

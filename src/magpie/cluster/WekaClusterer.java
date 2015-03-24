@@ -94,8 +94,9 @@ public class WekaClusterer extends BaseClusterer {
     @Override
     protected void train_protected(Dataset Data) {
         try {
-            Instances wekaData = Data.convertToWeka(false, false);
+            Instances wekaData = Data.transferToWeka(false, false);
             Clusterer.buildClusterer(wekaData);
+            Data.restoreAttributes(wekaData);
         } catch (Exception e) {
             throw new Error(e);
         }
@@ -104,10 +105,11 @@ public class WekaClusterer extends BaseClusterer {
     @Override
     protected int[] label_protected(Dataset Data) {
         try {
-            Instances wekaData = Data.convertToWeka(false, false);
+            Instances wekaData = Data.transferToWeka(false, false);
             int[] output = new int[Data.NEntries()];
             for (int i=0; i<output.length; i++)
                 output[i] = Clusterer.clusterInstance(wekaData.get(i));
+            Data.restoreAttributes(wekaData);
             return output;
         } catch (Exception e) {
             throw new Error(e);

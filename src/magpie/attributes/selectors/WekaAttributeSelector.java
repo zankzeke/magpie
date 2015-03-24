@@ -161,12 +161,13 @@ public class WekaAttributeSelector extends BaseAttributeSelector {
     @Override protected List<Integer> train_protected(Dataset Data) {
         List<Integer> output = new LinkedList<>();
         try { 
-            Instances wekadata = Data.convertToWeka(true, false);
+            Instances wekadata = Data.transferToWeka(true, false);
             Evaluator.buildEvaluator(wekadata);
             int[] List = Searcher.search(Evaluator, wekadata);
             for (int i=0; i<List.length; i++) {
                 output.add(List[i]);
             }
+            Data.restoreAttributes(wekadata);
         } catch (Exception e) {
             throw new Error(e);
         }
