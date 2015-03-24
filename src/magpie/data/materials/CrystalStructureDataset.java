@@ -157,8 +157,6 @@ public class CrystalStructureDataset extends CompositionDataset {
      * <li>Minimum coordination number 
      * <li>Maximum coordination number
      * <li>Variance in cell size as fraction of entire cell
-     * <li>Minimum cell size
-     * <li>Maximum cell size
      * <li>Number of unique coordination polyhedron shapes
      * <li>Maximum packing efficiency
      * <li>Mean Warren-Cowley ordering parameter magnitude for 1st - 3rd shells
