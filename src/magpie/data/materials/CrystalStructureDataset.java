@@ -204,23 +204,23 @@ public class CrystalStructureDataset extends CompositionDataset {
             
             
             // Get results
-            newAttr[0] = tool.faceCountAverage();
-            newAttr[1] = tool.faceCountVariance();
-            newAttr[2] = tool.faceCountMinimum();
-			newAttr[3] = tool.faceCountMaximum();
-            newAttr[4] = tool.volumeFractionVariance();
-			newAttr[7] = (double) tool.getUniquePolyhedronShapes().size() 
+            int counter=0;
+            newAttr[counter++] = tool.faceCountAverage();
+            newAttr[counter++] = tool.faceCountVariance();
+            newAttr[counter++] = tool.faceCountMinimum();
+			newAttr[counter++] = tool.faceCountMaximum();
+            newAttr[counter++] = tool.volumeFractionVariance();
+			newAttr[counter++] = (double) tool.getUniquePolyhedronShapes().size() 
                     / ptr.getStructure().nAtoms();
-			newAttr[8] = tool.maxPackingEfficiency();
-            newAttr[9] = tool.warrenCowleyOrderingMagnituide(1);
-            newAttr[10] = tool.warrenCowleyOrderingMagnituide(2);
-            newAttr[11] = tool.warrenCowleyOrderingMagnituide(3);
-            newAttr[12] = tool.meanFCCDissimilarity();
-            newAttr[13] = tool.meanBCCDissimilarity();
-            newAttr[14] = tool.meanSCDissimilarity();
+			newAttr[counter++] = tool.maxPackingEfficiency();
+            newAttr[counter++] = tool.warrenCowleyOrderingMagnituide(1);
+            newAttr[counter++] = tool.warrenCowleyOrderingMagnituide(2);
+            newAttr[counter++] = tool.warrenCowleyOrderingMagnituide(3);
+            newAttr[counter++] = tool.meanFCCDissimilarity();
+            newAttr[counter++] = tool.meanBCCDissimilarity();
+            newAttr[counter++] = tool.meanSCDissimilarity();
             
             // Compute neighbor property difference
-            int counter = 15;
             int[] elemIndex = new int[ptr.getStructure().nTypes()];
             for (int i=0; i<elemIndex.length; i++) {
                 elemIndex[i] = ArrayUtils.indexOf(ElementNames, 
