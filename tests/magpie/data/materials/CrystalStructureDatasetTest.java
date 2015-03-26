@@ -28,6 +28,9 @@ public class CrystalStructureDatasetTest {
         // Generate attributes
         data.addElementalProperty("Electronegativity");
         data.generateAttributes();
+        
+        // Make sure everything matches
+        assertEquals(data.NAttributes(), data.getEntry(0).NAttributes());
     }
     
 }

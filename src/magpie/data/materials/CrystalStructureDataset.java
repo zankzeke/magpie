@@ -10,6 +10,7 @@ import java.io.FileReader;
 import vassal.data.Cell;
 import vassal.io.VASP5IO;
 import magpie.data.BaseEntry;
+import magpie.utility.MathUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.stat.StatUtils;
 
@@ -156,6 +157,7 @@ public class CrystalStructureDataset extends CompositionDataset {
      * <li>Variance in coordination number
      * <li>Minimum coordination number 
      * <li>Maximum coordination number
+     * <li>Bond length statistics (variation between and within cells)
      * <li>Variance in cell size as fraction of entire cell
      * <li>Number of unique coordination polyhedron shapes
      * <li>Maximum packing efficiency
@@ -171,15 +173,22 @@ public class CrystalStructureDataset extends CompositionDataset {
         AttributeName.add("var_Coordination");
         AttributeName.add("min_Coordination");
         AttributeName.add("max_Coordination");
+        AttributeName.add("var_MeanBondLength");
+        AttributeName.add("min_MeanBondLength");
+        AttributeName.add("max_MeanBondLength");
+        AttributeName.add("mean_BondLengthVariation");
+        AttributeName.add("var_BondLengthVariation");
+        AttributeName.add("max_BondLengthVariation");
+        AttributeName.add("min_BondLengthVariation");
         AttributeName.add("var_CellVolume");
         AttributeName.add("UniquePolyhedronShapesPerAtom");
         AttributeName.add("MaxPackingEfficiency");
-        AttributeName.add("mean_WCMagnitude_1stShell");
-        AttributeName.add("mean_WCMagnitude_2ndShell");
-        AttributeName.add("mean_WCMagnitude_3rdShell");
         AttributeName.add("dissimilarity_FCC");
         AttributeName.add("dissimilarity_BCC");
         AttributeName.add("dissimilarity_SC");
+        AttributeName.add("mean_WCMagnitude_1stShell");
+        AttributeName.add("mean_WCMagnitude_2ndShell");
+        AttributeName.add("mean_WCMagnitude_3rdShell");
         for (String prop : ElementalProperties) {
             AttributeName.add("mean_NeighDiff_" + prop);
             AttributeName.add("var_NeighDiff_" + prop);
@@ -203,25 +212,51 @@ public class CrystalStructureDataset extends CompositionDataset {
             }
             
             
-            // Get results
+            // Coordination number attributes
             int counter=0;
             newAttr[counter++] = tool.faceCountAverage();
             newAttr[counter++] = tool.faceCountVariance();
             newAttr[counter++] = tool.faceCountMinimum();
 			newAttr[counter++] = tool.faceCountMaximum();
+            
+            // Bond length attributes
+            //    Variation between cells
+            double[] meanBondLengths = tool.meanBondLengths();
+            double lengthScale = StatUtils.mean(meanBondLengths);
+            for (int i=0; i<meanBondLengths.length; i++) {
+                meanBondLengths[i] /= lengthScale; // Normalize bond lengths
+            }
+            newAttr[counter++] = MathUtils.meanAbsoluteDeviation(meanBondLengths);
+            newAttr[counter++] = StatUtils.min(meanBondLengths);
+            newAttr[counter++] = StatUtils.max(meanBondLengths);
+            
+            //     Variation within a single cell
+            double[] bondLengthVariation = tool.bondLengthVariance(meanBondLengths);
+            for (int i=0; i<bondLengthVariation.length; i++) {
+                // Normalize bond length variation by mean bond length of each cell
+                bondLengthVariation[i] /= meanBondLengths[i];
+            }
+            newAttr[counter++] = StatUtils.mean(bondLengthVariation);
+            newAttr[counter++] = MathUtils.meanAbsoluteDeviation(bondLengthVariation);
+            newAttr[counter++] = StatUtils.min(bondLengthVariation);
+            newAttr[counter++] = StatUtils.max(bondLengthVariation);
+            
+            // Cell volume / shape attributes
             newAttr[counter++] = tool.volumeVariance() * 
                     ptr.getStructure().nAtoms() / ptr.getStructure().volume();
 			newAttr[counter++] = (double) tool.getUniquePolyhedronShapes().size() 
                     / ptr.getStructure().nAtoms();
 			newAttr[counter++] = tool.maxPackingEfficiency();
-            newAttr[counter++] = tool.warrenCowleyOrderingMagnituide(1);
-            newAttr[counter++] = tool.warrenCowleyOrderingMagnituide(2);
-            newAttr[counter++] = tool.warrenCowleyOrderingMagnituide(3);
             newAttr[counter++] = tool.meanFCCDissimilarity();
             newAttr[counter++] = tool.meanBCCDissimilarity();
             newAttr[counter++] = tool.meanSCDissimilarity();
             
-            // Compute neighbor property difference
+            // Ordering attributes
+            newAttr[counter++] = tool.warrenCowleyOrderingMagnituide(1);
+            newAttr[counter++] = tool.warrenCowleyOrderingMagnituide(2);
+            newAttr[counter++] = tool.warrenCowleyOrderingMagnituide(3);
+            
+            // Neighbor property difference attributes
             int[] elemIndex = new int[ptr.getStructure().nTypes()];
             for (int i=0; i<elemIndex.length; i++) {
                 elemIndex[i] = ArrayUtils.indexOf(ElementNames, 
