@@ -178,8 +178,8 @@ public class CrystalStructureDataset extends CompositionDataset {
         AttributeName.add("max_MeanBondLength");
         AttributeName.add("mean_BondLengthVariation");
         AttributeName.add("var_BondLengthVariation");
-        AttributeName.add("max_BondLengthVariation");
         AttributeName.add("min_BondLengthVariation");
+        AttributeName.add("max_BondLengthVariation");
         AttributeName.add("var_CellVolume");
         AttributeName.add("UniquePolyhedronShapesPerAtom");
         AttributeName.add("MaxPackingEfficiency");
