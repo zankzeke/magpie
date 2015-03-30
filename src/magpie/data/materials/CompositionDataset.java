@@ -605,7 +605,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
 
                 // Check if any required lookup data is missing;
                 for (int i = 0; i < entry.getElements().length; i++) {
-                    if (lookup[entry.Element[i]] == Double.NaN) {
+                    if (Double.isNaN(lookup[entry.Element[i]])) {
                         MissingData.add(ElementNames[entry.Element[i]] + ":" + prop);
                     }
                 }
