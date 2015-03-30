@@ -123,7 +123,7 @@ public class WekaRegression extends BaseRegression implements WekaModel {
     @Override 
     public void run_protected(Dataset TestData) {
         try { 
-            Instances wekadata = TestData.transferToWeka(false, false);
+            Instances wekadata = TestData.transferToWeka(true, false);
             double[] prediction = new double [TestData.NEntries()];
             for (int i=0; i<wekadata.numInstances(); i++) 
                 prediction[i]=Model.classifyInstance(wekadata.instance(i));
