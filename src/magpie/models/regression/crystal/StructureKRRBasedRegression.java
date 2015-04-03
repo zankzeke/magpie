@@ -54,8 +54,10 @@ abstract public class StructureKRRBasedRegression extends BaseRegression {
     @Override
     public StructureKRRBasedRegression clone() {
         StructureKRRBasedRegression x = (StructureKRRBasedRegression) super.clone();
-        x.TrainingStructures = new ArrayList<>(TrainingStructures);
-        x.Alpha = Alpha.clone();
+        if (Alpha != null) {
+            x.TrainingStructures = new ArrayList<>(TrainingStructures);
+            x.Alpha = Alpha.clone();
+        }
         return x;
     }
 
