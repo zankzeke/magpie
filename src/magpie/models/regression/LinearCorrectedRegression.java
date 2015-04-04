@@ -15,7 +15,7 @@ import org.apache.commons.math3.stat.regression.SimpleRegression;
  * 
  * @author Logan Ward
  */
-public class LinearCorrectionRegressionModel extends BaseRegression {
+public class LinearCorrectedRegression extends BaseRegression {
     /** Model to be corrected */
     private BaseModel Submodel;
     /** Intercept of linear correction */
@@ -25,7 +25,7 @@ public class LinearCorrectionRegressionModel extends BaseRegression {
 
     @Override
     public BaseRegression clone() {
-        LinearCorrectionRegressionModel x = (LinearCorrectionRegressionModel) super.clone(); 
+        LinearCorrectedRegression x = (LinearCorrectedRegression) super.clone(); 
         x.Submodel = Submodel.clone();
         return x;
     }

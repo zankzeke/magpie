@@ -10,12 +10,12 @@ import static org.junit.Assert.*;
  *
  * @author Logan Ward
  */
-public class LinearCorrectionRegressionModelTest extends BaseModelTest {
+public class LinearCorrectedRegressionTest extends BaseModelTest {
 
     @Override
     public BaseModel generateModel() {
         BaseModel sub = new WekaRegression();
-        LinearCorrectionRegressionModel model = new LinearCorrectionRegressionModel();
+        LinearCorrectedRegression model = new LinearCorrectedRegression();
         try {
             model.setSubmodel(sub);
         } catch (Exception e) {
