@@ -68,13 +68,24 @@ public class LinearCorrectedRegression extends BaseRegression {
         // Train submodel
         Submodel.train(TrainData);
         
-        // Fit linear correction
-        SimpleRegression reg = new SimpleRegression(true);
-        for (BaseEntry entry : TrainData.getEntries()) {
-            reg.addData(entry.getPredictedClass(), entry.getPredictedClass());
+        
+        
+        // Fit linear correction (i.e., error = a + b * predicted)
+        
+        //    Compute error
+        double[] error = TrainData.getMeasuredClassArray();
+        double[] predicted = TrainData.getPredictedClassArray();
+        for (int i=0; i<error.length; i++) {
+            error[i] -= predicted[i];
         }
         
-        // Save terms
+        //    Perform linear regression to minimize error
+        SimpleRegression reg = new SimpleRegression();
+        for (int i=0; i<error.length; i++) {
+            reg.addData(predicted[i], error[i]);
+        }
+        
+        // Store correction terms
         A = reg.getIntercept();
         B = reg.getSlope();
     }
@@ -86,7 +97,8 @@ public class LinearCorrectedRegression extends BaseRegression {
         
         // Correct values
         for (BaseEntry entry : TrainData.getEntries()) {
-            entry.setPredictedClass(A + B * entry.getPredictedClass());
+            double subPrediction = entry.getPredictedClass();
+            entry.setPredictedClass(subPrediction + subPrediction * B + A);
         }
     }
 
