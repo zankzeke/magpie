@@ -86,7 +86,7 @@ public class LinearCorrectionRegressionModel extends BaseRegression {
         
         // Correct values
         for (BaseEntry entry : TrainData.getEntries()) {
-            entry.setMeasuredClass(A + B * entry.getMeasuredClass());
+            entry.setPredictedClass(A + B * entry.getPredictedClass());
         }
     }
 
