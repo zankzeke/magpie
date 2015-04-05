@@ -1,5 +1,6 @@
 package magpie.attributes.expansion;
 
+import java.io.Serializable;
 import magpie.data.Dataset;
 import magpie.utility.interfaces.Options;
 
@@ -14,7 +15,7 @@ import magpie.utility.interfaces.Options;
  * @author Logan Ward
  * @version 0.1
  */
-abstract public class BaseAttributeExpander implements Options {
+abstract public class BaseAttributeExpander implements Options, Serializable {
     /**
      * Generate new attributes based on the attributes already in Dataset
      * @param Data Dataset to be expanded
