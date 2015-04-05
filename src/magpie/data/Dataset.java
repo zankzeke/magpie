@@ -79,9 +79,16 @@ import weka.core.converters.ArffLoader;
  * 
  * <command><p><b>attributes</b> - Print all attributes</command>
  * 
- * <command><p><b>attributes expand &lt;method> [&lt;options...>]</b> - Expand the available attributes
+ * <command><p><b>attributes expander add &lt;method> [&lt;options...>]</b> - Add an attribute expander to be run after generating attributes
  * <br><pr><i>method</i>: How to expand attributes. Name of a {@linkplain BaseAttributeExpander} ("?" to print available methods)
- * <br><pr><i>options...</i>: Any options for the expansion method</command>
+ * <br><pr><i>options...</i>: Any options for the expansion method
+ * These expanders are designed to create new attributes based on existing ones.</command>
+ * 
+ * <command><p><b>attributes expander clear</b> - Clear the current list of attribute expanders</command>
+ * 
+ * <command><p><b>attributes expander run</b> - Run the currently-defined list of attribute expanders</command>
+ * 
+ * <command><p><b>attributes expander clear</b> - Clear the current list of attribute expanders</command>
  * 
  * <command><p><b>attributes generate</b> - Generate attributes for each entry</command>
  * 
@@ -119,6 +126,8 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     private String[] ClassName;
     /** Internal array that stores entries */
     protected ArrayList<BaseEntry> Entries; 
+    /** Tools to generate new attributes based on existing ones */
+    protected List<BaseAttributeExpander> Expanders = new LinkedList<>();
 
     /** 
      * Read the state from file using serialization
@@ -176,6 +185,8 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         catch (CloneNotSupportedException c) { throw new Error(c); }
         copy.AttributeName = new ArrayList<>(AttributeName);
         copy.ClassName = ClassName.clone();
+        copy.Expanders = new LinkedList<>(Expanders);
+        
         // Make unique copies of the entries
         copy.Entries = new ArrayList<>(NEntries());
         Iterator<BaseEntry> iter = Entries.iterator();
@@ -222,6 +233,41 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     }
     
     /**
+     * Add a new tool to expand the number of attributes for this dataset.
+     * @param expander New expander
+     */
+    public void addAttribueExpander(BaseAttributeExpander expander) {
+        Expanders.add(expander);
+    }
+    
+    /**
+     * Reset the list of attribute expanders
+     */
+    public void clearAttributeExpanders() {
+        Expanders.clear();
+    }
+    
+    /**
+     * Get a copy of the list of currently-employed attribute expanders.
+     * @return List of attribute expanders
+     * @see #addAttribueExpander(magpie.attributes.expansion.BaseAttributeExpander) 
+     */
+    public List<BaseAttributeExpander> getAttributeExpanders() {
+        return new LinkedList<>(Expanders);
+    }
+    
+    /**
+     * Expand the list of attributes using the currently-set list of attribute
+     * expanders.
+     * @see #getAttributeExpanders() 
+     */
+    public void runAttributeExpanders() {
+        for (BaseAttributeExpander expander : Expanders) {
+            expander.expand(this);
+        }
+    }
+    
+    /**
      * Generate attributes for this dataset
      * @throws java.lang.Exception If any error is encountered
      */
@@ -234,6 +280,9 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         
         // Now compute attributes
         calculateAttributes();
+        
+        // Run expanders
+        runAttributeExpanders();
         
         // Reduce memory footprint, where possible
         finalizeGeneration();
@@ -1405,23 +1454,8 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         }
         String Action = Command.get(0).toString();
         switch (Action.toLowerCase()) {
-            case "expand": {
-                // Usage: <method> <options...>
-                String Method;
-                List<Object> Options;
-                try {
-                    Method = Command.get(1).toString();
-                    if (Method.equals("?")) {
-                        System.out.println(printImplmentingClasses(BaseAttributeExpander.class, false));
-                        return null;
-                    }
-                    Options = Command.subList(2, Command.size());
-                } catch (Exception e) {
-                    throw new Exception("Usage: <dataset> expand <method> <options...>");
-                }
-                BaseAttributeExpander Expander = (BaseAttributeExpander) instantiateClass("attributes.expansion." + Method, Options);
-                Expander.expand(this);
-                System.out.println("\tExpanded number of attributes to " + NAttributes() + " using a " + Method);
+            case "expanders":  {
+                runAttributeExpansionCommand(Command.subList(1, Command.size()));
             } break;
             case "generate":
                 // Usage: generate
@@ -1458,6 +1492,49 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 throw new Exception("ERROR: Dataset attribute command not recognized" + Action);
         }
         return null;
+    }
+
+    /**
+     * Run commands relating to expanding the attribute pool.
+     * @param Command Attribute expansion command (e.g., "run")
+     * @throws Exception 
+     */
+    protected void runAttributeExpansionCommand(List<Object> Command) throws Exception {
+        if (Command.isEmpty()) {
+            throw new Exception("Available attribute expansion commands: run, add, clear");
+        }
+        String action = Command.get(0).toString().toLowerCase();
+        
+        switch (action) {
+            case "add":
+                // Usage: add <method> <options...>
+                String Method;
+                List<Object> Options;
+                try {
+                    Method = Command.get(1).toString();
+                    if (Method.equals("?")) {
+                        System.out.println(printImplmentingClasses(BaseAttributeExpander.class, false));
+                        return;
+                    }
+                    Options = Command.subList(2, Command.size());
+                }catch (Exception e) {
+                    throw new Exception("Usage: <dataset> expand <method> <options...>");
+                }
+                BaseAttributeExpander expander = (BaseAttributeExpander) instantiateClass("attributes.expansion." + Method, Options);
+                addAttribueExpander(expander);
+                System.out.println("\tAdded a " + Method + " to list of attribute expanders");
+                break;
+            case "clear":
+                clearAttributeExpanders();
+                System.out.println("\tCleared list of attribute expanders.");
+                break;
+            case "run":
+                runAttributeExpanders();
+                System.out.println("\tExpanded number of attributes to " + NAttributes());
+                break;
+            default:
+                throw new Exception("Attribute expansion command not recognized: " + action);
+        }
     }
 
     /**
