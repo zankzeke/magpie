@@ -1,8 +1,6 @@
 package magpie.models.regression.crystal;
 
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.data.materials.AtomicStructureEntry;
@@ -13,15 +11,7 @@ import org.apache.commons.math3.linear.BlockRealMatrix;
 import org.apache.commons.math3.linear.CholeskyDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
-import org.apache.commons.math3.stat.regression.MillerUpdatingRegression;
-import org.apache.commons.math3.stat.regression.MultipleLinearRegression;
 import vassal.data.Cell;
-import weka.classifiers.AbstractClassifier;
-import weka.classifiers.Classifier;
-import weka.classifiers.functions.LinearRegression;
-import weka.classifiers.functions.SimpleLinearRegression;
-import weka.classifiers.trees.REPTree;
-import weka.core.*;
 
 /**
  * Abstract class for methods that predict properties of crystal structures with 

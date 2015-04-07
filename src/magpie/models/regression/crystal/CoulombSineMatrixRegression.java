@@ -1,6 +1,5 @@
 package magpie.models.regression.crystal;
 
-import java.util.Arrays;
 import java.util.List;
 import magpie.data.materials.util.LookupData;
 import org.apache.commons.lang3.ArrayUtils;
