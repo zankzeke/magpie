@@ -637,6 +637,9 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
         String Action = Command.get(0).toLowerCase();
         switch (Action) {
             case "stats":
+                if (PerformanceStats.NResults() == 0) {
+                    throw new Exception("CSP algorithm not yet validated.");
+                }
                 return PerformanceStats.printCommand(Command.subList(1, Command.size()));
             default:
                 throw new Exception("CSPEngine print command not recognzied: " + Action);
