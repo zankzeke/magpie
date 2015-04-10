@@ -180,8 +180,8 @@ public class CoulombEwaldMatrixRegression extends StructureKRRBasedRegression {
                 
                 // Compute the zero term
                 double xZero;
-                if (r1 == r2) {
-                    xZero = -1 * ((Z[r1] * Z[r1] + Z[r1] * Z[r1]) 
+                if (r1 != r2) {
+                    xZero = -1 * ((Z[r1] * Z[r1] + Z[r2] * Z[r2]) 
                         * alpha / Math.sqrt(Math.PI)
                         + (Z[r1] + Z[r2]) * (Z[r1] + Z[r2]) 
                         * Math.PI / 2 / V / alpha / alpha);
