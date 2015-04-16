@@ -1,7 +1,6 @@
 
 package magpie.data.materials;
 
-import vassal.analysis.SimpleStructureAnalysis;
 import vassal.analysis.VoronoiCellBasedAnalysis;
 import java.io.BufferedReader;
 import java.util.*;
@@ -16,7 +15,7 @@ import org.apache.commons.math3.stat.StatUtils;
 
 /**
  * Holds a entries that represent crystal structures. Here, the attributes are
- * designed to be relatively insensitive to the length scale of the structure. 
+ * designed to be insensitive to the length scale of the structure. 
  * As an example, this would be useful to predict the properties of a new material
  * in an already-known structure (e.g., the energy of a perovskite crystal
  * with a yet-unstudied composition). In order to model the effects of 
@@ -27,8 +26,7 @@ import org.apache.commons.math3.stat.StatUtils;
  * <p>Rather than importing data from a single file with the 
  * {@linkplain #importText(java.lang.String, java.lang.Object[]) } operation, 
  * this class imports all the files in a given directory. These files must be
- * VASP 5 POSR files. Any files that are not in this format or simply fail
- * to be parsed properly will be ignored.
+ * VASP 5 POSCAR files. Any files that are not in this format will be ignored.
  * 
  * <p>In order to provide properties about these structures, add a "properties.txt"
  * file to the POSCAR-containing directory. This file should be in the following format
@@ -47,13 +45,14 @@ import org.apache.commons.math3.stat.StatUtils;
  * <li>Attributes based on the crystal structure. 
  * </ol>
  * 
- * <p>The crystal-structure-based attributes are design to be similar, if not
- * equal) for all crystals based on the same prototype (e.g. number of 
- * atoms, coordination number statistics). The intention for these attributes
- * is that they can be used before determining the equilibrium lattice parameter
- * or atom positions in a crystal using a tool like DFT. For example, this would
- * be useful if you wanted to predict the formation energy of a hypothetical 
- * structure.
+ * <p>The crystal-structure-based attributes are design to be similar (if not
+ * equal) for all crystals based on the same prototype (e.g. coordination number 
+ * statistics). The intention for these attributes is that they can be used 
+ * before determining the equilibrium lattice parameter or atom positions in a 
+ * crystal using a tool like DFT. For example, this would be useful if you wanted 
+ * to predict the formation energy of a hypothetical structure without have to first
+ * find the equilibrium lattice parameter. The attributes are also design to be
+ * insensitive to unit cell selection.
  * 
  * <usage><p><b>Usage</b>: *No options*</usage>
  * @author Logan Ward
