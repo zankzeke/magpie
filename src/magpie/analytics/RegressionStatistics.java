@@ -34,7 +34,7 @@ public class RegressionStatistics extends BaseStatistics {
         int NEntries = measured.length;
         NumberTested = NEntries;
         // Calculate R
-        R = new PearsonsCorrelation().correlation(measured, predicted);
+        R = measured.length > 1 ? new PearsonsCorrelation().correlation(measured, predicted) : Double.NaN;
         if (Double.isNaN(R)) R = 0;
         // Calculate statistics of absolute error
         double[] error = new double[NEntries];
