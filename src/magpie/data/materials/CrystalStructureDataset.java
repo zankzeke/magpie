@@ -198,18 +198,22 @@ public class CrystalStructureDataset extends CompositionDataset {
         // Evaluate each entry
         attributesAdded = AttributeName.size() - attributesAdded;
         double[] newAttr = new double[attributesAdded];
+//        int entryCount = 0;
         for (BaseEntry entry : Entries) {
             AtomicStructureEntry ptr = (AtomicStructureEntry) entry;
+//            System.out.println("\tEvalauting entry #" + entryCount++ 
+//                    + ": " + ptr.getName());
             
             // Call analysis
             VoronoiCellBasedAnalysis tool = new VoronoiCellBasedAnalysis(false);
             try {
                 tool.analyzeStructre(ptr.getStructure());
             } catch (Exception e) {
-                throw new Error(String.format("Voronoi error for %s (#%d): %s",
-                        ptr.getName(), Entries.indexOf(entry), e.getMessage()));
+                System.out.format("\tVoronoi error for %s (#%d). Setting NaN for all attributes.",
+                        ptr.getName(), Entries.indexOf(entry), e.getMessage());
+                Arrays.fill(newAttr, Double.NaN);
+                entry.addAttributes(newAttr);
             }
-            
             
             // Coordination number attributes
             int counter=0;
@@ -293,6 +297,5 @@ public class CrystalStructureDataset extends CompositionDataset {
             }
             entry.addAttributes(newAttr);
         }
-    }
-    
+    }    
 }
