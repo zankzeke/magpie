@@ -209,8 +209,8 @@ public class CrystalStructureDataset extends CompositionDataset {
             try {
                 tool.analyzeStructre(ptr.getStructure());
             } catch (Exception e) {
-                System.out.format("\tVoronoi error for %s (#%d). Setting NaN for all attributes.",
-                        ptr.getName(), Entries.indexOf(entry), e.getMessage());
+                System.out.format("\tVoronoi error for %s (#%d). Setting NaN for all attributes.\n",
+                        ptr.getName(), Entries.indexOf(entry));
                 Arrays.fill(newAttr, Double.NaN);
                 entry.addAttributes(newAttr);
             }
