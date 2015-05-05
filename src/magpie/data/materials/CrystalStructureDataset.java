@@ -213,6 +213,7 @@ public class CrystalStructureDataset extends CompositionDataset {
                         ptr.getName(), Entries.indexOf(entry));
                 Arrays.fill(newAttr, Double.NaN);
                 entry.addAttributes(newAttr);
+                continue;
             }
             
             // Coordination number attributes
