@@ -81,6 +81,15 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
     public double getAttribute(int index) {
         return AttributeList.get(index);
     }
+    
+    /**
+     * Set a certain attribute for this entry
+     * @param index Index of attribute to set
+     * @param value Desired value of specified attribute
+     */
+    public void setAttribute(int index, double value) {
+        AttributeList.set(index, value);
+    }
 
     /**
      * Sets attributes for this entry
