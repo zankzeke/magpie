@@ -40,12 +40,21 @@ public class ScikitLearnRegression extends BaseRegression {
 
     @Override
     public void setOptions(List<Object> Options) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String path;
+        try {
+            if (Options.size() != 1) {
+                throw new Exception();
+            }
+            path = Options.get(0).toString();
+        } catch (Exception e) {
+            throw new Exception(printUsage());
+        }
+        readModel(path);
     }
 
     @Override
     public String printUsage() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return "Usage: <path to model.pkl>";
     }
     
     /**
