@@ -352,10 +352,14 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
      * write "None". You will be alerted if that property was needed generating
      * attributes.
      *
-     * @param DataDirectory PAth to the elemental property lookup directory
+     * @param directory Path to the elemental property lookup directory
+     * @throws java.lang.Exception
      */
-    public void setDataDirectory(String DataDirectory) {
-        this.DataDirectory = DataDirectory;
+    public void setDataDirectory(String directory) throws Exception {
+        if (! Files.isDirectory(Paths.get(directory))) {
+            throw new Exception("No such directory: " + directory);
+        }
+        this.DataDirectory = directory;
     }
 
     /**
