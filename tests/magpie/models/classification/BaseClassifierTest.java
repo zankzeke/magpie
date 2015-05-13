@@ -13,7 +13,11 @@ public class BaseClassifierTest extends BaseModelTest {
 
     @Override
     public BaseModel generateModel() {
-        return new WekaClassifier();
+        try {
+            return new WekaClassifier();
+        } catch (Exception e) {
+            throw new Error(e);
+        }
     }
     
     @Override

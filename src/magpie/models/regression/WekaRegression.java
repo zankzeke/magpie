@@ -33,16 +33,18 @@ public class WekaRegression extends BaseRegression implements WekaModel {
      * 
      * @param model_type Model type (ie trees.J48)
      * @param options Options for the model
+     * @throws java.lang.Exception
      */
-    public WekaRegression(String model_type, String[] options) {
+    public WekaRegression(String model_type, String[] options) throws Exception {
         setModel(model_type, options);
         ValidationStats = new RegressionStatistics();
         TrainingStats = new RegressionStatistics();
     }
     /**
      * Create a WekaRegression model based on the "rules.ZeroR" algorithm
+     * @throws java.lang.Exception
      */
-    public WekaRegression() {
+    public WekaRegression() throws Exception {
         setModel("rules.ZeroR", null);
     };
     
@@ -86,7 +88,7 @@ public class WekaRegression extends BaseRegression implements WekaModel {
      * @param options Options for the model
      */
     @Override 
-    public final void setModel(String model_type, String[] options) {
+    public final void setModel(String model_type, String[] options) throws Exception {
         Model = WekaUtility.instantiateWekaModel(model_type, options);
         model_defined=true; 
         Model_Type = model_type; 

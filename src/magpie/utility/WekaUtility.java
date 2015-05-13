@@ -22,8 +22,10 @@ abstract public class WekaUtility {
      * @param model_type Name of classifiers (i.e. trees.REPTree)
      * @param options Any options for model (can be null)
      * @return A new instance of desired classifier
+     * @throws java.lang.Exception
      */
-    static public AbstractClassifier instantiateWekaModel(String model_type, String[] options) {
+    static public AbstractClassifier instantiateWekaModel(String model_type, 
+            String[] options) throws Exception {
         importWekaHome();
         if (model_type.contains("?")) {
             System.out.println("Available Weka Classifiers:");
@@ -34,11 +36,7 @@ abstract public class WekaUtility {
             model_type = "weka.classifiers." + model_type;
         }
         AbstractClassifier Model;
-        try {
-            Model = (AbstractClassifier) AbstractClassifier.forName(model_type, options);
-        } catch (Exception e) {
-            throw new Error(e);
-        }
+        Model = (AbstractClassifier) AbstractClassifier.forName(model_type, options);
         return Model;
     }
     

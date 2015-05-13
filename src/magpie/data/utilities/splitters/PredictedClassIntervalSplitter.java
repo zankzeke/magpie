@@ -23,10 +23,20 @@ import magpie.models.classification.WekaClassifier;
  */
 public class PredictedClassIntervalSplitter extends BaseDatasetSplitter {
     /** Classifier used to predict range */
-    private BaseModel Clfr = new WekaClassifier("trees.REPTree", null);
+    private BaseModel Clfr;
     /** Edges on which to split data */
     private double[] Edges = new double[]{0};
 
+    /**
+     * Create a new instances that uses ZeroR to predict interval.
+     * @throws java.lang.Exception
+     */
+    public PredictedClassIntervalSplitter() throws Exception {
+        Clfr = new WekaClassifier();
+    }
+
+    
+    
     @Override
     public PredictedClassIntervalSplitter clone() {
         PredictedClassIntervalSplitter x = 
