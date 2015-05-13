@@ -10,41 +10,37 @@ import static org.junit.Assert.*;
  * @author Logan Ward
  */
 public class PhaseDiagramCompositionEntryGeneratorTest {
-	/**
-	 * Test of generateAlloyCompositions method, of class PhaseDiagramCompositionEntryGenerator.
-	 */
+    
 	@Test
-	public void testGenerateAlloyCompositions() {
+	public void testGenerateAlloyCompositions() throws Exception {
 		PhaseDiagramCompositionEntryGenerator generator = new PhaseDiagramCompositionEntryGenerator();
 		generator.setEvenSpacing(true);
-		try {
-			generator.setSize(5);
-			generator.setOrder(3);
-		} catch (Exception e) {
-			throw new Error(e);
-		}
+        generator.setSize(5);
+        generator.setOrder(1, 3);
 		Map<Integer, List<double[]>> comps = generator.generateAlloyCompositions();
 		assertEquals(1, comps.get(1).size());
 		assertEquals(3, comps.get(2).size());
 		assertEquals(3, comps.get(3).size());
+        generator.setOrder(3, 3);
+        comps = generator.generateAlloyCompositions();
+        assertEquals(1, comps.size());
 	}
 
 	/**
 	 * Test of generateCrystalCompositions method, of class PhaseDiagramCompositionEntryGenerator.
 	 */
 	@Test
-	public void testGenerateCrystalComposition() {
+	public void testGenerateCrystalComposition() throws Exception {
 		PhaseDiagramCompositionEntryGenerator generator = new PhaseDiagramCompositionEntryGenerator();
 		generator.setEvenSpacing(false);
-		try {
-			generator.setSize(4);
-			generator.setOrder(3);
-		} catch (Exception e) {
-			throw new Error(e);
-		}
+        generator.setSize(4);
+        generator.setOrder(1, 3);
 		Map<Integer, List<double[]>> comps = generator.generateCrystalCompositions();
 		assertEquals(1, comps.get(1).size());
 		assertEquals(5, comps.get(2).size());
 		assertEquals(4, comps.get(3).size());
+        generator.setOrder(2, 3);
+        comps = generator.generateAlloyCompositions();
+        assertEquals(2, comps.size());
 	}
 }

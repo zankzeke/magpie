@@ -86,7 +86,7 @@ public class IonicCompoundFinder implements Commandable {
         PhaseDiagramCompositionEntryGenerator gen = new PhaseDiagramCompositionEntryGenerator();
         gen.setElementsByIndex(elemSet);
         gen.setEvenSpacing(false);
-        gen.setOrder(elemSet.size());
+        gen.setOrder(1, elemSet.size());
         gen.setSize(MaxFormulaUnitSize);
         List<BaseEntry> allPossibilities = gen.generateEntries();
         
