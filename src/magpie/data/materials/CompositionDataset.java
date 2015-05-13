@@ -436,6 +436,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
      *
      * @param PropertyName MeasuredProperty of interest
      * @return That property for each element
+     * @throws java.lang.Exception
      */
     public double[] getPropertyLookupTable(String PropertyName) throws Exception {
         // Check if it has been loaded in yet
@@ -604,7 +605,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
 				try {
 					lookup = getPropertyLookupTable(prop);
 				} catch (Exception ex) {
-					throw new Error("Failed to retrieve property: " + prop);
+					throw new Error(ex);
 				}
 
                 // Check if any required lookup data is missing;
