@@ -189,7 +189,7 @@ public class PrototypeEntryGenerator extends BaseEntryGenerator {
         gen.setElementsByIndex(possibleElements.get(0));
         gen.setEvenSpacing(true);
         try {
-            gen.setOrder(generationSettings.get(0).getLeft());
+            gen.setOrder(1, generationSettings.get(0).getLeft());
             gen.setSize((int) Math.round(100.0 / generationSettings.get(0).getRight()) + 1);
         } catch (Exception e) {
             throw new Error(e);
