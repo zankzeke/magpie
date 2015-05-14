@@ -475,10 +475,9 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
      * Reads in a data file that contains known oxidation states for each
      * element. List should be contained in a file named OxidationStates.table
      *
-     * @param DataDirectory Location of data files
      * @return List of possible oxidation states for each element
      */
-    protected double[][] getOxidationStates(String DataDirectory) {
+    public double[][] getOxidationStates() {
         // Open the file for reading
         Path datafile = Paths.get(DataDirectory);
         BufferedReader is;
@@ -488,8 +487,8 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
 
             // Read the file
             int i, j; // Counters
-            double[][] output = new double[ElementNames.length][];
-            for (i = 0; i < ElementNames.length; i++) {
+            double[][] output = new double[LookupData.ElementNames.length][];
+            for (i = 0; i < LookupData.ElementNames.length; i++) {
                 String[] States = is.readLine().split(" ");
                 if (States[0].isEmpty()) {
                     output[i] = null;
@@ -744,7 +743,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
      */
     public boolean compositionCanFormIonic(CompositionEntry entry) {
         if (OxidationStates == null) {
-			OxidationStates = getOxidationStates(DataDirectory);
+			OxidationStates = getOxidationStates();
 			LookupData.OxidationStates = OxidationStates;
 		}
         
