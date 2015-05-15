@@ -41,7 +41,7 @@ public class PropertyFilter extends AttributeFilter {
     
     @Override
     public String printUsage() {
-        return "Usage: <Target Property> <Criteria> <Threshold>";
+        return "Usage: <Measured|Predicted> <Target Property> <Criteria> <Threshold>";
     }
 
     @Override
