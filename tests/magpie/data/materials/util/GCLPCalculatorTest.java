@@ -1,5 +1,8 @@
 package magpie.data.materials.util;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.CompositionEntry;
 import org.junit.Test;
@@ -64,5 +67,17 @@ public class GCLPCalculatorTest {
         calc.doGCLP(NaCl);
         assertEquals(-2, calc.getGroundStateEnergy(), 1e-6);
         assertEquals(1, calc.getPhaseEquilibria().size());
-    }    
+        
+        // Test for complex case: AlNiFeZrTiSiBrFOSeKHHe
+        if (Files.isReadable(Paths.get("big-datasets/oqmd-hull.energies"))) {
+            calc = new GCLPCalculator();
+            CompositionDataset hullData = new CompositionDataset();
+            hullData.importText("big-datasets/oqmd-hull.energies", null);
+            hullData.setTargetProperty("delta_e", false);
+            calc.addPhases(hullData);
+            calc.doGCLP(new CompositionEntry("AlNiFeZrTiSiBrFOSeKHHe"));
+            assertEquals(10, calc.getPhaseEquilibria().size());
+            assertEquals(-1.553, calc.getGroundStateEnergy(), 1e-2);
+        }
+    }
 }
