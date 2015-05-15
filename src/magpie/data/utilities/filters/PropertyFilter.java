@@ -46,11 +46,14 @@ public class PropertyFilter extends AttributeFilter {
 
     @Override
     protected boolean[] label(Dataset D) {
-        if (! (D instanceof MultiPropertyDataset)) {
+        if (!(D instanceof MultiPropertyDataset)) {
             throw new Error("Data does not extend MultiPropertyDataset");
         }
         MultiPropertyDataset Ptr = (MultiPropertyDataset) D;
-       double[] property = Ptr.getMeasuredPropertyArray(TargetAttribute);
-       return testCriteria(property);
+        double[] property = UseMeasured ? 
+                Ptr.getMeasuredPropertyArray(TargetAttribute)
+                : Ptr.getPredictedPropertyArray(TargetAttribute);
+        
+        return testCriteria(property);
     }
 }
