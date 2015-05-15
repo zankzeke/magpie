@@ -195,7 +195,11 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
             properties = importEntryProperties(words);
 
             // Make an entry
-            Entry = new CompositionEntry(words[0]);
+            try {
+                Entry = new CompositionEntry(words[0]);
+            } catch (Exception ex) {
+                continue; // Skip if fails to parse
+            }
             Entry.setMeasuredProperties(properties);
 
             // Add if the set does not already have it
