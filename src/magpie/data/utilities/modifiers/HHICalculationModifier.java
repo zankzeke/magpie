@@ -15,7 +15,7 @@ import magpie.data.materials.CompositionEntry;
  * 
  * <p>This property is added to the dataset and all entries it contains. Both the measured
  *  and predicted values of this property are set since it is something that 
- *  is not intended to predicted by a model.</p>
+ *  is not intended to predicted by a model. Results are stored as the property HHI.</p>
  * 
  * <usage><p><b>Usage</b>: *No options*</usage>
  * 
@@ -34,7 +34,6 @@ public class HHICalculationModifier extends BaseDatasetModifier {
 	public String printUsage() {
 		return "*No options*";
 	}
-	
 	
 	@Override
 	protected void modifyDataset(Dataset Data) {
