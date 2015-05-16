@@ -641,7 +641,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      */
     public void addAttribute(String name, double[] values) {
         if (AttributeName.contains(name)) {
-            throw new Error("Attribute already defined with that name");
+            throw new Error("Dataset already contains attribute: " + name);
         }
         AttributeName.add(name);
         for (int i = 0; i < NEntries(); i++) {
@@ -649,6 +649,21 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
             E.addAttribute(values[i]);
             E.reduceMemoryFootprint();
         }
+    }
+    
+    /**
+     * Add new attributes. If you use this operation, you must add attributes to 
+     * each new entry manually.
+     * @param names Names of new attributes
+     * @see BaseEntry#addAttributes(double[]) 
+     */
+    public void addAttributes(List<String> names) {
+        for (String name : names) {
+            if (AttributeName.contains(name)) {
+                throw new Error("Dataset already contains attribute: " + name);
+            }
+        }
+        AttributeName.addAll(names);
     }
 
     /**
