@@ -10,7 +10,7 @@ import static org.junit.Assert.*;
  *
  * @author Logan Ward
  */
-public class LookupTableGeneratorTest {
+public class LookupTableAttributeGeneratorTest {
 
     @Test
     public void test() throws Exception {
@@ -25,7 +25,7 @@ public class LookupTableGeneratorTest {
         new File("temp.lookup").deleteOnExit();
         
         // Add some attributes
-        LookupTableGenerator gen = new LookupTableGenerator();
+        LookupTableAttributeGenerator gen = new LookupTableAttributeGenerator();
         gen.readAttributeTable("temp.lookup");
         gen.addAttributes(data);
         
