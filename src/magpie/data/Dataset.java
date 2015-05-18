@@ -398,9 +398,10 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * Expand the list of attributes using the currently-set list of attribute
      * generators.
      *
+     * @throws java.lang.Exception
      * @see #getAttributeGenerators()
      */
-    public void runAttributeGenerators() {
+    public void runAttributeGenerators() throws Exception {
         for (BaseAttributeGenerator generator : Generators) {
             generator.addAttributes(this);
         }

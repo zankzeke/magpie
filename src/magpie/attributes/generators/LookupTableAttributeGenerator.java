@@ -99,7 +99,7 @@ public class LookupTableAttributeGenerator extends BaseAttributeGenerator {
     }
 
     @Override
-    public void addAttributes(Dataset data) {
+    public void addAttributes(Dataset data) throws Exception {
         // Step #1: Parse all of the entries
         Dataset tempDataset = data.emptyClone();
         Map<BaseEntry,double[]> entryLookup = new TreeMap<>();
