@@ -31,6 +31,9 @@ public class IonicCompoundAttributeGenerator extends BaseAttributeGenerator {
 
     @Override
     public void addAttributes(Dataset data) {
+        if (! (data instanceof CompositionDataset)) {
+            throw new Error("Data must implement composition dataset");
+        }
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
