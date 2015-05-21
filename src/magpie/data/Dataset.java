@@ -1169,7 +1169,10 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * Convert to Weka Instances object, delete attribute information in each
      * entry. This can be used to conserve memory when using Weka.
      *
-     * @param useClass Whether to output class data
+     * @param useClass Whether to output class data. Note: If there is no measured
+     * class data and useDiscreteClass is true, value will be set to Zero. This 
+     * allows the Instances to contain information about how many classes are available
+     * regardless of whether this Dataset contains any measurements.
      * @param useDiscreteClass Whether to treat class variable as discrete
      * @return Dataset in Weka format
      * @see Dataset#restoreAttributes(weka.core.Instances)
@@ -1201,7 +1204,11 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
             if (!useClass) {
             }// Do nothing 
             else if (useDiscreteClass) {
-                inst.setValue(j, getClassNames()[(int) entry.getMeasuredClass()]);
+                if (entry.hasMeasurement()) {
+                    inst.setValue(j, getClassName((int) entry.getMeasuredClass()));
+                } else {
+                    inst.setValue(j, getClassName(0));
+                }
             } else {
                 inst.setValue(j, entry.getMeasuredClass());
             }

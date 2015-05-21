@@ -114,7 +114,7 @@ public class WekaClassifier extends BaseClassifier implements WekaModel  {
            
     @Override public void run_protected(Dataset TestData) {
         try { 
-            Instances wekadata = TestData.transferToWeka(false, classIsDiscrete());
+            Instances wekadata = TestData.transferToWeka(true, classIsDiscrete());
             if (classIsDiscrete()) {
                 double[][] probs = new double[TestData.NEntries()][TestData.NClasses()];
                 for (int i=0; i<wekadata.numInstances(); i++) {
@@ -128,7 +128,9 @@ public class WekaClassifier extends BaseClassifier implements WekaModel  {
                 TestData.setPredictedClasses(prediction);
             }
             TestData.restoreAttributes(wekadata);
-        } catch (Exception e) {
+        } catch (Exception e) { 
+            System.err.println("Error when training WekaClassifier:");
+            e.printStackTrace();
             throw new Error(e); 
         }
     }
