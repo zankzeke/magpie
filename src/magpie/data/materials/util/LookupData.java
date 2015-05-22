@@ -1,6 +1,11 @@
 
 package magpie.data.materials.util;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import magpie.data.materials.CompositionDataset;
@@ -45,4 +50,48 @@ abstract public class LookupData {
 	 * Holds oxidation states of individual elements
 	 */
 	static public double[][] OxidationStates = null;
+    
+    /**
+     * Holds ionization energies of each element. Row is element number (Z - 1)
+     * and column is ionization energy of a certain state (charge - 1)
+     */
+    static public double[][] IonizationEnergies = null;
+    
+    /**
+     * Read in ionization energies
+     * @param path Path to lookup table
+     */
+    static public void readIonizationEnergies(String path) throws IOException {
+        // Open file
+        BufferedReader fp = new BufferedReader(new FileReader(path));
+        
+        // Read file
+        List<double[]> temp = new LinkedList<>();
+        while (true) {
+            String line = fp.readLine();
+            if (line == null) {
+                break;
+            }
+            
+            String[] words = line.split("[ \t]*");
+            double[] energies = new double[words.length];
+            for (int w=0; w<words.length; w++) {
+                try {
+                    energies[w] = Double.parseDouble(words[w]);
+                } catch (NumberFormatException e) {
+                    energies = new double[0];
+                    break;
+                }
+            }
+            
+            // Store result
+            temp.add(energies);
+        }
+        
+        // Transfer result to array
+        IonizationEnergies = new double[temp.size()][];
+        for (int i=0; i<temp.size(); i++) {
+            IonizationEnergies[i] = temp.get(i);
+        }
+    }
 }
