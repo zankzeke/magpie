@@ -40,6 +40,8 @@ import weka.core.converters.ArffLoader;
  * associated entry type
  * <li>{@linkplain #calculateAttributes() } - Compute any new attributes for for
  * class
+ * <li>{@linkplain #emptyClone() } - Create clone of dataset. Cloning entries
+ * is handled in {@linkplain #clone() }, which does not need to be modified.
  * </ul>
  *
  * <usage><p>
@@ -264,18 +266,14 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         return "Usage: *No Options*";
     }
 
+    /**
+     * Creates a new instance of this dataset, and clones of each entry.
+     * @return Clone of this dataset
+     */
     @Override
     @SuppressWarnings("CloneDeclaresCloneNotSupported")
     public Dataset clone() {
-        Dataset copy;
-        try {
-            copy = (Dataset) super.clone();
-        } catch (CloneNotSupportedException c) {
-            throw new Error(c);
-        }
-        copy.AttributeName = new ArrayList<>(AttributeName);
-        copy.ClassName = ClassName.clone();
-        copy.Expanders = new LinkedList<>(Expanders);
+        Dataset copy = emptyClone();
 
         // Make unique copies of the entries
         copy.Entries = new ArrayList<>(NEntries());
@@ -301,8 +299,11 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         }
         copy.AttributeName = new ArrayList<>(AttributeName);
         copy.ClassName = ClassName.clone();
+        copy.Expanders = new LinkedList<>(Expanders);
+        copy.Generators = new LinkedList<>(Generators);
+        
         // Make unique copies of the entries
-        copy.Entries = new ArrayList<>(NEntries());
+        copy.Entries = new ArrayList<>();
         return copy;
     }
 

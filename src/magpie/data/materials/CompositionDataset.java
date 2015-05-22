@@ -111,14 +111,6 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
     protected boolean UseComposition = false;
 
     @Override
-    @SuppressWarnings("CloneDeclaresCloneNotSupported")
-    public CompositionDataset clone() {
-        CompositionDataset x = (CompositionDataset) super.clone();
-        x.ElementNames = ElementNames.clone();
-        return x;
-    }
-
-    @Override
     public CompositionDataset emptyClone() {
         CompositionDataset x = (CompositionDataset) super.emptyClone();
         x.ElementNames = ElementNames.clone();
