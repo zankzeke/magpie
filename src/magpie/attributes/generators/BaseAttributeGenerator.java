@@ -17,5 +17,5 @@ abstract public class BaseAttributeGenerator implements Serializable, Options {
      * @param data 
      * @see Dataset#addAttribute(java.lang.String, double[]) 
      */
-    abstract public void addAttributes(Dataset data);
+    abstract public void addAttributes(Dataset data) throws Exception;
 }

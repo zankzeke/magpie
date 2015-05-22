@@ -12,6 +12,24 @@ public class CartesianSumGenerator<Type> implements Iterable<List<Type>> {
     /** Collections to be summed */
     final private List<List<Type>> Items;
 
+    /**
+     * Define collections to be summed
+     * @param collections List of collections containing possibilities for each element
+     */
+    public CartesianSumGenerator(List<Collection<Type>> collections) {
+        Items = new ArrayList<>(collections.size());
+        for (Collection<Type> col : collections) {
+            if (col.isEmpty()) {
+                throw new Error("Collections cannot be empty");
+            }
+            Items.add(new ArrayList<>(col));
+        }
+    }
+    
+    /**
+     * Define collections to be summed
+     * @param collections List of collections containing possibilities for each element
+     */
     public CartesianSumGenerator(Collection<Type>... collections) {
         Items = new ArrayList<>(collections.length);
         for (Collection<Type> col : collections) {

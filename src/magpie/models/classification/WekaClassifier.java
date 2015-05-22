@@ -129,6 +129,8 @@ public class WekaClassifier extends BaseClassifier implements WekaModel  {
             }
             TestData.restoreAttributes(wekadata);
         } catch (Exception e) { 
+            System.err.println("Error when training WekaClassifier:");
+            e.printStackTrace();
             throw new Error(e); 
         }
     }

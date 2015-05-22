@@ -2,6 +2,7 @@ package magpie.user;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InvalidClassException;
 import java.io.ObjectInputStream;
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -185,10 +186,12 @@ public class CommandHandler {
                     ObjectInputStream in; in = new ObjectInputStream(fp);
                     NewObj = in.readObject();
                     in.close(); fp.close();
+                } catch (InvalidClassException i) {
+                    throw new Exception("File contains out-of-date class: " + i.classname);
                 } catch (IOException i) {
-                    throw new Exception("ERROR: Failed to load object at: " + Filename);
+                    throw new Exception("Failed to load object at: " + Filename);
                 } catch (ClassNotFoundException e) {
-                    throw new Exception("ERROR: Class definition not found. Check libaries. Error text: " + e);
+                    throw new Exception("Class definition not found. Check libaries. Error text: " + e.getLocalizedMessage());
                 }
                 break;
             default: {
