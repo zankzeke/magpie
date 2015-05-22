@@ -73,7 +73,7 @@ abstract public class LookupData {
                 break;
             }
             
-            String[] words = line.split("[ \t]*");
+            String[] words = line.split("[ \t]");
             double[] energies = new double[words.length];
             for (int w=0; w<words.length; w++) {
                 try {

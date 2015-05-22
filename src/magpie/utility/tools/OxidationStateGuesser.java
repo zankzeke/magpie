@@ -125,6 +125,7 @@ public class OxidationStateGuesser implements Commandable, Options {
     public void setOxidationStates(double[][] states) {
         OxidationStates = new int[states.length][];
         for (int i=0; i<states.length; i++) {
+            if (states[i] == null) continue;
             OxidationStates[i] = new int[states[i].length];
             for (int j=0; j<states[i].length; j++) {
                 OxidationStates[i][j] = (int) states[i][j];
@@ -176,6 +177,9 @@ public class OxidationStateGuesser implements Commandable, Options {
         }
         List<Collection<Integer>> states = new ArrayList<>(elems.length);
         for (int e=0; e<elems.length; e++) {
+            if (OxidationStates[elems[e]] == null) {
+                return new LinkedList<>();
+            }
             List<Integer> temp = new ArrayList<>(OxidationStates[elems[e]].length);
             for (int s : OxidationStates[elems[e]]) {
                 temp.add(s);
