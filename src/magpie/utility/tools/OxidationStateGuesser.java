@@ -116,6 +116,21 @@ public class OxidationStateGuesser implements Commandable, Options {
     public void setOxidationStates(int[][] states) {
         this.OxidationStates = states.clone();
     }
+    
+    /**
+     * Set the oxidation states
+     * @param states Allowed oxidation states. Each row contains the allowed oxidation
+     * states for each element (ordered by Z).
+     */
+    public void setOxidationStates(double[][] states) {
+        OxidationStates = new int[states.length][];
+        for (int i=0; i<states.length; i++) {
+            OxidationStates[i] = new int[states[i].length];
+            for (int j=0; j<states[i].length; j++) {
+                OxidationStates[i][j] = (int) states[i][j];
+            }
+        }
+    }
 
     /**
      * Set the oxidation states
