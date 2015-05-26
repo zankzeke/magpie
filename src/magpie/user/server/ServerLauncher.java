@@ -14,8 +14,10 @@ import org.apache.thrift.server.*;
 import org.apache.thrift.transport.TServerTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.servlets.CrossOriginFilter;
 
 /**
  * Main class for launching a Magpie server. 
@@ -181,12 +183,19 @@ public class ServerLauncher {
         
         // Initialize HTTP Server
         HTTPServer = new Server(ListenPort + 1);
-        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-        context.setContextPath("/");
-        HTTPServer.setHandler(context);
+        
+        ServletContextHandler handler = new ServletContextHandler(ServletContextHandler.SESSIONS);
+        handler.setContextPath("/");
+        
+        FilterHolder filter = new FilterHolder();
+        filter.setInitParameter("allowedOrigins", "*");
+        filter.setFilter(new CrossOriginFilter());
+        handler.addFilter(filter, "/*", null);
+        
+        HTTPServer.setHandler(handler);
         TServlet tServlet;
         tServlet = new TServlet(processor, new TJSONProtocol.Factory());
-        context.addServlet(new ServletHolder(tServlet), "/*");
+        handler.addServlet(new ServletHolder(tServlet), "/*");
         HTTPServer.start();
         
         // Fork server to the background
