@@ -49,6 +49,11 @@ public class ServerLauncherTest {
         fp.println("entry delta_e");
         fp.println("ms-deltae.obj");
         fp.println("ms-data.obj");
+        fp.println("property &Delta;H");
+        fp.println("units eV/atom");
+        fp.println("author Logan Ward");
+        fp.println("citation None");
+        fp.println("notes Simple model created to demonstrate formation energy prediction");
         fp.println("entry volume_pa");
         fp.println("ms-volume.obj");
         fp.println("ms-data.obj");

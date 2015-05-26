@@ -147,6 +147,35 @@ public class ServerLauncher {
             // Read in other stuff
             line = reader.readLine();
             while (line != null && ! line.toLowerCase().startsWith("entry ")) {
+                words = line.split("[ \t]");
+                if (words.length == 1) {
+                    line = reader.readLine();
+                    continue;
+                }
+                switch (words[0]) {
+                    case "property":
+                        modelInfo.Property = line.replaceFirst("property", "").trim();
+                        System.out.println("\tProperty: " + modelInfo.Property);
+                        break;
+                    case "units":
+                        modelInfo.Units = line.replaceFirst("units", "").trim();
+                        System.out.println("\tUnits: " + modelInfo.Units);
+                        break;
+                    case "author":
+                        modelInfo.Author = line.replaceFirst("author", "").trim();
+                        System.out.println("\tAuthor: " + modelInfo.Author);
+                        break;
+                    case "citation":
+                        modelInfo.Citation = line.replaceFirst("citation", "").trim();
+                        System.out.println("\tCitation: " + modelInfo.Citation);
+                        break;
+                    case "notes":
+                        modelInfo.Description = line.replaceFirst("notes", "").trim();
+                        System.out.println("\tNotes: " + modelInfo.Description);
+                        break;
+                    default:
+                        System.out.println("Unrecognized property: " + words[0]);
+                }
                 line = reader.readLine();
             }
             

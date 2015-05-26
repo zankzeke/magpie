@@ -41,11 +41,17 @@ public class MagpieServer {
   public interface Iface {
 
     /**
-     *    * Compute the properties of each entry in a list. Returns results formatted as string
-     *    * in a human-readable format.
-     * * @param entries [in] List of entries to be evaluated
-     *    * @param props [in] Names of properties to evaluate
-     *    * @return Entry objects with property measurements
+     * Get information about available models
+     * @return Map of model name to model info
+     */
+    public Map<String,ModelInfo> getModelInformation() throws org.apache.thrift.TException;
+
+    /**
+     * Compute the properties of each entry in a list. Returns results formatted as string
+     * in a human-readable format.
+     * @param entries [in] List of entries to be evaluated
+     * @param props [in] Names of properties to evaluate
+     * @return Entry objects with property measurements
      * 
      * @param entries
      * @param props
@@ -126,6 +132,8 @@ public class MagpieServer {
 
   public interface AsyncIface {
 
+    public void getModelInformation(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+
     public void evaluateProperties(List<Entry> entries, List<String> props, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void searchSingleObjective(String obj, String gen_method, int to_list, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
@@ -152,6 +160,28 @@ public class MagpieServer {
 
     public Client(org.apache.thrift.protocol.TProtocol iprot, org.apache.thrift.protocol.TProtocol oprot) {
       super(iprot, oprot);
+    }
+
+    public Map<String,ModelInfo> getModelInformation() throws org.apache.thrift.TException
+    {
+      send_getModelInformation();
+      return recv_getModelInformation();
+    }
+
+    public void send_getModelInformation() throws org.apache.thrift.TException
+    {
+      getModelInformation_args args = new getModelInformation_args();
+      sendBase("getModelInformation", args);
+    }
+
+    public Map<String,ModelInfo> recv_getModelInformation() throws org.apache.thrift.TException
+    {
+      getModelInformation_result result = new getModelInformation_result();
+      receiveBase(result, "getModelInformation");
+      if (result.isSetSuccess()) {
+        return result.success;
+      }
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getModelInformation failed: unknown result");
     }
 
     public List<Entry> evaluateProperties(List<Entry> entries, List<String> props) throws org.apache.thrift.TException
@@ -245,6 +275,35 @@ public class MagpieServer {
 
     public AsyncClient(org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.async.TAsyncClientManager clientManager, org.apache.thrift.transport.TNonblockingTransport transport) {
       super(protocolFactory, clientManager, transport);
+    }
+
+    public void getModelInformation(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+      checkReady();
+      getModelInformation_call method_call = new getModelInformation_call(resultHandler, this, ___protocolFactory, ___transport);
+      this.___currentMethod = method_call;
+      ___manager.call(method_call);
+    }
+
+    public static class getModelInformation_call extends org.apache.thrift.async.TAsyncMethodCall {
+      public getModelInformation_call(org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+        super(client, protocolFactory, transport, resultHandler, false);
+      }
+
+      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getModelInformation", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        getModelInformation_args args = new getModelInformation_args();
+        args.write(prot);
+        prot.writeMessageEnd();
+      }
+
+      public Map<String,ModelInfo> getResult() throws org.apache.thrift.TException {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
+          throw new IllegalStateException("Method call not finished!");
+        }
+        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
+        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
+        return (new Client(prot)).recv_getModelInformation();
+      }
     }
 
     public void evaluateProperties(List<Entry> entries, List<String> props, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
@@ -374,10 +433,31 @@ public class MagpieServer {
     }
 
     private static <I extends Iface> Map<String,  org.apache.thrift.ProcessFunction<I, ? extends  org.apache.thrift.TBase>> getProcessMap(Map<String,  org.apache.thrift.ProcessFunction<I, ? extends  org.apache.thrift.TBase>> processMap) {
+      processMap.put("getModelInformation", new getModelInformation());
       processMap.put("evaluateProperties", new evaluateProperties());
       processMap.put("searchSingleObjective", new searchSingleObjective());
       processMap.put("searchMultiObjective", new searchMultiObjective());
       return processMap;
+    }
+
+    public static class getModelInformation<I extends Iface> extends org.apache.thrift.ProcessFunction<I, getModelInformation_args> {
+      public getModelInformation() {
+        super("getModelInformation");
+      }
+
+      public getModelInformation_args getEmptyArgsInstance() {
+        return new getModelInformation_args();
+      }
+
+      protected boolean isOneway() {
+        return false;
+      }
+
+      public getModelInformation_result getResult(I iface, getModelInformation_args args) throws org.apache.thrift.TException {
+        getModelInformation_result result = new getModelInformation_result();
+        result.success = iface.getModelInformation();
+        return result;
+      }
     }
 
     public static class evaluateProperties<I extends Iface> extends org.apache.thrift.ProcessFunction<I, evaluateProperties_args> {
@@ -453,10 +533,62 @@ public class MagpieServer {
     }
 
     private static <I extends AsyncIface> Map<String,  org.apache.thrift.AsyncProcessFunction<I, ? extends  org.apache.thrift.TBase,?>> getProcessMap(Map<String,  org.apache.thrift.AsyncProcessFunction<I, ? extends  org.apache.thrift.TBase, ?>> processMap) {
+      processMap.put("getModelInformation", new getModelInformation());
       processMap.put("evaluateProperties", new evaluateProperties());
       processMap.put("searchSingleObjective", new searchSingleObjective());
       processMap.put("searchMultiObjective", new searchMultiObjective());
       return processMap;
+    }
+
+    public static class getModelInformation<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getModelInformation_args, Map<String,ModelInfo>> {
+      public getModelInformation() {
+        super("getModelInformation");
+      }
+
+      public getModelInformation_args getEmptyArgsInstance() {
+        return new getModelInformation_args();
+      }
+
+      public AsyncMethodCallback<Map<String,ModelInfo>> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+        final org.apache.thrift.AsyncProcessFunction fcall = this;
+        return new AsyncMethodCallback<Map<String,ModelInfo>>() { 
+          public void onComplete(Map<String,ModelInfo> o) {
+            getModelInformation_result result = new getModelInformation_result();
+            result.success = o;
+            try {
+              fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
+              return;
+            } catch (Exception e) {
+              LOGGER.error("Exception writing to internal frame buffer", e);
+            }
+            fb.close();
+          }
+          public void onError(Exception e) {
+            byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
+            org.apache.thrift.TBase msg;
+            getModelInformation_result result = new getModelInformation_result();
+            {
+              msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
+              msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
+            }
+            try {
+              fcall.sendResponse(fb,msg,msgType,seqid);
+              return;
+            } catch (Exception ex) {
+              LOGGER.error("Exception writing to internal frame buffer", ex);
+            }
+            fb.close();
+          }
+        };
+      }
+
+      protected boolean isOneway() {
+        return false;
+      }
+
+      public void start(I iface, getModelInformation_args args, org.apache.thrift.async.AsyncMethodCallback<Map<String,ModelInfo>> resultHandler) throws TException {
+        iface.getModelInformation(resultHandler);
+      }
     }
 
     public static class evaluateProperties<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, evaluateProperties_args, List<Entry>> {
@@ -609,6 +741,680 @@ public class MagpieServer {
 
       public void start(I iface, searchMultiObjective_args args, org.apache.thrift.async.AsyncMethodCallback<List<Entry>> resultHandler) throws TException {
         iface.searchMultiObjective(args.p, args.objs, args.gen_method, args.to_list,resultHandler);
+      }
+    }
+
+  }
+
+  public static class getModelInformation_args implements org.apache.thrift.TBase<getModelInformation_args, getModelInformation_args._Fields>, java.io.Serializable, Cloneable, Comparable<getModelInformation_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getModelInformation_args");
+
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new getModelInformation_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new getModelInformation_argsTupleSchemeFactory());
+    }
+
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+;
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getModelInformation_args.class, metaDataMap);
+    }
+
+    public getModelInformation_args() {
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public getModelInformation_args(getModelInformation_args other) {
+    }
+
+    public getModelInformation_args deepCopy() {
+      return new getModelInformation_args(this);
+    }
+
+    @Override
+    public void clear() {
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof getModelInformation_args)
+        return this.equals((getModelInformation_args)that);
+      return false;
+    }
+
+    public boolean equals(getModelInformation_args that) {
+      if (that == null)
+        return false;
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      List<Object> list = new ArrayList<Object>();
+
+      return list.hashCode();
+    }
+
+    @Override
+    public int compareTo(getModelInformation_args other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("getModelInformation_args(");
+      boolean first = true;
+
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class getModelInformation_argsStandardSchemeFactory implements SchemeFactory {
+      public getModelInformation_argsStandardScheme getScheme() {
+        return new getModelInformation_argsStandardScheme();
+      }
+    }
+
+    private static class getModelInformation_argsStandardScheme extends StandardScheme<getModelInformation_args> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, getModelInformation_args struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, getModelInformation_args struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class getModelInformation_argsTupleSchemeFactory implements SchemeFactory {
+      public getModelInformation_argsTupleScheme getScheme() {
+        return new getModelInformation_argsTupleScheme();
+      }
+    }
+
+    private static class getModelInformation_argsTupleScheme extends TupleScheme<getModelInformation_args> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, getModelInformation_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, getModelInformation_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+      }
+    }
+
+  }
+
+  public static class getModelInformation_result implements org.apache.thrift.TBase<getModelInformation_result, getModelInformation_result._Fields>, java.io.Serializable, Cloneable, Comparable<getModelInformation_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getModelInformation_result");
+
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.MAP, (short)0);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new getModelInformation_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new getModelInformation_resultTupleSchemeFactory());
+    }
+
+    public Map<String,ModelInfo> success; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      SUCCESS((short)0, "success");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 0: // SUCCESS
+            return SUCCESS;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
+              new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING), 
+              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, ModelInfo.class))));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getModelInformation_result.class, metaDataMap);
+    }
+
+    public getModelInformation_result() {
+    }
+
+    public getModelInformation_result(
+      Map<String,ModelInfo> success)
+    {
+      this();
+      this.success = success;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public getModelInformation_result(getModelInformation_result other) {
+      if (other.isSetSuccess()) {
+        Map<String,ModelInfo> __this__success = new HashMap<String,ModelInfo>(other.success.size());
+        for (Map.Entry<String, ModelInfo> other_element : other.success.entrySet()) {
+
+          String other_element_key = other_element.getKey();
+          ModelInfo other_element_value = other_element.getValue();
+
+          String __this__success_copy_key = other_element_key;
+
+          ModelInfo __this__success_copy_value = new ModelInfo(other_element_value);
+
+          __this__success.put(__this__success_copy_key, __this__success_copy_value);
+        }
+        this.success = __this__success;
+      }
+    }
+
+    public getModelInformation_result deepCopy() {
+      return new getModelInformation_result(this);
+    }
+
+    @Override
+    public void clear() {
+      this.success = null;
+    }
+
+    public int getSuccessSize() {
+      return (this.success == null) ? 0 : this.success.size();
+    }
+
+    public void putToSuccess(String key, ModelInfo val) {
+      if (this.success == null) {
+        this.success = new HashMap<String,ModelInfo>();
+      }
+      this.success.put(key, val);
+    }
+
+    public Map<String,ModelInfo> getSuccess() {
+      return this.success;
+    }
+
+    public getModelInformation_result setSuccess(Map<String,ModelInfo> success) {
+      this.success = success;
+      return this;
+    }
+
+    public void unsetSuccess() {
+      this.success = null;
+    }
+
+    /** Returns true if field success is set (has been assigned a value) and false otherwise */
+    public boolean isSetSuccess() {
+      return this.success != null;
+    }
+
+    public void setSuccessIsSet(boolean value) {
+      if (!value) {
+        this.success = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case SUCCESS:
+        if (value == null) {
+          unsetSuccess();
+        } else {
+          setSuccess((Map<String,ModelInfo>)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case SUCCESS:
+        return getSuccess();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case SUCCESS:
+        return isSetSuccess();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof getModelInformation_result)
+        return this.equals((getModelInformation_result)that);
+      return false;
+    }
+
+    public boolean equals(getModelInformation_result that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_success = true && this.isSetSuccess();
+      boolean that_present_success = true && that.isSetSuccess();
+      if (this_present_success || that_present_success) {
+        if (!(this_present_success && that_present_success))
+          return false;
+        if (!this.success.equals(that.success))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      List<Object> list = new ArrayList<Object>();
+
+      boolean present_success = true && (isSetSuccess());
+      list.add(present_success);
+      if (present_success)
+        list.add(success);
+
+      return list.hashCode();
+    }
+
+    @Override
+    public int compareTo(getModelInformation_result other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+
+      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(other.isSetSuccess());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSuccess()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+      }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("getModelInformation_result(");
+      boolean first = true;
+
+      sb.append("success:");
+      if (this.success == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.success);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class getModelInformation_resultStandardSchemeFactory implements SchemeFactory {
+      public getModelInformation_resultStandardScheme getScheme() {
+        return new getModelInformation_resultStandardScheme();
+      }
+    }
+
+    private static class getModelInformation_resultStandardScheme extends StandardScheme<getModelInformation_result> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, getModelInformation_result struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 0: // SUCCESS
+              if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
+                {
+                  org.apache.thrift.protocol.TMap _map20 = iprot.readMapBegin();
+                  struct.success = new HashMap<String,ModelInfo>(2*_map20.size);
+                  String _key21;
+                  ModelInfo _val22;
+                  for (int _i23 = 0; _i23 < _map20.size; ++_i23)
+                  {
+                    _key21 = iprot.readString();
+                    _val22 = new ModelInfo();
+                    _val22.read(iprot);
+                    struct.success.put(_key21, _val22);
+                  }
+                  iprot.readMapEnd();
+                }
+                struct.setSuccessIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, getModelInformation_result struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.success != null) {
+          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
+          {
+            oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRUCT, struct.success.size()));
+            for (Map.Entry<String, ModelInfo> _iter24 : struct.success.entrySet())
+            {
+              oprot.writeString(_iter24.getKey());
+              _iter24.getValue().write(oprot);
+            }
+            oprot.writeMapEnd();
+          }
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class getModelInformation_resultTupleSchemeFactory implements SchemeFactory {
+      public getModelInformation_resultTupleScheme getScheme() {
+        return new getModelInformation_resultTupleScheme();
+      }
+    }
+
+    private static class getModelInformation_resultTupleScheme extends TupleScheme<getModelInformation_result> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, getModelInformation_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetSuccess()) {
+          optionals.set(0);
+        }
+        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetSuccess()) {
+          {
+            oprot.writeI32(struct.success.size());
+            for (Map.Entry<String, ModelInfo> _iter25 : struct.success.entrySet())
+            {
+              oprot.writeString(_iter25.getKey());
+              _iter25.getValue().write(oprot);
+            }
+          }
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, getModelInformation_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(1);
+        if (incoming.get(0)) {
+          {
+            org.apache.thrift.protocol.TMap _map26 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.success = new HashMap<String,ModelInfo>(2*_map26.size);
+            String _key27;
+            ModelInfo _val28;
+            for (int _i29 = 0; _i29 < _map26.size; ++_i29)
+            {
+              _key27 = iprot.readString();
+              _val28 = new ModelInfo();
+              _val28.read(iprot);
+              struct.success.put(_key27, _val28);
+            }
+          }
+          struct.setSuccessIsSet(true);
+        }
       }
     }
 
@@ -1029,14 +1835,14 @@ public class MagpieServer {
             case 1: // ENTRIES
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list20 = iprot.readListBegin();
-                  struct.entries = new ArrayList<Entry>(_list20.size);
-                  Entry _elem21;
-                  for (int _i22 = 0; _i22 < _list20.size; ++_i22)
+                  org.apache.thrift.protocol.TList _list30 = iprot.readListBegin();
+                  struct.entries = new ArrayList<Entry>(_list30.size);
+                  Entry _elem31;
+                  for (int _i32 = 0; _i32 < _list30.size; ++_i32)
                   {
-                    _elem21 = new Entry();
-                    _elem21.read(iprot);
-                    struct.entries.add(_elem21);
+                    _elem31 = new Entry();
+                    _elem31.read(iprot);
+                    struct.entries.add(_elem31);
                   }
                   iprot.readListEnd();
                 }
@@ -1048,13 +1854,13 @@ public class MagpieServer {
             case 2: // PROPS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list23 = iprot.readListBegin();
-                  struct.props = new ArrayList<String>(_list23.size);
-                  String _elem24;
-                  for (int _i25 = 0; _i25 < _list23.size; ++_i25)
+                  org.apache.thrift.protocol.TList _list33 = iprot.readListBegin();
+                  struct.props = new ArrayList<String>(_list33.size);
+                  String _elem34;
+                  for (int _i35 = 0; _i35 < _list33.size; ++_i35)
                   {
-                    _elem24 = iprot.readString();
-                    struct.props.add(_elem24);
+                    _elem34 = iprot.readString();
+                    struct.props.add(_elem34);
                   }
                   iprot.readListEnd();
                 }
@@ -1082,9 +1888,9 @@ public class MagpieServer {
           oprot.writeFieldBegin(ENTRIES_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.entries.size()));
-            for (Entry _iter26 : struct.entries)
+            for (Entry _iter36 : struct.entries)
             {
-              _iter26.write(oprot);
+              _iter36.write(oprot);
             }
             oprot.writeListEnd();
           }
@@ -1094,9 +1900,9 @@ public class MagpieServer {
           oprot.writeFieldBegin(PROPS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.props.size()));
-            for (String _iter27 : struct.props)
+            for (String _iter37 : struct.props)
             {
-              oprot.writeString(_iter27);
+              oprot.writeString(_iter37);
             }
             oprot.writeListEnd();
           }
@@ -1130,18 +1936,18 @@ public class MagpieServer {
         if (struct.isSetEntries()) {
           {
             oprot.writeI32(struct.entries.size());
-            for (Entry _iter28 : struct.entries)
+            for (Entry _iter38 : struct.entries)
             {
-              _iter28.write(oprot);
+              _iter38.write(oprot);
             }
           }
         }
         if (struct.isSetProps()) {
           {
             oprot.writeI32(struct.props.size());
-            for (String _iter29 : struct.props)
+            for (String _iter39 : struct.props)
             {
-              oprot.writeString(_iter29);
+              oprot.writeString(_iter39);
             }
           }
         }
@@ -1153,27 +1959,27 @@ public class MagpieServer {
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list30 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.entries = new ArrayList<Entry>(_list30.size);
-            Entry _elem31;
-            for (int _i32 = 0; _i32 < _list30.size; ++_i32)
+            org.apache.thrift.protocol.TList _list40 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.entries = new ArrayList<Entry>(_list40.size);
+            Entry _elem41;
+            for (int _i42 = 0; _i42 < _list40.size; ++_i42)
             {
-              _elem31 = new Entry();
-              _elem31.read(iprot);
-              struct.entries.add(_elem31);
+              _elem41 = new Entry();
+              _elem41.read(iprot);
+              struct.entries.add(_elem41);
             }
           }
           struct.setEntriesIsSet(true);
         }
         if (incoming.get(1)) {
           {
-            org.apache.thrift.protocol.TList _list33 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-            struct.props = new ArrayList<String>(_list33.size);
-            String _elem34;
-            for (int _i35 = 0; _i35 < _list33.size; ++_i35)
+            org.apache.thrift.protocol.TList _list43 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+            struct.props = new ArrayList<String>(_list43.size);
+            String _elem44;
+            for (int _i45 = 0; _i45 < _list43.size; ++_i45)
             {
-              _elem34 = iprot.readString();
-              struct.props.add(_elem34);
+              _elem44 = iprot.readString();
+              struct.props.add(_elem44);
             }
           }
           struct.setPropsIsSet(true);
@@ -1499,14 +2305,14 @@ public class MagpieServer {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list36 = iprot.readListBegin();
-                  struct.success = new ArrayList<Entry>(_list36.size);
-                  Entry _elem37;
-                  for (int _i38 = 0; _i38 < _list36.size; ++_i38)
+                  org.apache.thrift.protocol.TList _list46 = iprot.readListBegin();
+                  struct.success = new ArrayList<Entry>(_list46.size);
+                  Entry _elem47;
+                  for (int _i48 = 0; _i48 < _list46.size; ++_i48)
                   {
-                    _elem37 = new Entry();
-                    _elem37.read(iprot);
-                    struct.success.add(_elem37);
+                    _elem47 = new Entry();
+                    _elem47.read(iprot);
+                    struct.success.add(_elem47);
                   }
                   iprot.readListEnd();
                 }
@@ -1534,9 +2340,9 @@ public class MagpieServer {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.success.size()));
-            for (Entry _iter39 : struct.success)
+            for (Entry _iter49 : struct.success)
             {
-              _iter39.write(oprot);
+              _iter49.write(oprot);
             }
             oprot.writeListEnd();
           }
@@ -1567,9 +2373,9 @@ public class MagpieServer {
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
-            for (Entry _iter40 : struct.success)
+            for (Entry _iter50 : struct.success)
             {
-              _iter40.write(oprot);
+              _iter50.write(oprot);
             }
           }
         }
@@ -1581,14 +2387,14 @@ public class MagpieServer {
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list41 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.success = new ArrayList<Entry>(_list41.size);
-            Entry _elem42;
-            for (int _i43 = 0; _i43 < _list41.size; ++_i43)
+            org.apache.thrift.protocol.TList _list51 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.success = new ArrayList<Entry>(_list51.size);
+            Entry _elem52;
+            for (int _i53 = 0; _i53 < _list51.size; ++_i53)
             {
-              _elem42 = new Entry();
-              _elem42.read(iprot);
-              struct.success.add(_elem42);
+              _elem52 = new Entry();
+              _elem52.read(iprot);
+              struct.success.add(_elem52);
             }
           }
           struct.setSuccessIsSet(true);
@@ -2483,14 +3289,14 @@ public class MagpieServer {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list44 = iprot.readListBegin();
-                  struct.success = new ArrayList<Entry>(_list44.size);
-                  Entry _elem45;
-                  for (int _i46 = 0; _i46 < _list44.size; ++_i46)
+                  org.apache.thrift.protocol.TList _list54 = iprot.readListBegin();
+                  struct.success = new ArrayList<Entry>(_list54.size);
+                  Entry _elem55;
+                  for (int _i56 = 0; _i56 < _list54.size; ++_i56)
                   {
-                    _elem45 = new Entry();
-                    _elem45.read(iprot);
-                    struct.success.add(_elem45);
+                    _elem55 = new Entry();
+                    _elem55.read(iprot);
+                    struct.success.add(_elem55);
                   }
                   iprot.readListEnd();
                 }
@@ -2518,9 +3324,9 @@ public class MagpieServer {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.success.size()));
-            for (Entry _iter47 : struct.success)
+            for (Entry _iter57 : struct.success)
             {
-              _iter47.write(oprot);
+              _iter57.write(oprot);
             }
             oprot.writeListEnd();
           }
@@ -2551,9 +3357,9 @@ public class MagpieServer {
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
-            for (Entry _iter48 : struct.success)
+            for (Entry _iter58 : struct.success)
             {
-              _iter48.write(oprot);
+              _iter58.write(oprot);
             }
           }
         }
@@ -2565,14 +3371,14 @@ public class MagpieServer {
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list49 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.success = new ArrayList<Entry>(_list49.size);
-            Entry _elem50;
-            for (int _i51 = 0; _i51 < _list49.size; ++_i51)
+            org.apache.thrift.protocol.TList _list59 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.success = new ArrayList<Entry>(_list59.size);
+            Entry _elem60;
+            for (int _i61 = 0; _i61 < _list59.size; ++_i61)
             {
-              _elem50 = new Entry();
-              _elem50.read(iprot);
-              struct.success.add(_elem50);
+              _elem60 = new Entry();
+              _elem60.read(iprot);
+              struct.success.add(_elem60);
             }
           }
           struct.setSuccessIsSet(true);
@@ -3145,13 +3951,13 @@ public class MagpieServer {
             case 2: // OBJS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list52 = iprot.readListBegin();
-                  struct.objs = new ArrayList<String>(_list52.size);
-                  String _elem53;
-                  for (int _i54 = 0; _i54 < _list52.size; ++_i54)
+                  org.apache.thrift.protocol.TList _list62 = iprot.readListBegin();
+                  struct.objs = new ArrayList<String>(_list62.size);
+                  String _elem63;
+                  for (int _i64 = 0; _i64 < _list62.size; ++_i64)
                   {
-                    _elem53 = iprot.readString();
-                    struct.objs.add(_elem53);
+                    _elem63 = iprot.readString();
+                    struct.objs.add(_elem63);
                   }
                   iprot.readListEnd();
                 }
@@ -3198,9 +4004,9 @@ public class MagpieServer {
           oprot.writeFieldBegin(OBJS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.objs.size()));
-            for (String _iter55 : struct.objs)
+            for (String _iter65 : struct.objs)
             {
-              oprot.writeString(_iter55);
+              oprot.writeString(_iter65);
             }
             oprot.writeListEnd();
           }
@@ -3251,9 +4057,9 @@ public class MagpieServer {
         if (struct.isSetObjs()) {
           {
             oprot.writeI32(struct.objs.size());
-            for (String _iter56 : struct.objs)
+            for (String _iter66 : struct.objs)
             {
-              oprot.writeString(_iter56);
+              oprot.writeString(_iter66);
             }
           }
         }
@@ -3275,13 +4081,13 @@ public class MagpieServer {
         }
         if (incoming.get(1)) {
           {
-            org.apache.thrift.protocol.TList _list57 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-            struct.objs = new ArrayList<String>(_list57.size);
-            String _elem58;
-            for (int _i59 = 0; _i59 < _list57.size; ++_i59)
+            org.apache.thrift.protocol.TList _list67 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+            struct.objs = new ArrayList<String>(_list67.size);
+            String _elem68;
+            for (int _i69 = 0; _i69 < _list67.size; ++_i69)
             {
-              _elem58 = iprot.readString();
-              struct.objs.add(_elem58);
+              _elem68 = iprot.readString();
+              struct.objs.add(_elem68);
             }
           }
           struct.setObjsIsSet(true);
@@ -3615,14 +4421,14 @@ public class MagpieServer {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list60 = iprot.readListBegin();
-                  struct.success = new ArrayList<Entry>(_list60.size);
-                  Entry _elem61;
-                  for (int _i62 = 0; _i62 < _list60.size; ++_i62)
+                  org.apache.thrift.protocol.TList _list70 = iprot.readListBegin();
+                  struct.success = new ArrayList<Entry>(_list70.size);
+                  Entry _elem71;
+                  for (int _i72 = 0; _i72 < _list70.size; ++_i72)
                   {
-                    _elem61 = new Entry();
-                    _elem61.read(iprot);
-                    struct.success.add(_elem61);
+                    _elem71 = new Entry();
+                    _elem71.read(iprot);
+                    struct.success.add(_elem71);
                   }
                   iprot.readListEnd();
                 }
@@ -3650,9 +4456,9 @@ public class MagpieServer {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.success.size()));
-            for (Entry _iter63 : struct.success)
+            for (Entry _iter73 : struct.success)
             {
-              _iter63.write(oprot);
+              _iter73.write(oprot);
             }
             oprot.writeListEnd();
           }
@@ -3683,9 +4489,9 @@ public class MagpieServer {
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
-            for (Entry _iter64 : struct.success)
+            for (Entry _iter74 : struct.success)
             {
-              _iter64.write(oprot);
+              _iter74.write(oprot);
             }
           }
         }
@@ -3697,14 +4503,14 @@ public class MagpieServer {
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list65 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.success = new ArrayList<Entry>(_list65.size);
-            Entry _elem66;
-            for (int _i67 = 0; _i67 < _list65.size; ++_i67)
+            org.apache.thrift.protocol.TList _list75 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.success = new ArrayList<Entry>(_list75.size);
+            Entry _elem76;
+            for (int _i77 = 0; _i77 < _list75.size; ++_i77)
             {
-              _elem66 = new Entry();
-              _elem66.read(iprot);
-              struct.success.add(_elem66);
+              _elem76 = new Entry();
+              _elem76.read(iprot);
+              struct.success.add(_elem76);
             }
           }
           struct.setSuccessIsSet(true);

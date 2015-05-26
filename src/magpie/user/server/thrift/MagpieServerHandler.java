@@ -301,4 +301,15 @@ public class MagpieServerHandler implements MagpieServer.Iface {
         return output;
     }
 
+    @Override
+    public Map<String, ModelInfo> getModelInformation() throws TException {
+        Map<String,ModelInfo> output = new TreeMap<>();
+        for (Map.Entry<String, ModelPackage> entrySet : ModelInformation.entrySet()) {
+            String name = entrySet.getKey();
+            ModelPackage pack = entrySet.getValue();
+            output.put(name, pack.generateInfo());
+        }
+        return output;
+    }
+
 }

@@ -1,14 +1,45 @@
 struct Entry {
-	1: string name
-	2: map<string,double> measured_properties = {}
-        3: map<string,double> predicted_properties = {}
+    1: string name
+    2: map<string,double> measured_properties = {}
+    3: map<string,double> predicted_properties = {}
+}
+
+/**
+ * Holds all known information about a model
+ * 
+ * Known properties:
+ *  property  : Property being model
+ *  units     : Units of prediction
+ *  training  : Description of training set
+ *  author    : Name/contact info of author
+ *  citation  : Citation information of the model
+ *  notes     : Short description of model
+ *  dataType  : Type of data expected, defined by name of Magpie Dataset type
+ *  modelType : Type of model
+ */
+struct ModelInfo {
+    1: string property
+    2: string units
+    3: string author
+    4: string training
+    5: string citation
+    6: string notes
+    7: string dataType
+    8: string modelType
 }
 
 service MagpieServer {
+
+    /**
+     * Get information about available models
+     * @return Map of model name to model info 
+     */
+    map<string,ModelInfo> getModelInformation()
+
     /**
      * Compute the properties of each entry in a list. Returns results formatted as string
      * in a human-readable format.
-	 * @param entries [in] List of entries to be evaluated
+     * @param entries [in] List of entries to be evaluated
      * @param props [in] Names of properties to evaluate
      * @return Entry objects with property measurements
      */
