@@ -85,9 +85,9 @@ public class ServerLauncher {
             switch (tag) {
                 case "-port":
                     ListenPort = Integer.parseInt(args[++pos]);
-                    System.out.println("\tSet listen port to: " + ListenPort);
-                    System.out.println("\t\tSocket port: " + ListenPort);
-                    System.out.println("\t\tHTTPClient port: " + (ListenPort + 1));
+                    System.out.println("Set listen ports:");
+                    System.out.println("\tSocket port: " + ListenPort);
+                    System.out.println("\tHTTPClient port: " + (ListenPort + 1));
                     break;
                 case "-model":
                     readInformationFile(args[++pos]);
@@ -123,17 +123,20 @@ public class ServerLauncher {
             
             // Get the name of this model
             String name = words[1];
+            System.out.println("Creating model: " + name);
             
             // Read in model and dataset
             line = reader.readLine();
             if (line == null) {
                 throw new Exception("Format error: Missing line for model path");
             }
+            System.out.println("\tReading in model from: " + line);
             BaseModel model = BaseModel.loadState(line);
             line = reader.readLine();
             if (line == null) {
                 throw new Exception("Format error: Missing line for dataset path");
             }
+            System.out.println("\tReading in dataset from: " + line);
             Dataset data = Dataset.loadState(line).emptyClone();
             
             // Create the information holder
