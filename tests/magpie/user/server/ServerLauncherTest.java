@@ -45,6 +45,17 @@ public class ServerLauncherTest {
         model.train(template);
         model.saveState("ms-volume.obj");
         new File("ms-volume.obj").deleteOnExit();
+        
+        // Create fake input file
+        PrintWriter fp = new PrintWriter("ms-model.info");
+        fp.println("entry delta_e");
+        fp.println("ms-deltae.obj");
+        fp.println("ms-data.obj");
+        fp.println("entry volume_pa");
+        fp.println("ms-volume.obj");
+        fp.println("ms-data.obj");
+        fp.close();
+        new File("ms-model.info").deleteOnExit();
     }
     
     private MagpieServer.Client getClient() throws Exception {
@@ -58,27 +69,22 @@ public class ServerLauncherTest {
     @Before
     public void launchServer() throws Exception {
         List<String> args = new LinkedList<>();
-        args.add("-data");
-        args.add("ms-data.obj");
         args.add("-model");
-        args.add("delta_e");
-        args.add("ms-deltae.obj");
-        args.add("-model");
-        args.add("volume_pa");
-        args.add("ms-volume.obj");
+        args.add("ms-model.info");
                 
-        Server = ServerLauncher.main(args.toArray(new String[0]));
+        ServerLauncher.main(args.toArray(new String[0]));
         Thread.sleep(1000);
     }
     
     @After
-    public void afterTest() {
-        Server.stop();
+    public void afterTest() throws Exception {
+        ServerLauncher.stopServer();
     }
 
     @Test
     public void testServerStarting() throws Exception {
-        Assert.assertTrue(Server.isServing());
+        Assert.assertTrue(ServerLauncher.SocketServer.isServing());
+        Assert.assertTrue(ServerLauncher.HTTPServer.isStarted());
     }
     
     @Test
@@ -87,11 +93,13 @@ public class ServerLauncherTest {
         List<Entry> entries = new LinkedList<>();
         entries.add(new Entry("NaCl", new TreeMap<String, Double>()));
         entries.add(new Entry("Mg3Al", new TreeMap<String, Double>()));
+        entries.add(new Entry("#!", new TreeMap<String, Double>()));
         List<String> props = new LinkedList<>();
         props.add("delta_e");
         List<List<String>> output = client.evaluateProperties(entries, props);
-        Assert.assertEquals(2, output.size());
-        Assert.assertEquals(2, output.get(0).size());
+        Assert.assertEquals(3, output.size());
+        Assert.assertEquals(1, output.get(0).size());
+        Assert.assertEquals("NA", output.get(2).get(0));
     }
 	
 	@Test

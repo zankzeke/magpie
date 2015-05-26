@@ -9,6 +9,7 @@ import magpie.models.BaseModel;
 import magpie.models.regression.AbstractRegressionModel;
 import magpie.optimization.rankers.*;
 import magpie.user.CommandHandler;
+import magpie.user.server.ModelPackage;
 import org.apache.commons.lang3.tuple.*;
 import org.apache.thrift.TException;
 
@@ -18,28 +19,18 @@ import org.apache.thrift.TException;
  * @see MagpieServer
  */
 public class MagpieServerHandler implements MagpieServer.Iface {
-    /** Dataset template (used to calculate attributes) */
-    protected Dataset TemplateDataset = null;
-    /** Model to be run */
-	protected Map<String,BaseModel> Models = new TreeMap<>();
+    /** Information about each model */
+    protected Map<String,ModelPackage> ModelInformation = new TreeMap<>();
 	/** Maximum number of entries to evaluate (security measure) */
 	public static long MaxEntryEvaluations = 50000;
     
     /**
      * Add a new model to the server handler
-     * @param name Name of model (i.e., property that it models)
-     * @param model Copy of model
+     * @param name Name of model
+     * @param modelInfo Information about model
      */
-    public void addModel(String name, BaseModel model) {
-        Models.put(name, model.clone());
-    }
-
-    /**
-     * Define the dataset used to generate attributes
-     * @param dataset Desired dataset
-     */
-    public void setTemplateDataset(Dataset dataset) {
-        TemplateDataset = dataset.emptyClone();
+    public void addModel(String name, ModelPackage modelInfo) {
+        ModelInformation.put(name, modelInfo);
     }
     
     @Override
@@ -58,38 +49,35 @@ public class MagpieServerHandler implements MagpieServer.Iface {
 			List<String> toAdd = new LinkedList<>();
 			results.add(toAdd);
 		}
-		
-		// Store entries in dataset, create lookup array 
-		Dataset dataset = TemplateDataset.emptyClone();
-		Map<Integer, Integer> entryToResult = new TreeMap<>();
-		List<Integer> failedList = new LinkedList<>();
-		for (int i=0; i < entryNames.size(); i++) {
-			String entry = entryNames.get(i);
-			if (entry.isEmpty()) continue;
-			try {
-				BaseEntry parsed = dataset.addEntry(entry);
-				entryToResult.put(dataset.NEntries()-1 , i);
-			} catch (Exception e) {
-				failedList.add(i);
-			}
-		}
 
 		// Run the model and such
 		try {
             
-            // Add names of predicted properties to output
-			for (Map.Entry<Integer, Integer> item : entryToResult.entrySet()) {
-				BaseEntry entry = dataset.getEntry(item.getKey());
-				Integer pos = item.getValue();		
-				results.get(pos).add(entry.toString());
-			}
-            
-            // Generate attributes used to perform models
-			dataset.generateAttributes();
-            
             // Predict each property
             for (String prop : props) {
-                BaseModel model = Models.get(prop);
+                
+                // Store entries in dataset, create lookup array 
+                Dataset dataset = ModelInformation.get(prop).Dataset;
+                Map<Integer, Integer> entryToResult = new TreeMap<>();
+                List<Integer> failedList = new LinkedList<>();
+                for (int i = 0; i < entryNames.size(); i++) {
+                    String entry = entryNames.get(i);
+                    if (entry.isEmpty()) {
+                        continue;
+                    }
+                    try {
+                        BaseEntry parsed = dataset.addEntry(entry);
+                        entryToResult.put(dataset.NEntries() - 1, // Index of dataset entry
+                                i); // Index of entry in input array
+                    } catch (Exception e) {
+                        failedList.add(i);
+                    }
+                }
+                
+                // Generate attributes used to perform models
+                dataset.generateAttributes();
+                
+                BaseModel model = ModelInformation.get(prop).Model;
                 
                 // Special Case: No model for that property
                 if (model == null) {
@@ -118,17 +106,14 @@ public class MagpieServerHandler implements MagpieServer.Iface {
 								probs[i][(int) predicted[i]] * 100.0));
                     }
                 }
+                
+                // Add results for the entries that failed to parse
+                for (Integer entry : failedList) {
+                    results.get(entry).add("NA");
+                }
             }
 		} catch (Exception e) {
             throw new TException(e);
-		}
-		
-		// Add unparseable entries
-		for (Integer entry : failedList) {
-			results.get(entry).add(entryNames.get(entry));
-			for (int i=0; i < Math.max(1, props.size()); i++) {
-				results.get(entry).add("NA");
-			}
 		}
 		
 		return results;
@@ -145,12 +130,12 @@ public class MagpieServerHandler implements MagpieServer.Iface {
             BaseEntryGenerator generator = getGenerator(gen_method);
             
             // Generate the dataset
-            Dataset data = TemplateDataset.emptyClone();
+            Dataset data = ModelInformation.get(property).Dataset;
             generator.addEntriesToDataset(data);
             data.generateAttributes();
             
             // Execute the search
-            BaseModel model = Models.get(property);
+            BaseModel model = ModelInformation.get(property).Model;
             if (model == null) {
                 throw new Exception("No model for property: " + property);
             }
@@ -259,8 +244,27 @@ public class MagpieServerHandler implements MagpieServer.Iface {
         ranker.setP(p);
         ranker.setUseMeasured(false);
         
+        // Check if objectives are empty
+        if (objs.isEmpty()) {
+            throw new TException("Objectives cannot be empty");
+        }
+        
+        // Get all of the objectives
+        Dataset data = null;
+        for (String obj : objs) {
+            try {
+                Pair<String,BaseEntryRanker> objective = getObjective(obj);
+                ranker.addObjectiveFunction(objective.getLeft(),
+                    objective.getRight());
+                if (data ==  null) {
+                    data = ModelInformation.get(objective.getLeft()).Dataset;
+                }
+            } catch (Exception e) {
+                throw new TException(e.getMessage());
+            }
+        }
+        
         // Generate the dataset
-        Dataset data = TemplateDataset.emptyClone();
         try {
             BaseEntryGenerator generator = getGenerator(gen_method);
             generator.addEntriesToDataset(data);
@@ -269,16 +273,6 @@ public class MagpieServerHandler implements MagpieServer.Iface {
             throw new TException(e.getMessage());
         }
 
-        // Get all of the objectives
-        for (String obj : objs) {
-            try {
-                Pair<String,BaseEntryRanker> objective = getObjective(obj);
-                ranker.addObjectiveFunction(objective.getLeft(),
-                    objective.getRight());
-            } catch (Exception e) {
-                throw new TException(e.getMessage());
-            }
-        }
 
         // Add properties to dataset
         if (!(data instanceof MultiPropertyDataset)) {
@@ -291,7 +285,7 @@ public class MagpieServerHandler implements MagpieServer.Iface {
 
         // Run models
         for (String prop : ranker.getObjectives()) {
-            BaseModel model = Models.get(prop);
+            BaseModel model = ModelInformation.get(prop).Model;
             if (model == null) {
                 throw new TException("No model for property: " + prop);
             }
