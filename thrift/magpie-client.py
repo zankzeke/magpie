@@ -43,7 +43,7 @@ try:
 
   # Search for materials with a band gap closest to 5.4 eV
   res = client.searchSingleObjective("bandgap minimize TargetEntryRanker 5.4",
-	"PhaseDiagramCompositionEntryGenerator 2 -crystal 5 Ni Fe O Si F S Cu Au Zn Ge Na Cl",
+	"PhaseDiagramCompositionEntryGenerator 1 2 -crystal 5 Ni Fe O Si F S Cu Au Zn Ge Na Cl",
 	10)
   print "Materials with a band gap close to 5.4 eV:"
   for e in res:
@@ -52,7 +52,7 @@ try:
   # Search for materials with a band gap close to 5.4 eV and minimum specific volume
   res = client.searchMultiObjective(10.0,
 	["bandgap minimize TargetEntryRanker 5.4", "volume minimize SimpleEntryRanker"],
-	"PhaseDiagramCompositionEntryGenerator 2 -crystal 5 Ni Fe O Si F S Cu Au Zn Ge Na Cl",
+	"PhaseDiagramCompositionEntryGenerator 1 2 -crystal 5 Ni Fe O Si F S Cu Au Zn Ge Na Cl",
 	10)
   print "Materials with a band gap close to 5.4 eV and minimum specific volume:"
   for e in res:

@@ -99,7 +99,7 @@ public class ServerLauncherTest {
         MagpieServer.Client client = getClient();
         List<Entry> output = client.searchSingleObjective(
                 "delta_e minimize SimpleEntryRanker",
-                "PhaseDiagramCompositionEntryGenerator 2 -alloy 2 Al Ni Zr",
+                "PhaseDiagramCompositionEntryGenerator 1 2 -alloy 2 Al Ni Zr",
                 20);
         Assert.assertEquals(20, output.size());
     }
@@ -111,7 +111,7 @@ public class ServerLauncherTest {
         objs.add("delta_e minimize SimpleEntryRanker");
         objs.add("volume_pa minimize TargetEntryRanker 20.0");
         List<Entry> output = client.searchMultiObjective(10.0, objs,
-                "PhaseDiagramCompositionEntryGenerator 2 -alloy 2 Al Ni Zr",
+                "PhaseDiagramCompositionEntryGenerator 1 2 -alloy 2 Al Ni Zr",
                 20);
         Assert.assertEquals(20, output.size());
     }
