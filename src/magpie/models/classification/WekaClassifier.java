@@ -33,14 +33,14 @@ public class WekaClassifier extends BaseClassifier implements WekaModel  {
      * @param model_type Model type (ie trees.J48)
      * @param options Options for the model
      */
-    public WekaClassifier(String model_type, String[] options) {
+    public WekaClassifier(String model_type, String[] options) throws Exception {
         super();
         setModel(model_type, options);
     }
     /**
      * Create a WekaClassifier using a "rules.ZeroR" model
      */
-    public WekaClassifier() {
+    public WekaClassifier() throws Exception {
         super();
         setModel("rules.ZeroR", null);
     };
@@ -78,7 +78,7 @@ public class WekaClassifier extends BaseClassifier implements WekaModel  {
     }
 
     @Override
-    public final void setModel(String model_type, String[] options) {
+    public final void setModel(String model_type, String[] options) throws Exception {
         Model = WekaUtility.instantiateWekaModel(model_type, options);
         model_defined = true; 
         Model_Type = model_type; 
@@ -103,8 +103,9 @@ public class WekaClassifier extends BaseClassifier implements WekaModel  {
 
     @Override protected void train_protected(Dataset TrainingData) {
         try { 
-            Instances wekadata = TrainingData.convertToWeka(DiscreteClass);
+            Instances wekadata = TrainingData.transferToWeka(true, classIsDiscrete());
             Model.buildClassifier(wekadata); 
+            TrainingData.restoreAttributes(wekadata);
         }
         catch (Exception e) { 
             throw new Error(e); 
@@ -113,7 +114,7 @@ public class WekaClassifier extends BaseClassifier implements WekaModel  {
            
     @Override public void run_protected(Dataset TestData) {
         try { 
-            Instances wekadata = TestData.convertToWeka(true, classIsDiscrete());
+            Instances wekadata = TestData.transferToWeka(true, classIsDiscrete());
             if (classIsDiscrete()) {
                 double[][] probs = new double[TestData.NEntries()][TestData.NClasses()];
                 for (int i=0; i<wekadata.numInstances(); i++) {
@@ -126,7 +127,10 @@ public class WekaClassifier extends BaseClassifier implements WekaModel  {
                     prediction[i]=Model.classifyInstance(wekadata.instance(i));
                 TestData.setPredictedClasses(prediction);
             }
+            TestData.restoreAttributes(wekadata);
         } catch (Exception e) { 
+            System.err.println("Error when training WekaClassifier:");
+            e.printStackTrace();
             throw new Error(e); 
         }
     }

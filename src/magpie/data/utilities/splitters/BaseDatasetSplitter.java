@@ -39,7 +39,18 @@ import magpie.utility.interfaces.Options;
  * @version 0.1
  */
 abstract public class BaseDatasetSplitter implements 
-        java.io.Serializable, Options, Commandable {
+        java.io.Serializable, Options, Commandable, Cloneable {
+
+    @Override
+    public BaseDatasetSplitter clone() {
+        try {
+            BaseDatasetSplitter spltr = (BaseDatasetSplitter) super.clone();
+            return spltr;
+        } catch (CloneNotSupportedException e) {
+            throw new Error(e);
+        }
+    }
+    
     /** 
      * Given a dataset, determine which subset each entry should belong to. Please
      * ensure that D remains unaltered (clone if you must)

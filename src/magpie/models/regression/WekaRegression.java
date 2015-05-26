@@ -33,16 +33,18 @@ public class WekaRegression extends BaseRegression implements WekaModel {
      * 
      * @param model_type Model type (ie trees.J48)
      * @param options Options for the model
+     * @throws java.lang.Exception
      */
-    public WekaRegression(String model_type, String[] options) {
+    public WekaRegression(String model_type, String[] options) throws Exception {
         setModel(model_type, options);
         ValidationStats = new RegressionStatistics();
         TrainingStats = new RegressionStatistics();
     }
     /**
      * Create a WekaRegression model based on the "rules.ZeroR" algorithm
+     * @throws java.lang.Exception
      */
-    public WekaRegression() {
+    public WekaRegression() throws Exception {
         setModel("rules.ZeroR", null);
     };
     
@@ -86,7 +88,7 @@ public class WekaRegression extends BaseRegression implements WekaModel {
      * @param options Options for the model
      */
     @Override 
-    public final void setModel(String model_type, String[] options) {
+    public final void setModel(String model_type, String[] options) throws Exception {
         Model = WekaUtility.instantiateWekaModel(model_type, options);
         model_defined=true; 
         Model_Type = model_type; 
@@ -111,8 +113,9 @@ public class WekaRegression extends BaseRegression implements WekaModel {
 
     @Override protected void train_protected(Dataset TrainingData) {
         try { 
-            Instances wekadata = TrainingData.convertToWeka();
+            Instances wekadata = TrainingData.transferToWeka(true, false);
             Model.buildClassifier(wekadata); 
+            TrainingData.restoreAttributes(wekadata);
         }
         catch (Exception e) { 
             throw new Error("Model failed to train." + e); 
@@ -122,11 +125,12 @@ public class WekaRegression extends BaseRegression implements WekaModel {
     @Override 
     public void run_protected(Dataset TestData) {
         try { 
-            Instances wekadata = TestData.convertToWeka();
+            Instances wekadata = TestData.transferToWeka(true, false);
             double[] prediction = new double [TestData.NEntries()];
             for (int i=0; i<wekadata.numInstances(); i++) 
                 prediction[i]=Model.classifyInstance(wekadata.instance(i));
             TestData.setPredictedClasses(prediction);
+            TestData.restoreAttributes(wekadata);
         } catch (Exception e) { 
             throw new Error(e); 
         }
@@ -140,7 +144,5 @@ public class WekaRegression extends BaseRegression implements WekaModel {
     @Override
     protected String printModel_protected() {
         return this.Model.toString();
-    }
-    
-    
+    }    
 }

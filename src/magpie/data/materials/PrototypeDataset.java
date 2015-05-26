@@ -50,8 +50,6 @@ import magpie.utility.UtilityOperations;
  * <usage><p><b>Usage</b>: &lt;Structure description filename>
  * <br><pr><i>Structure description filename</i>: File containing description of atomic sites in structure</usage>
  * 
- * 
- * 
  * @author Logan Ward
  * @version 0.1
  */
@@ -72,73 +70,20 @@ public class PrototypeDataset extends CompositionDataset {
     }
 
     @Override
-    public PrototypeDataset clone() {
-        PrototypeDataset x = (PrototypeDataset) super.clone();
+    public PrototypeDataset emptyClone() {
+        PrototypeDataset x = (PrototypeDataset) super.emptyClone();
         x.SiteInfo = this.SiteInfo;
         return x; 
     }
     
     /**
-     * Read information about a prototype crystal structure from file. See documentation
-     *  for this class for format information.
+     * Read information about a prototype crystal structure from file. 
+     * See documentation for this class for format information.
      * @param filename File containing structure information.
+     * @throws Exception If file fails to parse
      */
-    public void readStructureInformation(String filename) {
-        // Open file
-        BufferedReader is;
-        try { 
-            is = Files.newBufferedReader(Paths.get(filename), Charset.forName("US-ASCII"));
-        } catch (IOException e) {
-            throw new Error(e);
-        }
-        
-        // Read in information about each site
-        while (true) {
-            String Line;
-            try {
-                Line = is.readLine();
-            } catch (IOException e) {
-                throw new Error(e);
-            }
-            if (Line == null) break;
-            String[] Words = Line.split(" ");
-            
-            // Get the number of atoms on this site
-            double NAtoms;
-            try {
-                NAtoms = Double.parseDouble(Words[0]);
-            } catch (NumberFormatException n) {
-                throw new Error("Site information file format error");
-            }
-            
-            // Check for any other flags (setting equivalent sites, etc.)
-            int p=1;
-            boolean isOmitted = false;
-			List<Integer> equivSites = new LinkedList<>();
-            while (p < Words.length) {
-                switch (Words[p].toLowerCase()) {
-                    case "-omit":
-                        isOmitted = true;
-                        break;
-                    case "-equiv":
-						p++;
-                        while (p < Words.length
-                                && UtilityOperations.isInteger(Words[p+1])) {
-                            equivSites.add(Integer.parseInt(Words[p++]));
-                            if (p == Words.length) {
-                                break;
-                            }
-                        }
-                        break;
-                    default:
-                        throw new Error("Site information file format error.");
-                }
-                p++;
-            }
-            
-            // Store the site in list
-            SiteInfo.addSite(NAtoms, !isOmitted, equivSites);
-        }
+    public void readStructureInformation(String filename) throws Exception {
+        SiteInfo = PrototypeSiteInformation.readFromFile(filename);
     }
 
     /**
@@ -174,12 +119,11 @@ public class PrototypeDataset extends CompositionDataset {
         
         // Read in the header
         Line = is.readLine();
-        Words = Line.split("[\t ]");
-        for (int i=1; i<Words.length; i++)  addProperty(Words[i]);
-                
+        importPropertyNames(Line);
+        
         // Read in each entry
-        TreeMap<BaseEntry,CompositionEntry> acceptedEntries = new TreeMap<>();
-        CompositionEntry Entry;
+        TreeMap<BaseEntry,PrototypeEntry> acceptedEntries = new TreeMap<>();
+        PrototypeEntry Entry;
         for (int i=0; i<Entry_Count; i++){
             double[] properties;
             // Read a line and tokenize it
@@ -191,16 +135,7 @@ public class PrototypeDataset extends CompositionDataset {
                 continue;
             
             // Get the properties
-            properties = new double[NProperties()];
-            for (int j=0; j<NProperties(); j++) {
-                try { properties[j]=Double.parseDouble(Words[j+1]); }
-                catch (NumberFormatException e) { 
-                    properties[j]=Double.NaN;
-                } catch (ArrayIndexOutOfBoundsException e) {
-                    System.err.println("\tEntry with name \"" + Words[0] 
-                        + "\" only has " + (Words.length - 1) + " properties" );
-                }
-            }
+            properties = importEntryProperties(Words);
             
             // Make an entry
             Entry = new PrototypeEntry(SiteInfo, Words[0]);

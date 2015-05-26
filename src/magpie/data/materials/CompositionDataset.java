@@ -111,14 +111,6 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
     protected boolean UseComposition = false;
 
     @Override
-    @SuppressWarnings("CloneDeclaresCloneNotSupported")
-    public CompositionDataset clone() {
-        CompositionDataset x = (CompositionDataset) super.clone();
-        x.ElementNames = ElementNames.clone();
-        return x;
-    }
-
-    @Override
     public CompositionDataset emptyClone() {
         CompositionDataset x = (CompositionDataset) super.emptyClone();
         x.ElementNames = ElementNames.clone();
@@ -191,27 +183,15 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
                 continue;
             }
 
-            // Get the properties
-            properties = new double[NProperties()];
-            for (int p = 0; p < NProperties(); p++) {
-				try {
-					if (getPropertyClassCount(p) == 1) {
-						properties[p] = Double.parseDouble(words[p + 1]);
-					} else {
-						int index = ArrayUtils.indexOf(getPropertyClasses(p), words[p+1]);
-						if (index == -1) {
-							index = Integer.parseInt(words[p+1]);
-						}
-						properties[p] = index;
-					}
-				} catch (NumberFormatException exc) {
-					// System.err.println("Warning: Entry #"+i+" has an invalid property.");
-					properties[p] = Double.NaN;
-				}
-            }
+            // Read properties
+            properties = importEntryProperties(words);
 
             // Make an entry
-            Entry = new CompositionEntry(words[0]);
+            try {
+                Entry = new CompositionEntry(words[0]);
+            } catch (Exception ex) {
+                continue; // Skip if fails to parse
+            }
             Entry.setMeasuredProperties(properties);
 
             // Add if the set does not already have it
@@ -284,6 +264,36 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
         this.Entries = new ArrayList<>(acceptedEntries.keySet());
     }
 
+    /**
+     * Used by {@linkplain #importText(java.lang.String, java.lang.Object[]) } 
+     * to import property measurments for each entry.
+     * 
+     * @param words Line describing entry, split into words
+     * @return Property measurements for this entry
+     */
+    protected double[] importEntryProperties(String[] words) {
+        double[] properties;
+        // Get the properties
+        properties = new double[NProperties()];
+        for (int p = 0; p < NProperties(); p++) {
+            try {
+                if (getPropertyClassCount(p) == 1) {
+                    properties[p] = Double.parseDouble(words[p + 1]);
+                } else {
+                    int index = ArrayUtils.indexOf(getPropertyClasses(p), words[p+1]);
+                    if (index == -1) {
+                        index = Integer.parseInt(words[p+1]);
+                    }
+                    properties[p] = index;
+                }
+            } catch (NumberFormatException exc) {
+                // System.err.println("Warning: Entry #"+i+" has an invalid property.");
+                properties[p] = Double.NaN;
+            }
+        }
+        return properties;
+    }
+
 	
 	/**
 	 * Given the line describing property names in the input file, read in property
@@ -338,10 +348,14 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
      * write "None". You will be alerted if that property was needed generating
      * attributes.
      *
-     * @param DataDirectory PAth to the elemental property lookup directory
+     * @param directory Path to the elemental property lookup directory
+     * @throws java.lang.Exception
      */
-    public void setDataDirectory(String DataDirectory) {
-        this.DataDirectory = DataDirectory;
+    public void setDataDirectory(String directory) throws Exception {
+        if (! Files.isDirectory(Paths.get(directory))) {
+            throw new Exception("No such directory: " + directory);
+        }
+        this.DataDirectory = directory;
     }
 
     /**
@@ -418,6 +432,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
      *
      * @param PropertyName MeasuredProperty of interest
      * @return That property for each element
+     * @throws java.lang.Exception
      */
     public double[] getPropertyLookupTable(String PropertyName) throws Exception {
         // Check if it has been loaded in yet
@@ -586,12 +601,12 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
 				try {
 					lookup = getPropertyLookupTable(prop);
 				} catch (Exception ex) {
-					throw new Error("Failed to retrieve property: " + prop);
+					throw new Error(ex);
 				}
 
                 // Check if any required lookup data is missing;
                 for (int i = 0; i < entry.getElements().length; i++) {
-                    if (lookup[entry.Element[i]] == Double.NaN) {
+                    if (Double.isNaN(lookup[entry.Element[i]])) {
                         MissingData.add(ElementNames[entry.Element[i]] + ":" + prop);
                     }
                 }
@@ -708,61 +723,72 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
      * each element can only take on a single oxidation state
      */
     protected void generateCanFormIonic() {
-        double x, y;
         AttributeName.add("CanFormIonic");
 
-		if (OxidationStates == null) {
+        for (BaseEntry ptr : getEntries()) {
+            CompositionEntry entry = (CompositionEntry) ptr;
+            double x = compositionCanFormIonic(entry) ? 1 : 0;
+            entry.addAttribute(x);
+        }
+    }
+
+    /**
+     * Whether a composition can form a neutral compound assuming each element
+     * takes only a single oxidation state.
+     * @param entry Composition to be assessed
+     * @return Whether it can form an ionic compound
+     */
+    public boolean compositionCanFormIonic(CompositionEntry entry) {
+        if (OxidationStates == null) {
 			OxidationStates = getOxidationStates(DataDirectory);
 			LookupData.OxidationStates = OxidationStates;
 		}
-        for (int i = 0; i < NEntries(); i++) {
-            int[] elem = getEntry(i).getElements();
-            double[] frac = getEntry(i).getFractions();
-            x = 0; // Initially assume that it cannot form
-
-            // If any of the compounds are noble gasses, it cannot form an ionic compound
-            for (int j = 0; j < elem.length; j++) {
-                if (OxidationStates[elem[j]] == null) {
-                    x = -1;
-                    break;
-                }
+        
+        double x, y;
+        int[] elem = entry.getElements();
+        double[] frac = entry.getFractions();
+        x = 0; // Initially assume that it cannot form
+        // If any of the compounds are noble gasses, it cannot form an ionic compound
+        for (int j = 0; j < elem.length; j++) {
+            if (OxidationStates[elem[j]] == null) {
+                x = -1;
+                break;
             }
-            if (x == -1) {
-                x = 0;
-                getEntry(i).addAttribute(x);
-                continue;
-            }
-
-            // Loop through each possible combination
-            int[] guess = new int[elem.length]; // Initialize a guess
-            boolean was_incremented = true;
-            while (was_incremented) {
-                // Calculate the charge
-                y = 0; // Start the charge out at zero
-                for (int j = 0; j < elem.length; j++) {
-                    y += frac[j] * OxidationStates[elem[j]][guess[j]];
-                }
-
-                // If the charge is equal to zero, we have found a valid compound
-                if (y == 0) {
-                    x = 1;
-                    break;
-                }
-
-                // If not, increment the compound
-                was_incremented = false;
-                for (int j = 0; j < guess.length; j++) {
-                    guess[j]++;
-                    if (guess[j] == OxidationStates[elem[j]].length) {
-                        guess[j] = 0;
-                    } else {
-                        was_incremented = true;
-                        break;
-                    }
-                }
-            }
-            getEntry(i).addAttribute(x);
         }
+        
+        // If no allowed oxidation states
+        if (x == -1) {
+            return false;
+        } 
+        
+        // Loop through each possible combination
+        int[] guess = new int[elem.length]; // Initialize a guess
+        boolean was_incremented = true;
+        while (was_incremented) {
+            // Calculate the charge
+            y = 0; // Start the charge out at zero
+            for (int j = 0; j < elem.length; j++) {
+                y += frac[j] * OxidationStates[elem[j]][guess[j]];
+            }
+
+            // If the charge is equal to zero, we have found a valid compound
+            if (Math.abs(y) < 1e-6) {
+                return true;
+            }
+
+            // If not, increment the compound
+            was_incremented = false;
+            for (int j = 0; j < guess.length; j++) {
+                guess[j]++;
+                if (guess[j] == OxidationStates[elem[j]].length) {
+                    guess[j] = 0;
+                } else {
+                    was_incremented = true;
+                    break;
+                }
+            }
+        }
+        return false;
     }
 
     @Override

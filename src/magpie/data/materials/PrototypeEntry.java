@@ -45,7 +45,7 @@ public class PrototypeEntry extends CompositionEntry {
         
         // Get composition of each site
         Matcher compMatch;
-        compMatch = Pattern.compile("\\{.*\\}|[A-Z][a-z]?").matcher(Composition);
+        compMatch = Pattern.compile("\\{[^\\}]*\\}|[A-Z][a-z]?").matcher(Composition);
         int pos = 0;
         while (compMatch.find()) {
             if (pos >= SiteInfo.NSites() )

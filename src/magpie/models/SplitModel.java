@@ -1,10 +1,7 @@
 package magpie.models;
 
 import magpie.models.interfaces.MultiModel;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.data.utilities.splitters.BaseDatasetSplitter;
@@ -62,16 +59,26 @@ import org.apache.commons.lang3.math.NumberUtils;
  * @version 1.0
  */
 abstract public class SplitModel extends BaseModel implements MultiModel {
+    /**
+     * List of of models used by this model
+     */
     protected ArrayList<BaseModel> Model = new ArrayList<>(2);
+    /**
+     * Class used to partition data into similar groups
+     */
     protected BaseDatasetSplitter Partitioner = null;
+    /**
+     * Model used to if a model template for a certain split is not defined
+     */
     protected BaseModel GenericModel = null;
 
     @Override public SplitModel clone() {
         SplitModel x;
         x = (SplitModel) super.clone();
+        x.Partitioner = Partitioner.clone();
         x.Model = new ArrayList<>(NModels());
         for (int i=0; i<NModels(); i++) {
-            x.Model.add(Model.get(i).clone());
+            x.Model.add(Model.get(i) != null ? Model.get(i).clone() : null);
         }
         return x;
     }
@@ -85,8 +92,6 @@ abstract public class SplitModel extends BaseModel implements MultiModel {
     public String printUsage() {
         return "Usage: *No options to set*";
     }
-    
-    
 
     @Override
     public BaseModel getModel(int index) {
@@ -142,17 +147,23 @@ abstract public class SplitModel extends BaseModel implements MultiModel {
         this.Partitioner = S;
     }
     
-    /** Checks if we have enough models defined 
+    /** 
+     * Checks if enough models are defined. Throw error otherwise
      * @param n Number of models required
-     * @return 
      */
     protected void checkModelCount(int n) {
         if (NModels() < n)
             throw new Error("Insufficent number of models. Need: "
                         +n+" - Available: "+NModels());
-        for (int i=0; i<n; i++)
-            if (Model.get(i) == null)
-                throw new Error("Model " + i + " not defined.");
+        for (int i=0; i<n; i++) {
+            if (Model.get(i) == null) {
+                if (GenericModel == null) {
+                    throw new Error("Model " + i + " not defined.");
+                } else {
+                    Model.set(i, GenericModel.clone());
+                }
+            }
+        }
     }
     
     @Override protected void train_protected(Dataset TrainingData) {
@@ -167,7 +178,7 @@ abstract public class SplitModel extends BaseModel implements MultiModel {
                 Model.get(i).train(SplitData.get(i), true);
         }
         TrainingData.combine(SplitData);
-        trained=true; validated=false;
+        trained=true; 
     }
     
     @Override public void run_protected(Dataset Data) {

@@ -1,6 +1,7 @@
 
 package magpie.data.utilities.normalizers;
 
+import java.io.Serializable;
 import java.util.*;
 import magpie.data.Dataset;
 import magpie.utility.interfaces.*;
@@ -49,7 +50,7 @@ import magpie.utility.interfaces.*;
  * @author Logan Ward
  */
 abstract public class BaseDatasetNormalizer 
-    implements Options, Commandable, Printable {
+    implements Options, Commandable, Printable, Serializable {
     /** Whether this normalizer has been trained */
     private boolean Trained = false;
     /** Whether to normalize attributes */

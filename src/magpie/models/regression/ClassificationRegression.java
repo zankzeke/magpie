@@ -35,7 +35,7 @@ import magpie.user.CommandHandler;
  */
 public class ClassificationRegression extends BaseRegression {
     /** Classification algorithm that this class wraps around */
-    private BaseModel Clfr = new WekaClassifier();
+    private BaseModel Clfr;
     /** Entry ranker used to order entries */
     private BaseEntryRanker ObjFunction = new SimpleEntryRanker();
     /** Threshold on which to split data into classes */
@@ -46,6 +46,14 @@ public class ClassificationRegression extends BaseRegression {
      * of entries in the training set.
      */
     private double ObjFunRange = 1.0;
+
+    /**
+     * Create a instances of this model that uses ZeroR.
+     * @throws java.lang.Exception
+     */
+    public ClassificationRegression() throws Exception {
+        this.Clfr = new WekaClassifier();
+    }
 
     @Override
     @SuppressWarnings({"BroadCatchBlock", "TooBroadCatch"})

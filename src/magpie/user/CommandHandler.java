@@ -2,6 +2,7 @@ package magpie.user;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InvalidClassException;
 import java.io.ObjectInputStream;
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -185,10 +186,12 @@ public class CommandHandler {
                     ObjectInputStream in; in = new ObjectInputStream(fp);
                     NewObj = in.readObject();
                     in.close(); fp.close();
+                } catch (InvalidClassException i) {
+                    throw new Exception("File contains out-of-date class: " + i.classname);
                 } catch (IOException i) {
-                    throw new Exception("ERROR: Failed to load object at: " + Filename);
+                    throw new Exception("Failed to load object at: " + Filename);
                 } catch (ClassNotFoundException e) {
-                    throw new Exception("ERROR: Class definition not found. Check libaries. Error text: " + e);
+                    throw new Exception("Class definition not found. Check libaries. Error text: " + e.getLocalizedMessage());
                 }
                 break;
             default: {
@@ -402,7 +405,16 @@ public class CommandHandler {
 			output = String.format("%" + (nameLength + 2) + "s  %16s", "Entry", "Predicted Class");
 			for (int i=0; i<data.NEntries(); i++) {
 				BaseEntry entry = data.getEntry(i);
-				output += String.format("\n%" + (nameLength + 2) + "s  %16.4g", names[i], entry.getPredictedClass());
+                if (model instanceof AbstractRegressionModel) {
+                    output += String.format("\n%" + (nameLength + 2) + "s  %16.4g", 
+                            names[i], entry.getPredictedClass());
+                } else {
+                    int cls = (int) entry.getPredictedClass();
+                    double prob = entry.getClassProbilities()[cls] * 100.0;
+                    output += String.format("\n%" + (nameLength + 2) 
+                            + "s   %s (%.2f %%)", 
+                            names[i], data.getClassName(cls), prob);
+                }
 			}
 		}
 		return output + "\n";

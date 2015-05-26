@@ -208,13 +208,13 @@ public class MultiPropertyEntry extends BaseEntry {
      * @return Whether that property has been predicted
      */
     public boolean hasPredictedProperty(int index) {
-        return getPredictedProperty(index) != Double.NaN;
+        return ! Double.isNaN(getPredictedProperty(index));
     }
 
     @Override
     public boolean hasMeasurement() {
         if (usingPropertyAsClass()) {
-            return getMeasuredProperty(TargetProperty) != Double.NaN;
+            return ! Double.isNaN(getMeasuredProperty(TargetProperty));
         } else {
             return super.hasMeasurement();
         }

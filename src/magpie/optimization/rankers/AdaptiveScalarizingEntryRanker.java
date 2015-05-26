@@ -56,6 +56,20 @@ public class AdaptiveScalarizingEntryRanker extends MultiObjectiveEntryRanker {
 	private double ObjectivePercentile = 1;
 
     @Override
+    public AdaptiveScalarizingEntryRanker clone() {
+        AdaptiveScalarizingEntryRanker x = 
+                (AdaptiveScalarizingEntryRanker) super.clone();
+        x.ObjectiveFunction = new TreeMap<>();
+        for (Map.Entry<String,BaseEntryRanker> e : ObjectiveFunction.entrySet()) {
+            x.ObjectiveFunction.put(e.getKey(), e.getValue().clone());
+        }
+        x.ObjectiveMaximum.clone();
+        x.ObjectiveMinimum.clone();
+        x.PropertyIndex.clone();
+        return x;
+    }
+
+    @Override
     public void setOptions(List<Object> Options) throws Exception {
         if (Options.size() < 2) {
             throw new Exception(printUsage());

@@ -1,4 +1,3 @@
-
 package magpie.csp;
 
 import magpie.data.materials.CompositionEntry;
@@ -10,6 +9,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import magpie.data.BaseEntry;
 import magpie.data.materials.*;
 import magpie.data.materials.util.PrototypeSiteInformation;
 import magpie.data.utilities.filters.ContainsElementFilter;
@@ -50,6 +50,11 @@ import org.apache.commons.lang3.tuple.Pair;
  * 
  * <command><p><b>prototypes &lt;filename></b> - Import list of known prototypes
  * <br><pr><i>filename</i>: Path to file containing composition of known compounds, and name of their prototype structure</command>
+ * 
+ * <command><p><b>examples &lt;composition&gt;</b> -  Get a list of other
+ * possible prototypes for a certain composition and all known examples for
+ * each prototype
+ * <br><pr><i>composition</i>: Composition in question</command>
  * 
  * <command><p><b>validate &lt;ncomp> [&lt;folds>]</b> - Evaluate performance of CSP algorithm 
  * using cross-validation.
@@ -533,6 +538,21 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
         }
         String Action = Command.get(0).toString().toLowerCase();
         switch (Action) {
+            case "examples" : {
+                if (Command.size() != 2) {
+                    throw new Exception("Usage: examples <composition>");
+                }
+                String comp = Command.get(1).toString();
+                PrototypeDataset prot = getTrainingSet(new CompositionEntry(comp));
+                CompositionDataset data = new CompositionDataset();
+                data.setClassNames(prot.getClassNames());
+                for (BaseEntry ptr : prot.getEntries()) {
+                    PrototypeEntry entry = (PrototypeEntry) ptr;
+                    data.addEntry(entry);
+                }
+                System.out.format("\tGarthered %d training examples.\n", data.NEntries());
+                return data;
+            } 
             case "exclude": {
                 List<String> elems = new ArrayList<>(Command.size() - 1);
                 for (Object obj : Command.subList(1, Command.size())) {
@@ -617,6 +637,9 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
         String Action = Command.get(0).toLowerCase();
         switch (Action) {
             case "stats":
+                if (PerformanceStats.NResults() == 0) {
+                    throw new Exception("CSP algorithm not yet validated.");
+                }
                 return PerformanceStats.printCommand(Command.subList(1, Command.size()));
             default:
                 throw new Exception("CSPEngine print command not recognzied: " + Action);

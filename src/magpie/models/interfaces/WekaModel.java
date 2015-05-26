@@ -29,6 +29,7 @@ public interface WekaModel {
      * Set the underlying Weka-based model
      * @param model_type Model type (ie trees.J48)
      * @param options Options for the model
+     * @throws java.lang.Exception
      */
-    public void setModel(String model_type, String[] options);
+    public void setModel(String model_type, String[] options) throws Exception;
 }

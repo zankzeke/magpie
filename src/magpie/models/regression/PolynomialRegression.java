@@ -119,7 +119,7 @@ public class PolynomialRegression extends BaseRegression {
         
         // Set anything that is NaN (if it was not used in fit) to 0.0
         for (int i=0; i<parameters.length; i++)
-            if (parameters[i] == Double.NaN) parameters[i] = 0.0;
+            if (Double.isNaN(parameters[i])) parameters[i] = 0.0;
         
         return parameters;
     }

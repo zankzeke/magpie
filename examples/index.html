@@ -19,7 +19,7 @@
 	<p>Trains a <a href="http://weka.sourceforge.net/doc.dev/weka/classifiers/trees/REPTree.html/">Reduced-Error Pruning Tree</a> model designed to predict the formation energy of a small set of crystalline compounds. Then, validates the predictive capability of that model using ten-fold cross-validation.</p>
 
 	<h2><b><a href="split-model.in">split-model.in</a></b></h2>
-	<p>Uses two distinct models to predict whether a compound with have a non-zero band gap. One model is trained on compounds that contain only metals, and the other on those with at least one non-metal constituent. Then, this example script validates the performance of this composite model using cross-validation and prints a receiver-operating characteristic curve.</p>
+	<p>Uses two distinct models to predict whether a compound will have a non-zero band gap. One model is trained on compounds that contain only metals, and the other on those with at least one non-metal constituent. Then, this example script validates the performance of this composite model using cross-validation and prints a receiver-operating characteristic curve.</p>
 
 	<h2><b><a href="clusterer.in">clusterer.in</a></b></h2>
 	<p>First identifies a subset of attributes that can be used to model the formation energy of a compound. Then, applies a clustering algorithm to separate entries into groups with similar values of these attributes. After this, prints the centers of the each group (defined as the average of all entries in that group) and saves the entries contained in each data cluster into csv format.</p>
@@ -39,6 +39,9 @@
 
 	<h2><b><a href="simple-neural-network.in">simple-neural-network.in</a></b></h2>
 	<p>Uses a neural network model to predict the formation energy of a few compounds. Before constructing the model, adjusts attributes and class variable to exist on the same range.</p>
+        
+        <h2><b><a href="scikit-learn.in">scikit-learn.in</a></b></h2>
+        <p>Uses a RandomForest model from <a href="http://scikit-learn.org/stable/">scikit-learn</a> to predict the formation energies of a small set of compounds.</p>
 
 	<h2><b><a href="multi-objective.in">multi-objective.in</a></b></h2>
 	<p>Uses multi-objective optimization techniques to find materials that fit two distinct property requirements.</p>
