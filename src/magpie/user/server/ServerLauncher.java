@@ -206,6 +206,11 @@ public class ServerLauncher {
             }
         });
         thr.start();
+        
+        // System status message
+        System.out.println("Started servers:");
+        System.out.println("\tSocket w/ TBinaryProtocol: " + ListenPort);
+        System.out.println("\tHTTPServer w/ TJSONProtocol: " + (ListenPort + 1));
     }
     
     /**

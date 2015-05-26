@@ -6,7 +6,6 @@ import magpie.data.utilities.filters.EntryRankerFilter;
 import magpie.data.utilities.generators.BaseEntryGenerator;
 import magpie.data.utilities.modifiers.AddPropertyModifier;
 import magpie.models.BaseModel;
-import magpie.models.regression.AbstractRegressionModel;
 import magpie.optimization.rankers.*;
 import magpie.user.CommandHandler;
 import magpie.user.server.ModelPackage;
@@ -33,21 +32,14 @@ public class MagpieServerHandler implements MagpieServer.Iface {
         ModelInformation.put(name, modelInfo);
     }
     
-    @Override
-    public List<List<String>> evaluateProperties(List<Entry> entries,
+    @Override                                                                                                                                                                                       
+    public List<Entry> evaluateProperties(List<Entry> entries,
             List<String> props) throws TException {
         
 		// Get names of entries to be be run
 		List<String> entryNames = new ArrayList<>(entries.size());
 		for (Entry e : entries) {
 			entryNames.add(e.name);
-		}
-		
-		// Provide location to store results for each entry
-		List<List<String>> results = new LinkedList();
-		for (String entry : entryNames) {
-			List<String> toAdd = new LinkedList<>();
-			results.add(toAdd);
 		}
 
 		// Run the model and such
@@ -56,8 +48,16 @@ public class MagpieServerHandler implements MagpieServer.Iface {
             // Predict each property
             for (String prop : props) {
                 
+                // Special Case: No model for that property
+                if (! ModelInformation.containsKey(prop)) {
+                    for (Entry entry : entries) {
+                        entry.predicted_properties.put(prop, Double.NaN);
+                    }
+                    continue;
+                }
+                
                 // Store entries in dataset, create lookup array 
-                Dataset dataset = ModelInformation.get(prop).Dataset;
+                Dataset dataset = ModelInformation.get(prop).Dataset.emptyClone();
                 Map<Integer, Integer> entryToResult = new TreeMap<>();
                 List<Integer> failedList = new LinkedList<>();
                 for (int i = 0; i < entryNames.size(); i++) {
@@ -79,44 +79,26 @@ public class MagpieServerHandler implements MagpieServer.Iface {
                 
                 BaseModel model = ModelInformation.get(prop).Model;
                 
-                // Special Case: No model for that property
-                if (model == null) {
-                    for (Integer pos : entryToResult.values()) {
-						results.get(pos).add("No Model");
-					}
-                    continue;
-                }
-                
                 // Run model
                 model.run(dataset);
                 double[] predicted = dataset.getPredictedClassArray();
                 
                 // Format results
-                if (model instanceof AbstractRegressionModel) {
-                    for (int i=0; i < dataset.NEntries(); i++ ) {
-						int row = entryToResult.get(i);
-                        results.get(row).add(String.format("%.3f", predicted[i]));
-                    }
-                } else {
-                    double[][] probs = dataset.getClassProbabilityArray();
-                    for (int i=0; i < dataset.NEntries(); i++ ) {
-						int row = entryToResult.get(i);
-                        results.get(row).add(String.format("%s (%.2f%%)", 
-                                dataset.getClassName((int) Math.round(predicted[i])),
-								probs[i][(int) predicted[i]] * 100.0));
-                    }
+                for (int i=0; i < dataset.NEntries(); i++ ) {
+                    int row = entryToResult.get(i);
+                    entries.get(row).predicted_properties.put(prop, predicted[i]);
                 }
                 
                 // Add results for the entries that failed to parse
                 for (Integer entry : failedList) {
-                    results.get(entry).add("NA");
+                    entries.get(entry).predicted_properties.put(prop, Double.NaN);
                 }
             }
 		} catch (Exception e) {
             throw new TException(e);
 		}
 		
-		return results;
+		return entries;
     }
 
     @Override
@@ -154,8 +136,10 @@ public class MagpieServerHandler implements MagpieServer.Iface {
             List<Entry> output = new ArrayList<>(to_list);
             for (int i : ranking) {
                 BaseEntry entry = data.getEntry(i);
-                output.add(new Entry(entry.toString(), 
-                        new TreeMap<String, Double>()));
+                Entry toAdd = new Entry();
+                toAdd.name = entry.toString();
+                toAdd.predicted_properties.put(property, entry.getPredictedClass());
+                output.add(toAdd);
             }
             return output;
         } catch (Exception e) {
@@ -306,7 +290,13 @@ public class MagpieServerHandler implements MagpieServer.Iface {
         List<Entry> output = new ArrayList<>(to_list);
         for (int i : ranking) {
             MultiPropertyEntry entry = (MultiPropertyEntry) data.getEntry(i);
-            output.add(new Entry(entry.toString(), new TreeMap<String, Double>()));
+            Entry toAdd = new Entry();
+            toAdd.name = entry.toString();
+            for (int pr=0; pr<dataptr.NProperties(); pr++) {
+                toAdd.predicted_properties.put(dataptr.getPropertyName(pr), 
+                        entry.getPredictedProperty(pr));
+            }
+            output.add(toAdd);
         }
         return output;
     }

@@ -31,46 +31,49 @@
 	<script src="gen-js/MagpieServer.js"></script>
 	<script src="gen-js/magpie_types.js"></script>
 	<script>
-		// Initialize Client
-		var transport = new Thrift.Transport("http://127.0.0.1:4581");
-		transport.open()
-		var protocol  = new Thrift.Protocol(transport);
-		var client    = new MagpieServerClient(protocol);
-		
-		// Function for running computation
-		function computeCompounds() {
-			// Blank out results
-			var results = document.getElementById("results");
-			results.innerHTML = "<p>Computing...</p>"
-			console.log("started")
-			
-			// Sample call
-			var entry = new Entry();
-			entry.name = "NaCl"
-			entry.measured_properties = new Map()
-			console.log("entry made")
-			console.log(entry)
-			try {
-/*				client.searchSingleObjective('delta_e minimize SimpleEntryRanker',
-					'PhaseDiagramCompositionEntryGenerator 2 -alloy 2 Al Ni Zr',
-					10, function(result) {
-						results.innerHTML = result;
-					}) */
-				client.evaluateProperties([entry], ["delta_e"], 
-					function(result) {
-						results.innerHTML = result;
-					})
-			} catch (err) {
-				//console.log(err.get_stack())
-				console.log(err.stack)
-			}
-			
-			// Make the call
-			var comps = document.getElementById("comps").value;
-		}
-		
-		// Set up listener
-		document.getElementById("button").addEventListener('click', computeCompounds, false);
+	// Initialize Client
+	var transport = new Thrift.Transport("http://localhost:4582/");
+        transport.open()
+        var protocol  = new Thrift.TJSONProtocol(transport);
+        var client    = new MagpieServerClient(protocol);
+        var output;
+
+        // Function for running computation
+        function computeCompounds() {
+            // Get the list of compounds
+            var compounds = document.getElementById("comps").value.split(" ");
+
+            // Blank out results
+            var results = document.getElementById("results");
+            results.innerHTML = "<p>Computing...</p>";
+
+            // Compile list
+            var entries = [];
+            for (i in compounds) {
+                entry = new Entry();
+                entry.name = compounds[i];
+                entries.push(entry);
+            }
+            
+            // Create the callback
+            var cb = function(result) {
+                results.innerHTML = result[0].name + result[0].predicted_properties['delta_e'];
+            }
+            
+            // Make the call
+            try {
+                client.evaluateProperties(entries, ["delta_e"], cb);
+            } catch (err) {
+                //console.log(err.get_stack())
+                console.log(err.stack)
+            }
+
+            // Make the call
+                
+            }
+
+            // Set up listener
+            document.getElementById("button").addEventListener('click', computeCompounds, false);
 	</script>
 	
 </div>

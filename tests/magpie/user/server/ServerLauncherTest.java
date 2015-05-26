@@ -2,7 +2,6 @@ package magpie.user.server;
 
 import java.io.*;
 import java.util.*;
-import java.net.Socket;
 
 import magpie.data.materials.CompositionDataset;
 import magpie.models.BaseModel;
@@ -15,7 +14,6 @@ import org.apache.thrift.server.TServer;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.junit.*;
-import org.junit.Assert.*;
 
 /**
  * Run basic tests on Magpie Server
@@ -91,15 +89,15 @@ public class ServerLauncherTest {
     public void testEvaluateCommand() throws Exception {
         MagpieServer.Client client = getClient();
         List<Entry> entries = new LinkedList<>();
-        entries.add(new Entry("NaCl", new TreeMap<String, Double>()));
-        entries.add(new Entry("Mg3Al", new TreeMap<String, Double>()));
-        entries.add(new Entry("#!", new TreeMap<String, Double>()));
+        entries.add(new Entry("NaCl", new TreeMap<String, Double>(), new TreeMap<String, Double>()));
+        entries.add(new Entry("Mg3Al", new TreeMap<String, Double>(), new TreeMap<String, Double>()));
+        entries.add(new Entry("#!", new TreeMap<String, Double>(), new TreeMap<String, Double>()));
         List<String> props = new LinkedList<>();
         props.add("delta_e");
-        List<List<String>> output = client.evaluateProperties(entries, props);
+        List<Entry> output = client.evaluateProperties(entries, props);
         Assert.assertEquals(3, output.size());
-        Assert.assertEquals(1, output.get(0).size());
-        Assert.assertEquals("NA", output.get(2).get(0));
+        Assert.assertEquals(1, output.get(0).predicted_properties.size());
+        Assert.assertTrue(Double.isNaN(output.get(2).predicted_properties.get("delta_e")));
     }
 	
 	@Test
