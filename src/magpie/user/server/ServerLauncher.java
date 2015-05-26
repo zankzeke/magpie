@@ -1,9 +1,6 @@
 
 package magpie.user.server;
 
-import java.io.*;
-import java.net.*;
-import java.util.concurrent.*;
 import magpie.data.Dataset;
 import magpie.models.BaseModel;
 import magpie.user.server.thrift.MagpieServer;
@@ -13,6 +10,9 @@ import org.apache.thrift.protocol.TJSONProtocol;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.server.*;
 import org.apache.thrift.transport.TServerTransport;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 
 /**
  * Main class for launching a Magpie server. 
@@ -93,6 +93,16 @@ public class ServerLauncher {
         TServerTransport trans = new TServerSocket(ListenPort);
         server = new TThreadPoolServer(new TThreadPoolServer.Args(trans)
                 .processor(processor));
+        
+        // Initialize HTTP Server
+        final Server httpServer = new Server(ListenPort + 1);
+        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+        context.setContextPath("/");
+        httpServer.setHandler(context);
+        TServlet tServlet;
+        tServlet = new TServlet(processor, new TJSONProtocol.Factory());
+        context.addServlet(new ServletHolder(tServlet), "/*");
+        httpServer.start();
         
         // Fork server to the background
         Thread thr = new Thread(new Runnable() {
