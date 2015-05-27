@@ -42,12 +42,12 @@ import org.eclipse.jetty.servlets.CrossOriginFilter;
  * <div style="padding: 0 0 0 20px;">
  * &lt;model path&gt; // Path to model to evaluated
  * &lt;dataset path&gt; // Path to dataset used to generate attributes
- * <br>property &lt;description&gt; // TBD: Short description of the property being predicted
- * <br>units &lt;path&gt; // TBD: Define the units of this model
- * <br>training &lt;description&gt; // TBD: Description of training set
- * <br>author &lt;name&gt; // TBD: Contact information for author
- * <br>citation &lt;info&gt; // TBD: Information for how to properly cite this model
- * <br>notes &lt;words&gt; // TBD: Anything else the author should know about this model
+ * <br>property &lt;description&gt; // Short description of the property being predicted
+ * <br>units &lt;path&gt; // Define the units of this model
+ * <br>training &lt;description&gt; // Description of training set
+ * <br>author &lt;name&gt; // Contact information for author
+ * <br>citation &lt;info&gt; // Information for how to properly cite this model
+ * <br>notes &lt;words&gt; // Anything else the author should know about this model
  * </div>
  * 
  * </div>
@@ -172,6 +172,10 @@ public class ServerLauncher {
                     case "notes":
                         modelInfo.Description = line.replaceFirst("notes", "").trim();
                         System.out.println("\tNotes: " + modelInfo.Description);
+                        break;
+                    case "training":
+                        modelInfo.TrainingSet = line.replaceFirst("training", "").trim();
+                        System.out.println("\tTraining set: " + modelInfo.TrainingSet);
                         break;
                     default:
                         System.out.println("Unrecognized property: " + words[0]);
