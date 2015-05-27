@@ -101,8 +101,8 @@ public class ServerLauncherTest {
         props.add("delta_e");
         List<Entry> output = client.evaluateProperties(entries, props);
         Assert.assertEquals(3, output.size());
-        Assert.assertEquals(1, output.get(0).predicted_properties.size());
-        Assert.assertTrue(Double.isNaN(output.get(2).predicted_properties.get("delta_e")));
+        Assert.assertEquals(1, output.get(0).predictedProperties.size());
+        Assert.assertTrue(Double.isNaN(output.get(2).predictedProperties.get("delta_e")));
     }
 	
 	@Test

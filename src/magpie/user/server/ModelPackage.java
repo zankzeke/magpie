@@ -40,7 +40,7 @@ public class ModelPackage {
      * Generate model info in a format suitable for Thrift interface
      * @return Model info in Thrift format
      */
-    public ModelInfo generateInfo() {
+    public ModelInfo generateInfo() { 
         ModelInfo info = new ModelInfo();
         info.author = Author;
         info.citation = Citation;

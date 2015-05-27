@@ -40,7 +40,7 @@ try:
   entry.name = "NaCl"
   res = client.evaluateProperties([entry], ["bandgap"])
   entry = res[0]
-  print "Predicted bandgap of %s: %s eV"%(entry.name, entry.predicted_properties['bandgap'])
+  print "Predicted bandgap of %s: %s eV"%(entry.name, entry.predictedProperties['bandgap'])
 
   # Search for materials with a band gap closest to 5.4 eV
   res = client.searchSingleObjective("bandgap minimize TargetEntryRanker 5.4",

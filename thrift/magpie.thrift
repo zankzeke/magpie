@@ -1,7 +1,7 @@
 struct Entry {
     1: string name
-    2: map<string,double> measured_properties = {}
-    3: map<string,double> predicted_properties = {}
+    2: map<string,double> measuredProperties = {}
+    3: map<string,double> predictedProperties = {}
 }
 
 /**
@@ -73,18 +73,18 @@ service MagpieServer {
      * Summary: <EntryGenerator method> <options...>
      *
      * Example: 5 points on each binary containing either Al, Ni, or Zr
-     *     PhaseDiagramCompositionEntryGenerator 2 -alloy 0.2 Al Ni Zr
+     *     PhaseDiagramCompositionEntryGenerator 1 2 -alloy 0.2 Al Ni Zr
      *
      * Relevent Documentation Pages:
      *
      * ./javadoc/magpie/data/utilities/generators/package-summary.html
      *
      * @param obj [in] Objective function
-     * @param gen_method [in] Definition of search space
-     * @param to_list [in] Number of top candidates to return
+     * @param genMethod [in] Definition of search space
+     * @param numToList [in] Number of top candidates to return
      * @return List of the top-performing entries
      */
-    list<Entry> searchSingleObjective(1:string obj, 2:string gen_method, 3:i32 to_list)
+    list<Entry> searchSingleObjective(1:string obj, 2:string genMethod, 3:i32 numToList)
 	
     /**
      * Search for optimal materials based on a multiple objectives in a 
@@ -100,11 +100,11 @@ service MagpieServer {
      *
      * @param p [in] Tradeoff Parameter
      * @param objs [in] Objective functions
-     * @param gen_method [in] Definition of search space
-     * @param to_list [in] Number of top candidates to return
+     * @param genMethod [in] Definition of search space
+     * @param numToList [in] Number of top candidates to return
      * @return List of the top-performing entries
      */
     list<Entry> searchMultiObjective(1:double p, 2:list<string> objs, 
-        3:string gen_method, 4:i32 to_list)
+        3:string genMethod, 4:i32 numToList)
 
 }
