@@ -214,6 +214,14 @@ public class AdaptiveScalarizingEntryRanker extends MultiObjectiveEntryRanker {
         ObjectiveMinimum = new double[ObjectiveFunction.size()];
         PropertyIndex = new int[ObjectiveFunction.size()];
         
+        // Train the sub entry rankers
+        for (Map.Entry<String, BaseEntryRanker> entrySet : ObjectiveFunction.entrySet()) {
+            String prop = entrySet.getKey();
+            BaseEntryRanker ranker = entrySet.getValue();
+            data.setTargetProperty(prop, true);
+            ranker.train(data);
+        }
+        
         // Main work
         int pos = 0;
 		double[] objValues = new double[data.NEntries()];
