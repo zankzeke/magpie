@@ -6,6 +6,7 @@ import magpie.data.utilities.filters.EntryRankerFilter;
 import magpie.data.utilities.generators.BaseEntryGenerator;
 import magpie.data.utilities.modifiers.AddPropertyModifier;
 import magpie.models.BaseModel;
+import magpie.models.classification.BaseClassifier;
 import magpie.optimization.rankers.*;
 import magpie.user.CommandHandler;
 import magpie.user.server.ModelPackage;
@@ -83,10 +84,22 @@ public class MagpieServerHandler implements MagpieServer.Iface {
                 model.run(dataset);
                 double[] predicted = dataset.getPredictedClassArray();
                 
-                // Format results
+                // Store predicted class variable
                 for (int i=0; i < dataset.NEntries(); i++ ) {
                     int row = entryToResult.get(i);
                     entries.get(row).predictedProperties.put(prop, predicted[i]);
+                }
+                
+                // Store class probabilities, if applicable
+                if (model instanceof BaseClassifier) {
+                    for (int i=0; i < dataset.NEntries(); i++ ) {
+                        int row = entryToResult.get(i);
+                        List<Double> cp = new LinkedList<>();
+                        for (double p : dataset.getEntry(i).getClassProbilities()) {
+                            cp.add(p);
+                        }
+                        entries.get(row).classProbs.put(prop, cp);
+                    }
                 }
                 
                 // Add results for the entries that failed to parse
@@ -112,7 +125,7 @@ public class MagpieServerHandler implements MagpieServer.Iface {
             BaseEntryGenerator generator = getGenerator(genMethod);
             
             // Generate the dataset
-            Dataset data = ModelInformation.get(property).Dataset;
+            Dataset data = ModelInformation.get(property).Dataset.emptyClone();
             generator.addEntriesToDataset(data);
             data.generateAttributes();
             
@@ -134,11 +147,24 @@ public class MagpieServerHandler implements MagpieServer.Iface {
             // Print out the results
             int[] ranking = ranker.rankEntries(data);
             List<Entry> output = new ArrayList<>(numToList);
-            for (int i : ranking) {
+            
+            for (int i : ranking) {    
+                // Get entry
                 BaseEntry entry = data.getEntry(i);
                 Entry toAdd = new Entry();
                 toAdd.name = entry.toString();
+                
+                // Store property data
                 toAdd.predictedProperties.put(property, entry.getPredictedClass());
+                if (data.NClasses() > 1) {
+                    List<Double> cp = new LinkedList<>();
+                    for (double d : entry.getClassProbilities()) {
+                        cp.add(d);
+                    }
+                    toAdd.classProbs.put(property, cp);
+                }
+                
+                // Add to output
                 output.add(toAdd);
             }
             return output;
@@ -235,14 +261,14 @@ public class MagpieServerHandler implements MagpieServer.Iface {
         }
         
         // Get all of the objectives
-        Dataset data = null;
+        Dataset genEntries = null;
         for (String obj : objs) {
             try {
                 Pair<String,BaseEntryRanker> objective = getObjective(obj);
                 ranker.addObjectiveFunction(objective.getLeft(),
                     objective.getRight());
-                if (data ==  null) {
-                    data = ModelInformation.get(objective.getLeft()).Dataset;
+                if (genEntries ==  null) {
+                    genEntries = ModelInformation.get(objective.getLeft()).Dataset.emptyClone();
                 }
             } catch (Exception e) {
                 throw new TException(e.getMessage());
@@ -252,30 +278,45 @@ public class MagpieServerHandler implements MagpieServer.Iface {
         // Generate the dataset
         try {
             BaseEntryGenerator generator = getGenerator(genMethod);
-            generator.addEntriesToDataset(data);
-            data.generateAttributes();
+            generator.addEntriesToDataset(genEntries);
         } catch (Exception e) {
             throw new TException(e.getMessage());
         }
 
 
         // Add properties to dataset
-        if (!(data instanceof MultiPropertyDataset)) {
+        if (!(genEntries instanceof MultiPropertyDataset)) {
             throw new TException("Dataset template is not a MultiPropertyDataset");
         }
-        MultiPropertyDataset dataptr = (MultiPropertyDataset) data;
+        MultiPropertyDataset dataptr = (MultiPropertyDataset) genEntries;
         AddPropertyModifier mdfr = new AddPropertyModifier();
         mdfr.setPropertiesToAdd(Arrays.asList(ranker.getObjectives()));
-        mdfr.transform(data);
+        mdfr.transform(genEntries);
 
         // Run models
         for (String prop : ranker.getObjectives()) {
             BaseModel model = ModelInformation.get(prop).Model;
+            
+            // Generate attributes for these entries
+            Dataset tempData = ModelInformation.get(prop).Dataset.emptyClone();
+            tempData.addEntries(genEntries.getEntries());
             if (model == null) {
                 throw new TException("No model for property: " + prop);
             }
-            dataptr.setTargetProperty(prop, true);
-            model.run(data);
+            try {
+                tempData.generateAttributes();
+            } catch (Exception e) {
+                throw new TException(e);
+            }
+            
+            // Run model
+            dataptr.setTargetProperty(prop, true); // Also sets attributes of entries
+            model.run(genEntries);
+            
+            // Clear attributes
+            for (BaseEntry e : tempData.getEntries()) {
+                e.clearAttributes();
+            }
         }
 
         // Filter the entries
@@ -283,20 +324,34 @@ public class MagpieServerHandler implements MagpieServer.Iface {
         filter.setNumberToFilter(numToList);
         filter.setExclude(false);
         filter.setRanker(ranker);
-        filter.train(data);
-        filter.filter(data);
+        filter.train(genEntries);
+        filter.filter(genEntries);
 
         // Print out the results
-        int[] ranking = ranker.rankEntries(data);
+        int[] ranking = ranker.rankEntries(genEntries);
         List<Entry> output = new ArrayList<>(numToList);
         for (int i : ranking) {
-            MultiPropertyEntry entry = (MultiPropertyEntry) data.getEntry(i);
+            MultiPropertyEntry entry = (MultiPropertyEntry) genEntries.getEntry(i);
             Entry toAdd = new Entry();
             toAdd.name = entry.toString();
+            
+            // Store properties
             for (int pr=0; pr<dataptr.NProperties(); pr++) {
+                // Predicted class
                 toAdd.predictedProperties.put(dataptr.getPropertyName(pr), 
                         entry.getPredictedProperty(pr));
+                
+                // Class probabilities (if applicable)
+                if (dataptr.getPropertyClassCount(pr) > 1) {
+                    List<Double> cp = new LinkedList<>();
+                    for (double d : entry.getPropertyClassProbabilties(pr)) {
+                        cp.add(d);
+                    }
+                    toAdd.classProbs.put(dataptr.getPropertyName(pr), cp);
+                }
             }
+            
+            // Add to output
             output.add(toAdd);
         }
         return output;

@@ -42,6 +42,7 @@ public class Entry implements org.apache.thrift.TBase<Entry, Entry._Fields>, jav
   private static final org.apache.thrift.protocol.TField NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("name", org.apache.thrift.protocol.TType.STRING, (short)1);
   private static final org.apache.thrift.protocol.TField MEASURED_PROPERTIES_FIELD_DESC = new org.apache.thrift.protocol.TField("measuredProperties", org.apache.thrift.protocol.TType.MAP, (short)2);
   private static final org.apache.thrift.protocol.TField PREDICTED_PROPERTIES_FIELD_DESC = new org.apache.thrift.protocol.TField("predictedProperties", org.apache.thrift.protocol.TType.MAP, (short)3);
+  private static final org.apache.thrift.protocol.TField CLASS_PROBS_FIELD_DESC = new org.apache.thrift.protocol.TField("classProbs", org.apache.thrift.protocol.TType.MAP, (short)4);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -52,12 +53,14 @@ public class Entry implements org.apache.thrift.TBase<Entry, Entry._Fields>, jav
   public String name; // required
   public Map<String,Double> measuredProperties; // required
   public Map<String,Double> predictedProperties; // required
+  public Map<String,List<Double>> classProbs; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     NAME((short)1, "name"),
     MEASURED_PROPERTIES((short)2, "measuredProperties"),
-    PREDICTED_PROPERTIES((short)3, "predictedProperties");
+    PREDICTED_PROPERTIES((short)3, "predictedProperties"),
+    CLASS_PROBS((short)4, "classProbs");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -78,6 +81,8 @@ public class Entry implements org.apache.thrift.TBase<Entry, Entry._Fields>, jav
           return MEASURED_PROPERTIES;
         case 3: // PREDICTED_PROPERTIES
           return PREDICTED_PROPERTIES;
+        case 4: // CLASS_PROBS
+          return CLASS_PROBS;
         default:
           return null;
       }
@@ -131,6 +136,11 @@ public class Entry implements org.apache.thrift.TBase<Entry, Entry._Fields>, jav
         new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING), 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.DOUBLE))));
+    tmpMap.put(_Fields.CLASS_PROBS, new org.apache.thrift.meta_data.FieldMetaData("classProbs", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
+            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING), 
+            new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+                new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.DOUBLE)))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(Entry.class, metaDataMap);
   }
@@ -140,17 +150,21 @@ public class Entry implements org.apache.thrift.TBase<Entry, Entry._Fields>, jav
 
     this.predictedProperties = new HashMap<String,Double>();
 
+    this.classProbs = new HashMap<String,List<Double>>();
+
   }
 
   public Entry(
     String name,
     Map<String,Double> measuredProperties,
-    Map<String,Double> predictedProperties)
+    Map<String,Double> predictedProperties,
+    Map<String,List<Double>> classProbs)
   {
     this();
     this.name = name;
     this.measuredProperties = measuredProperties;
     this.predictedProperties = predictedProperties;
+    this.classProbs = classProbs;
   }
 
   /**
@@ -168,6 +182,21 @@ public class Entry implements org.apache.thrift.TBase<Entry, Entry._Fields>, jav
       Map<String,Double> __this__predictedProperties = new HashMap<String,Double>(other.predictedProperties);
       this.predictedProperties = __this__predictedProperties;
     }
+    if (other.isSetClassProbs()) {
+      Map<String,List<Double>> __this__classProbs = new HashMap<String,List<Double>>(other.classProbs.size());
+      for (Map.Entry<String, List<Double>> other_element : other.classProbs.entrySet()) {
+
+        String other_element_key = other_element.getKey();
+        List<Double> other_element_value = other_element.getValue();
+
+        String __this__classProbs_copy_key = other_element_key;
+
+        List<Double> __this__classProbs_copy_value = new ArrayList<Double>(other_element_value);
+
+        __this__classProbs.put(__this__classProbs_copy_key, __this__classProbs_copy_value);
+      }
+      this.classProbs = __this__classProbs;
+    }
   }
 
   public Entry deepCopy() {
@@ -180,6 +209,8 @@ public class Entry implements org.apache.thrift.TBase<Entry, Entry._Fields>, jav
     this.measuredProperties = new HashMap<String,Double>();
 
     this.predictedProperties = new HashMap<String,Double>();
+
+    this.classProbs = new HashMap<String,List<Double>>();
 
   }
 
@@ -277,6 +308,41 @@ public class Entry implements org.apache.thrift.TBase<Entry, Entry._Fields>, jav
     }
   }
 
+  public int getClassProbsSize() {
+    return (this.classProbs == null) ? 0 : this.classProbs.size();
+  }
+
+  public void putToClassProbs(String key, List<Double> val) {
+    if (this.classProbs == null) {
+      this.classProbs = new HashMap<String,List<Double>>();
+    }
+    this.classProbs.put(key, val);
+  }
+
+  public Map<String,List<Double>> getClassProbs() {
+    return this.classProbs;
+  }
+
+  public Entry setClassProbs(Map<String,List<Double>> classProbs) {
+    this.classProbs = classProbs;
+    return this;
+  }
+
+  public void unsetClassProbs() {
+    this.classProbs = null;
+  }
+
+  /** Returns true if field classProbs is set (has been assigned a value) and false otherwise */
+  public boolean isSetClassProbs() {
+    return this.classProbs != null;
+  }
+
+  public void setClassProbsIsSet(boolean value) {
+    if (!value) {
+      this.classProbs = null;
+    }
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case NAME:
@@ -303,6 +369,14 @@ public class Entry implements org.apache.thrift.TBase<Entry, Entry._Fields>, jav
       }
       break;
 
+    case CLASS_PROBS:
+      if (value == null) {
+        unsetClassProbs();
+      } else {
+        setClassProbs((Map<String,List<Double>>)value);
+      }
+      break;
+
     }
   }
 
@@ -316,6 +390,9 @@ public class Entry implements org.apache.thrift.TBase<Entry, Entry._Fields>, jav
 
     case PREDICTED_PROPERTIES:
       return getPredictedProperties();
+
+    case CLASS_PROBS:
+      return getClassProbs();
 
     }
     throw new IllegalStateException();
@@ -334,6 +411,8 @@ public class Entry implements org.apache.thrift.TBase<Entry, Entry._Fields>, jav
       return isSetMeasuredProperties();
     case PREDICTED_PROPERTIES:
       return isSetPredictedProperties();
+    case CLASS_PROBS:
+      return isSetClassProbs();
     }
     throw new IllegalStateException();
   }
@@ -378,6 +457,15 @@ public class Entry implements org.apache.thrift.TBase<Entry, Entry._Fields>, jav
         return false;
     }
 
+    boolean this_present_classProbs = true && this.isSetClassProbs();
+    boolean that_present_classProbs = true && that.isSetClassProbs();
+    if (this_present_classProbs || that_present_classProbs) {
+      if (!(this_present_classProbs && that_present_classProbs))
+        return false;
+      if (!this.classProbs.equals(that.classProbs))
+        return false;
+    }
+
     return true;
   }
 
@@ -399,6 +487,11 @@ public class Entry implements org.apache.thrift.TBase<Entry, Entry._Fields>, jav
     list.add(present_predictedProperties);
     if (present_predictedProperties)
       list.add(predictedProperties);
+
+    boolean present_classProbs = true && (isSetClassProbs());
+    list.add(present_classProbs);
+    if (present_classProbs)
+      list.add(classProbs);
 
     return list.hashCode();
   }
@@ -437,6 +530,16 @@ public class Entry implements org.apache.thrift.TBase<Entry, Entry._Fields>, jav
     }
     if (isSetPredictedProperties()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.predictedProperties, other.predictedProperties);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetClassProbs()).compareTo(other.isSetClassProbs());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetClassProbs()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.classProbs, other.classProbs);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -482,6 +585,14 @@ public class Entry implements org.apache.thrift.TBase<Entry, Entry._Fields>, jav
       sb.append("null");
     } else {
       sb.append(this.predictedProperties);
+    }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("classProbs:");
+    if (this.classProbs == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.classProbs);
     }
     first = false;
     sb.append(")");
@@ -575,6 +686,36 @@ public class Entry implements org.apache.thrift.TBase<Entry, Entry._Fields>, jav
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 4: // CLASS_PROBS
+            if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
+              {
+                org.apache.thrift.protocol.TMap _map8 = iprot.readMapBegin();
+                struct.classProbs = new HashMap<String,List<Double>>(2*_map8.size);
+                String _key9;
+                List<Double> _val10;
+                for (int _i11 = 0; _i11 < _map8.size; ++_i11)
+                {
+                  _key9 = iprot.readString();
+                  {
+                    org.apache.thrift.protocol.TList _list12 = iprot.readListBegin();
+                    _val10 = new ArrayList<Double>(_list12.size);
+                    double _elem13;
+                    for (int _i14 = 0; _i14 < _list12.size; ++_i14)
+                    {
+                      _elem13 = iprot.readDouble();
+                      _val10.add(_elem13);
+                    }
+                    iprot.readListEnd();
+                  }
+                  struct.classProbs.put(_key9, _val10);
+                }
+                iprot.readMapEnd();
+              }
+              struct.setClassProbsIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -599,10 +740,10 @@ public class Entry implements org.apache.thrift.TBase<Entry, Entry._Fields>, jav
         oprot.writeFieldBegin(MEASURED_PROPERTIES_FIELD_DESC);
         {
           oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.DOUBLE, struct.measuredProperties.size()));
-          for (Map.Entry<String, Double> _iter8 : struct.measuredProperties.entrySet())
+          for (Map.Entry<String, Double> _iter15 : struct.measuredProperties.entrySet())
           {
-            oprot.writeString(_iter8.getKey());
-            oprot.writeDouble(_iter8.getValue());
+            oprot.writeString(_iter15.getKey());
+            oprot.writeDouble(_iter15.getValue());
           }
           oprot.writeMapEnd();
         }
@@ -612,10 +753,30 @@ public class Entry implements org.apache.thrift.TBase<Entry, Entry._Fields>, jav
         oprot.writeFieldBegin(PREDICTED_PROPERTIES_FIELD_DESC);
         {
           oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.DOUBLE, struct.predictedProperties.size()));
-          for (Map.Entry<String, Double> _iter9 : struct.predictedProperties.entrySet())
+          for (Map.Entry<String, Double> _iter16 : struct.predictedProperties.entrySet())
           {
-            oprot.writeString(_iter9.getKey());
-            oprot.writeDouble(_iter9.getValue());
+            oprot.writeString(_iter16.getKey());
+            oprot.writeDouble(_iter16.getValue());
+          }
+          oprot.writeMapEnd();
+        }
+        oprot.writeFieldEnd();
+      }
+      if (struct.classProbs != null) {
+        oprot.writeFieldBegin(CLASS_PROBS_FIELD_DESC);
+        {
+          oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.LIST, struct.classProbs.size()));
+          for (Map.Entry<String, List<Double>> _iter17 : struct.classProbs.entrySet())
+          {
+            oprot.writeString(_iter17.getKey());
+            {
+              oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.DOUBLE, _iter17.getValue().size()));
+              for (double _iter18 : _iter17.getValue())
+              {
+                oprot.writeDouble(_iter18);
+              }
+              oprot.writeListEnd();
+            }
           }
           oprot.writeMapEnd();
         }
@@ -648,27 +809,46 @@ public class Entry implements org.apache.thrift.TBase<Entry, Entry._Fields>, jav
       if (struct.isSetPredictedProperties()) {
         optionals.set(2);
       }
-      oprot.writeBitSet(optionals, 3);
+      if (struct.isSetClassProbs()) {
+        optionals.set(3);
+      }
+      oprot.writeBitSet(optionals, 4);
       if (struct.isSetName()) {
         oprot.writeString(struct.name);
       }
       if (struct.isSetMeasuredProperties()) {
         {
           oprot.writeI32(struct.measuredProperties.size());
-          for (Map.Entry<String, Double> _iter10 : struct.measuredProperties.entrySet())
+          for (Map.Entry<String, Double> _iter19 : struct.measuredProperties.entrySet())
           {
-            oprot.writeString(_iter10.getKey());
-            oprot.writeDouble(_iter10.getValue());
+            oprot.writeString(_iter19.getKey());
+            oprot.writeDouble(_iter19.getValue());
           }
         }
       }
       if (struct.isSetPredictedProperties()) {
         {
           oprot.writeI32(struct.predictedProperties.size());
-          for (Map.Entry<String, Double> _iter11 : struct.predictedProperties.entrySet())
+          for (Map.Entry<String, Double> _iter20 : struct.predictedProperties.entrySet())
           {
-            oprot.writeString(_iter11.getKey());
-            oprot.writeDouble(_iter11.getValue());
+            oprot.writeString(_iter20.getKey());
+            oprot.writeDouble(_iter20.getValue());
+          }
+        }
+      }
+      if (struct.isSetClassProbs()) {
+        {
+          oprot.writeI32(struct.classProbs.size());
+          for (Map.Entry<String, List<Double>> _iter21 : struct.classProbs.entrySet())
+          {
+            oprot.writeString(_iter21.getKey());
+            {
+              oprot.writeI32(_iter21.getValue().size());
+              for (double _iter22 : _iter21.getValue())
+              {
+                oprot.writeDouble(_iter22);
+              }
+            }
           }
         }
       }
@@ -677,40 +857,64 @@ public class Entry implements org.apache.thrift.TBase<Entry, Entry._Fields>, jav
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, Entry struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(3);
+      BitSet incoming = iprot.readBitSet(4);
       if (incoming.get(0)) {
         struct.name = iprot.readString();
         struct.setNameIsSet(true);
       }
       if (incoming.get(1)) {
         {
-          org.apache.thrift.protocol.TMap _map12 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.DOUBLE, iprot.readI32());
-          struct.measuredProperties = new HashMap<String,Double>(2*_map12.size);
-          String _key13;
-          double _val14;
-          for (int _i15 = 0; _i15 < _map12.size; ++_i15)
+          org.apache.thrift.protocol.TMap _map23 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.DOUBLE, iprot.readI32());
+          struct.measuredProperties = new HashMap<String,Double>(2*_map23.size);
+          String _key24;
+          double _val25;
+          for (int _i26 = 0; _i26 < _map23.size; ++_i26)
           {
-            _key13 = iprot.readString();
-            _val14 = iprot.readDouble();
-            struct.measuredProperties.put(_key13, _val14);
+            _key24 = iprot.readString();
+            _val25 = iprot.readDouble();
+            struct.measuredProperties.put(_key24, _val25);
           }
         }
         struct.setMeasuredPropertiesIsSet(true);
       }
       if (incoming.get(2)) {
         {
-          org.apache.thrift.protocol.TMap _map16 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.DOUBLE, iprot.readI32());
-          struct.predictedProperties = new HashMap<String,Double>(2*_map16.size);
-          String _key17;
-          double _val18;
-          for (int _i19 = 0; _i19 < _map16.size; ++_i19)
+          org.apache.thrift.protocol.TMap _map27 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.DOUBLE, iprot.readI32());
+          struct.predictedProperties = new HashMap<String,Double>(2*_map27.size);
+          String _key28;
+          double _val29;
+          for (int _i30 = 0; _i30 < _map27.size; ++_i30)
           {
-            _key17 = iprot.readString();
-            _val18 = iprot.readDouble();
-            struct.predictedProperties.put(_key17, _val18);
+            _key28 = iprot.readString();
+            _val29 = iprot.readDouble();
+            struct.predictedProperties.put(_key28, _val29);
           }
         }
         struct.setPredictedPropertiesIsSet(true);
+      }
+      if (incoming.get(3)) {
+        {
+          org.apache.thrift.protocol.TMap _map31 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.LIST, iprot.readI32());
+          struct.classProbs = new HashMap<String,List<Double>>(2*_map31.size);
+          String _key32;
+          List<Double> _val33;
+          for (int _i34 = 0; _i34 < _map31.size; ++_i34)
+          {
+            _key32 = iprot.readString();
+            {
+              org.apache.thrift.protocol.TList _list35 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.DOUBLE, iprot.readI32());
+              _val33 = new ArrayList<Double>(_list35.size);
+              double _elem36;
+              for (int _i37 = 0; _i37 < _list35.size; ++_i37)
+              {
+                _elem36 = iprot.readDouble();
+                _val33.add(_elem36);
+              }
+            }
+            struct.classProbs.put(_key32, _val33);
+          }
+        }
+        struct.setClassProbsIsSet(true);
       }
     }
   }

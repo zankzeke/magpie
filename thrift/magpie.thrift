@@ -1,7 +1,15 @@
+/**
+ * Store data regarding an entry:
+ * 
+ *  name                : String describing this entry (parsed before 
+ *  measuredProperties  : Measured class variable 
+ *  predictedProperties : Predicted class variable for each model
+ *  classProbs          : (Classifiers) Probability of membership in each class
 struct Entry {
     1: string name
     2: map<string,double> measuredProperties = {}
     3: map<string,double> predictedProperties = {}
+    4: map<string,list<double>> classProbs = {}
 }
 
 /**
@@ -9,7 +17,7 @@ struct Entry {
  * 
  * Known properties:
  *  property  : Property being model
- *  units     : Units of prediction
+ *  units     : Units of prediction. (Classifiers) Name of classes, ";"-delimited
  *  training  : Description of training set
  *  author    : Name/contact info of author
  *  citation  : Citation information of the model
@@ -37,8 +45,9 @@ service MagpieServer {
     map<string,ModelInfo> getModelInformation()
 
     /**
-     * Compute the properties of each entry in a list. Returns results formatted as string
-     * in a human-readable format.
+     * Compute the properties of each entry in a list. Results are stored in
+     * the predictedProperties and classProbs maps.
+     *
      * @param entries [in] List of entries to be evaluated
      * @param props [in] Names of properties to evaluate
      * @return Entry objects with property measurements

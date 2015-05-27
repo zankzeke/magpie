@@ -4,10 +4,13 @@ import java.io.*;
 import java.util.*;
 
 import magpie.data.materials.CompositionDataset;
+import magpie.data.utilities.modifiers.NonZeroClassModifier;
 import magpie.models.BaseModel;
+import magpie.models.classification.WekaClassifier;
 import magpie.models.regression.GuessMeanRegression;
 import magpie.user.server.thrift.Entry;
 import magpie.user.server.thrift.MagpieServer;
+import magpie.user.server.thrift.ModelInfo;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.server.TServer;
@@ -44,6 +47,15 @@ public class ServerLauncherTest {
         model.saveState("ms-volume.obj");
         new File("ms-volume.obj").deleteOnExit();
         
+        // Make a fake metal/nonmetal model
+        WekaClassifier metal = new WekaClassifier("trees.REPTree", null);
+        template.setTargetProperty("bandgap", false);
+        NonZeroClassModifier mdfr = new NonZeroClassModifier();
+        mdfr.transform(template);
+        metal.train(template);
+        metal.saveState("ms-metal.obj");
+        new File("ms-metal.obj").deleteOnExit();
+        
         // Create fake input file
         PrintWriter fp = new PrintWriter("ms-model.info");
         fp.println("entry delta_e");
@@ -56,6 +68,9 @@ public class ServerLauncherTest {
         fp.println("notes Simple model created to demonstrate formation energy prediction");
         fp.println("entry volume_pa");
         fp.println("ms-volume.obj");
+        fp.println("ms-data.obj");
+        fp.println("entry ismetal");
+        fp.println("ms-metal.obj");
         fp.println("ms-data.obj");
         fp.close();
         new File("ms-model.info").deleteOnExit();
@@ -91,12 +106,25 @@ public class ServerLauncherTest {
     }
     
     @Test
+    public void testModelInfo() throws Exception {
+        MagpieServer.Client client = getClient();
+        
+        Map<String, ModelInfo> info = client.getModelInformation();
+        
+        Assert.assertEquals(3, info.size());
+        Assert.assertEquals("NonZero;Zero", info.get("ismetal").units);
+    }
+    
+    @Test
     public void testEvaluateCommand() throws Exception {
         MagpieServer.Client client = getClient();
         List<Entry> entries = new LinkedList<>();
-        entries.add(new Entry("NaCl", new TreeMap<String, Double>(), new TreeMap<String, Double>()));
-        entries.add(new Entry("Mg3Al", new TreeMap<String, Double>(), new TreeMap<String, Double>()));
-        entries.add(new Entry("#!", new TreeMap<String, Double>(), new TreeMap<String, Double>()));
+        Entry newEntry = new Entry(); newEntry.name = "NaCl";
+        entries.add(newEntry);
+        newEntry = new Entry(); newEntry.name = "Mg3Al";
+        entries.add(newEntry);
+        newEntry = new Entry(); newEntry.name = "#!";
+        entries.add(newEntry);
         List<String> props = new LinkedList<>();
         props.add("delta_e");
         List<Entry> output = client.evaluateProperties(entries, props);
@@ -125,6 +153,38 @@ public class ServerLauncherTest {
                 "PhaseDiagramCompositionEntryGenerator 1 2 -alloy 2 Al Ni Zr",
                 20);
         Assert.assertEquals(20, output.size());
+    }
+    
+    @Test
+    public void testClassProbability() throws Exception {
+        MagpieServer.Client client = getClient();
+        
+        // Evaluate command
+        List<Entry> entries = new LinkedList<>();
+        Entry newEntry = new Entry();
+        newEntry.name = "NaCl";
+        entries.add(newEntry);
+        List<String> props = new LinkedList<>();
+        props.add("ismetal");
+        entries = client.evaluateProperties(entries, props);
+        Assert.assertEquals(1, entries.get(0).classProbs.size());
+        Assert.assertEquals(2, entries.get(0).classProbs.get("ismetal").size());
+        
+        // Single objective search
+        List<String> objs = new LinkedList<>();
+        objs.add("ismetal maximize ClassProbabilityRanker NonZero");
+        List<Entry> output = client.searchSingleObjective(objs.get(0),
+                "PhaseDiagramCompositionEntryGenerator 1 2 -alloy 2 Al Ni Zr",
+                20);
+        Assert.assertEquals(20, output.size());
+
+        // Multi objective search
+        objs.add("delta_e minimize SimpleEntryRanker");
+        output = client.searchMultiObjective(10.0, objs,
+                "PhaseDiagramCompositionEntryGenerator 1 3 -crystal 4 Al Ni Zr O",
+                20);
+        Assert.assertEquals(20, output.size());
+        Assert.assertEquals(2, output.get(0).classProbs.get("ismetal").size());
     }
 
 }

@@ -2,6 +2,8 @@ package magpie.user.server;
 
 import magpie.data.Dataset;
 import magpie.models.BaseModel;
+import magpie.models.classification.AbstractClassifier;
+import magpie.models.classification.BaseClassifier;
 import magpie.user.server.thrift.ModelInfo;
 
 /**
@@ -42,12 +44,29 @@ public class ModelPackage {
      */
     public ModelInfo generateInfo() { 
         ModelInfo info = new ModelInfo();
+        
+        // Store basic info
         info.author = Author;
         info.citation = Citation;
         info.notes = Description;
         info.property = Property;
         info.training = TrainingSet;
-        info.units = Units;
+        
+        // Store units or class names
+        if (Model instanceof AbstractClassifier) {
+            info.units = "";
+            AbstractClassifier clfr = (AbstractClassifier) Model;
+            boolean started = false;
+            for (String name : clfr.getClassNames()) {
+                if (started) {
+                    info.units += ";";
+                }
+                info.units += name;
+                started = true;
+            }
+        } else {
+            info.units = Units;
+        }
         info.dataType = Dataset.getClass().getSimpleName();
         info.modelType = Model.getClass().getSimpleName();
         return info;

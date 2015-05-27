@@ -1315,16 +1315,16 @@ public class MagpieServer {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
                 {
-                  org.apache.thrift.protocol.TMap _map20 = iprot.readMapBegin();
-                  struct.success = new HashMap<String,ModelInfo>(2*_map20.size);
-                  String _key21;
-                  ModelInfo _val22;
-                  for (int _i23 = 0; _i23 < _map20.size; ++_i23)
+                  org.apache.thrift.protocol.TMap _map38 = iprot.readMapBegin();
+                  struct.success = new HashMap<String,ModelInfo>(2*_map38.size);
+                  String _key39;
+                  ModelInfo _val40;
+                  for (int _i41 = 0; _i41 < _map38.size; ++_i41)
                   {
-                    _key21 = iprot.readString();
-                    _val22 = new ModelInfo();
-                    _val22.read(iprot);
-                    struct.success.put(_key21, _val22);
+                    _key39 = iprot.readString();
+                    _val40 = new ModelInfo();
+                    _val40.read(iprot);
+                    struct.success.put(_key39, _val40);
                   }
                   iprot.readMapEnd();
                 }
@@ -1352,10 +1352,10 @@ public class MagpieServer {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           {
             oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRUCT, struct.success.size()));
-            for (Map.Entry<String, ModelInfo> _iter24 : struct.success.entrySet())
+            for (Map.Entry<String, ModelInfo> _iter42 : struct.success.entrySet())
             {
-              oprot.writeString(_iter24.getKey());
-              _iter24.getValue().write(oprot);
+              oprot.writeString(_iter42.getKey());
+              _iter42.getValue().write(oprot);
             }
             oprot.writeMapEnd();
           }
@@ -1386,10 +1386,10 @@ public class MagpieServer {
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
-            for (Map.Entry<String, ModelInfo> _iter25 : struct.success.entrySet())
+            for (Map.Entry<String, ModelInfo> _iter43 : struct.success.entrySet())
             {
-              oprot.writeString(_iter25.getKey());
-              _iter25.getValue().write(oprot);
+              oprot.writeString(_iter43.getKey());
+              _iter43.getValue().write(oprot);
             }
           }
         }
@@ -1401,16 +1401,16 @@ public class MagpieServer {
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TMap _map26 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.success = new HashMap<String,ModelInfo>(2*_map26.size);
-            String _key27;
-            ModelInfo _val28;
-            for (int _i29 = 0; _i29 < _map26.size; ++_i29)
+            org.apache.thrift.protocol.TMap _map44 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.success = new HashMap<String,ModelInfo>(2*_map44.size);
+            String _key45;
+            ModelInfo _val46;
+            for (int _i47 = 0; _i47 < _map44.size; ++_i47)
             {
-              _key27 = iprot.readString();
-              _val28 = new ModelInfo();
-              _val28.read(iprot);
-              struct.success.put(_key27, _val28);
+              _key45 = iprot.readString();
+              _val46 = new ModelInfo();
+              _val46.read(iprot);
+              struct.success.put(_key45, _val46);
             }
           }
           struct.setSuccessIsSet(true);
@@ -1835,14 +1835,14 @@ public class MagpieServer {
             case 1: // ENTRIES
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list30 = iprot.readListBegin();
-                  struct.entries = new ArrayList<Entry>(_list30.size);
-                  Entry _elem31;
-                  for (int _i32 = 0; _i32 < _list30.size; ++_i32)
+                  org.apache.thrift.protocol.TList _list48 = iprot.readListBegin();
+                  struct.entries = new ArrayList<Entry>(_list48.size);
+                  Entry _elem49;
+                  for (int _i50 = 0; _i50 < _list48.size; ++_i50)
                   {
-                    _elem31 = new Entry();
-                    _elem31.read(iprot);
-                    struct.entries.add(_elem31);
+                    _elem49 = new Entry();
+                    _elem49.read(iprot);
+                    struct.entries.add(_elem49);
                   }
                   iprot.readListEnd();
                 }
@@ -1854,13 +1854,13 @@ public class MagpieServer {
             case 2: // PROPS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list33 = iprot.readListBegin();
-                  struct.props = new ArrayList<String>(_list33.size);
-                  String _elem34;
-                  for (int _i35 = 0; _i35 < _list33.size; ++_i35)
+                  org.apache.thrift.protocol.TList _list51 = iprot.readListBegin();
+                  struct.props = new ArrayList<String>(_list51.size);
+                  String _elem52;
+                  for (int _i53 = 0; _i53 < _list51.size; ++_i53)
                   {
-                    _elem34 = iprot.readString();
-                    struct.props.add(_elem34);
+                    _elem52 = iprot.readString();
+                    struct.props.add(_elem52);
                   }
                   iprot.readListEnd();
                 }
@@ -1888,9 +1888,9 @@ public class MagpieServer {
           oprot.writeFieldBegin(ENTRIES_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.entries.size()));
-            for (Entry _iter36 : struct.entries)
+            for (Entry _iter54 : struct.entries)
             {
-              _iter36.write(oprot);
+              _iter54.write(oprot);
             }
             oprot.writeListEnd();
           }
@@ -1900,9 +1900,9 @@ public class MagpieServer {
           oprot.writeFieldBegin(PROPS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.props.size()));
-            for (String _iter37 : struct.props)
+            for (String _iter55 : struct.props)
             {
-              oprot.writeString(_iter37);
+              oprot.writeString(_iter55);
             }
             oprot.writeListEnd();
           }
@@ -1936,18 +1936,18 @@ public class MagpieServer {
         if (struct.isSetEntries()) {
           {
             oprot.writeI32(struct.entries.size());
-            for (Entry _iter38 : struct.entries)
+            for (Entry _iter56 : struct.entries)
             {
-              _iter38.write(oprot);
+              _iter56.write(oprot);
             }
           }
         }
         if (struct.isSetProps()) {
           {
             oprot.writeI32(struct.props.size());
-            for (String _iter39 : struct.props)
+            for (String _iter57 : struct.props)
             {
-              oprot.writeString(_iter39);
+              oprot.writeString(_iter57);
             }
           }
         }
@@ -1959,27 +1959,27 @@ public class MagpieServer {
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list40 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.entries = new ArrayList<Entry>(_list40.size);
-            Entry _elem41;
-            for (int _i42 = 0; _i42 < _list40.size; ++_i42)
+            org.apache.thrift.protocol.TList _list58 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.entries = new ArrayList<Entry>(_list58.size);
+            Entry _elem59;
+            for (int _i60 = 0; _i60 < _list58.size; ++_i60)
             {
-              _elem41 = new Entry();
-              _elem41.read(iprot);
-              struct.entries.add(_elem41);
+              _elem59 = new Entry();
+              _elem59.read(iprot);
+              struct.entries.add(_elem59);
             }
           }
           struct.setEntriesIsSet(true);
         }
         if (incoming.get(1)) {
           {
-            org.apache.thrift.protocol.TList _list43 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-            struct.props = new ArrayList<String>(_list43.size);
-            String _elem44;
-            for (int _i45 = 0; _i45 < _list43.size; ++_i45)
+            org.apache.thrift.protocol.TList _list61 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+            struct.props = new ArrayList<String>(_list61.size);
+            String _elem62;
+            for (int _i63 = 0; _i63 < _list61.size; ++_i63)
             {
-              _elem44 = iprot.readString();
-              struct.props.add(_elem44);
+              _elem62 = iprot.readString();
+              struct.props.add(_elem62);
             }
           }
           struct.setPropsIsSet(true);
@@ -2305,14 +2305,14 @@ public class MagpieServer {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list46 = iprot.readListBegin();
-                  struct.success = new ArrayList<Entry>(_list46.size);
-                  Entry _elem47;
-                  for (int _i48 = 0; _i48 < _list46.size; ++_i48)
+                  org.apache.thrift.protocol.TList _list64 = iprot.readListBegin();
+                  struct.success = new ArrayList<Entry>(_list64.size);
+                  Entry _elem65;
+                  for (int _i66 = 0; _i66 < _list64.size; ++_i66)
                   {
-                    _elem47 = new Entry();
-                    _elem47.read(iprot);
-                    struct.success.add(_elem47);
+                    _elem65 = new Entry();
+                    _elem65.read(iprot);
+                    struct.success.add(_elem65);
                   }
                   iprot.readListEnd();
                 }
@@ -2340,9 +2340,9 @@ public class MagpieServer {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.success.size()));
-            for (Entry _iter49 : struct.success)
+            for (Entry _iter67 : struct.success)
             {
-              _iter49.write(oprot);
+              _iter67.write(oprot);
             }
             oprot.writeListEnd();
           }
@@ -2373,9 +2373,9 @@ public class MagpieServer {
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
-            for (Entry _iter50 : struct.success)
+            for (Entry _iter68 : struct.success)
             {
-              _iter50.write(oprot);
+              _iter68.write(oprot);
             }
           }
         }
@@ -2387,14 +2387,14 @@ public class MagpieServer {
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list51 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.success = new ArrayList<Entry>(_list51.size);
-            Entry _elem52;
-            for (int _i53 = 0; _i53 < _list51.size; ++_i53)
+            org.apache.thrift.protocol.TList _list69 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.success = new ArrayList<Entry>(_list69.size);
+            Entry _elem70;
+            for (int _i71 = 0; _i71 < _list69.size; ++_i71)
             {
-              _elem52 = new Entry();
-              _elem52.read(iprot);
-              struct.success.add(_elem52);
+              _elem70 = new Entry();
+              _elem70.read(iprot);
+              struct.success.add(_elem70);
             }
           }
           struct.setSuccessIsSet(true);
@@ -3289,14 +3289,14 @@ public class MagpieServer {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list54 = iprot.readListBegin();
-                  struct.success = new ArrayList<Entry>(_list54.size);
-                  Entry _elem55;
-                  for (int _i56 = 0; _i56 < _list54.size; ++_i56)
+                  org.apache.thrift.protocol.TList _list72 = iprot.readListBegin();
+                  struct.success = new ArrayList<Entry>(_list72.size);
+                  Entry _elem73;
+                  for (int _i74 = 0; _i74 < _list72.size; ++_i74)
                   {
-                    _elem55 = new Entry();
-                    _elem55.read(iprot);
-                    struct.success.add(_elem55);
+                    _elem73 = new Entry();
+                    _elem73.read(iprot);
+                    struct.success.add(_elem73);
                   }
                   iprot.readListEnd();
                 }
@@ -3324,9 +3324,9 @@ public class MagpieServer {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.success.size()));
-            for (Entry _iter57 : struct.success)
+            for (Entry _iter75 : struct.success)
             {
-              _iter57.write(oprot);
+              _iter75.write(oprot);
             }
             oprot.writeListEnd();
           }
@@ -3357,9 +3357,9 @@ public class MagpieServer {
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
-            for (Entry _iter58 : struct.success)
+            for (Entry _iter76 : struct.success)
             {
-              _iter58.write(oprot);
+              _iter76.write(oprot);
             }
           }
         }
@@ -3371,14 +3371,14 @@ public class MagpieServer {
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list59 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.success = new ArrayList<Entry>(_list59.size);
-            Entry _elem60;
-            for (int _i61 = 0; _i61 < _list59.size; ++_i61)
+            org.apache.thrift.protocol.TList _list77 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.success = new ArrayList<Entry>(_list77.size);
+            Entry _elem78;
+            for (int _i79 = 0; _i79 < _list77.size; ++_i79)
             {
-              _elem60 = new Entry();
-              _elem60.read(iprot);
-              struct.success.add(_elem60);
+              _elem78 = new Entry();
+              _elem78.read(iprot);
+              struct.success.add(_elem78);
             }
           }
           struct.setSuccessIsSet(true);
@@ -3951,13 +3951,13 @@ public class MagpieServer {
             case 2: // OBJS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list62 = iprot.readListBegin();
-                  struct.objs = new ArrayList<String>(_list62.size);
-                  String _elem63;
-                  for (int _i64 = 0; _i64 < _list62.size; ++_i64)
+                  org.apache.thrift.protocol.TList _list80 = iprot.readListBegin();
+                  struct.objs = new ArrayList<String>(_list80.size);
+                  String _elem81;
+                  for (int _i82 = 0; _i82 < _list80.size; ++_i82)
                   {
-                    _elem63 = iprot.readString();
-                    struct.objs.add(_elem63);
+                    _elem81 = iprot.readString();
+                    struct.objs.add(_elem81);
                   }
                   iprot.readListEnd();
                 }
@@ -4004,9 +4004,9 @@ public class MagpieServer {
           oprot.writeFieldBegin(OBJS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.objs.size()));
-            for (String _iter65 : struct.objs)
+            for (String _iter83 : struct.objs)
             {
-              oprot.writeString(_iter65);
+              oprot.writeString(_iter83);
             }
             oprot.writeListEnd();
           }
@@ -4057,9 +4057,9 @@ public class MagpieServer {
         if (struct.isSetObjs()) {
           {
             oprot.writeI32(struct.objs.size());
-            for (String _iter66 : struct.objs)
+            for (String _iter84 : struct.objs)
             {
-              oprot.writeString(_iter66);
+              oprot.writeString(_iter84);
             }
           }
         }
@@ -4081,13 +4081,13 @@ public class MagpieServer {
         }
         if (incoming.get(1)) {
           {
-            org.apache.thrift.protocol.TList _list67 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-            struct.objs = new ArrayList<String>(_list67.size);
-            String _elem68;
-            for (int _i69 = 0; _i69 < _list67.size; ++_i69)
+            org.apache.thrift.protocol.TList _list85 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+            struct.objs = new ArrayList<String>(_list85.size);
+            String _elem86;
+            for (int _i87 = 0; _i87 < _list85.size; ++_i87)
             {
-              _elem68 = iprot.readString();
-              struct.objs.add(_elem68);
+              _elem86 = iprot.readString();
+              struct.objs.add(_elem86);
             }
           }
           struct.setObjsIsSet(true);
@@ -4421,14 +4421,14 @@ public class MagpieServer {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list70 = iprot.readListBegin();
-                  struct.success = new ArrayList<Entry>(_list70.size);
-                  Entry _elem71;
-                  for (int _i72 = 0; _i72 < _list70.size; ++_i72)
+                  org.apache.thrift.protocol.TList _list88 = iprot.readListBegin();
+                  struct.success = new ArrayList<Entry>(_list88.size);
+                  Entry _elem89;
+                  for (int _i90 = 0; _i90 < _list88.size; ++_i90)
                   {
-                    _elem71 = new Entry();
-                    _elem71.read(iprot);
-                    struct.success.add(_elem71);
+                    _elem89 = new Entry();
+                    _elem89.read(iprot);
+                    struct.success.add(_elem89);
                   }
                   iprot.readListEnd();
                 }
@@ -4456,9 +4456,9 @@ public class MagpieServer {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.success.size()));
-            for (Entry _iter73 : struct.success)
+            for (Entry _iter91 : struct.success)
             {
-              _iter73.write(oprot);
+              _iter91.write(oprot);
             }
             oprot.writeListEnd();
           }
@@ -4489,9 +4489,9 @@ public class MagpieServer {
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
-            for (Entry _iter74 : struct.success)
+            for (Entry _iter92 : struct.success)
             {
-              _iter74.write(oprot);
+              _iter92.write(oprot);
             }
           }
         }
@@ -4503,14 +4503,14 @@ public class MagpieServer {
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list75 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.success = new ArrayList<Entry>(_list75.size);
-            Entry _elem76;
-            for (int _i77 = 0; _i77 < _list75.size; ++_i77)
+            org.apache.thrift.protocol.TList _list93 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.success = new ArrayList<Entry>(_list93.size);
+            Entry _elem94;
+            for (int _i95 = 0; _i95 < _list93.size; ++_i95)
             {
-              _elem76 = new Entry();
-              _elem76.read(iprot);
-              struct.success.add(_elem76);
+              _elem94 = new Entry();
+              _elem94.read(iprot);
+              struct.success.add(_elem94);
             }
           }
           struct.setSuccessIsSet(true);
