@@ -4,6 +4,8 @@ package magpie.data;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
+import magpie.models.SplitModel;
+import magpie.models.regression.WekaRegression;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import weka.core.Instances;
@@ -102,8 +104,21 @@ public class DatasetTest {
         // Transfer to weka format
         Instances weka = data.transferToWeka(true, false);
         assertEquals(0, data.getEntry(0).NAttributes());
+        assertNotEquals(0, original.getEntry(0).NAttributes());
         data.restoreAttributes(weka);
         assertEquals(original.NAttributes(), data.getEntry(0).NAttributes());
+        for (int i=0; i<data.NEntries(); i++) {
+            assertArrayEquals(original.getEntry(i).getAttributes(),
+                    data.getEntry(i).getAttributes(), 1e-6);
+        }
+        
+        // Test with an actual Weka model
+        WekaRegression model = new WekaRegression("trees.REPTree", null);
+        model.crossValidate(10, data);
+        for (int i=0; i<data.NEntries(); i++) {
+            assertArrayEquals(original.getEntry(i).getAttributes(),
+                    data.getEntry(i).getAttributes(), 1e-6);
+        }
     }
     
 }
