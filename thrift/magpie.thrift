@@ -5,6 +5,7 @@
  *  measuredProperties  : Measured class variable 
  *  predictedProperties : Predicted class variable for each model
  *  classProbs          : (Classifiers) Probability of membership in each class
+ */
 struct Entry {
     1: string name
     2: map<string,double> measuredProperties = {}
@@ -36,13 +37,17 @@ struct ModelInfo {
     8: string modelType
 }
 
+exception MagpieException {
+    1: string why
+}
+
 service MagpieServer {
 
     /**
      * Get information about available models
      * @return Map of model name to model info 
      */
-    map<string,ModelInfo> getModelInformation()
+    map<string,ModelInfo> getModelInformation() throws (1: MagpieException ouch)
 
     /**
      * Compute the properties of each entry in a list. Results are stored in
@@ -52,7 +57,8 @@ service MagpieServer {
      * @param props [in] Names of properties to evaluate
      * @return Entry objects with property measurements
      */
-    list<Entry> evaluateProperties(1:list<Entry> entries, 2:list<string> props)
+    list<Entry> evaluateProperties(1:list<Entry> entries, 
+            2:list<string> props) throws (1: MagpieException ouch)
 	
     /**
      * Search for optimal materials based on a single objective in a 
@@ -84,7 +90,7 @@ service MagpieServer {
      * Example: 5 points on each binary containing either Al, Ni, or Zr
      *     PhaseDiagramCompositionEntryGenerator 1 2 -alloy 0.2 Al Ni Zr
      *
-     * Relevent Documentation Pages:
+     * Relevant Documentation Pages:
      *
      * ./javadoc/magpie/data/utilities/generators/package-summary.html
      *
@@ -93,7 +99,8 @@ service MagpieServer {
      * @param numToList [in] Number of top candidates to return
      * @return List of the top-performing entries
      */
-    list<Entry> searchSingleObjective(1:string obj, 2:string genMethod, 3:i32 numToList)
+    list<Entry> searchSingleObjective(1:string obj, 2:string genMethod,
+            3:i32 numToList) throws (1: MagpieException ouch)
 	
     /**
      * Search for optimal materials based on a multiple objectives in a 
@@ -114,6 +121,6 @@ service MagpieServer {
      * @return List of the top-performing entries
      */
     list<Entry> searchMultiObjective(1:double p, 2:list<string> objs, 
-        3:string genMethod, 4:i32 numToList)
+        3:string genMethod, 4:i32 numToList) throws (1: MagpieException ouch)
 
 }

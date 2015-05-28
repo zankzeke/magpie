@@ -35,7 +35,7 @@ public class MagpieServerHandler implements MagpieServer.Iface {
     
     @Override                                                                                                                                                                                       
     public List<Entry> evaluateProperties(List<Entry> entries,
-            List<String> props) throws TException {
+            List<String> props) throws TException, MagpieException {
         
 		// Get names of entries to be be run
 		List<String> entryNames = new ArrayList<>(entries.size());
@@ -108,7 +108,7 @@ public class MagpieServerHandler implements MagpieServer.Iface {
                 }
             }
 		} catch (Exception e) {
-            throw new TException(e);
+            throw new MagpieException(e.getMessage());
 		}
 		
 		return entries;
@@ -116,13 +116,18 @@ public class MagpieServerHandler implements MagpieServer.Iface {
 
     @Override
     public List<Entry> searchSingleObjective(String obj,
-            String genMethod, int numToList) throws TException {
+            String genMethod, int numToList) throws TException, MagpieException {
 
         try {
             Pair<String,BaseEntryRanker> objective = getObjective(obj);
             String property = objective.getLeft();
             BaseEntryRanker ranker = objective.getRight();
             BaseEntryGenerator generator = getGenerator(genMethod);
+            
+            // Check if the property exists
+            if (! ModelInformation.containsKey(property)) {
+                throw new Exception("No such model: " + property);
+            }
             
             // Generate the dataset
             Dataset data = ModelInformation.get(property).Dataset.emptyClone();
@@ -131,9 +136,6 @@ public class MagpieServerHandler implements MagpieServer.Iface {
             
             // Execute the search
             BaseModel model = ModelInformation.get(property).Model;
-            if (model == null) {
-                throw new Exception("No model for property: " + property);
-            }
             model.run(data);
 
             // Filter the entries
@@ -169,7 +171,7 @@ public class MagpieServerHandler implements MagpieServer.Iface {
             }
             return output;
         } catch (Exception e) {
-            throw new TException(e.getMessage());
+            throw new MagpieException(e.getMessage());
         }
     }
 
@@ -249,7 +251,7 @@ public class MagpieServerHandler implements MagpieServer.Iface {
 
     @Override
     public List<Entry> searchMultiObjective(double p, List<String> objs, 
-            String genMethod, int numToList) throws TException {
+            String genMethod, int numToList) throws TException, MagpieException {
         // Get the entry ranker
         AdaptiveScalarizingEntryRanker ranker = new AdaptiveScalarizingEntryRanker();
         ranker.setP(p);
@@ -257,7 +259,7 @@ public class MagpieServerHandler implements MagpieServer.Iface {
         
         // Check if objectives are empty
         if (objs.isEmpty()) {
-            throw new TException("Objectives cannot be empty");
+            throw new MagpieException("Objectives cannot be empty");
         }
         
         // Get all of the objectives
@@ -271,7 +273,7 @@ public class MagpieServerHandler implements MagpieServer.Iface {
                     genEntries = ModelInformation.get(objective.getLeft()).Dataset.emptyClone();
                 }
             } catch (Exception e) {
-                throw new TException(e.getMessage());
+                throw new MagpieException(e.getMessage());
             }
         }
         
@@ -280,13 +282,13 @@ public class MagpieServerHandler implements MagpieServer.Iface {
             BaseEntryGenerator generator = getGenerator(genMethod);
             generator.addEntriesToDataset(genEntries);
         } catch (Exception e) {
-            throw new TException(e.getMessage());
+            throw new MagpieException(e.getMessage());
         }
 
 
         // Add properties to dataset
         if (!(genEntries instanceof MultiPropertyDataset)) {
-            throw new TException("Dataset template is not a MultiPropertyDataset");
+            throw new MagpieException("Dataset template is not a MultiPropertyDataset");
         }
         MultiPropertyDataset dataptr = (MultiPropertyDataset) genEntries;
         AddPropertyModifier mdfr = new AddPropertyModifier();
@@ -301,12 +303,12 @@ public class MagpieServerHandler implements MagpieServer.Iface {
             Dataset tempData = ModelInformation.get(prop).Dataset.emptyClone();
             tempData.addEntries(genEntries.getEntries());
             if (model == null) {
-                throw new TException("No model for property: " + prop);
+                throw new MagpieException("No model for property: " + prop);
             }
             try {
                 tempData.generateAttributes();
             } catch (Exception e) {
-                throw new TException(e);
+                throw new MagpieException(e.getMessage());
             }
             
             // Run model
@@ -353,8 +355,8 @@ public class MagpieServerHandler implements MagpieServer.Iface {
             
             // Add to output
             output.add(toAdd);
-        }
-        return output;
+        } 
+       return output;
     }
 
     @Override

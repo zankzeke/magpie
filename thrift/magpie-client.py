@@ -61,7 +61,8 @@ try:
 
   # Close!
   transport.close()
-
+except MagpieException, mx:
+  print mx
+  print '%s' % (mx.why)
 except Thrift.TException, tx:
   print '%s' % (tx.message)
-

@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
  * 
  * Known properties:
  *  property  : Property being model
- *  units     : Units of prediction
+ *  units     : Units of prediction. (Classifiers) Name of classes, ";"-delimited
  *  training  : Description of training set
  *  author    : Name/contact info of author
  *  citation  : Citation information of the model

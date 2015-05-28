@@ -44,11 +44,12 @@ public class MagpieServer {
      * Get information about available models
      * @return Map of model name to model info
      */
-    public Map<String,ModelInfo> getModelInformation() throws org.apache.thrift.TException;
+    public Map<String,ModelInfo> getModelInformation() throws MagpieException, org.apache.thrift.TException;
 
     /**
-     * Compute the properties of each entry in a list. Returns results formatted as string
-     * in a human-readable format.
+     * Compute the properties of each entry in a list. Results are stored in
+     * the predictedProperties and classProbs maps.
+     * 
      * @param entries [in] List of entries to be evaluated
      * @param props [in] Names of properties to evaluate
      * @return Entry objects with property measurements
@@ -56,7 +57,7 @@ public class MagpieServer {
      * @param entries
      * @param props
      */
-    public List<Entry> evaluateProperties(List<Entry> entries, List<String> props) throws org.apache.thrift.TException;
+    public List<Entry> evaluateProperties(List<Entry> entries, List<String> props) throws MagpieException, org.apache.thrift.TException;
 
     /**
      * Search for optimal materials based on a single objective in a
@@ -88,7 +89,7 @@ public class MagpieServer {
      * Example: 5 points on each binary containing either Al, Ni, or Zr
      *     PhaseDiagramCompositionEntryGenerator 1 2 -alloy 0.2 Al Ni Zr
      * 
-     * Relevent Documentation Pages:
+     * Relevant Documentation Pages:
      * 
      * ./javadoc/magpie/data/utilities/generators/package-summary.html
      * 
@@ -101,7 +102,7 @@ public class MagpieServer {
      * @param genMethod
      * @param numToList
      */
-    public List<Entry> searchSingleObjective(String obj, String genMethod, int numToList) throws org.apache.thrift.TException;
+    public List<Entry> searchSingleObjective(String obj, String genMethod, int numToList) throws MagpieException, org.apache.thrift.TException;
 
     /**
      * Search for optimal materials based on a multiple objectives in a
@@ -126,7 +127,7 @@ public class MagpieServer {
      * @param genMethod
      * @param numToList
      */
-    public List<Entry> searchMultiObjective(double p, List<String> objs, String genMethod, int numToList) throws org.apache.thrift.TException;
+    public List<Entry> searchMultiObjective(double p, List<String> objs, String genMethod, int numToList) throws MagpieException, org.apache.thrift.TException;
 
   }
 
@@ -162,7 +163,7 @@ public class MagpieServer {
       super(iprot, oprot);
     }
 
-    public Map<String,ModelInfo> getModelInformation() throws org.apache.thrift.TException
+    public Map<String,ModelInfo> getModelInformation() throws MagpieException, org.apache.thrift.TException
     {
       send_getModelInformation();
       return recv_getModelInformation();
@@ -174,17 +175,20 @@ public class MagpieServer {
       sendBase("getModelInformation", args);
     }
 
-    public Map<String,ModelInfo> recv_getModelInformation() throws org.apache.thrift.TException
+    public Map<String,ModelInfo> recv_getModelInformation() throws MagpieException, org.apache.thrift.TException
     {
       getModelInformation_result result = new getModelInformation_result();
       receiveBase(result, "getModelInformation");
       if (result.isSetSuccess()) {
         return result.success;
       }
+      if (result.ouch != null) {
+        throw result.ouch;
+      }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getModelInformation failed: unknown result");
     }
 
-    public List<Entry> evaluateProperties(List<Entry> entries, List<String> props) throws org.apache.thrift.TException
+    public List<Entry> evaluateProperties(List<Entry> entries, List<String> props) throws MagpieException, org.apache.thrift.TException
     {
       send_evaluateProperties(entries, props);
       return recv_evaluateProperties();
@@ -198,17 +202,20 @@ public class MagpieServer {
       sendBase("evaluateProperties", args);
     }
 
-    public List<Entry> recv_evaluateProperties() throws org.apache.thrift.TException
+    public List<Entry> recv_evaluateProperties() throws MagpieException, org.apache.thrift.TException
     {
       evaluateProperties_result result = new evaluateProperties_result();
       receiveBase(result, "evaluateProperties");
       if (result.isSetSuccess()) {
         return result.success;
       }
+      if (result.ouch != null) {
+        throw result.ouch;
+      }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "evaluateProperties failed: unknown result");
     }
 
-    public List<Entry> searchSingleObjective(String obj, String genMethod, int numToList) throws org.apache.thrift.TException
+    public List<Entry> searchSingleObjective(String obj, String genMethod, int numToList) throws MagpieException, org.apache.thrift.TException
     {
       send_searchSingleObjective(obj, genMethod, numToList);
       return recv_searchSingleObjective();
@@ -223,17 +230,20 @@ public class MagpieServer {
       sendBase("searchSingleObjective", args);
     }
 
-    public List<Entry> recv_searchSingleObjective() throws org.apache.thrift.TException
+    public List<Entry> recv_searchSingleObjective() throws MagpieException, org.apache.thrift.TException
     {
       searchSingleObjective_result result = new searchSingleObjective_result();
       receiveBase(result, "searchSingleObjective");
       if (result.isSetSuccess()) {
         return result.success;
       }
+      if (result.ouch != null) {
+        throw result.ouch;
+      }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "searchSingleObjective failed: unknown result");
     }
 
-    public List<Entry> searchMultiObjective(double p, List<String> objs, String genMethod, int numToList) throws org.apache.thrift.TException
+    public List<Entry> searchMultiObjective(double p, List<String> objs, String genMethod, int numToList) throws MagpieException, org.apache.thrift.TException
     {
       send_searchMultiObjective(p, objs, genMethod, numToList);
       return recv_searchMultiObjective();
@@ -249,12 +259,15 @@ public class MagpieServer {
       sendBase("searchMultiObjective", args);
     }
 
-    public List<Entry> recv_searchMultiObjective() throws org.apache.thrift.TException
+    public List<Entry> recv_searchMultiObjective() throws MagpieException, org.apache.thrift.TException
     {
       searchMultiObjective_result result = new searchMultiObjective_result();
       receiveBase(result, "searchMultiObjective");
       if (result.isSetSuccess()) {
         return result.success;
+      }
+      if (result.ouch != null) {
+        throw result.ouch;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "searchMultiObjective failed: unknown result");
     }
@@ -296,7 +309,7 @@ public class MagpieServer {
         prot.writeMessageEnd();
       }
 
-      public Map<String,ModelInfo> getResult() throws org.apache.thrift.TException {
+      public Map<String,ModelInfo> getResult() throws MagpieException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -331,7 +344,7 @@ public class MagpieServer {
         prot.writeMessageEnd();
       }
 
-      public List<Entry> getResult() throws org.apache.thrift.TException {
+      public List<Entry> getResult() throws MagpieException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -369,7 +382,7 @@ public class MagpieServer {
         prot.writeMessageEnd();
       }
 
-      public List<Entry> getResult() throws org.apache.thrift.TException {
+      public List<Entry> getResult() throws MagpieException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -410,7 +423,7 @@ public class MagpieServer {
         prot.writeMessageEnd();
       }
 
-      public List<Entry> getResult() throws org.apache.thrift.TException {
+      public List<Entry> getResult() throws MagpieException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -455,7 +468,11 @@ public class MagpieServer {
 
       public getModelInformation_result getResult(I iface, getModelInformation_args args) throws org.apache.thrift.TException {
         getModelInformation_result result = new getModelInformation_result();
-        result.success = iface.getModelInformation();
+        try {
+          result.success = iface.getModelInformation();
+        } catch (MagpieException ouch) {
+          result.ouch = ouch;
+        }
         return result;
       }
     }
@@ -475,7 +492,11 @@ public class MagpieServer {
 
       public evaluateProperties_result getResult(I iface, evaluateProperties_args args) throws org.apache.thrift.TException {
         evaluateProperties_result result = new evaluateProperties_result();
-        result.success = iface.evaluateProperties(args.entries, args.props);
+        try {
+          result.success = iface.evaluateProperties(args.entries, args.props);
+        } catch (MagpieException ouch) {
+          result.ouch = ouch;
+        }
         return result;
       }
     }
@@ -495,7 +516,11 @@ public class MagpieServer {
 
       public searchSingleObjective_result getResult(I iface, searchSingleObjective_args args) throws org.apache.thrift.TException {
         searchSingleObjective_result result = new searchSingleObjective_result();
-        result.success = iface.searchSingleObjective(args.obj, args.genMethod, args.numToList);
+        try {
+          result.success = iface.searchSingleObjective(args.obj, args.genMethod, args.numToList);
+        } catch (MagpieException ouch) {
+          result.ouch = ouch;
+        }
         return result;
       }
     }
@@ -515,7 +540,11 @@ public class MagpieServer {
 
       public searchMultiObjective_result getResult(I iface, searchMultiObjective_args args) throws org.apache.thrift.TException {
         searchMultiObjective_result result = new searchMultiObjective_result();
-        result.success = iface.searchMultiObjective(args.p, args.objs, args.genMethod, args.numToList);
+        try {
+          result.success = iface.searchMultiObjective(args.p, args.objs, args.genMethod, args.numToList);
+        } catch (MagpieException ouch) {
+          result.ouch = ouch;
+        }
         return result;
       }
     }
@@ -567,6 +596,12 @@ public class MagpieServer {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             getModelInformation_result result = new getModelInformation_result();
+            if (e instanceof MagpieException) {
+                        result.ouch = (MagpieException) e;
+                        result.setOuchIsSet(true);
+                        msg = result;
+            }
+             else 
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -618,6 +653,12 @@ public class MagpieServer {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             evaluateProperties_result result = new evaluateProperties_result();
+            if (e instanceof MagpieException) {
+                        result.ouch = (MagpieException) e;
+                        result.setOuchIsSet(true);
+                        msg = result;
+            }
+             else 
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -669,6 +710,12 @@ public class MagpieServer {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             searchSingleObjective_result result = new searchSingleObjective_result();
+            if (e instanceof MagpieException) {
+                        result.ouch = (MagpieException) e;
+                        result.setOuchIsSet(true);
+                        msg = result;
+            }
+             else 
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -720,6 +767,12 @@ public class MagpieServer {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             searchMultiObjective_result result = new searchMultiObjective_result();
+            if (e instanceof MagpieException) {
+                        result.ouch = (MagpieException) e;
+                        result.setOuchIsSet(true);
+                        msg = result;
+            }
+             else 
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -998,6 +1051,7 @@ public class MagpieServer {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getModelInformation_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.MAP, (short)0);
+    private static final org.apache.thrift.protocol.TField OUCH_FIELD_DESC = new org.apache.thrift.protocol.TField("ouch", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -1006,10 +1060,12 @@ public class MagpieServer {
     }
 
     public Map<String,ModelInfo> success; // required
+    public MagpieException ouch; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success");
+      SUCCESS((short)0, "success"),
+      OUCH((short)1, "ouch");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -1026,6 +1082,8 @@ public class MagpieServer {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
+          case 1: // OUCH
+            return OUCH;
           default:
             return null;
         }
@@ -1073,6 +1131,8 @@ public class MagpieServer {
           new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
               new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING), 
               new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, ModelInfo.class))));
+      tmpMap.put(_Fields.OUCH, new org.apache.thrift.meta_data.FieldMetaData("ouch", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getModelInformation_result.class, metaDataMap);
     }
@@ -1081,10 +1141,12 @@ public class MagpieServer {
     }
 
     public getModelInformation_result(
-      Map<String,ModelInfo> success)
+      Map<String,ModelInfo> success,
+      MagpieException ouch)
     {
       this();
       this.success = success;
+      this.ouch = ouch;
     }
 
     /**
@@ -1106,6 +1168,9 @@ public class MagpieServer {
         }
         this.success = __this__success;
       }
+      if (other.isSetOuch()) {
+        this.ouch = new MagpieException(other.ouch);
+      }
     }
 
     public getModelInformation_result deepCopy() {
@@ -1115,6 +1180,7 @@ public class MagpieServer {
     @Override
     public void clear() {
       this.success = null;
+      this.ouch = null;
     }
 
     public int getSuccessSize() {
@@ -1152,6 +1218,30 @@ public class MagpieServer {
       }
     }
 
+    public MagpieException getOuch() {
+      return this.ouch;
+    }
+
+    public getModelInformation_result setOuch(MagpieException ouch) {
+      this.ouch = ouch;
+      return this;
+    }
+
+    public void unsetOuch() {
+      this.ouch = null;
+    }
+
+    /** Returns true if field ouch is set (has been assigned a value) and false otherwise */
+    public boolean isSetOuch() {
+      return this.ouch != null;
+    }
+
+    public void setOuchIsSet(boolean value) {
+      if (!value) {
+        this.ouch = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
@@ -1162,6 +1252,14 @@ public class MagpieServer {
         }
         break;
 
+      case OUCH:
+        if (value == null) {
+          unsetOuch();
+        } else {
+          setOuch((MagpieException)value);
+        }
+        break;
+
       }
     }
 
@@ -1169,6 +1267,9 @@ public class MagpieServer {
       switch (field) {
       case SUCCESS:
         return getSuccess();
+
+      case OUCH:
+        return getOuch();
 
       }
       throw new IllegalStateException();
@@ -1183,6 +1284,8 @@ public class MagpieServer {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
+      case OUCH:
+        return isSetOuch();
       }
       throw new IllegalStateException();
     }
@@ -1209,6 +1312,15 @@ public class MagpieServer {
           return false;
       }
 
+      boolean this_present_ouch = true && this.isSetOuch();
+      boolean that_present_ouch = true && that.isSetOuch();
+      if (this_present_ouch || that_present_ouch) {
+        if (!(this_present_ouch && that_present_ouch))
+          return false;
+        if (!this.ouch.equals(that.ouch))
+          return false;
+      }
+
       return true;
     }
 
@@ -1220,6 +1332,11 @@ public class MagpieServer {
       list.add(present_success);
       if (present_success)
         list.add(success);
+
+      boolean present_ouch = true && (isSetOuch());
+      list.add(present_ouch);
+      if (present_ouch)
+        list.add(ouch);
 
       return list.hashCode();
     }
@@ -1238,6 +1355,16 @@ public class MagpieServer {
       }
       if (isSetSuccess()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetOuch()).compareTo(other.isSetOuch());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetOuch()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ouch, other.ouch);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -1267,6 +1394,14 @@ public class MagpieServer {
         sb.append("null");
       } else {
         sb.append(this.success);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("ouch:");
+      if (this.ouch == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.ouch);
       }
       first = false;
       sb.append(")");
@@ -1333,6 +1468,15 @@ public class MagpieServer {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 1: // OUCH
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.ouch = new MagpieException();
+                struct.ouch.read(iprot);
+                struct.setOuchIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -1361,6 +1505,11 @@ public class MagpieServer {
           }
           oprot.writeFieldEnd();
         }
+        if (struct.ouch != null) {
+          oprot.writeFieldBegin(OUCH_FIELD_DESC);
+          struct.ouch.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -1382,7 +1531,10 @@ public class MagpieServer {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetOuch()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
@@ -1393,12 +1545,15 @@ public class MagpieServer {
             }
           }
         }
+        if (struct.isSetOuch()) {
+          struct.ouch.write(oprot);
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, getModelInformation_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           {
             org.apache.thrift.protocol.TMap _map44 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
@@ -1414,6 +1569,11 @@ public class MagpieServer {
             }
           }
           struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.ouch = new MagpieException();
+          struct.ouch.read(iprot);
+          struct.setOuchIsSet(true);
         }
       }
     }
@@ -1993,6 +2153,7 @@ public class MagpieServer {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("evaluateProperties_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.LIST, (short)0);
+    private static final org.apache.thrift.protocol.TField OUCH_FIELD_DESC = new org.apache.thrift.protocol.TField("ouch", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -2001,10 +2162,12 @@ public class MagpieServer {
     }
 
     public List<Entry> success; // required
+    public MagpieException ouch; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success");
+      SUCCESS((short)0, "success"),
+      OUCH((short)1, "ouch");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -2021,6 +2184,8 @@ public class MagpieServer {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
+          case 1: // OUCH
+            return OUCH;
           default:
             return null;
         }
@@ -2067,6 +2232,8 @@ public class MagpieServer {
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
               new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, Entry.class))));
+      tmpMap.put(_Fields.OUCH, new org.apache.thrift.meta_data.FieldMetaData("ouch", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(evaluateProperties_result.class, metaDataMap);
     }
@@ -2075,10 +2242,12 @@ public class MagpieServer {
     }
 
     public evaluateProperties_result(
-      List<Entry> success)
+      List<Entry> success,
+      MagpieException ouch)
     {
       this();
       this.success = success;
+      this.ouch = ouch;
     }
 
     /**
@@ -2092,6 +2261,9 @@ public class MagpieServer {
         }
         this.success = __this__success;
       }
+      if (other.isSetOuch()) {
+        this.ouch = new MagpieException(other.ouch);
+      }
     }
 
     public evaluateProperties_result deepCopy() {
@@ -2101,6 +2273,7 @@ public class MagpieServer {
     @Override
     public void clear() {
       this.success = null;
+      this.ouch = null;
     }
 
     public int getSuccessSize() {
@@ -2142,6 +2315,30 @@ public class MagpieServer {
       }
     }
 
+    public MagpieException getOuch() {
+      return this.ouch;
+    }
+
+    public evaluateProperties_result setOuch(MagpieException ouch) {
+      this.ouch = ouch;
+      return this;
+    }
+
+    public void unsetOuch() {
+      this.ouch = null;
+    }
+
+    /** Returns true if field ouch is set (has been assigned a value) and false otherwise */
+    public boolean isSetOuch() {
+      return this.ouch != null;
+    }
+
+    public void setOuchIsSet(boolean value) {
+      if (!value) {
+        this.ouch = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
@@ -2152,6 +2349,14 @@ public class MagpieServer {
         }
         break;
 
+      case OUCH:
+        if (value == null) {
+          unsetOuch();
+        } else {
+          setOuch((MagpieException)value);
+        }
+        break;
+
       }
     }
 
@@ -2159,6 +2364,9 @@ public class MagpieServer {
       switch (field) {
       case SUCCESS:
         return getSuccess();
+
+      case OUCH:
+        return getOuch();
 
       }
       throw new IllegalStateException();
@@ -2173,6 +2381,8 @@ public class MagpieServer {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
+      case OUCH:
+        return isSetOuch();
       }
       throw new IllegalStateException();
     }
@@ -2199,6 +2409,15 @@ public class MagpieServer {
           return false;
       }
 
+      boolean this_present_ouch = true && this.isSetOuch();
+      boolean that_present_ouch = true && that.isSetOuch();
+      if (this_present_ouch || that_present_ouch) {
+        if (!(this_present_ouch && that_present_ouch))
+          return false;
+        if (!this.ouch.equals(that.ouch))
+          return false;
+      }
+
       return true;
     }
 
@@ -2210,6 +2429,11 @@ public class MagpieServer {
       list.add(present_success);
       if (present_success)
         list.add(success);
+
+      boolean present_ouch = true && (isSetOuch());
+      list.add(present_ouch);
+      if (present_ouch)
+        list.add(ouch);
 
       return list.hashCode();
     }
@@ -2228,6 +2452,16 @@ public class MagpieServer {
       }
       if (isSetSuccess()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetOuch()).compareTo(other.isSetOuch());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetOuch()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ouch, other.ouch);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -2257,6 +2491,14 @@ public class MagpieServer {
         sb.append("null");
       } else {
         sb.append(this.success);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("ouch:");
+      if (this.ouch == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.ouch);
       }
       first = false;
       sb.append(")");
@@ -2321,6 +2563,15 @@ public class MagpieServer {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 1: // OUCH
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.ouch = new MagpieException();
+                struct.ouch.read(iprot);
+                struct.setOuchIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -2348,6 +2599,11 @@ public class MagpieServer {
           }
           oprot.writeFieldEnd();
         }
+        if (struct.ouch != null) {
+          oprot.writeFieldBegin(OUCH_FIELD_DESC);
+          struct.ouch.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -2369,7 +2625,10 @@ public class MagpieServer {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetOuch()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
@@ -2379,12 +2638,15 @@ public class MagpieServer {
             }
           }
         }
+        if (struct.isSetOuch()) {
+          struct.ouch.write(oprot);
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, evaluateProperties_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           {
             org.apache.thrift.protocol.TList _list69 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
@@ -2398,6 +2660,11 @@ public class MagpieServer {
             }
           }
           struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.ouch = new MagpieException();
+          struct.ouch.read(iprot);
+          struct.setOuchIsSet(true);
         }
       }
     }
@@ -2977,6 +3244,7 @@ public class MagpieServer {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("searchSingleObjective_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.LIST, (short)0);
+    private static final org.apache.thrift.protocol.TField OUCH_FIELD_DESC = new org.apache.thrift.protocol.TField("ouch", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -2985,10 +3253,12 @@ public class MagpieServer {
     }
 
     public List<Entry> success; // required
+    public MagpieException ouch; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success");
+      SUCCESS((short)0, "success"),
+      OUCH((short)1, "ouch");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -3005,6 +3275,8 @@ public class MagpieServer {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
+          case 1: // OUCH
+            return OUCH;
           default:
             return null;
         }
@@ -3051,6 +3323,8 @@ public class MagpieServer {
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
               new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, Entry.class))));
+      tmpMap.put(_Fields.OUCH, new org.apache.thrift.meta_data.FieldMetaData("ouch", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(searchSingleObjective_result.class, metaDataMap);
     }
@@ -3059,10 +3333,12 @@ public class MagpieServer {
     }
 
     public searchSingleObjective_result(
-      List<Entry> success)
+      List<Entry> success,
+      MagpieException ouch)
     {
       this();
       this.success = success;
+      this.ouch = ouch;
     }
 
     /**
@@ -3076,6 +3352,9 @@ public class MagpieServer {
         }
         this.success = __this__success;
       }
+      if (other.isSetOuch()) {
+        this.ouch = new MagpieException(other.ouch);
+      }
     }
 
     public searchSingleObjective_result deepCopy() {
@@ -3085,6 +3364,7 @@ public class MagpieServer {
     @Override
     public void clear() {
       this.success = null;
+      this.ouch = null;
     }
 
     public int getSuccessSize() {
@@ -3126,6 +3406,30 @@ public class MagpieServer {
       }
     }
 
+    public MagpieException getOuch() {
+      return this.ouch;
+    }
+
+    public searchSingleObjective_result setOuch(MagpieException ouch) {
+      this.ouch = ouch;
+      return this;
+    }
+
+    public void unsetOuch() {
+      this.ouch = null;
+    }
+
+    /** Returns true if field ouch is set (has been assigned a value) and false otherwise */
+    public boolean isSetOuch() {
+      return this.ouch != null;
+    }
+
+    public void setOuchIsSet(boolean value) {
+      if (!value) {
+        this.ouch = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
@@ -3136,6 +3440,14 @@ public class MagpieServer {
         }
         break;
 
+      case OUCH:
+        if (value == null) {
+          unsetOuch();
+        } else {
+          setOuch((MagpieException)value);
+        }
+        break;
+
       }
     }
 
@@ -3143,6 +3455,9 @@ public class MagpieServer {
       switch (field) {
       case SUCCESS:
         return getSuccess();
+
+      case OUCH:
+        return getOuch();
 
       }
       throw new IllegalStateException();
@@ -3157,6 +3472,8 @@ public class MagpieServer {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
+      case OUCH:
+        return isSetOuch();
       }
       throw new IllegalStateException();
     }
@@ -3183,6 +3500,15 @@ public class MagpieServer {
           return false;
       }
 
+      boolean this_present_ouch = true && this.isSetOuch();
+      boolean that_present_ouch = true && that.isSetOuch();
+      if (this_present_ouch || that_present_ouch) {
+        if (!(this_present_ouch && that_present_ouch))
+          return false;
+        if (!this.ouch.equals(that.ouch))
+          return false;
+      }
+
       return true;
     }
 
@@ -3194,6 +3520,11 @@ public class MagpieServer {
       list.add(present_success);
       if (present_success)
         list.add(success);
+
+      boolean present_ouch = true && (isSetOuch());
+      list.add(present_ouch);
+      if (present_ouch)
+        list.add(ouch);
 
       return list.hashCode();
     }
@@ -3212,6 +3543,16 @@ public class MagpieServer {
       }
       if (isSetSuccess()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetOuch()).compareTo(other.isSetOuch());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetOuch()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ouch, other.ouch);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -3241,6 +3582,14 @@ public class MagpieServer {
         sb.append("null");
       } else {
         sb.append(this.success);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("ouch:");
+      if (this.ouch == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.ouch);
       }
       first = false;
       sb.append(")");
@@ -3305,6 +3654,15 @@ public class MagpieServer {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 1: // OUCH
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.ouch = new MagpieException();
+                struct.ouch.read(iprot);
+                struct.setOuchIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -3332,6 +3690,11 @@ public class MagpieServer {
           }
           oprot.writeFieldEnd();
         }
+        if (struct.ouch != null) {
+          oprot.writeFieldBegin(OUCH_FIELD_DESC);
+          struct.ouch.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -3353,7 +3716,10 @@ public class MagpieServer {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetOuch()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
@@ -3363,12 +3729,15 @@ public class MagpieServer {
             }
           }
         }
+        if (struct.isSetOuch()) {
+          struct.ouch.write(oprot);
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, searchSingleObjective_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           {
             org.apache.thrift.protocol.TList _list77 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
@@ -3382,6 +3751,11 @@ public class MagpieServer {
             }
           }
           struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.ouch = new MagpieException();
+          struct.ouch.read(iprot);
+          struct.setOuchIsSet(true);
         }
       }
     }
@@ -4109,6 +4483,7 @@ public class MagpieServer {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("searchMultiObjective_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.LIST, (short)0);
+    private static final org.apache.thrift.protocol.TField OUCH_FIELD_DESC = new org.apache.thrift.protocol.TField("ouch", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -4117,10 +4492,12 @@ public class MagpieServer {
     }
 
     public List<Entry> success; // required
+    public MagpieException ouch; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success");
+      SUCCESS((short)0, "success"),
+      OUCH((short)1, "ouch");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -4137,6 +4514,8 @@ public class MagpieServer {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
+          case 1: // OUCH
+            return OUCH;
           default:
             return null;
         }
@@ -4183,6 +4562,8 @@ public class MagpieServer {
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
               new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, Entry.class))));
+      tmpMap.put(_Fields.OUCH, new org.apache.thrift.meta_data.FieldMetaData("ouch", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(searchMultiObjective_result.class, metaDataMap);
     }
@@ -4191,10 +4572,12 @@ public class MagpieServer {
     }
 
     public searchMultiObjective_result(
-      List<Entry> success)
+      List<Entry> success,
+      MagpieException ouch)
     {
       this();
       this.success = success;
+      this.ouch = ouch;
     }
 
     /**
@@ -4208,6 +4591,9 @@ public class MagpieServer {
         }
         this.success = __this__success;
       }
+      if (other.isSetOuch()) {
+        this.ouch = new MagpieException(other.ouch);
+      }
     }
 
     public searchMultiObjective_result deepCopy() {
@@ -4217,6 +4603,7 @@ public class MagpieServer {
     @Override
     public void clear() {
       this.success = null;
+      this.ouch = null;
     }
 
     public int getSuccessSize() {
@@ -4258,6 +4645,30 @@ public class MagpieServer {
       }
     }
 
+    public MagpieException getOuch() {
+      return this.ouch;
+    }
+
+    public searchMultiObjective_result setOuch(MagpieException ouch) {
+      this.ouch = ouch;
+      return this;
+    }
+
+    public void unsetOuch() {
+      this.ouch = null;
+    }
+
+    /** Returns true if field ouch is set (has been assigned a value) and false otherwise */
+    public boolean isSetOuch() {
+      return this.ouch != null;
+    }
+
+    public void setOuchIsSet(boolean value) {
+      if (!value) {
+        this.ouch = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
@@ -4268,6 +4679,14 @@ public class MagpieServer {
         }
         break;
 
+      case OUCH:
+        if (value == null) {
+          unsetOuch();
+        } else {
+          setOuch((MagpieException)value);
+        }
+        break;
+
       }
     }
 
@@ -4275,6 +4694,9 @@ public class MagpieServer {
       switch (field) {
       case SUCCESS:
         return getSuccess();
+
+      case OUCH:
+        return getOuch();
 
       }
       throw new IllegalStateException();
@@ -4289,6 +4711,8 @@ public class MagpieServer {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
+      case OUCH:
+        return isSetOuch();
       }
       throw new IllegalStateException();
     }
@@ -4315,6 +4739,15 @@ public class MagpieServer {
           return false;
       }
 
+      boolean this_present_ouch = true && this.isSetOuch();
+      boolean that_present_ouch = true && that.isSetOuch();
+      if (this_present_ouch || that_present_ouch) {
+        if (!(this_present_ouch && that_present_ouch))
+          return false;
+        if (!this.ouch.equals(that.ouch))
+          return false;
+      }
+
       return true;
     }
 
@@ -4326,6 +4759,11 @@ public class MagpieServer {
       list.add(present_success);
       if (present_success)
         list.add(success);
+
+      boolean present_ouch = true && (isSetOuch());
+      list.add(present_ouch);
+      if (present_ouch)
+        list.add(ouch);
 
       return list.hashCode();
     }
@@ -4344,6 +4782,16 @@ public class MagpieServer {
       }
       if (isSetSuccess()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetOuch()).compareTo(other.isSetOuch());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetOuch()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ouch, other.ouch);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -4373,6 +4821,14 @@ public class MagpieServer {
         sb.append("null");
       } else {
         sb.append(this.success);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("ouch:");
+      if (this.ouch == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.ouch);
       }
       first = false;
       sb.append(")");
@@ -4437,6 +4893,15 @@ public class MagpieServer {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 1: // OUCH
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.ouch = new MagpieException();
+                struct.ouch.read(iprot);
+                struct.setOuchIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -4464,6 +4929,11 @@ public class MagpieServer {
           }
           oprot.writeFieldEnd();
         }
+        if (struct.ouch != null) {
+          oprot.writeFieldBegin(OUCH_FIELD_DESC);
+          struct.ouch.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -4485,7 +4955,10 @@ public class MagpieServer {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetOuch()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
@@ -4495,12 +4968,15 @@ public class MagpieServer {
             }
           }
         }
+        if (struct.isSetOuch()) {
+          struct.ouch.write(oprot);
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, searchMultiObjective_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           {
             org.apache.thrift.protocol.TList _list93 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
@@ -4514,6 +4990,11 @@ public class MagpieServer {
             }
           }
           struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.ouch = new MagpieException();
+          struct.ouch.read(iprot);
+          struct.setOuchIsSet(true);
         }
       }
     }

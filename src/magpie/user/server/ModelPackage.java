@@ -3,7 +3,6 @@ package magpie.user.server;
 import magpie.data.Dataset;
 import magpie.models.BaseModel;
 import magpie.models.classification.AbstractClassifier;
-import magpie.models.classification.BaseClassifier;
 import magpie.user.server.thrift.ModelInfo;
 
 /**
