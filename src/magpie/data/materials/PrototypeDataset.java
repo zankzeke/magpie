@@ -70,8 +70,8 @@ public class PrototypeDataset extends CompositionDataset {
     }
 
     @Override
-    public PrototypeDataset clone() {
-        PrototypeDataset x = (PrototypeDataset) super.clone();
+    public PrototypeDataset emptyClone() {
+        PrototypeDataset x = (PrototypeDataset) super.emptyClone();
         x.SiteInfo = this.SiteInfo;
         return x; 
     }

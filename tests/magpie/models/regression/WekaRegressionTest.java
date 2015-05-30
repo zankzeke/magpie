@@ -13,7 +13,10 @@ public class WekaRegressionTest extends BaseModelTest {
 
     @Override
     public BaseModel generateModel() {
-        return new WekaRegression();
+        try {
+            return new WekaRegression();
+        } catch (Exception e) {
+            throw new Error(e);
+        }
     }
-    
 }

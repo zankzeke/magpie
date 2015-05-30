@@ -111,14 +111,6 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
     protected boolean UseComposition = false;
 
     @Override
-    @SuppressWarnings("CloneDeclaresCloneNotSupported")
-    public CompositionDataset clone() {
-        CompositionDataset x = (CompositionDataset) super.clone();
-        x.ElementNames = ElementNames.clone();
-        return x;
-    }
-
-    @Override
     public CompositionDataset emptyClone() {
         CompositionDataset x = (CompositionDataset) super.emptyClone();
         x.ElementNames = ElementNames.clone();
@@ -195,7 +187,11 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
             properties = importEntryProperties(words);
 
             // Make an entry
-            Entry = new CompositionEntry(words[0]);
+            try {
+                Entry = new CompositionEntry(words[0]);
+            } catch (Exception ex) {
+                continue; // Skip if fails to parse
+            }
             Entry.setMeasuredProperties(properties);
 
             // Add if the set does not already have it
@@ -436,6 +432,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
      *
      * @param PropertyName MeasuredProperty of interest
      * @return That property for each element
+     * @throws java.lang.Exception
      */
     public double[] getPropertyLookupTable(String PropertyName) throws Exception {
         // Check if it has been loaded in yet
@@ -604,7 +601,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
 				try {
 					lookup = getPropertyLookupTable(prop);
 				} catch (Exception ex) {
-					throw new Error("Failed to retrieve property: " + prop);
+					throw new Error(ex);
 				}
 
                 // Check if any required lookup data is missing;

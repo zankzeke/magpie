@@ -173,6 +173,20 @@ public class MultiPropertyEntry extends BaseEntry {
             return (double) max;
         }
     }
+    
+    /**
+     * Get the predicted class probabilities for a certain property.
+     * If the property has not been predicted, returns null.
+     * @param index Index of property to retrieve
+     * @return Predicted class probabilities for that property
+     */
+    public double[] getPropertyClassProbabilties(int index) {
+        if (PredictedProperty[index] == null) {
+            return null;
+        } else {
+            return PredictedProperty[index];
+        }
+    }
 
     /**
      * Look up which property is being used as the class variable. Returns -1 if 
@@ -208,13 +222,13 @@ public class MultiPropertyEntry extends BaseEntry {
      * @return Whether that property has been predicted
      */
     public boolean hasPredictedProperty(int index) {
-        return getPredictedProperty(index) != Double.NaN;
+        return ! Double.isNaN(getPredictedProperty(index));
     }
 
     @Override
     public boolean hasMeasurement() {
         if (usingPropertyAsClass()) {
-            return getMeasuredProperty(TargetProperty) != Double.NaN;
+            return ! Double.isNaN(getMeasuredProperty(TargetProperty));
         } else {
             return super.hasMeasurement();
         }

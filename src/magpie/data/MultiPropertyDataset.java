@@ -1,5 +1,6 @@
 package magpie.data;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -36,11 +37,13 @@ public class MultiPropertyDataset extends Dataset {
     private int TargetProperty = -1;
 
     @Override
-    @SuppressWarnings({"CloneDeclaresCloneNotSupported", "CloneDoesntCallSuperClone"})
-    public Dataset clone() {
-        MultiPropertyDataset x = (MultiPropertyDataset) super.clone(); 
-        x.PNames = new LinkedList<>(PNames);
-        x.PClassNames = new LinkedList<>(PClassNames);
+    public Dataset emptyClone() {
+        MultiPropertyDataset x = (MultiPropertyDataset) super.emptyClone(); 
+        x.PNames = new ArrayList<>(PNames);
+        x.PClassNames = new LinkedList<>();
+        for (String[] ar : PClassNames) {
+            x.PClassNames.add(ar.clone());
+        }
         x.TargetProperty = TargetProperty;
         return x;
     }

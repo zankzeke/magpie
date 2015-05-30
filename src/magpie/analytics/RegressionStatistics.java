@@ -1,7 +1,7 @@
 package magpie.analytics;
 
 import magpie.data.Dataset;
-import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
+import org.apache.commons.math3.stat.correlation.*;
 import org.apache.commons.math3.stat.StatUtils;
 
 /**
@@ -17,7 +17,11 @@ public class RegressionStatistics extends BaseStatistics {
     /** Root mean squared error */
     public double RMSE;
     /** Pearson's correlation coefficient */
-    public double R;  
+    public double R;
+    /** Spearman's correlation coefficient */
+	public double S;
+	/** Kendall's rank correlation coefficient */
+	public double Tau;
     
     @Override public void evaluate(Dataset Results) {
         Measured = Results.getMeasuredClassArray();
@@ -33,8 +37,10 @@ public class RegressionStatistics extends BaseStatistics {
     protected void getStatistics(double[] measured, double[] predicted) {
         int NEntries = measured.length;
         NumberTested = NEntries;
-        // Calculate R
-        R = measured.length > 1 ? new PearsonsCorrelation().correlation(measured, predicted) : Double.NaN;
+        // Calculate correlation coefficients
+        R = new PearsonsCorrelation().correlation(measured, predicted);
+        S = new SpearmansCorrelation().correlation(measured, predicted);
+        Tau = new KendallsCorrelation().correlation(measured, predicted);
         if (Double.isNaN(R)) R = 0;
         // Calculate statistics of absolute error
         double[] error = new double[NEntries];
@@ -63,7 +69,9 @@ public class RegressionStatistics extends BaseStatistics {
     @Override public String toString() {
         String out = new String();
         out+="Number Tested: "+NumberTested
-                +"\nCorrelation Coeff.: "+String.format("%.4f", R)
+                +"\nPearson's Correlation (R): "+String.format("%.4f", R)
+                +"\nSpearman's Correlation (S): "+String.format("%.4f", S)
+                +"\nKendall's Correlation (Tau): "+String.format("%.4f", Tau)
                 +"\nMAE: "+String.format("%.4e",MAE)
                 +"\nRMSE: "+String.format("%.4e",RMSE)
                 +"\nMRE: "+String.format("%.4f",MRE)

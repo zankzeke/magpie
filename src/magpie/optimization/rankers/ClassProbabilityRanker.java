@@ -20,6 +20,9 @@ public class ClassProbabilityRanker extends BaseEntryRanker {
     /** Index of target class */
     private int TargetClassInd = -1;
 
+    public ClassProbabilityRanker() {
+    }
+
     /**
      * Create new instance of ranker.
      * @param TargetClass Name of target class

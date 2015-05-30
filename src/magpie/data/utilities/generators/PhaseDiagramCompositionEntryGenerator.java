@@ -24,7 +24,7 @@ import org.apache.commons.math3.util.Combinations;
  * 
  * </ol>
  * 
- * <usage><b>Usage</b>: &lt;min order&gt; &ltmax order&gt; [-alloy|-crystal] &lt;number&gt; &lt;elements...&gt;
+ * <usage><b>Usage</b>: &lt;min order&gt; &lt;max order&gt; [-alloy|-crystal] &lt;number&gt; &lt;elements...&gt;
  * <br><pr><i>min order</i>: Minimum number of constituents
  * <br><pr><i>max order</i>: Maximum number of constituents
  * <br><pr><i>-alloy</i>: Generate evenly-spaced compositions

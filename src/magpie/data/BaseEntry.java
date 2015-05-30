@@ -120,15 +120,9 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
     }
     
     /** 
-     * Generates a clone of an entry. It only copies the pointer to the attribute
-     * data, so the feature list is not duplicated. 
-     * <p>Reasons for doing this:
-     * <ol>
-     * <li>Save on memory. This array is the primary memory hog of this system
-     * <li>If you can the number of attributes, the pointer will change and you will not effect the original
-     * </ol>
+     * Generates a clone of an entry. It creates a new list to store the attributes.
+     * So, the attribute data is preserved, but you can change the list as desired.
      * 
-     * Note: If you change the value of 
      * @return Clone
      */
     @Override 
