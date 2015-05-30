@@ -21,7 +21,10 @@ import org.apache.thrift.TException;
 public class MagpieServerHandler implements MagpieServer.Iface {
     /** Information about each model */
     protected Map<String,ModelPackage> ModelInformation = new TreeMap<>();
-	/** Maximum number of entries to evaluate (security measure) */
+	/** 
+     * Maximum number of entries to evaluate (precaution measure). 
+     * Set to &le; 0 to turn off.
+     */
 	public static long MaxEntryEvaluations = 50000;
     
     /**
@@ -36,6 +39,13 @@ public class MagpieServerHandler implements MagpieServer.Iface {
     @Override                                                                                                                                                                                       
     public List<Entry> evaluateProperties(List<Entry> entries,
             List<String> props) throws TException, MagpieException {
+        
+        // See if entries list is too large
+        if (MaxEntryEvaluations > 0 && entries.size() > MaxEntryEvaluations) {
+            throw new MagpieException(
+                    String.format("Too large of a query: %d > %d", 
+                            entries.size(), MaxEntryEvaluations));
+        }
         
 		// Get names of entries to be be run
 		List<String> entryNames = new ArrayList<>(entries.size());
@@ -132,6 +142,15 @@ public class MagpieServerHandler implements MagpieServer.Iface {
             // Generate the dataset
             Dataset data = ModelInformation.get(property).Dataset.emptyClone();
             generator.addEntriesToDataset(data);
+            
+            // Make sure it is small enough
+            if (MaxEntryEvaluations > 0 && data.NEntries() > MaxEntryEvaluations) {
+                throw new Exception(
+                        String.format("Too large of a query for web app: %d > %d",
+                                data.NEntries(), MaxEntryEvaluations));
+            }
+            
+            // Compute attributes
             data.generateAttributes();
             
             // Execute the search
@@ -284,7 +303,13 @@ public class MagpieServerHandler implements MagpieServer.Iface {
         } catch (Exception e) {
             throw new MagpieException(e.getMessage());
         }
-
+        
+        // Make sure the pool is not too large
+        if (MaxEntryEvaluations > 0 && genEntries.NEntries() > MaxEntryEvaluations) {
+            throw new MagpieException(
+                    String.format("Too large of a query for web app: %d > %d",
+                            genEntries.NEntries(), MaxEntryEvaluations));
+        }
 
         // Add properties to dataset
         if (!(genEntries instanceof MultiPropertyDataset)) {
