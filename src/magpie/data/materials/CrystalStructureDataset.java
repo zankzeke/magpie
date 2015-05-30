@@ -146,6 +146,23 @@ public class CrystalStructureDataset extends CompositionDataset {
         // Calculate composition-based attributes
         super.calculateAttributes(); 
     }
+
+    @Override
+    public AtomicStructureEntry addEntry(String input) throws Exception {
+        // Look up radii 
+        double[] radii = getPropertyLookupTable("CovalentRadius");
+        
+        // Split string based on newlines
+        List<String> inputFile = Arrays.asList(input.split("\n"));
+        Cell strc = new VASP5IO().parseStructure(inputFile);
+        
+        // Create the entry
+        AtomicStructureEntry newEntry = new AtomicStructureEntry(strc, inputFile.get(0), radii);
+        
+        // Add and return it
+        addEntry(newEntry);
+        return newEntry;
+    }
     
     /**
      * Compute attributes based on the Voronoi tessellation of a crystal.
