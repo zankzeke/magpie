@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import magpie.user.CommandHandler;
 import magpie.user.InputFileParser;
-import magpie.user.server.MagpieServer;
+import magpie.user.server.ServerLauncher;
 
 /**
  * Main program for text-based interface. Command line arguments are input files
@@ -17,12 +17,13 @@ import magpie.user.server.MagpieServer;
 public class Magpie {
      /**
      * @param args the command line arguments
+     * @throws java.lang.Exception
      */
-    public static void main(String[] args) {        
+    public static void main(String[] args) throws Exception {        
 		// Determine whether the user wants to go to server mode
 		if (args.length > 0 && args[0].equalsIgnoreCase("-server")) {
-			// If so, call MagpieServer
-			MagpieServer.main(Arrays.copyOfRange(args, 1, args.length));
+			// If so, call ServerLauncher
+			ServerLauncher.main(Arrays.copyOfRange(args, 1, args.length));
 		} else {
 			// Prepare to parse input files
 			InputFileParser Parser = new InputFileParser();

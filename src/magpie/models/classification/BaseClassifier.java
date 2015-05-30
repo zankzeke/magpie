@@ -85,7 +85,11 @@ abstract public class BaseClassifier extends BaseModel implements AbstractClassi
     
     @Override
     public int getNClasses() { return NClasses; };
-    
+
+    @Override
+    public String[] getClassNames() {
+        return ClassNames.clone();
+    }
     
     @Override public void train(Dataset D, boolean b) {
         if (D.NClasses() == 1)
