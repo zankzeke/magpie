@@ -119,8 +119,10 @@ public class ScikitLearnRegression extends BaseRegression {
         }
         
         //  Load in the model
-        scriptWriter.println("from sklearn.externals import joblib");
-        scriptWriter.format("model = joblib.load(r\"%s\")\n", modelInPath);
+        scriptWriter.println("import pickle");
+        scriptWriter.format("fp = open(r\"%s\", 'r');\n", modelInPath);
+        scriptWriter.println("model = pickle.load(fp);");
+        scriptWriter.println("fp.close()");
         
         // Read in the data
         scriptWriter.println("import sys");
@@ -133,7 +135,9 @@ public class ScikitLearnRegression extends BaseRegression {
         
         // Fit the model and save it to disc
         scriptWriter.println("model.fit(X,y)");
-        scriptWriter.format("joblib.dump(model, r\"%s\")\n", modelOutPath);
+        scriptWriter.format("fp = open(r\"%s\", 'w');\n", modelOutPath);
+        scriptWriter.println("model = pickle.dump(model, fp);");
+        scriptWriter.println("fp.close()");
         scriptWriter.println("print \"Done\"");
         scriptWriter.close();
         
@@ -216,8 +220,10 @@ public class ScikitLearnRegression extends BaseRegression {
         }
         
         //  Load in the model
-        scriptWriter.println("from sklearn.externals import joblib");
-        scriptWriter.format("model = joblib.load(r\"%s\")\n", modelFilePath);
+        scriptWriter.println("import pickle");
+        scriptWriter.format("fp = open(r\"%s\", 'r');\n", modelFilePath);
+        scriptWriter.println("model = pickle.load(fp);");
+        scriptWriter.println("fp.close()");
         
         // Read in the data
         scriptWriter.println("import sys");
