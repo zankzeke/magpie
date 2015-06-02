@@ -6,6 +6,7 @@ import magpie.data.utilities.filters.EntryRankerFilter;
 import magpie.data.utilities.generators.BaseEntryGenerator;
 import magpie.data.utilities.modifiers.AddPropertyModifier;
 import magpie.models.BaseModel;
+import magpie.models.classification.AbstractClassifier;
 import magpie.models.classification.BaseClassifier;
 import magpie.optimization.rankers.*;
 import magpie.user.CommandHandler;
@@ -101,7 +102,7 @@ public class MagpieServerHandler implements MagpieServer.Iface {
                 }
                 
                 // Store class probabilities, if applicable
-                if (model instanceof BaseClassifier) {
+                if (model instanceof AbstractClassifier) {
                     for (int i=0; i < dataset.NEntries(); i++ ) {
                         int row = entryToResult.get(i);
                         List<Double> cp = new LinkedList<>();
