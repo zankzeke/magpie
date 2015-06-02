@@ -120,8 +120,13 @@ public class ScikitLearnRegression extends BaseRegression {
         
         //  Load in the model
         scriptWriter.println("import pickle");
-        scriptWriter.format("fp = open(r\"%s\", 'r');\n", modelInPath);
-        scriptWriter.println("model = pickle.load(fp);");
+        scriptWriter.println("import gzip");
+        scriptWriter.println("try:");
+        scriptWriter.format(" fp = gzip.open(r\"%s\", 'r');\n", modelInPath);
+        scriptWriter.println(" model = pickle.load(fp);");
+        scriptWriter.println("except IOError:");
+        scriptWriter.format(" fp = open(r\"%s\", 'r');\n", modelInPath);
+        scriptWriter.println(" model = pickle.load(fp);");
         scriptWriter.println("fp.close()");
         
         // Read in the data
@@ -135,7 +140,7 @@ public class ScikitLearnRegression extends BaseRegression {
         
         // Fit the model and save it to disc
         scriptWriter.println("model.fit(X,y)");
-        scriptWriter.format("fp = open(r\"%s\", 'w');\n", modelOutPath);
+        scriptWriter.format("fp = gzip.open(r\"%s\", 'w');\n", modelOutPath);
         scriptWriter.println("model = pickle.dump(model, fp);");
         scriptWriter.println("fp.close()");
         scriptWriter.println("print \"Done\"");
@@ -221,7 +226,8 @@ public class ScikitLearnRegression extends BaseRegression {
         
         //  Load in the model
         scriptWriter.println("import pickle");
-        scriptWriter.format("fp = open(r\"%s\", 'r');\n", modelFilePath);
+        scriptWriter.println("import gzip");
+        scriptWriter.format("fp = gzip.open(r\"%s\", 'r');\n", modelFilePath);
         scriptWriter.println("model = pickle.load(fp);");
         scriptWriter.println("fp.close()");
         
