@@ -123,8 +123,4 @@ public class SplitRegression extends SplitModel implements AbstractRegressionMod
         return super.runCommand(Command);
     }
 
-    @Override
-    public String printModelDescription(boolean htmlFormat) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
 }

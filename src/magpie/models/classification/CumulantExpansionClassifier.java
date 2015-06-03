@@ -197,7 +197,18 @@ public class CumulantExpansionClassifier extends BaseClassifier implements Savab
 
     @Override
     public List<String> printModelDescriptionDetails(boolean htmlFormat) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        List<String> output = super.printModelDescriptionDetails(htmlFormat);
+        
+        // Store details
+        output.add("NComponents:  " + NComponents);
+        output.add("Known Phases: " + PhaseDiagramStats.NCompounds());
+        String temp = "Bin sizes:   ";
+        for (int bin : NBins) {
+            temp += " " + bin;
+        }
+        output.add(temp);
+        
+        return output;
     }
     
 }

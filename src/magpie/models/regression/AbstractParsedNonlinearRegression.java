@@ -96,7 +96,7 @@ public abstract class AbstractParsedNonlinearRegression extends AbstractNonlinea
     public List<String> printModelDescriptionDetails(boolean htmlFormat) {
         List<String> output = new LinkedList<>();
         
-        output.add("Equation: " + UserFormula + "\n");
+        output.add("Equation: " + UserFormula);
         
         return output;
     }

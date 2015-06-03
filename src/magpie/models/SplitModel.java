@@ -242,7 +242,16 @@ abstract public class SplitModel extends BaseModel implements MultiModel {
 
     @Override
     public List<String> printModelDescriptionDetails(boolean htmlFormat) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        List<String> output = super.printModelDescriptionDetails(htmlFormat);
+        
+        output.add("Partitioner: " + Partitioner.getClass().getName());
+        for (int i=0; i<NModels(); i++) {
+            String[] submodel = getModel(i).printModelDescription(htmlFormat).split("\n");
+            submodel[0] = "Submodel #" + i + ": " + submodel[0];
+            output.addAll(Arrays.asList(submodel));
+        }
+        
+        return output;
     }
 
     @Override
