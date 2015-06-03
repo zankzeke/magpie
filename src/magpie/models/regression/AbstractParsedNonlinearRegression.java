@@ -7,6 +7,9 @@ import magpie.user.CommandHandler;
  * Superclass of {@link AbstractNonlinearRegression}-based models which parse the equation
  * of interest from text input. 
  * 
+ * <p>Use this class by passing a specially-formatted equation to 
+ * {@linkplain #parseFormula(java.lang.String) .
+ * 
  * <usage><p><b>Usage</b>: &lt;equation>
  * <br><pr><i>equation</i>: Equation to be fitted. See Javadoc for rules.</usage>
  * <p>Rules for writing an equation:
@@ -61,9 +64,24 @@ public abstract class AbstractParsedNonlinearRegression extends AbstractNonlinea
         for (int i = 1; i < Options.length; i++) {
             formula += " " + Options[i];
         }
+        
+        parseFormula(formula);
+    }
+
+    /**
+     * Parse formula to use as model. See description of {@linkplain AbstractParsedNonlinearRegression}
+     * for rules.
+     * @param formula Formula to be parsed
+     * @throws Exception 
+     * @see AbstractParsedNonlinearRegression
+     */
+    public void parseFormula(String formula) throws Exception {
+        // Parse formula
         UserFormula = formula;
+        
         // Get list of variables
         formula = defineVariables(formula);
+        
         // Set up the evaluator
         prepareEvaluator(formula);
     }
@@ -75,7 +93,23 @@ public abstract class AbstractParsedNonlinearRegression extends AbstractNonlinea
 
     @Override
     public String printModelDescription(boolean htmlFormat) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String output = getClass().getName() + "\n";
+        
+        // Add HTML indentation
+        if (htmlFormat) {
+            output += "<div style=\"margin: 0 0 0 10\">\n";
+        }
+        
+        // Print out equation
+        output += "\t";
+        output += "Equation: " + UserFormula + "\n";
+        
+        // Remove HTML indentation
+        if (htmlFormat) {
+            output += "</div>\n";
+        }
+        
+        return output;
     }
 
     @Override
