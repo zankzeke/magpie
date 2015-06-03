@@ -1,6 +1,7 @@
 package magpie.models;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import magpie.analytics.BaseStatistics;
 import magpie.attributes.selectors.BaseAttributeSelector;
@@ -393,21 +394,31 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
             output += "<div style=\"margin: 0 0 0 10\">\n";
         }
         
-        // Print details of normalizers / attribute selectors
-        if (Normalizer != null) {
-            
-        }
-        
         // Get model details
         List<String> details = printModelDescriptionDetails(htmlFormat);
         boolean started = false;
+        String lastLine = "";
         for (String line : details) {
             output += "\t";
-            if (started && htmlFormat) {
+            
+            // Add <br> where appropriate
+            if (started && // Not for the first line int the block
+                    htmlFormat // Only for HTML-formatted output
+                    // Not on lines for the "<div>" tags
+                    && ! (line.contains("<div") || line.contains("</div>")) 
+                    // Not immediately after <div> tags
+                    && ! (lastLine.contains("<div") || lastLine.contains("</div>")) 
+                    // Not if the line already has a break
+                    && ! line.contains("<br>")) {
                 output += "<br>";
             }
+            
+            // Add line to ouput
             output += line + "\n";
+            
+            // Update loop variables
             started = true;
+            lastLine = line;
         }
         
         // Deindent
@@ -421,12 +432,24 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
      * Print details of the model. Used by {@linkplain #printModelDescription(boolean) }.
      * 
      * <p>Implementation note: No not add indentation for details. That is handled
-     * by {@linkplain #printModelDescription(boolean) }.
+     * by {@linkplain #printModelDescription(boolean) }. You should also call the super 
+     * operation to get the Normalizer and Attribute selector settings
+     * 
+     * <p
      * @param htmlFormat Whether to use HTML format
      * @return List describing model details. Each entry is a different line of the 
      * description (i.e., in place of newline characters).
      */
-    abstract protected List<String> printModelDescriptionDetails(boolean htmlFormat);
+    protected List<String> printModelDescriptionDetails(boolean htmlFormat) {
+        List<String> output = new LinkedList<>();
+        if (Normalizer != null) {
+            output.add("Normalizer: " + Normalizer.getClass().getName());
+        }
+        if (AttributeSelector != null) {
+            output.add("Attribute Selector: " + AttributeSelector.getClass().getName());
+        }
+        return output;
+    }
 
     @Override
     public String printCommand(List<String> Command) throws Exception {
