@@ -1,5 +1,7 @@
 package magpie.analytics;
 
+import java.util.Map;
+import java.util.TreeMap;
 import magpie.data.Dataset;
 import org.apache.commons.math3.stat.correlation.*;
 import org.apache.commons.math3.stat.StatUtils;
@@ -19,7 +21,7 @@ public class RegressionStatistics extends BaseStatistics {
     /** Pearson's correlation coefficient */
     public double R;
     /** Spearman's correlation coefficient */
-	public double S;
+	public double Rho;
 	/** Kendall's rank correlation coefficient */
 	public double Tau;
     
@@ -39,7 +41,7 @@ public class RegressionStatistics extends BaseStatistics {
         NumberTested = NEntries;
         // Calculate correlation coefficients
         R = new PearsonsCorrelation().correlation(measured, predicted);
-        S = new SpearmansCorrelation().correlation(measured, predicted);
+        Rho = new SpearmansCorrelation().correlation(measured, predicted);
         Tau = new KendallsCorrelation().correlation(measured, predicted);
         if (Double.isNaN(R)) R = 0;
         // Calculate statistics of absolute error
@@ -70,12 +72,28 @@ public class RegressionStatistics extends BaseStatistics {
         String out = new String();
         out+="Number Tested: "+NumberTested
                 +"\nPearson's Correlation (R): "+String.format("%.4f", R)
-                +"\nSpearman's Correlation (S): "+String.format("%.4f", S)
+                +"\nSpearman's Correlation (Rho): "+String.format("%.4f", Rho)
                 +"\nKendall's Correlation (Tau): "+String.format("%.4f", Tau)
                 +"\nMAE: "+String.format("%.4e",MAE)
                 +"\nRMSE: "+String.format("%.4e",RMSE)
                 +"\nMRE: "+String.format("%.4f",MRE)
                 +"\nROC AUC: "+String.format("%.4f", ROC_AUC);
         return out;
+    }
+
+    @Override
+    public Map<String, Double> getStatistics() {
+        Map<String, Double> output = new TreeMap<>();
+        
+        output.put("NEvalauted", (double) NumberTested);
+        output.put("R", R);
+        output.put("Rho", Rho);
+        output.put("Tau", Tau);
+        output.put("MAE", MAE);
+        output.put("RMSE", RMSE);
+        output.put("MRE", MRE);
+        output.put("ROCAUC", ROC_AUC);
+        
+        return output;
     }
 }

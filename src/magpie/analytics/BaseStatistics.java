@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import magpie.data.Dataset;
 import magpie.utility.interfaces.Commandable;
 import magpie.utility.interfaces.Options;
@@ -246,4 +247,10 @@ abstract public class BaseStatistics implements java.io.Serializable,
         }
         fp.close();
     }
+    
+    /**
+     * Retrieve list of statistics stored in this class.
+     * @return Map of statistic name to value.
+     */
+    abstract public Map<String, Double> getStatistics();
 }
