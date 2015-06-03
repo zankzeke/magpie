@@ -169,6 +169,11 @@ public class ClassificationRegression extends BaseRegression {
     }
 
     @Override
+    public String printModelDescription(boolean htmlFormat) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
     public int getNFittingParameters() {
         return 0;
     }

@@ -194,6 +194,10 @@ public class CumulantExpansionClassifier extends BaseClassifier implements Savab
 				throw new Exception("Save format not supported: " + Command);
         }
     }
-    
+
+    @Override
+    public String printModelDescription(boolean htmlFormat) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
     
 }

@@ -189,4 +189,10 @@ public class PolynomialRegression extends BaseRegression {
         }
         return output + "\n";
     }
+
+    @Override
+    public String printModelDescription(boolean htmlFormat) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
 }

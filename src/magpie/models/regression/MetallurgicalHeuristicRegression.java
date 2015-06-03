@@ -50,7 +50,7 @@ public class MetallurgicalHeuristicRegression extends BaseRegression {
 	 * 
 	 * <p>This code does not currently have the capability to calculate convex hulls. Since, this
 	 * class is intended to be used with data from <a href="https://github.com/wolverton-research-group/qmpy">qmpy</a> I 
-	 * figured that you you just use that code's capabilities.
+	 * figured that you can just use that code's capabilities.
 	 * 
 	 * @param hullData Dataset holding all known compounds to be used for calculating delta_e
 	 */
@@ -83,6 +83,13 @@ public class MetallurgicalHeuristicRegression extends BaseRegression {
 	protected String printModel_protected() {
 		return "Metallurgical Heuristic model.";
 	}
+
+    @Override
+    public String printModelDescription(boolean htmlFormat) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
+    
 
 	@Override
 	public int getNFittingParameters() {
@@ -311,5 +318,5 @@ class BinaryConvexHullHolder {
 		
 		return output / totalWeight;
 	}
-	
+
 }

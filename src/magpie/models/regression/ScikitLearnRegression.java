@@ -303,4 +303,9 @@ public class ScikitLearnRegression extends BaseRegression {
     protected String printModel_protected() {
         return String.format("%.3f MB Scikit learn model", (double) ScikitModel.length / 1e6);
     }
+
+    @Override
+    public String printModelDescription(boolean htmlFormat) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

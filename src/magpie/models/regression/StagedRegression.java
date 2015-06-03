@@ -251,4 +251,9 @@ public class StagedRegression extends BaseRegression implements MultiModel, Abst
                 return super.runCommand(Command);
         }
     }
+
+    @Override
+    public String printModelDescription(boolean htmlFormat) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

@@ -249,6 +249,11 @@ public class MultiObjectiveRegression extends BaseRegression {
     }
 
     @Override
+    public String printModelDescription(boolean htmlFormat) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
     public Object runCommand(List<Object> Command) throws Exception {
         if (Command.isEmpty()) {
             return super.runCommand(Command);

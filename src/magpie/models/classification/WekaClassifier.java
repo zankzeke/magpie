@@ -139,4 +139,10 @@ public class WekaClassifier extends BaseClassifier implements WekaModel  {
     protected String printModel_protected() {
         return this.Model.toString();
     }    
+
+    @Override
+    public String printModelDescription(boolean htmlFormat) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
 }

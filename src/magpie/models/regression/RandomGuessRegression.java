@@ -57,4 +57,9 @@ public class RandomGuessRegression extends BaseRegression {
     protected String printModel_protected() {
         return "Class = (Random number between " + LowerBound + " and " + UpperBound + ")";
     }
+
+    @Override
+    public String printModelDescription(boolean htmlFormat) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

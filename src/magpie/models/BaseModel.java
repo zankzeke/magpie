@@ -25,6 +25,8 @@ import magpie.utility.interfaces.*;
  * <li>{@linkplain  #train_protected(magpie.data.Dataset) } -
  * Trains the model on a training set, does not set TrainingStats</li>
  * <li>{@linkplain #run_protected(magpie.data.Dataset) } - Run a model on a Dataset</li>
+ * <li>{@linkplain #printModel_protected() } and {@linkplain #printModelDescription(boolean) }
+ * - Print detailed and simple descriptions of the model
  * </ul>
  * 
  * <p><b><u>Implemented Commands:</u></b>
@@ -55,6 +57,8 @@ import magpie.utility.interfaces.*;
  * <br><pr><i>options...</i>: Any options for the normalizer</command>
  * 
  * <p><b><u>Implemented Print Commands</u></b>
+ * 
+ * <print><p><b>description</b> - Print out short description of this model.</print>
  * 
  * <print><p><b>model</b> - Print out the model</print>
  * 
@@ -359,6 +363,29 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
      * @return String representation of model
      */
     abstract protected String printModel_protected();
+    
+    /**
+     * Print full name of model, and a simple description of the options. This
+     * description should print enough information to reproduce this model, but
+     * not necessarily enough to run it.
+     * 
+     * <p>Example: For a model training a separate WekaRegression for intermetallics
+     * <p>magpie.models.regression.SplitRegression
+     * <div style="margin: 0 0 0 10px">
+     * Splitter: AllMetalsSplitter
+     * <br>All Metals: magpie.models.regression.WekaRegression trees.REPTree
+     * <br>Contains Nonmetal: magpie.regression.LASSORegreession -maxterms 2
+     * </div>
+     * 
+     * <p>Implementation Notes: &lt;div style="margin: 0 0 0 10"&gt; for indentation
+     * in HTML format, and "\t" otherwise.
+     * 
+     * @param htmlFormat Whether format for output to an HTML page 
+     * (e.g., &lt;div&gt; to create indentation) or for printing to screen.
+     * @return String describing the model
+     * @see #printModel() 
+     */
+    abstract public String printModelDescription(boolean htmlFormat);
 
     @Override
     public String printCommand(List<String> Command) throws Exception {
@@ -366,6 +393,8 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         List<String> SubCommand; // Command to be passed to calls
         SubCommand = Command.subList(1, Command.size());
         switch (Command.get(0).toLowerCase()) {
+            case "description":
+                return printModelDescription(false);
             case "model":
                 return printModel();
             case "validation":
@@ -514,6 +543,5 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                 throw new Exception("Format not recognized: " + Format);
         }
     }
-    
-    
+        
 }

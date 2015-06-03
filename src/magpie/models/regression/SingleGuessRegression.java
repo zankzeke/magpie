@@ -81,4 +81,9 @@ public class SingleGuessRegression extends BaseRegression {
         String output = "Class = " + String.format("%.5e\n", Guess);
         return output;
     }
+
+    @Override
+    public String printModelDescription(boolean htmlFormat) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

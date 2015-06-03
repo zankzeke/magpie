@@ -74,6 +74,11 @@ public abstract class AbstractParsedNonlinearRegression extends AbstractNonlinea
     }
 
     @Override
+    public String printModelDescription(boolean htmlFormat) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
     protected String printModel_protected() {
         // Works by pasting fitted coefficients into the UserFormula
         String output = "Class = " + UserFormula;

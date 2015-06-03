@@ -31,6 +31,26 @@ public class SimpleLinearModelExample extends AbstractNonlinearRegression {
         return String.format("%.5e + %.5e * %s", getFittedCoefficient(0),
                 getFittedCoefficient(1), getVariableName(0));
     }
+
+    @Override
+    public String printModelDescription(boolean htmlFormat) {
+        String output = getClass().getName() + "\n";
+        
+        // Add HTML indentation
+        if (htmlFormat) {
+            output += "<div style=\"margin: 0 0 0 10\">\n";
+        }
+        
+        output += "\tEquation: a + b * mean_GSvolume_pa\n";
+        
+        // Remove indentation
+        if (htmlFormat) {
+            output += "</div>";
+        }
+        
+        return output;
+    }
+
     
     
 }

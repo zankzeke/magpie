@@ -241,4 +241,29 @@ public class LASSORegression extends BaseRegression {
             output += " + " + String.format("%.5e * %s", Coefficients.get(i), TermNames.get(i));
         return output + "\n";
     }
+
+    @Override
+    public String printModelDescription(boolean htmlFormat) {
+        String output = getClass().getName();
+        
+        // Add identation: HTML
+        if (htmlFormat) {
+            output += "<div style=\"margin: 0 0 0 10\">\n";
+        }
+        
+        // Print out options
+        if (! htmlFormat) {
+            output += "\t";
+        }
+        output += "Max Num. Terms: " + MaxNumberTerms + "\n";
+        
+        // Remove indentation: HTML
+        if (htmlFormat) {
+            output += "</div>\n";
+        }
+        
+        return output;
+    }
+    
+    
 }
