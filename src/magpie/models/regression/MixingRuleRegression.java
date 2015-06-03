@@ -40,7 +40,8 @@ public class MixingRuleRegression extends BaseRegression {
     protected double[] LookupTable;
     /** Whether to use average inverse of property or not */
     protected boolean UseInverse = false;
-    /** Coefficients used for correction factor. 
+    /** 
+     * Coefficients used for correction factor. 
      * 0 = Intercept. 1 = Slope.
      */
     protected double[] CorrectionFactors;
@@ -287,8 +288,8 @@ public class MixingRuleRegression extends BaseRegression {
     }    
 
     @Override
-    public String printModelDescription(boolean htmlFormat) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public List<String> printModelDescriptionDetails(boolean htmlFormat) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     /**

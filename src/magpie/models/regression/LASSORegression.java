@@ -243,27 +243,8 @@ public class LASSORegression extends BaseRegression {
     }
 
     @Override
-    public String printModelDescription(boolean htmlFormat) {
-        String output = getClass().getName();
-        
-        // Add identation: HTML
-        if (htmlFormat) {
-            output += "<div style=\"margin: 0 0 0 10\">\n";
-        }
-        
-        // Print out options
-        if (! htmlFormat) {
-            output += "\t";
-        }
-        output += "Max Num. Terms: " + MaxNumberTerms + "\n";
-        
-        // Remove indentation: HTML
-        if (htmlFormat) {
-            output += "</div>\n";
-        }
-        
-        return output;
+    public List<String> printModelDescriptionDetails(boolean htmlFormat) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
-    
     
 }

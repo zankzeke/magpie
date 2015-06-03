@@ -169,7 +169,7 @@ public class ClassificationRegression extends BaseRegression {
     }
 
     @Override
-    public String printModelDescription(boolean htmlFormat) {
+    public List<String> printModelDescriptionDetails(boolean htmlFormat) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 

@@ -191,8 +191,8 @@ public class PolynomialRegression extends BaseRegression {
     }
 
     @Override
-    public String printModelDescription(boolean htmlFormat) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public List<String> printModelDescriptionDetails(boolean htmlFormat) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
     
 }

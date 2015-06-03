@@ -233,40 +233,8 @@ public class CompositeRegression extends BaseRegression implements MultiModel {
     }
 
     @Override
-    public String printModelDescription(boolean htmlFormat) {
-        String output = getClass().getName();
-        
-        // Add identation: HTML
-        if (htmlFormat) {
-            output += "<div style=\"margin: 0 0 0 10\">\n";
-        }
-        
-        // Print out submodels
-        for (int i=0; i<NModels(); i++) {
-            // Add line break: HTML
-            if (i > 0) {
-                output += "<br>";
-            }
-            
-            // Get description of submodel
-            output += "Model " + i + ": ";
-            String submodel = getModel(i).printModelDescription(htmlFormat);
-            
-            // Add it to current description
-            if (htmlFormat) {
-                output += submodel; 
-            } else {
-                // Add indentation
-                for (String line : submodel.split("\n")) {
-                    output += "\t" + line + "\n";
-                }
-            }
-        }
-        
-        // Remove indentation: HTML
-        output += "</div>\n";
-        
-        return output;
+    public List<String> printModelDescriptionDetails(boolean htmlFormat) {
+        throw new UnsupportedOperationException();
     }
     
     

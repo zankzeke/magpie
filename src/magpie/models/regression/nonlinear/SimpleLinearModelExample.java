@@ -1,5 +1,7 @@
 package magpie.models.regression.nonlinear;
 
+import java.util.LinkedList;
+import java.util.List;
 import magpie.models.regression.AbstractNonlinearRegression;
 
 /**
@@ -33,20 +35,10 @@ public class SimpleLinearModelExample extends AbstractNonlinearRegression {
     }
 
     @Override
-    public String printModelDescription(boolean htmlFormat) {
-        String output = getClass().getName() + "\n";
+    public List<String> printModelDescriptionDetails(boolean htmlFormat) {
+        List<String> output = new LinkedList<>();
         
-        // Add HTML indentation
-        if (htmlFormat) {
-            output += "<div style=\"margin: 0 0 0 10\">\n";
-        }
-        
-        output += "\tEquation: a + b * mean_GSvolume_pa\n";
-        
-        // Remove indentation
-        if (htmlFormat) {
-            output += "</div>";
-        }
+        output.add("\tEquation: a + b * mean_GSvolume_pa\n");
         
         return output;
     }

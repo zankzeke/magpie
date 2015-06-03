@@ -1,5 +1,6 @@
 package magpie.models.regression;
 
+import java.util.LinkedList;
 import java.util.List;
 import magpie.user.CommandHandler;
 
@@ -92,22 +93,10 @@ public abstract class AbstractParsedNonlinearRegression extends AbstractNonlinea
     }
 
     @Override
-    public String printModelDescription(boolean htmlFormat) {
-        String output = getClass().getName() + "\n";
+    public List<String> printModelDescriptionDetails(boolean htmlFormat) {
+        List<String> output = new LinkedList<>();
         
-        // Add HTML indentation
-        if (htmlFormat) {
-            output += "<div style=\"margin: 0 0 0 10\">\n";
-        }
-        
-        // Print out equation
-        output += "\t";
-        output += "Equation: " + UserFormula + "\n";
-        
-        // Remove HTML indentation
-        if (htmlFormat) {
-            output += "</div>\n";
-        }
+        output.add("Equation: " + UserFormula + "\n");
         
         return output;
     }

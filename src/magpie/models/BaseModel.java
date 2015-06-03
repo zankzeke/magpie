@@ -25,7 +25,7 @@ import magpie.utility.interfaces.*;
  * <li>{@linkplain  #train_protected(magpie.data.Dataset) } -
  * Trains the model on a training set, does not set TrainingStats</li>
  * <li>{@linkplain #run_protected(magpie.data.Dataset) } - Run a model on a Dataset</li>
- * <li>{@linkplain #printModel_protected() } and {@linkplain #printModelDescription(boolean) }
+ * <li>{@linkplain #printModel_protected() } and {@linkplain #printModelDescriptionDetails(boolean) }
  * - Print detailed and simple descriptions of the model
  * </ul>
  * 
@@ -385,7 +385,48 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
      * @return String describing the model
      * @see #printModel() 
      */
-    abstract public String printModelDescription(boolean htmlFormat);
+    public String printModelDescription(boolean htmlFormat) {
+        String output = getClass().getName() + "\n";
+        
+        // Add HTML indentation
+        if (htmlFormat) {
+            output += "<div style=\"margin: 0 0 0 10\">\n";
+        }
+        
+        // Print details of normalizers / attribute selectors
+        if (Normalizer != null) {
+            
+        }
+        
+        // Get model details
+        List<String> details = printModelDescriptionDetails(htmlFormat);
+        boolean started = false;
+        for (String line : details) {
+            output += "\t";
+            if (started && htmlFormat) {
+                output += "<br>";
+            }
+            output += line + "\n";
+            started = true;
+        }
+        
+        // Deindent
+        if (htmlFormat) {
+            output += "</div>\n";
+        }
+        return output;
+    }
+    
+    /**
+     * Print details of the model. Used by {@linkplain #printModelDescription(boolean) }.
+     * 
+     * <p>Implementation note: No not add indentation for details. That is handled
+     * by {@linkplain #printModelDescription(boolean) }.
+     * @param htmlFormat Whether to use HTML format
+     * @return List describing model details. Each entry is a different line of the 
+     * description (i.e., in place of newline characters).
+     */
+    abstract protected List<String> printModelDescriptionDetails(boolean htmlFormat);
 
     @Override
     public String printCommand(List<String> Command) throws Exception {
