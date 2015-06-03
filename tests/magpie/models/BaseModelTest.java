@@ -72,4 +72,21 @@ public class BaseModelTest {
         model1.externallyValidate(data);
         assertEquals(Stats1, model1.ValidationStats.toString());
     }
+    
+    @Test
+    public void testPrintDescription() throws Exception {
+        BaseModel model = generateModel();
+        Dataset data = getData();
+		model.train(data);
+        
+        // Make sure it prints something: HTML
+        String dcrpt = model.printModelDescription(true);
+        assertTrue(dcrpt.length() > 0);
+        System.out.println(dcrpt);
+        
+        // Make sure it prints something: HTML
+        dcrpt = model.printModelDescription(false);
+        assertTrue(dcrpt.length() > 0);
+        System.out.println(dcrpt);
+    }
 }
