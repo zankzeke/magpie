@@ -1,5 +1,6 @@
 package magpie.models.regression;
 
+import java.util.Arrays;
 import java.util.List;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
@@ -118,7 +119,15 @@ public class LinearCorrectedRegression extends BaseRegression {
 
     @Override
     public List<String> printModelDescriptionDetails(boolean htmlFormat) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        List<String> output = super.printModelDescriptionDetails(htmlFormat);
+        
+        // Get details of submodel
+        String[] submodel = Submodel.printModelDescription(htmlFormat).split("\n");
+        submodel[0] = "Model being corrected: " + submodel[0];
+        
+        output.addAll(Arrays.asList(submodel));
+        
+        return output;
     }
         
 }

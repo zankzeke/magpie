@@ -244,7 +244,11 @@ public class LASSORegression extends BaseRegression {
 
     @Override
     public List<String> printModelDescriptionDetails(boolean htmlFormat) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        List<String> output = super.printModelDescriptionDetails(htmlFormat);
+        
+        output.add("Maximum number of terms: " + MaxNumberTerms);
+        
+        return output;
     }
     
 }

@@ -1,5 +1,6 @@
 package magpie.models.regression;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import magpie.data.Dataset;
@@ -234,10 +235,17 @@ public class CompositeRegression extends BaseRegression implements MultiModel {
 
     @Override
     public List<String> printModelDescriptionDetails(boolean htmlFormat) {
-        throw new UnsupportedOperationException();
+        List<String> output = super.printModelDescriptionDetails(htmlFormat);
+        
+        // Generate details of each sub model
+        for (int i=0; i<NModels(); i++) {
+            String[] submodel = getModel(i).printModelDescription(htmlFormat).split("\n");
+            submodel[0] = "Submodel #" + i + ": " + submodel[0];
+            output.addAll(Arrays.asList(submodel));
+        }
+        
+        return output;
     }
-    
-    
     
     @Override
     public Object runCommand(List<Object> Command) throws Exception {
