@@ -17,14 +17,17 @@ struct Entry {
  * Holds all known information about a model
  * 
  * Known properties:
- *  property  : Property being model
- *  units     : Units of prediction. (Classifiers) Name of classes, ";"-delimited
- *  training  : Description of training set
- *  author    : Name/contact info of author
- *  citation  : Citation information of the model
- *  notes     : Short description of model
- *  dataType  : Type of data expected, defined by name of Magpie Dataset type
- *  modelType : Type of model
+ *  author      : Name/contact info of author
+ *  citation    : Citation information of the model
+ *  classifier  : Whether this model is a classification (or regression) model
+ *  cvScore     : Performance of model in cross-validation tests
+ *  dataType    : Type of data expected, defined by name of Magpie Dataset type
+ *  description : Short description of this model
+ *  modelType   : Type of model
+ *  notes       : Any pertinent details about the model
+ *  property    : Property being modeled
+ *  training    : Description of training set
+ *  units       : Units of prediction. (Classifiers) Name of classes, ";"-delimited
  */
 struct ModelInfo {
     1: string property
@@ -35,6 +38,9 @@ struct ModelInfo {
     6: string notes
     7: string dataType
     8: string modelType
+    9: bool classifier
+   10: map<string,double> cvScore
+   11: string description
 }
 
 exception MagpieException {

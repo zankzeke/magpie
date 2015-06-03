@@ -24,8 +24,10 @@ public class ModelPackage {
     public String Author = "Unspecified";
     /** Citation for this model */
     public String Citation = "Unspecified";
-    /** Any other information about the model */
+    /** Short description of this model */
     public String Description = "";
+    /** Long form description of model */
+    public String Notes;
 
     /**
      * Initialize model package
@@ -47,12 +49,15 @@ public class ModelPackage {
         // Store basic info
         info.author = Author;
         info.citation = Citation;
-        info.notes = Description;
+        info.description = Description;
         info.property = Property;
         info.training = TrainingSet;
+        info.notes = Notes;
+        
         
         // Store units or class names
         if (Model instanceof AbstractClassifier) {
+            info.classifier = true;
             info.units = "";
             AbstractClassifier clfr = (AbstractClassifier) Model;
             boolean started = false;
@@ -64,10 +69,17 @@ public class ModelPackage {
                 started = true;
             }
         } else {
+            info.classifier = false;
             info.units = Units;
         }
-        info.dataType = Dataset.getClass().getSimpleName();
-        info.modelType = Model.getClass().getSimpleName();
+        
+        // Store names of models
+        info.dataType = Dataset.getClass().getName();
+        info.modelType = Model.getClass().getName();
+        
+        // Store CV performance data
+        info.cvScore = Model.ValidationStats.getStatistics();
+   
         return info;
     }
 }
