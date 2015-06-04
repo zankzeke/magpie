@@ -286,7 +286,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
                     }
                     properties[p] = index;
                 }
-            } catch (NumberFormatException exc) {
+            } catch (Exception exc) {
                 // System.err.println("Warning: Entry #"+i+" has an invalid property.");
                 properties[p] = Double.NaN;
             }
