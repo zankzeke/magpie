@@ -1591,9 +1591,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         }
         String Action = Command.get(0).toString();
         switch (Action.toLowerCase()) {
-            
-            case "attributes":
-            case "attr":
+            case "attributes": case "attr":
                 return runAttributeCommand(Command.subList(1, Command.size()));
             case "clone":
                 // Usage: <output> = clone [-emptyy]
@@ -1604,7 +1602,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 } else {
                     throw new Exception("Usage: clone [-empty]");
                 }
-            case "add": {
+            case "combine": {
                 try {
                     if (Command.size() != 2) {
                         throw new Exception();
