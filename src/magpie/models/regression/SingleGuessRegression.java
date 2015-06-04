@@ -84,6 +84,10 @@ public class SingleGuessRegression extends BaseRegression {
 
     @Override
     public List<String> printModelDescriptionDetails(boolean htmlFormat) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        List<String> output = super.printModelDescriptionDetails(htmlFormat);
+        
+        output.add(String.format("Guess: %.4e", Guess));
+        
+        return output;
     }
 }

@@ -146,6 +146,16 @@ public class PerceptronRegression extends BaseRegression {
 
     @Override
     public List<String> printModelDescriptionDetails(boolean htmlFormat) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        List<String> output = super.printModelDescriptionDetails(htmlFormat);
+        
+        output.add(String.format("Validation set %d%% of data set", ValSize));
+        output.add("Epochs before stall: " + this.NStall);
+        String temp = "Hidden Layer Size:";
+        for (Integer i : hiddenLayers) {
+            temp += " " + i;
+        }
+        output.add(temp);
+        
+        return output;
     }
 }

@@ -58,6 +58,11 @@ public class RandomGuessRegression extends BaseRegression {
 
     @Override
     public List<String> printModelDescriptionDetails(boolean htmlFormat) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        List<String> output = super.printModelDescriptionDetails(htmlFormat);
+        
+        output.add(String.format("Lower Bound: %.4e", LowerBound));
+        output.add(String.format("Upper Bound: %.4e", UpperBound));
+        
+        return output;
     }
 }
