@@ -49,9 +49,14 @@ import weka.core.converters.ArffLoader;
  *
  * <p>
  * <b><u>Implemented Commands:</u></b>
+ * 
  * <command><p>
  * <b>&lt;output> = clone [-empty]</b> - Create a copy of this dataset
  * <br><pr><i>-empty</i>: Do not copy entries from dataset into clone
+ * </command>
+ * 
+ * <command><p><b>combine $&lt;dataset&gt;</b> - Add all entries from another dataset
+ * <br><pr><i>dataset</i>: Dataset to merge with this one. It will remain unchanged.
  * </command>
  *
  * <command><p>
@@ -1586,6 +1591,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         }
         String Action = Command.get(0).toString();
         switch (Action.toLowerCase()) {
+            
             case "attributes":
             case "attr":
                 return runAttributeCommand(Command.subList(1, Command.size()));
@@ -1598,6 +1604,19 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 } else {
                     throw new Exception("Usage: clone [-empty]");
                 }
+            case "add": {
+                try {
+                    if (Command.size() != 2) {
+                        throw new Exception();
+                    }
+                    Dataset other = (Dataset) Command.get(1);
+                    combine(other);
+                    System.out.format("\tAdded %d entries. New size: %d\n", 
+                            other.NEntries(), NEntries());
+                } catch (Exception e) {
+                    throw new Exception("Usage: combine $<other dataset>");
+                }
+            } break;
             case "filter": {
                 // Usage: <include|exclude> <method> [<options...>]
                 String Method;
