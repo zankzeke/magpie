@@ -251,6 +251,23 @@ public class MultiPropertyDataset extends Dataset {
             }
         }
     }
+    
+    /**
+     * Clear all property information from this dataset.
+     */
+    public void clearPropertyData() {
+        // Clear property names 
+        PClassNames.clear();
+        PNames.clear();
+        
+        // Clear property entries
+        for (BaseEntry e : Entries) {
+            MultiPropertyEntry ptr = (MultiPropertyEntry) e;
+        }
+        
+        // Set target property to default class variable
+        setTargetProperty(-1, true);
+    }
 
     /**
      * Add a new property to dataset. 
