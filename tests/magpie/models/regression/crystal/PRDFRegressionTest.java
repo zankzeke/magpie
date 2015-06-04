@@ -38,6 +38,9 @@ public class PRDFRegressionTest {
         
         // Check that similiary between these structures is less than 1.0
         assertTrue(r.computeSimiliarity(rep2, rep1) < 1.0);
+        
+        // Checkt that the similarity is, in fact, 0
+        assertEquals(0, r.computeSimiliarity(rep2, rep1), 1e-6);
     }
     
     @Test
