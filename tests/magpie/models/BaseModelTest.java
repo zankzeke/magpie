@@ -77,11 +77,34 @@ public class BaseModelTest {
 	}
 	
     @Test
-	public void testCrossValidation() throws Exception {
+	public void testValidation() throws Exception {
 		BaseModel model = generateModel();
         Dataset data = getData();
+        
+        // Train model
+        assertFalse(model.isTrained());
+        model.train(data);
+        assertTrue(model.isTrained());
+        
+        // Test model status
+        assertTrue(model.getValidationMethod().contains("Unvalidated"));
+        assertFalse(model.isValidated());
 		
+        // Run CV
 		model.crossValidate(10, data);
+        assertTrue(model.getValidationMethod().contains("10-fold"));
+        
+        // Reset model
+        model.resetModel();
+        assertTrue(model.getValidationMethod().contains("Unvalidated"));
+        assertFalse(model.isValidated());
+        
+        // Externally validate model
+        model.train(data);
+        model.externallyValidate(data);
+        assertTrue(model.isValidated());
+        assertTrue(model.getValidationMethod().contains(Integer.toString(data.NEntries())));
+        assertEquals(model.TrainingStats.toString(), model.ValidationStats.toString());
 	}
     
     @Test

@@ -98,6 +98,8 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
     protected BaseAttributeSelector AttributeSelector = null;
     /** Used to normalize attributes before training / running model */
     private BaseDatasetNormalizer Normalizer = null;
+    /** Stores description how this model validated. */
+    private String ValidationMethod = "Unvalidated";
        
     /**
      * @return Whether this model has been trained
@@ -133,11 +135,11 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
     
     /** Perform an n-fold cross validation
      * @param folds Number of folds in CV test
-     * @param TestData Data to use for CV
+     * @param cvData Data to use for CV
      */
-    public void crossValidate(int folds, Dataset TestData) {
+    public void crossValidate(int folds, Dataset cvData) {
         // Split into several parts
-        Dataset InternalTest = TestData.clone();
+        Dataset InternalTest = cvData.clone();
         Dataset[] TestFolds = InternalTest.splitIntoFolds(folds);
         
         // Generate a clone of the model to play with
@@ -145,7 +147,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         TestModel = (BaseModel) this.clone(); 
         
         for(int i=0; i<folds; i++){
-            Dataset TrainData = TestData.emptyClone();
+            Dataset TrainData = cvData.emptyClone();
             // Build a training set that does not inclue the current iteration
             for(int j=0; j<folds; j++) 
                 if (i!=j) TrainData.combine(TestFolds[j]);
@@ -157,17 +159,35 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         InternalTest.combine(TestFolds);
         ValidationStats.evaluate(InternalTest);
         validated = true;
+        
+        // Store that this model was cross valided
+        if (folds == cvData.NEntries()) {
+            ValidationMethod = "Leave-one-out cross-validation using " 
+                    + cvData.NEntries() + " entries";
+        } else {
+            ValidationMethod = String.format("%d-fold cross-validation using %d entries",
+                    folds, cvData.NEntries());
+        }           
     }
     
     /** Use external testing data to validate a model (should not contain any data
      * used to train the model)
-     * @param TestData External test dataset
+     * @param testData External test dataset
      */
-    public void externallyValidate(Dataset TestData) {
-        run(TestData); ValidationStats.evaluate(TestData);
+    public void externallyValidate(Dataset testData) {
+        run(testData); ValidationStats.evaluate(testData);
         validated = true;
+        ValidationMethod = "External validation using " + testData.NEntries() 
+                + " entries";
     }
-        
+
+    /**
+     * Get a description of how this model was validated
+     * @return Validation technique if model has been validated. "Unvalidated" otherwise.
+     */
+    public String getValidationMethod() {
+        return validated ? ValidationMethod : "Unvalidated";
+    }
     
     /**
      * Train a model on a specified training set and then evaluate performance 
