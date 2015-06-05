@@ -93,7 +93,7 @@ public class ClassificationStatistics extends BaseStatistics {
         TN = ConfusionMatrix[1][1];
         Sensitivity = (double) TP/ (double) (TP+FN);
         FPR = (double) FP/ (double) (FP+TN);
-        Accuracy = (double) (TP+FN) / (double) Data.NEntries();
+        Accuracy = (double) (TP+TN) / (double) Data.NEntries();
         Specificity = 1.0 - FPR;
         PPV = (double) TP / (double) (TP + FP);
         NPV = (double) TN / (double) (TN + FN);
