@@ -54,7 +54,6 @@ public class ModelPackage {
         info.training = TrainingSet;
         info.notes = Notes;
         
-        
         // Store units or class names
         if (Model instanceof AbstractClassifier) {
             info.classifier = true;
@@ -75,7 +74,7 @@ public class ModelPackage {
         
         // Store names of models
         info.dataType = Dataset.getClass().getName();
-        info.modelType = Model.getClass().getName();
+        info.modelType = Model.printModelDescription(true);
         
         // Store CV performance data
         info.cvScore = Model.ValidationStats.getStatistics();

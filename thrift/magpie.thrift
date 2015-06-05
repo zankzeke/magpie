@@ -23,7 +23,7 @@ struct Entry {
  *  cvScore     : Performance of model in cross-validation tests
  *  dataType    : Type of data expected, defined by name of Magpie Dataset type
  *  description : Short description of this model
- *  modelType   : Type of model
+ *  modelType   : Simple description of model
  *  notes       : Any pertinent details about the model
  *  property    : Property being modeled
  *  training    : Description of training set

@@ -171,12 +171,16 @@ public class ServerLauncher {
                         System.out.println("\tCitation: " + modelInfo.Citation);
                         break;
                     case "description":
-                        modelInfo.Description = line.replaceFirst("notes", "").trim();
+                        modelInfo.Description = line.replaceFirst("description", "").trim();
                         System.out.println("\tdescription: " + modelInfo.Description);
                         break;
                     case "training":
                         modelInfo.TrainingSet = line.replaceFirst("training", "").trim();
                         System.out.println("\tTraining set: " + modelInfo.TrainingSet);
+                        break;
+                    case "notes":
+                        modelInfo.Notes = line.replaceFirst("notes", "").trim();
+                        System.out.println("\tNotes: " + modelInfo.Notes);
                         break;
                     default:
                         System.out.println("Unrecognized property: " + words[0]);
