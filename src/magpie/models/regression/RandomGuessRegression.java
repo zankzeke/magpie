@@ -1,6 +1,7 @@
 package magpie.models.regression;
 
 import java.util.List;
+import java.util.Random;
 import magpie.data.Dataset;
 
 /**
@@ -39,10 +40,11 @@ public class RandomGuessRegression extends BaseRegression {
 
     @Override
     public void run_protected(Dataset TrainData) {
+        Random rand = new Random(TrainData.NAttributes());
         double[] guess = new double[TrainData.NEntries()];
         double Range = UpperBound - LowerBound;
         for (int i=0; i<guess.length; i++)
-            guess[i] = LowerBound + Range * Math.random();
+            guess[i] = LowerBound + Range * rand.nextDouble();
         TrainData.setPredictedClasses(guess);
     }
 
