@@ -76,8 +76,11 @@ public class ModelPackage {
         info.dataType = Dataset.getClass().getName();
         info.modelType = Model.printModelDescription(true);
         
-        // Store CV performance data
-        info.cvScore = Model.ValidationStats.getStatistics();
+        // Store validation performance data
+        info.valMethod = Model.getValidationMethod();
+        if (Model.isValidated()) {
+            info.valScore = Model.ValidationStats.getStatistics();
+        }
    
         return info;
     }
