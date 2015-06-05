@@ -131,6 +131,9 @@ public class LASSORegression extends BaseRegression {
         // 4-7) Add new terms to model
         while (termCount != MaxNumberTerms) {
             toAdd = findMaxCorrelation(features, residual, includable);
+            if (toAdd == -1) {
+                break;
+            }
             results = linearFit(features[toAdd], residual, true);
             Coefficients.add(results[1]);
             Terms.add(toAdd);
@@ -159,7 +162,8 @@ public class LASSORegression extends BaseRegression {
      * @param features Features for each measurement
      * @param objective Objective function for each measurement
      * @param isSearchable List of which features are searchable
-     * @return Index of feature that is searchable and has the highest correlation coefficient
+     * @return Index of feature that is searchable and has the highest correlation coefficient.
+     * Return -1 if no features are left to add.
      */
     protected int findMaxCorrelation(double[][] features, double[] objective, 
             boolean[] isSearchable) {
@@ -246,7 +250,8 @@ public class LASSORegression extends BaseRegression {
     public List<String> printModelDescriptionDetails(boolean htmlFormat) {
         List<String> output = super.printModelDescriptionDetails(htmlFormat);
         
-        output.add("Maximum number of terms: " + MaxNumberTerms);
+        output.add("Maximum number of terms: " 
+                + (MaxNumberTerms == -1 ? "Unlimited" : MaxNumberTerms));
         
         return output;
     }
