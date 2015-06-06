@@ -7,6 +7,11 @@ import array
 startPort = 5482; # First port to check
 endPort = 5582; # Last port to check
 
+# Open the model file
+fp = open(argv[1], 'r')
+model = pickle.load(fp)
+fp.close()
+
 # Launch the server
 port = startPort;
 ss = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -19,11 +24,6 @@ while port <= endPort:
 	break
 ss.listen(0) # Only allow one connection
 print "Listening on port", port
-
-# Open the model file
-fp = open(argv[1], 'r')
-model = pickle.load(fp)
-fp.close()
 
 # Functions to use model
 def trainModel(fi, fo):
@@ -105,9 +105,11 @@ while 1:
 	command = fi.readline()
 	print "Recieved command", command
 	if "train" in command:
-		trainModel(fi, fo)
+            trainModel(fi, fo)
 	elif "run" in command:
-		runModel(fi, fo)
+            runModel(fi, fo)
+        elif "type" in command:
+            print >>fo, model
 	fi.close()
 	fo.close()
 		
