@@ -145,4 +145,19 @@ public class WekaRegression extends BaseRegression implements WekaModel {
     protected String printModel_protected() {
         return this.Model.toString();
     }    
+
+    @Override
+    public List<String> printModelDescriptionDetails(boolean htmlFormat) {
+        List<String> output = super.printModelDescriptionDetails(htmlFormat);
+        output.add("Model name:    " + Model_Type);
+        
+        String options = "";
+        for (String option : Model.getOptions()) {
+            options += " " + option;
+        }
+        
+        output.add("Model options:" + options);
+        
+        return output;
+    }
 }

@@ -1,5 +1,6 @@
 package magpie.models.classification;
 
+import java.util.LinkedList;
 import java.util.List;
 import magpie.models.interfaces.WekaModel;
 import magpie.data.Dataset;
@@ -139,4 +140,20 @@ public class WekaClassifier extends BaseClassifier implements WekaModel  {
     protected String printModel_protected() {
         return this.Model.toString();
     }    
+
+    @Override
+    public List<String> printModelDescriptionDetails(boolean htmlFormat) {
+        List<String> output = super.printModelDescriptionDetails(htmlFormat);
+        output.add("Model name:    " + Model_Type);
+        
+        String options = "";
+        for (String option : Model.getOptions()) {
+            options += " " + option;
+        }
+        
+        output.add("Model options:" + options);
+        
+        return output;
+    }
+    
 }

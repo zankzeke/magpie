@@ -147,6 +147,9 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
     @Override
     @SuppressWarnings("empty-statement")
     public void importText(String filename, Object[] options) throws Exception {
+        // Clear out entry data
+        clearData();
+        
         // Count the number of lines (1 per entry + 1 header)
         // Thanks to: http://stackoverflow.com/questions/453018/number-of-lines-in-a-file-in-java
         LineNumberReader lr = new LineNumberReader(new FileReader(filename));
@@ -286,7 +289,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
                     }
                     properties[p] = index;
                 }
-            } catch (NumberFormatException exc) {
+            } catch (Exception exc) {
                 // System.err.println("Warning: Entry #"+i+" has an invalid property.");
                 properties[p] = Double.NaN;
             }
@@ -302,11 +305,17 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
 	 * @see CompositionDataset
 	 */
 	protected void importPropertyNames(String line) {
+        // Clear out current property data
+        clearPropertyData();
+        
+        // Initialize regex
 		Pattern totalPattern = Pattern.compile("[\\d\\w]+(\\{.*\\})?"), // Captures entire name/classes 
 				namePattern = Pattern.compile("^[\\d\\w]+"), // Given name/classes, get name
 				classPattern = Pattern.compile("\\{.*\\}"); // Get the possible classes
 		Matcher totalMatcher = totalPattern.matcher(line);
 		totalMatcher.find(); // First match is composition
+        
+        // Find all property names
 		while (totalMatcher.find()) {
 			String total = totalMatcher.group();
 			Matcher tempMatcher = namePattern.matcher(total); tempMatcher.find();

@@ -251,4 +251,22 @@ public class StagedRegression extends BaseRegression implements MultiModel, Abst
                 return super.runCommand(Command);
         }
     }
+
+    @Override
+    public List<String> printModelDescriptionDetails(boolean htmlFormat) {
+        List<String> output = super.printModelDescriptionDetails(htmlFormat);
+        
+        // Print out options
+        output.add(PropogateAbsolute ? "Models are added together." : 
+                "Models are multiplied together");
+        
+        // Print out models
+        for (int m=0; m<NModels(); m++) {
+            String[] submodel = getModel(m).printModelDescription(htmlFormat).split("\n");
+            submodel[0] = "Submodel #" + m + ":" + submodel[0];
+            output.addAll(Arrays.asList(submodel));
+        }
+        
+        return output;
+    }
 }

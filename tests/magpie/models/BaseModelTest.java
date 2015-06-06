@@ -1,6 +1,11 @@
 package magpie.models;
 
+import java.util.LinkedList;
 import magpie.data.Dataset;
+import magpie.data.materials.CompositionDataset;
+import magpie.data.materials.PrototypeDataset;
+import magpie.data.materials.PrototypeEntry;
+import magpie.data.materials.util.PrototypeSiteInformation;
 import magpie.models.BaseModel;
 import magpie.models.regression.GuessMeanRegression;
 import magpie.models.regression.PolynomialRegression;
@@ -12,6 +17,7 @@ import static org.junit.Assert.*;
  * @author Logan Ward
  */
 public class BaseModelTest {
+    public Dataset DataType = new Dataset();
     
     /**
      * Create a new instance of the model
@@ -22,9 +28,34 @@ public class BaseModelTest {
     }
     
     public Dataset getData() throws Exception {
-        Dataset data = new Dataset();
-        data.importText("datasets/simple-data.csv", null);
+        Dataset data;
+        
+        // Generate the appropriate kind of data
+        if (DataType.getClass().equals(Dataset.class)) {
+            data = new Dataset();
+            data.importText("datasets/simple-data.csv", null);
+            
+        } else if (DataType.getClass().equals(CompositionDataset.class)) {
+            data = new CompositionDataset();
+            data.importText("datasets/small_set.txt", null);
+            data.generateAttributes();
+            
+            CompositionDataset ptr = (CompositionDataset) data;
+            ptr.setTargetProperty("delta_e", false);
+        } else {
+            throw new Exception("Dataset type not supported: " + DataType.getClass().getName());
+        }
         return data;
+    }
+    
+    public void addEntry(Dataset data) throws Exception {
+        if (DataType.getClass().equals(Dataset.class)) {
+            data.addEntry("0.0, -1.5");
+        } else if (DataType.getClass().equals(CompositionDataset.class)) {
+            data.addEntry("NaCl");
+        } else {
+            throw new Exception("Dataset type not supported: " + DataType.getClass().getName());
+        }
     }
 
 	@Test
@@ -40,17 +71,40 @@ public class BaseModelTest {
         Dataset data = getData();
 		
 		Dataset clone = data.clone();
-		clone.addEntry("0.0, -1.5");
+		addEntry(clone);
 		
 		model.train(clone);
 	}
 	
     @Test
-	public void testCrossValidation() throws Exception {
+	public void testValidation() throws Exception {
 		BaseModel model = generateModel();
         Dataset data = getData();
+        
+        // Train model
+        assertFalse(model.isTrained());
+        model.train(data);
+        assertTrue(model.isTrained());
+        
+        // Test model status
+        assertTrue(model.getValidationMethod().contains("Unvalidated"));
+        assertFalse(model.isValidated());
 		
+        // Run CV
 		model.crossValidate(10, data);
+        assertTrue(model.getValidationMethod().contains("10-fold"));
+        
+        // Reset model
+        model.resetModel();
+        assertTrue(model.getValidationMethod().contains("Unvalidated"));
+        assertFalse(model.isValidated());
+        
+        // Externally validate model
+        model.train(data);
+        model.externallyValidate(data);
+        assertTrue(model.isValidated());
+        assertTrue(model.getValidationMethod().contains(Integer.toString(data.NEntries())));
+        assertEquals(model.TrainingStats.toString(), model.ValidationStats.toString());
 	}
     
     @Test
@@ -71,5 +125,22 @@ public class BaseModelTest {
         // Validation stats should be the same
         model1.externallyValidate(data);
         assertEquals(Stats1, model1.ValidationStats.toString());
+    }
+    
+    @Test
+    public void testPrintDescription() throws Exception {
+        BaseModel model = generateModel();
+        Dataset data = getData();
+		model.train(data);
+        
+        // Make sure it prints something: HTML
+        String dcrpt = model.printModelDescription(true);
+        assertTrue(dcrpt.length() > 0);
+        System.out.println(dcrpt);
+        
+        // Make sure it prints something: HTML
+        dcrpt = model.printModelDescription(false);
+        assertTrue(dcrpt.length() > 0);
+        System.out.println(dcrpt);
     }
 }

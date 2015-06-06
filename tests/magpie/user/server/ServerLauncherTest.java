@@ -44,6 +44,7 @@ public class ServerLauncherTest {
         // Make a fake model for volume
         template.setTargetProperty("volume_pa", true);
         model.train(template);
+        model.crossValidate(10, template);
         model.saveState("ms-volume.obj");
         new File("ms-volume.obj").deleteOnExit();
         
@@ -91,7 +92,6 @@ public class ServerLauncherTest {
         args.add("ms-model.info");
                 
         ServerLauncher.main(args.toArray(new String[0]));
-        Thread.sleep(1000);
     }
     
     @After
@@ -113,6 +113,8 @@ public class ServerLauncherTest {
         
         Assert.assertEquals(3, info.size());
         Assert.assertEquals("NonZero;Zero", info.get("ismetal").units);
+        Assert.assertTrue(info.get("volume_pa").valMethod.contains("10-fold"));
+        Assert.assertTrue(info.get("delta_e").valMethod.contains("Un"));
     }
     
     @Test

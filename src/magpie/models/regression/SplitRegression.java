@@ -122,4 +122,5 @@ public class SplitRegression extends SplitModel implements AbstractRegressionMod
         }
         return super.runCommand(Command);
     }
+
 }

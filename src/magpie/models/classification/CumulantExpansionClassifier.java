@@ -194,6 +194,21 @@ public class CumulantExpansionClassifier extends BaseClassifier implements Savab
 				throw new Exception("Save format not supported: " + Command);
         }
     }
-    
+
+    @Override
+    public List<String> printModelDescriptionDetails(boolean htmlFormat) {
+        List<String> output = super.printModelDescriptionDetails(htmlFormat);
+        
+        // Store details
+        output.add("NComponents:  " + NComponents);
+        output.add("Known Phases: " + PhaseDiagramStats.NCompounds());
+        String temp = "Bin sizes:   ";
+        for (int bin : NBins) {
+            temp += " " + bin;
+        }
+        output.add(temp);
+        
+        return output;
+    }
     
 }

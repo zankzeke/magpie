@@ -46,6 +46,14 @@ public class MultiPropertyEntry extends BaseEntry {
         }
         return x;
     }
+    
+    /**
+     * Remove all information about properties
+     */
+    public void clearPropertyData() {
+        MeasuredProperty = new double[0];
+        PredictedProperty = new double[0][];
+    }
 	
 	/**
 	 * Define the number of properties this entry can support.

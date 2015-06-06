@@ -111,6 +111,5 @@ public class SplitClassifier extends SplitModel implements AbstractClassifier {
 		}
 		super.run_protected(Data); 
 	}
-	
-	
+
 }

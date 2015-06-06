@@ -1,6 +1,7 @@
 package magpie.models;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import magpie.analytics.BaseStatistics;
 import magpie.attributes.selectors.BaseAttributeSelector;
@@ -25,6 +26,8 @@ import magpie.utility.interfaces.*;
  * <li>{@linkplain  #train_protected(magpie.data.Dataset) } -
  * Trains the model on a training set, does not set TrainingStats</li>
  * <li>{@linkplain #run_protected(magpie.data.Dataset) } - Run a model on a Dataset</li>
+ * <li>{@linkplain #printModel_protected() } and {@linkplain #printModelDescriptionDetails(boolean) }
+ * - Print detailed and simple descriptions of the model
  * </ul>
  * 
  * <p><b><u>Implemented Commands:</u></b>
@@ -55,6 +58,8 @@ import magpie.utility.interfaces.*;
  * <br><pr><i>options...</i>: Any options for the normalizer</command>
  * 
  * <p><b><u>Implemented Print Commands</u></b>
+ * 
+ * <print><p><b>description</b> - Print out short description of this model.</print>
  * 
  * <print><p><b>model</b> - Print out the model</print>
  * 
@@ -93,6 +98,8 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
     protected BaseAttributeSelector AttributeSelector = null;
     /** Used to normalize attributes before training / running model */
     private BaseDatasetNormalizer Normalizer = null;
+    /** Stores description how this model validated. */
+    private String ValidationMethod = "Unvalidated";
        
     /**
      * @return Whether this model has been trained
@@ -128,11 +135,11 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
     
     /** Perform an n-fold cross validation
      * @param folds Number of folds in CV test
-     * @param TestData Data to use for CV
+     * @param cvData Data to use for CV
      */
-    public void crossValidate(int folds, Dataset TestData) {
+    public void crossValidate(int folds, Dataset cvData) {
         // Split into several parts
-        Dataset InternalTest = TestData.clone();
+        Dataset InternalTest = cvData.clone();
         Dataset[] TestFolds = InternalTest.splitIntoFolds(folds);
         
         // Generate a clone of the model to play with
@@ -140,7 +147,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         TestModel = (BaseModel) this.clone(); 
         
         for(int i=0; i<folds; i++){
-            Dataset TrainData = TestData.emptyClone();
+            Dataset TrainData = cvData.emptyClone();
             // Build a training set that does not inclue the current iteration
             for(int j=0; j<folds; j++) 
                 if (i!=j) TrainData.combine(TestFolds[j]);
@@ -152,17 +159,35 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         InternalTest.combine(TestFolds);
         ValidationStats.evaluate(InternalTest);
         validated = true;
+        
+        // Store that this model was cross valided
+        if (folds == cvData.NEntries()) {
+            ValidationMethod = "Leave-one-out cross-validation using " 
+                    + cvData.NEntries() + " entries";
+        } else {
+            ValidationMethod = String.format("%d-fold cross-validation using %d entries",
+                    folds, cvData.NEntries());
+        }           
     }
     
     /** Use external testing data to validate a model (should not contain any data
      * used to train the model)
-     * @param TestData External test dataset
+     * @param testData External test dataset
      */
-    public void externallyValidate(Dataset TestData) {
-        run(TestData); ValidationStats.evaluate(TestData);
+    public void externallyValidate(Dataset testData) {
+        run(testData); ValidationStats.evaluate(testData);
         validated = true;
+        ValidationMethod = "External validation using " + testData.NEntries() 
+                + " entries";
     }
-        
+
+    /**
+     * Get a description of how this model was validated
+     * @return Validation technique if model has been validated. "Unvalidated" otherwise.
+     */
+    public String getValidationMethod() {
+        return validated ? ValidationMethod : "Unvalidated";
+    }
     
     /**
      * Train a model on a specified training set and then evaluate performance 
@@ -359,6 +384,89 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
      * @return String representation of model
      */
     abstract protected String printModel_protected();
+    
+    /**
+     * Print full name of model, and a simple description of the options. This
+     * description should print enough information to reproduce this model, but
+     * not necessarily enough to run it.
+     * 
+     * <p>Example: For a model training a separate WekaRegression for intermetallics
+     * <p>magpie.models.regression.SplitRegression
+     * <div style="margin: 0 0 0 25px">
+     * Splitter: AllMetalsSplitter
+     * <br>All Metals: magpie.models.regression.WekaRegression trees.REPTree
+     * <br>Contains Nonmetal: magpie.regression.LASSORegreession -maxterms 2
+     * </div>
+     * 
+     * @param htmlFormat Whether format for output to an HTML page 
+     * (e.g., &lt;div&gt; to create indentation) or for printing to screen.
+     * @return String describing the model
+     * @see #printModel() 
+     */
+    public String printModelDescription(boolean htmlFormat) {
+        String output = getClass().getName() + "\n";
+        
+        // Add HTML indentation
+        if (htmlFormat) {
+            output += "<div style=\"margin-left: 25px\">\n";
+        }
+        
+        // Get model details
+        List<String> details = printModelDescriptionDetails(htmlFormat);
+        boolean started = false;
+        String lastLine = "";
+        for (String line : details) {
+            output += "\t";
+            
+            // Add <br> where appropriate
+            if (started && // Not for the first line int the block
+                    htmlFormat // Only for HTML-formatted output
+                    // Not on lines for the "<div>" tags
+                    && ! (line.contains("<div") || line.contains("</div>")) 
+                    // Not immediately after <div> tags
+                    && ! (lastLine.contains("<div") || lastLine.contains("</div>")) 
+                    // Not if the line already has a break
+                    && ! line.contains("<br>")) {
+                output += "<br>";
+            }
+            
+            // Add line to ouput
+            output += line + "\n";
+            
+            // Update loop variables
+            started = true;
+            lastLine = line;
+        }
+        
+        // Deindent
+        if (htmlFormat) {
+            output += "</div>\n";
+        }
+        return output;
+    }
+    
+    /**
+     * Print details of the model. Used by {@linkplain #printModelDescription(boolean) }.
+     * 
+     * <p>Implementation note: No not add indentation for details. That is handled
+     * by {@linkplain #printModelDescription(boolean) }. You should also call the super 
+     * operation to get the Normalizer and Attribute selector settings
+     * 
+     * <p
+     * @param htmlFormat Whether to use HTML format
+     * @return List describing model details. Each entry is a different line of the 
+     * description (i.e., in place of newline characters).
+     */
+    protected List<String> printModelDescriptionDetails(boolean htmlFormat) {
+        List<String> output = new LinkedList<>();
+        if (Normalizer != null) {
+            output.add("Normalizer: " + Normalizer.getClass().getName());
+        }
+        if (AttributeSelector != null) {
+            output.add("Attribute Selector: " + AttributeSelector.getClass().getName());
+        }
+        return output;
+    }
 
     @Override
     public String printCommand(List<String> Command) throws Exception {
@@ -366,6 +474,8 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         List<String> SubCommand; // Command to be passed to calls
         SubCommand = Command.subList(1, Command.size());
         switch (Command.get(0).toLowerCase()) {
+            case "description":
+                return printModelDescription(false);
             case "model":
                 return printModel();
             case "validation":
@@ -514,6 +624,5 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                 throw new Exception("Format not recognized: " + Format);
         }
     }
-    
-    
+        
 }

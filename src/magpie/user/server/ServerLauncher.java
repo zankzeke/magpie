@@ -47,7 +47,8 @@ import org.eclipse.jetty.servlets.CrossOriginFilter;
  * <br>training &lt;description&gt; // Description of training set
  * <br>author &lt;name&gt; // Contact information for author
  * <br>citation &lt;info&gt; // Information for how to properly cite this model
- * <br>notes &lt;words&gt; // Anything else the author should know about this model
+ * <br>description &lt;words&gt; // Short description of model
+ * <br>notes &lt;words&gt; // Longer description of model
  * </div>
  * 
  * </div>
@@ -169,13 +170,17 @@ public class ServerLauncher {
                         modelInfo.Citation = line.replaceFirst("citation", "").trim();
                         System.out.println("\tCitation: " + modelInfo.Citation);
                         break;
-                    case "notes":
-                        modelInfo.Description = line.replaceFirst("notes", "").trim();
-                        System.out.println("\tNotes: " + modelInfo.Description);
+                    case "description":
+                        modelInfo.Description = line.replaceFirst("description", "").trim();
+                        System.out.println("\tdescription: " + modelInfo.Description);
                         break;
                     case "training":
                         modelInfo.TrainingSet = line.replaceFirst("training", "").trim();
                         System.out.println("\tTraining set: " + modelInfo.TrainingSet);
+                        break;
+                    case "notes":
+                        modelInfo.Notes = line.replaceFirst("notes", "").trim();
+                        System.out.println("\tNotes: " + modelInfo.Notes);
                         break;
                     default:
                         System.out.println("Unrecognized property: " + words[0]);

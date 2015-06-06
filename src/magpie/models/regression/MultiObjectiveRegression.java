@@ -1,6 +1,7 @@
 
 package magpie.models.regression;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -87,7 +88,12 @@ public class MultiObjectiveRegression extends BaseRegression {
     @SuppressWarnings("CloneDeclaresCloneNotSupported")
     public MultiObjectiveRegression clone() {
         MultiObjectiveRegression x = (MultiObjectiveRegression) super.clone(); 
-        x.Models = new TreeMap<>(Models);
+        x.Models = new TreeMap<>();
+        for (Map.Entry<String, BaseModel> entrySet : Models.entrySet()) {
+            String prop = entrySet.getKey();
+            BaseModel model = entrySet.getValue();
+            x.Models.put(prop, model.clone());
+        }
         x.ObjFunction = ObjFunction.clone();
         return x;
     }
@@ -245,6 +251,21 @@ public class MultiObjectiveRegression extends BaseRegression {
             output += ("\nModel for " + property + ":\n");
             output += model.printModel();
         }
+        return output;
+    }
+
+    @Override
+    public List<String> printModelDescriptionDetails(boolean htmlFormat) {
+        List<String> output = super.printModelDescriptionDetails(htmlFormat);
+        
+        for (Map.Entry<String, BaseModel> entrySet : Models.entrySet()) {
+            String prop = entrySet.getKey();
+            BaseModel model = entrySet.getValue();
+            String[] submodel = model.printModelDescription(htmlFormat).split("\n");
+            submodel[0] = prop + ": " + submodel[0];
+            output.addAll(Arrays.asList(submodel));
+        }
+        
         return output;
     }
 

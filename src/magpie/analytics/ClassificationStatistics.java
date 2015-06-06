@@ -1,6 +1,8 @@
 package magpie.analytics;
 
 import java.util.Arrays;
+import java.util.Map;
+import java.util.TreeMap;
 import magpie.data.Dataset;
 import org.apache.commons.math3.stat.*;
 
@@ -91,7 +93,7 @@ public class ClassificationStatistics extends BaseStatistics {
         TN = ConfusionMatrix[1][1];
         Sensitivity = (double) TP/ (double) (TP+FN);
         FPR = (double) FP/ (double) (FP+TN);
-        Accuracy = (double) (TP+FN) / (double) Data.NEntries();
+        Accuracy = (double) (TP+TN) / (double) Data.NEntries();
         Specificity = 1.0 - FPR;
         PPV = (double) TP / (double) (TP + FP);
         NPV = (double) TN / (double) (TN + FN);
@@ -195,4 +197,26 @@ public class ClassificationStatistics extends BaseStatistics {
                 +String.format("ROC AUC: %.4f\n", ROC_AUC);
         return out;
     }
+
+    @Override
+    public Map<String, Double> getStatistics() {
+        Map<String, Double> output = new TreeMap<>();
+        
+        output.put("NEvaluated", (double) NumberTested);
+        output.put("NCorrect", (double) NumberCorrect);
+        output.put("Kappa", Kappa);
+        output.put("Sensitivity", Sensitivity);
+        output.put("FPR", FPR);
+        output.put("Accuracy", Accuracy);
+        output.put("PPV", PPV);
+        output.put("NPV", NPV);
+        output.put("FDR", FDR);
+        output.put("MCC", MCC);
+        output.put("F1", F1);
+        output.put("ROCAUC", ROC_AUC);
+        
+        return output;
+    }
+    
+    
 }

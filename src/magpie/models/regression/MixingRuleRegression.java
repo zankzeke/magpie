@@ -1,5 +1,6 @@
 package magpie.models.regression;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -22,7 +23,8 @@ import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
  * 
  * <usage><p><b>Usage</b>: &lt;property> [-invert] [-correct] [-fit &lt;ElementNames>]
  * <br><pr><i>property</i>: Name of property to use for mixing rule model
- * <br><pr><i>-invert</i>: Average inverses of this property
+ * <br><pr><i>-invert</i>: Whether to compute the 
+ * <a href="http://mathworld.wolfram.com/HarmonicMean.html">harmonic mean</a>.
  * <br><pr><i>-correct</i>: Fit linear correction factors to mixing rule equation
  * <br><pr><i>ElementNames</i>: List elements whose elemental property should be fitted</usage>
  * 
@@ -38,9 +40,10 @@ public class MixingRuleRegression extends BaseRegression {
     protected String PropertyName = null;
     /** Lookup table for property of interest */
     protected double[] LookupTable;
-    /** Whether to use average inverse of property or not */
-    protected boolean UseInverse = false;
-    /** Coefficients used for correction factor. 
+    /** Whether to compute harmonic mean. */
+    protected boolean UseInverse = false; 
+    /** 
+     * Coefficients used for correction factor. 
      * 0 = Intercept. 1 = Slope.
      */
     protected double[] CorrectionFactors;
@@ -140,8 +143,14 @@ public class MixingRuleRegression extends BaseRegression {
     public String printUsage() {
         return "Usage: <Property Name> [-invert] [-correct] [-fit <Element Names>]";
     }
-    
-    
+
+    /**
+     * Set which elements to fit.
+     * @param elements Elements to be fit to minimize model error. List of element abbreviations. 
+     */
+    public void setFittedElements(List<String> elements) {
+        this.FittedElements = new ArrayList<>(elements);
+    }
 
     @Override
     protected void train_protected(Dataset TrainData) {
@@ -154,7 +163,7 @@ public class MixingRuleRegression extends BaseRegression {
         
         // Get the lookup table
 		try {
-			LookupTable = DataPtr.getPropertyLookupTable(PropertyName);
+			LookupTable = DataPtr.getPropertyLookupTable(PropertyName).clone();
 		} catch (Exception e) {
 			throw new Error("Failed to load property data");
 		}
@@ -210,10 +219,13 @@ public class MixingRuleRegression extends BaseRegression {
          
         List<String> ElementNames = Arrays.asList(Data.ElementNames);
         FittedElementIndices.clear();
+        
         // Get indices of each element
-        for (int i=0; i < FittedElements.size(); i++) {
-            int index = ElementNames.indexOf(FittedElements.get(i));
-            if (index == -1) throw new Error(FittedElements.get(i) + " is not recognized as an element.");
+        for (String FittedElement : FittedElements) {
+            int index = ElementNames.indexOf(FittedElement);
+            if (index == -1) {
+                throw new Error(FittedElement + " is not recognized as an element.");
+            }
             FittedElementIndices.add(index);
         }
         
@@ -234,6 +246,7 @@ public class MixingRuleRegression extends BaseRegression {
                 sampleXData[i][j] = Data.getEntry(i).getElementFraction(FittedElementIndices.get(j));
                 if (sampleXData[i][j] > 0) hasFittingData[j] = true;
             }
+            
             // Y values are the predicted class - contributions from not-fitted elements
             sampleYData[i] = UseInverse ? 1.0 / Data.getEntry(i).getMeasuredClass()
                     : Data.getEntry(i).getMeasuredClass();
@@ -245,11 +258,14 @@ public class MixingRuleRegression extends BaseRegression {
         for (int i=0; i<hasFittingData.length; i++)
             if (!hasFittingData[i]) { goodToGo = false; break; }
         if (!goodToGo) { 
+            
             // We are missing fitting data for some elements, remove them from list and refit
             List<String> originalList = new LinkedList<>(FittedElements);
-            // Copy origianl data back to LookupData
+            
+            // Copy original data back to LookupData
             for (int i=0; i<hasFittingData.length; i++)
                 LookupTable[FittedElementIndices.get(i)] = originalValues[i];
+            
             // Remove offending elements
             int j=0, i=0;
             while (i < FittedElements.size()) {
@@ -286,6 +302,34 @@ public class MixingRuleRegression extends BaseRegression {
         return output + " }\n";
     }    
 
+    @Override
+    public List<String> printModelDescriptionDetails(boolean htmlFormat) {
+        List<String> output = super.printModelDescriptionDetails(htmlFormat);
+        
+        output.add("Property: " + PropertyName);
+        
+        // Whether a linear correction is being fitted
+        if (UseCorrection) {
+            output.add("Using linear correction terms.");
+        }
+        
+        // Whether harmonic mean
+        if (UseInverse) {
+            output.add("Usingharmonic mean.");
+        }
+        
+        // Which elements are being fitted
+        if (FittedElements.size() > 0) {
+            String temp = "Fitting elements:";
+            for (String elem : FittedElements) {
+                temp += " " + elem;
+            }
+            output.add(temp);
+        }
+        
+        return output;
+    }
+
     /**
      * Fit correction factors to the mixing rule model.
      * @param Data Dataset to use for training
@@ -321,7 +365,6 @@ public class MixingRuleRegression extends BaseRegression {
             default:
                 return super.printCommand(Command);
         }
-    }
-    
+    }    
     
 }

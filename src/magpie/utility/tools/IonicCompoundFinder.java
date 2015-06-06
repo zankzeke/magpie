@@ -100,7 +100,7 @@ public class IonicCompoundFinder implements Commandable {
             
             // See if it is is close enough in composition
             double dist = 0.0;
-            for (int e=1; e<elems.length; e++) {
+            for (int e=0; e<elems.length; e++) {
                 dist += Math.abs(fracs[e] - cand.getElementFraction(elems[e]));
             }
             if (dist > MaximumDistance) {
