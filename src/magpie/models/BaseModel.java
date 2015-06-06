@@ -392,14 +392,11 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
      * 
      * <p>Example: For a model training a separate WekaRegression for intermetallics
      * <p>magpie.models.regression.SplitRegression
-     * <div style="margin: 0 0 0 10px">
+     * <div style="margin: 0 0 0 25px">
      * Splitter: AllMetalsSplitter
      * <br>All Metals: magpie.models.regression.WekaRegression trees.REPTree
      * <br>Contains Nonmetal: magpie.regression.LASSORegreession -maxterms 2
      * </div>
-     * 
-     * <p>Implementation Notes: &lt;div style="margin: 0 0 0 10"&gt; for indentation
-     * in HTML format, and "\t" otherwise.
      * 
      * @param htmlFormat Whether format for output to an HTML page 
      * (e.g., &lt;div&gt; to create indentation) or for printing to screen.
@@ -411,7 +408,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         
         // Add HTML indentation
         if (htmlFormat) {
-            output += "<div style=\"margin: 0 0 0 10\">\n";
+            output += "<div style=\"margin-left: 25px\">\n";
         }
         
         // Get model details
