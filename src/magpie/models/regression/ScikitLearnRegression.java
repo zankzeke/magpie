@@ -303,7 +303,7 @@ public class ScikitLearnRegression extends BaseRegression {
             }
             fo.flush();
             
-            // Recieve the model
+            // Receive the model
             readModel(socket.getInputStream());
             
             socket.close();
