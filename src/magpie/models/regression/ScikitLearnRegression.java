@@ -9,6 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
+import sun.java2d.loops.GraphicsPrimitive;
 
 /**
  * Uses Scikit-learn to train a regression model. User must provide the path to
@@ -249,7 +250,13 @@ public class ScikitLearnRegression extends BaseRegression {
             throw new Exception("Server failed to start");
         }
         
-        
+        // Make sure the process is killed
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            @Override
+            public void run() {
+                ScikitServer.destroy();
+            }
+        }));
     }
 
     /**
