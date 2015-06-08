@@ -9,7 +9,6 @@ import java.util.LinkedList;
 import java.util.List;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
-import sun.java2d.loops.GraphicsPrimitive;
 
 /**
  * Uses Scikit-learn to train a regression model. User must provide the path to
