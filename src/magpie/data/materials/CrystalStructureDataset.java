@@ -197,7 +197,7 @@ public class CrystalStructureDataset extends CompositionDataset {
         AttributeName.add("min_BondLengthVariation");
         AttributeName.add("max_BondLengthVariation");
         AttributeName.add("var_CellVolume");
-        AttributeName.add("UniquePolyhedronShapesPerAtom");
+        AttributeName.add("UniquePolyhedronShapes");
         AttributeName.add("MaxPackingEfficiency");
         AttributeName.add("dissimilarity_FCC");
         AttributeName.add("dissimilarity_BCC");
@@ -252,6 +252,7 @@ public class CrystalStructureDataset extends CompositionDataset {
             newAttr[counter++] = StatUtils.max(meanBondLengths);
             
             //     Variation within a single cell
+            meanBondLengths = tool.meanBondLengths(); // Recompute bond lengths
             double[] bondLengthVariation = tool.bondLengthVariance(meanBondLengths);
             for (int i=0; i<bondLengthVariation.length; i++) {
                 // Normalize bond length variation by mean bond length of each cell
@@ -265,8 +266,7 @@ public class CrystalStructureDataset extends CompositionDataset {
             // Cell volume / shape attributes
             newAttr[counter++] = tool.volumeVariance() * 
                     ptr.getStructure().nAtoms() / ptr.getStructure().volume();
-			newAttr[counter++] = (double) tool.getUniquePolyhedronShapes().size() 
-                    / ptr.getStructure().nAtoms();
+			newAttr[counter++] = (double) tool.getUniquePolyhedronShapes().size();
 			newAttr[counter++] = tool.maxPackingEfficiency();
             newAttr[counter++] = tool.meanFCCDissimilarity();
             newAttr[counter++] = tool.meanBCCDissimilarity();
