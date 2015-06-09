@@ -1,6 +1,7 @@
 package magpie.data.utilities.splitters;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import magpie.data.Dataset;
@@ -39,12 +40,34 @@ public class MultipleElementGroupsSplitter extends SingleElementGroupSplitter {
     @Override
     public void setOptions(List OptionsObj) throws Exception {
         String[] Options = CommandHandler.convertCommandToString(OptionsObj);
+        clearElementGroups();
         if (Options.length == 0) 
             throw new Exception(printUsage());
-        for (String Option : Options) {
-            String[] ElementGroup = Option.split(" ");
-            ElementGroups.add(ElementGroup);
+        for (String option : Options) {
+            addElementGroup(option);
         }
+    }
+    
+    /**
+     * Clear the current list of element groups
+     */
+    public void clearElementGroups() {
+        ElementGroups.clear();
+    }
+    
+    /**
+     * Add a list of elements to be defined as the same group.
+     * @param elems Element symbols separated by spaces
+     */
+    public void addElementGroup(String elems) {
+        addElementGroup(Arrays.asList(elems.split(" ")));
+    }    
+    /**
+     * Add a list of elements to be treated as a single group.
+     * @param elems List of elements to define as a group
+     */
+    public void addElementGroup(Collection<String> elems) {
+        ElementGroups.add(elems.toArray(new String[0]));
     }
 
     @Override
@@ -75,5 +98,37 @@ public class MultipleElementGroupsSplitter extends SingleElementGroupSplitter {
             if (! wasAssigned) output[e] = ElementGroups.size();
         }
         return output;
-    }    
+    }
+
+    @Override
+    protected List<String> getSplitterDetails(boolean htmlFormat) {
+        List<String> output = new LinkedList<>();
+        
+        for (int i=0; i<ElementGroups.size(); i++) {
+            String line = "Group " + i + ":";
+            for (String elem : ElementGroups.get(i)) {
+                line += " " + elem;
+            }
+            output.add(line);
+        }
+        
+        return output;
+    }
+
+    @Override
+    public List<String> getSplitNames() {
+        List<String> output = new LinkedList<>();
+        
+        for (int i=0; i<ElementGroups.size(); i++) {
+            String line = "Contains ";
+            for (String elem : ElementGroups.get(i)) {
+                line += " " + elem;
+            }
+            output.add(line);
+        }
+        
+        output.add("Otherwise");
+
+        return output;
+    }
 }

@@ -1,5 +1,7 @@
 package magpie.data.utilities.splitters;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionEntry;
@@ -56,4 +58,18 @@ public class AllMetalsSplitter extends BaseDatasetSplitter {
 
     @Override
     public void train(Dataset TrainingSet) { /* Do nothing */ }
+
+    @Override
+    public List<String> getSplitNames() {
+        List<String> output = new ArrayList<>(2);
+        output.add("Only Metals");
+        output.add("Contains Nonmetals");
+        return output;
+    }
+
+    @Override
+    protected List<String> getSplitterDetails(boolean htmlFormat) {
+        return new LinkedList<>(); // No options
+    }
+    
 }

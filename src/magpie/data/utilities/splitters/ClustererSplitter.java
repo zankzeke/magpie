@@ -1,5 +1,6 @@
 package magpie.data.utilities.splitters;
 
+import java.util.LinkedList;
 import java.util.List;
 import magpie.cluster.BaseClusterer;
 import magpie.data.Dataset;
@@ -63,4 +64,35 @@ public class ClustererSplitter extends BaseDatasetSplitter {
     public int[] label(Dataset D) {
         return Clusterer.label(D);
     }
+
+    @Override
+    public List<String> getSplitNames() {
+        if (! Clusterer.isTrained()) {
+            return new LinkedList<>();
+        }
+        
+        // If trained
+        List<String> output = new LinkedList<>();
+        for (int i=0; i<Clusterer.NClusters(); i++) {
+            output.add("Cluster #" + i);
+        }
+        
+        return output;
+    }
+
+    @Override
+    protected List<String> getSplitterDetails(boolean htmlFormat) {
+        List<String> output = new LinkedList<>();
+        
+        // Get clusterer details
+        String[] clustDetails = Clusterer.printDescription(htmlFormat).split("\n");
+        clustDetails[0] = "Clusterer: " + clustDetails[0];
+        for (String line : clustDetails) {
+            output.add(line);
+        }
+        
+        return output;
+    }
+    
+    
 }

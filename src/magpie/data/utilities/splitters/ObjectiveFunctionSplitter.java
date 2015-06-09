@@ -1,6 +1,7 @@
 
 package magpie.data.utilities.splitters;
 
+import java.util.LinkedList;
 import java.util.List;
 import magpie.data.Dataset;
 import magpie.optimization.rankers.BaseEntryRanker;
@@ -106,5 +107,30 @@ public class ObjectiveFunctionSplitter extends BaseDatasetSplitter {
     @Override
     public void train(Dataset TrainingSet) {
         // Nothing to train
-    }    
+    }
+
+    @Override
+    public List<String> getSplitNames() {
+        List<String> output = new LinkedList<>();
+        
+        // Print out split names
+        output.add(String.format("Objective %s %.4e", SplitAbove ? ">" : "<=",
+                Threshold));
+        output.add(String.format("Objective %s %.4e", !SplitAbove ? ">" : "<=",
+                Threshold));
+        
+        return output;
+    }
+
+    @Override
+    protected List<String> getSplitterDetails(boolean htmlFormat) {
+        List<String> output = new LinkedList<>();
+        
+        // Add options
+        output.add(String.format("Split 0 is for classes with an objective function %s %.4e", 
+                SplitAbove ? "above" : "below", Threshold));
+        output.add("Objetive Function: " + objFun.getClass().getName());
+        
+        return output;
+    }
 }
