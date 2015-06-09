@@ -261,7 +261,7 @@ public class MultiObjectiveRegression extends BaseRegression {
         for (Map.Entry<String, BaseModel> entrySet : Models.entrySet()) {
             String prop = entrySet.getKey();
             BaseModel model = entrySet.getValue();
-            String[] submodel = model.printModelDescription(htmlFormat).split("\n");
+            String[] submodel = model.printDescription(htmlFormat).split("\n");
             submodel[0] = prop + ": " + submodel[0];
             output.addAll(Arrays.asList(submodel));
         }

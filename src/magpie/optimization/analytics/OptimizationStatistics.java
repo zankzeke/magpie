@@ -359,4 +359,9 @@ public class OptimizationStatistics implements java.io.Serializable, java.lang.C
     public String about() {
         return "Number of iterations evaluated: " + IterationsEvaluated;
     }
+
+    @Override
+    public String printDescription(boolean htmlFormat) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

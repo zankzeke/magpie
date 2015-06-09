@@ -188,7 +188,11 @@ abstract public class BaseClusterer implements Options, Printable,
             Output += " - Number of clusters: " + NClusters();
         return Output;
     }
-    
+
+    @Override
+    public String printDescription(boolean htmlFormat) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
     
     @Override
     public String printCommand(List<String> Command) throws Exception {

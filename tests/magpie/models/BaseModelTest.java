@@ -134,12 +134,12 @@ public class BaseModelTest {
 		model.train(data);
         
         // Make sure it prints something: HTML
-        String dcrpt = model.printModelDescription(true);
+        String dcrpt = model.printDescription(true);
         assertTrue(dcrpt.length() > 0);
         System.out.println(dcrpt);
         
         // Make sure it prints something: HTML
-        dcrpt = model.printModelDescription(false);
+        dcrpt = model.printDescription(false);
         assertTrue(dcrpt.length() > 0);
         System.out.println(dcrpt);
     }

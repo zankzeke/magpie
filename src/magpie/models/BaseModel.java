@@ -403,7 +403,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
      * @return String describing the model
      * @see #printModel() 
      */
-    public String printModelDescription(boolean htmlFormat) {
+    public String printDescription(boolean htmlFormat) {
         String output = getClass().getName() + "\n";
         
         // Add HTML indentation
@@ -446,10 +446,10 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
     }
     
     /**
-     * Print details of the model. Used by {@linkplain #printModelDescription(boolean) }.
+     * Print details of the model. Used by {@link #printDescription(boolean)}.
      * 
      * <p>Implementation note: No not add indentation for details. That is handled
-     * by {@linkplain #printModelDescription(boolean) }. You should also call the super 
+     * by {@link #printDescription(boolean)}. You should also call the super 
      * operation to get the Normalizer and Attribute selector settings
      * 
      * <p
@@ -475,7 +475,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         SubCommand = Command.subList(1, Command.size());
         switch (Command.get(0).toLowerCase()) {
             case "description":
-                return printModelDescription(false);
+                return printDescription(false);
             case "model":
                 return printModel();
             case "validation":

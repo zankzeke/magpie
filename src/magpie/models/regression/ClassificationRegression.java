@@ -184,7 +184,7 @@ public class ClassificationRegression extends BaseRegression {
         output.add(String.format("Threshold: %.3e", Threshold));
         
         // Get submodel description
-        String[] submodel = Clfr.printModelDescription(htmlFormat).split("\n");
+        String[] submodel = Clfr.printDescription(htmlFormat).split("\n");
         output.add("Classifier: " + submodel[0]);
         
         for (int i=1; i<submodel.length; i++) {

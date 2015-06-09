@@ -135,6 +135,11 @@ abstract public class BaseAttributeSelector implements java.io.Serializable,
     }
 
     @Override
+    public String printDescription(boolean htmlFormat) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
     public String printCommand(List<String> Command) throws Exception {
         // There are no print options, just print all selected attributes
         if (Command.isEmpty())

@@ -630,6 +630,11 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
     }
 
     @Override
+    public String printDescription(boolean htmlFormat) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
     public String printCommand(List<String> Command) throws Exception {
         if (Command.isEmpty()) {
             return about();
