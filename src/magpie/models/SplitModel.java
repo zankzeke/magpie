@@ -244,10 +244,16 @@ abstract public class SplitModel extends BaseModel implements MultiModel {
     public List<String> printModelDescriptionDetails(boolean htmlFormat) {
         List<String> output = super.printModelDescriptionDetails(htmlFormat);
         
-        output.add("Partitioner: " + Partitioner.getClass().getName());
+        // Print out partitioner and its details
+        String[] partr = Partitioner.printDescription(htmlFormat).split("\n");
+        partr[0] = "Partitioner: " + partr[0];
+        output.addAll(Arrays.asList(partr));
+        
+        // Print out submodel details
+        List<String> splitNames = Partitioner.getSplitNames();
         for (int i=0; i<NModels(); i++) {
             String[] submodel = getModel(i).printDescription(htmlFormat).split("\n");
-            submodel[0] = "Submodel #" + i + ": " + submodel[0];
+            submodel[0] = splitNames.get(i) + ": " + submodel[0];
             output.addAll(Arrays.asList(submodel));
         }
         
