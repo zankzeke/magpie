@@ -122,7 +122,7 @@ public class LinearCorrectedRegression extends BaseRegression {
         List<String> output = super.printModelDescriptionDetails(htmlFormat);
         
         // Get details of submodel
-        String[] submodel = Submodel.printModelDescription(htmlFormat).split("\n");
+        String[] submodel = Submodel.printDescription(htmlFormat).split("\n");
         submodel[0] = "Model being corrected: " + submodel[0];
         
         output.addAll(Arrays.asList(submodel));

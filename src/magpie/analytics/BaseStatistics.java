@@ -1,6 +1,5 @@
 package magpie.analytics;
 
-import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -173,10 +172,15 @@ abstract public class BaseStatistics implements java.io.Serializable,
         return Output;
     }
     
-        @Override
+    @Override
     public String about() {
         // Print the number entries tested
         return "Number Tested: " + this.NumberTested;
+    }
+
+    @Override
+    public String printDescription(boolean htmlFormat) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override

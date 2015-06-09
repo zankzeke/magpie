@@ -385,25 +385,8 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
      */
     abstract protected String printModel_protected();
     
-    /**
-     * Print full name of model, and a simple description of the options. This
-     * description should print enough information to reproduce this model, but
-     * not necessarily enough to run it.
-     * 
-     * <p>Example: For a model training a separate WekaRegression for intermetallics
-     * <p>magpie.models.regression.SplitRegression
-     * <div style="margin: 0 0 0 25px">
-     * Splitter: AllMetalsSplitter
-     * <br>All Metals: magpie.models.regression.WekaRegression trees.REPTree
-     * <br>Contains Nonmetal: magpie.regression.LASSORegreession -maxterms 2
-     * </div>
-     * 
-     * @param htmlFormat Whether format for output to an HTML page 
-     * (e.g., &lt;div&gt; to create indentation) or for printing to screen.
-     * @return String describing the model
-     * @see #printModel() 
-     */
-    public String printModelDescription(boolean htmlFormat) {
+    @Override
+    public String printDescription(boolean htmlFormat) {
         String output = getClass().getName() + "\n";
         
         // Add HTML indentation
@@ -446,10 +429,10 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
     }
     
     /**
-     * Print details of the model. Used by {@linkplain #printModelDescription(boolean) }.
+     * Print details of the model. Used by {@link #printDescription(boolean)}.
      * 
      * <p>Implementation note: No not add indentation for details. That is handled
-     * by {@linkplain #printModelDescription(boolean) }. You should also call the super 
+     * by {@link #printDescription(boolean)}. You should also call the super 
      * operation to get the Normalizer and Attribute selector settings
      * 
      * <p
@@ -475,7 +458,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         SubCommand = Command.subList(1, Command.size());
         switch (Command.get(0).toLowerCase()) {
             case "description":
-                return printModelDescription(false);
+                return printDescription(false);
             case "model":
                 return printModel();
             case "validation":

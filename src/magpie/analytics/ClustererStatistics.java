@@ -142,6 +142,11 @@ public class ClustererStatistics implements Serializable, Printable {
         else
             return String.format("Number of clusters = %d - Number of entries = %d", ClusterSize.length, NEntries);
     }
+
+    @Override
+    public String printDescription(boolean htmlFormat) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
     
     /**
      * Print the distribution between each cluster

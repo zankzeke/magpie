@@ -1,6 +1,7 @@
 package magpie.data.utilities.splitters;
 
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
@@ -43,7 +44,6 @@ public class NonZeroClassificationSplitter extends BaseDatasetSplitter {
         return x;
     }
     
-
     @Override
     public void setOptions(List Options) throws Exception {
         try { 
@@ -110,6 +110,30 @@ public class NonZeroClassificationSplitter extends BaseDatasetSplitter {
         Dataset Copy = TrainingSet.clone();
         new NonZeroClassModifier().transform(Copy);
         Clfr.train(Copy);
-    }    
+    }
+
+    @Override
+    protected List<String> getSplitterDetails(boolean htmlFormat) {
+        List<String> output = new LinkedList<>();
+        
+        // Get classifier details
+        String[] submodelDetails = Clfr.printDescription(htmlFormat).split("\n");
+        submodelDetails[0] = "Classifier: " + submodelDetails[0];
+        for (String line : submodelDetails) {
+            output.add(line);
+        }
+        
+        return output;
+    }
+
+    @Override
+    public List<String> getSplitNames() {
+        List<String> output = new LinkedList<>();
+        
+        output.add("P(Class = 0) > 50%");
+        output.add("P(Class = 0) < 50%");
+        
+        return output;
+    }
     
 }

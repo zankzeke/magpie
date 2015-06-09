@@ -3,12 +3,12 @@ package magpie.data.utilities.splitters;
 import java.util.ArrayList;
 import org.apache.commons.lang3.math.NumberUtils;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.utility.interfaces.Commandable;
 import magpie.utility.interfaces.Options;
+import magpie.utility.interfaces.Printable;
 
 /**
  * This class provides an interface to Dataset splitting operations. Any implementation 
@@ -33,13 +33,17 @@ import magpie.utility.interfaces.Options;
  * each split.
  * <br><pr><i>format</i>: Optional: Format in which to write data (default=serialized)</command>
  * 
+ * <p><b><u>Print Commands</u></b>
  * 
+ * <print><b>details</b> - Description of this splitter</print>
+ * 
+ * <print><b>names</b> - Names of the splits</print>
  *
  * @author Logan Ward
  * @version 0.1
  */
 abstract public class BaseDatasetSplitter implements 
-        java.io.Serializable, Options, Commandable, Cloneable {
+        java.io.Serializable, Options, Commandable, Cloneable, Printable {
 
     @Override
     public BaseDatasetSplitter clone() {
@@ -159,6 +163,103 @@ abstract public class BaseDatasetSplitter implements
                 throw new Exception("Command not recognized: " + action);
         }
     }
+
+    @Override
+    public String about() {
+        return "Splits dataset into " + getSplitNames() + " groups";
+    }
+
+    @Override
+    public String printDescription(boolean htmlFormat) {
+        String output = getClass().getName() + "\n";
+        
+        // Get splitter details
+        List<String> details = getSplitterDetails(htmlFormat);
+        
+        // Shortcut
+        if (details.isEmpty()) {
+            return output;
+        }
+        
+        // Add HTML indentation
+        if (htmlFormat) {
+            output += "<div style=\"margin-left: 25px\">\n";
+        }
+        
+        boolean started = false;
+        String lastLine = "";
+        for (String line : details) {
+            output += "\t";
+            
+            // Add <br> where appropriate
+            if (started && // Not for the first line int the block
+                    htmlFormat // Only for HTML-formatted output
+                    // Not on lines for the "<div>" tags
+                    && ! (line.contains("<div") || line.contains("</div>")) 
+                    // Not immediately after <div> tags
+                    && ! (lastLine.contains("<div") || lastLine.contains("</div>")) 
+                    // Not if the line already has a break
+                    && ! line.contains("<br>")) {
+                output += "<br>";
+            }
+            
+            // Add line to ouput
+            output += line + "\n";
+            
+            // Update loop variables
+            started = true;
+            lastLine = line;
+        }
+        
+        // Deindent
+        if (htmlFormat) {
+            output += "</div>\n";
+        }
+        
+        return output;
+    }
     
+    /**
+     * Get details of splitter. Returns a list of options that can be set by the user.
+     * Used with {@linkplain #printDescription(boolean) }.
+     * @param htmlFormat Whether to format results with HTML
+     * @return List of options describing the model
+     */
+    abstract protected List<String> getSplitterDetails(boolean htmlFormat);
+
+    @Override
+    public String printCommand(List<String> Command) throws Exception {
+        if (Command.isEmpty()) {
+            return about();
+        }
+        
+        String action = Command.get(0).toLowerCase();
+        switch (action) {
+            case "details":
+                return printDescription(false);
+            case "names":
+                String output = "Split Names:\n";
+                List<String> names = getSplitNames();
+                int maxLength = Integer.MIN_VALUE;
+                for (String name : names) {
+                    maxLength = Math.max(maxLength, name.length());
+                }
+                for (int i=0; i<names.size(); i++) {
+                    output += String.format("    %" + maxLength + "s", names.get(i));
+                    if (i % 2 == 1) {
+                        output += "\n";
+                    }
+                }
+                return output;
+            default:
+                throw new Exception("Print command not recognized: " + action);
+        }
+    }
+    
+    /**
+     * Get the names of the splits this splitter creates
+     * @return Names of each group
+     */
+    abstract public List<String> getSplitNames();
     
 }

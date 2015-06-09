@@ -1439,6 +1439,11 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     }
 
     @Override
+    public String printDescription(boolean htmlFormat) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
     public String toString() {
         String output = "Number of entries:  " + NEntries();
         output += "\nNumber of features: " + NAttributes();

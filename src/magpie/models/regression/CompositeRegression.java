@@ -239,7 +239,7 @@ public class CompositeRegression extends BaseRegression implements MultiModel {
         
         // Generate details of each sub model
         for (int i=0; i<NModels(); i++) {
-            String[] submodel = getModel(i).printModelDescription(htmlFormat).split("\n");
+            String[] submodel = getModel(i).printDescription(htmlFormat).split("\n");
             submodel[0] = "Submodel #" + i + ": " + submodel[0];
             output.addAll(Arrays.asList(submodel));
         }
