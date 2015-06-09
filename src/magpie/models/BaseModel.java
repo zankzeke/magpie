@@ -385,24 +385,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
      */
     abstract protected String printModel_protected();
     
-    /**
-     * Print full name of model, and a simple description of the options. This
-     * description should print enough information to reproduce this model, but
-     * not necessarily enough to run it.
-     * 
-     * <p>Example: For a model training a separate WekaRegression for intermetallics
-     * <p>magpie.models.regression.SplitRegression
-     * <div style="margin: 0 0 0 25px">
-     * Splitter: AllMetalsSplitter
-     * <br>All Metals: magpie.models.regression.WekaRegression trees.REPTree
-     * <br>Contains Nonmetal: magpie.regression.LASSORegreession -maxterms 2
-     * </div>
-     * 
-     * @param htmlFormat Whether format for output to an HTML page 
-     * (e.g., &lt;div&gt; to create indentation) or for printing to screen.
-     * @return String describing the model
-     * @see #printModel() 
-     */
+    @Override
     public String printDescription(boolean htmlFormat) {
         String output = getClass().getName() + "\n";
         
