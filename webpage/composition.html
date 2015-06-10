@@ -1,0 +1,134 @@
+<html>
+    <head>
+        <title>Material Property Predictor</title>
+        <link rel="stylesheet" href="style.css" type="text/css" media="screen" />
+        <script>
+        </script>
+    </head>
+    <body>
+        <div id="wrapper">
+            <div id="header">
+                <h1>Material Property Predictor</h1>
+            </div>
+            <p>This webpage uses machine learning models to predict the properties of materials based on their composition.	Each model was trained on different datasets and was created to predict different material properties. To use this tool, provide the list of compositions of interest into the text box below, select the models to evaluate from the following table, and click "Compute". 
+
+            <p>Composition(s): <input type="text" name="comps" id="comps" value="NaCl Zr2Al3Ti">
+
+                <button name="submit" id="button">Compute</button>
+
+            <h2>Available Models</h2>
+
+            <p>Select which models to evaluate. Click on the names of the models to view more information. 
+
+            <div id="modelBox">
+                <table id="modelSelector">
+                    <tr>
+                        <th></th>
+                        <th>Name</th>
+                        <th>Description</th>
+                    </tr>
+                </table>
+            </div>
+
+            <h2>Results</h2>
+            <div id="results">
+                <p>Nothing computed yet.</p>
+            </div>
+
+            <!-- Script to run prediction software -->
+            <script src="thrift.js"></script>
+            <script src="gen-js/MagpieServer.js"></script>
+            <script src="gen-js/magpie_types.js"></script>
+            <script src="utility.js"></script>
+            <script>
+            // Initialize Client
+            var transport = new Thrift.Transport("http://josquin.northwestern.edu:5343/");
+            var protocol = new Thrift.TJSONProtocol(transport);
+            var client = new MagpieServerClient(protocol);
+
+            // Write out available models
+            models = getModelsOfType(client, "CompositionDataset");
+            var started = false;
+            for (name in models) {
+                var row = document.createElement("tr");
+                var td = document.createElement("td");
+
+                // Make checkbox
+                var opt = document.createElement("input");
+                opt.setAttribute("type", "checkbox");
+                opt.setAttribute("checked", true);
+                opt.setAttribute("id", "check" + name);
+                td.appendChild(opt);
+                row.appendChild(td);
+
+                // Add name
+                td = document.createElement("td");
+                td.innerHTML = '<a href="models.html?model=' + name + '">' + name + "</a>";
+                row.appendChild(td)
+
+                // Add description
+                td = document.createElement("td");
+                td.innerHTML = models[name].description;
+                td.style.textAlign = "left";
+                row.appendChild(td)
+
+                modelSelector.appendChild(row);
+            }
+
+            // Function for running computation
+            function computeCompounds() {
+                // Get the list of compounds
+                var compounds = document.getElementById("comps").value.split(" ");
+
+                // Blank out results
+                var results = document.getElementById("results");
+                results.innerHTML = "<p>Computing...</p>";
+
+                // Compile list
+                var entries = [];
+                for (i in compounds) {
+                    entry = new Entry();
+                    entry.name = compounds[i];
+                    entries.push(entry);
+                }
+
+                // Create the callback
+                output = null;
+                var cb = function (result) {
+                    results.innerHTML = "<p>";
+                    output = result;
+                    var tbl = createTable(models, props, result);
+                    results.appendChild(tbl);
+                    results.innerHTML += "</p>";
+                }
+
+                // Get the list of properties
+                var props = new Array();
+                for (var model in models) {
+                    if (document.getElementById("check" + model).checked) {
+                        props.push(model)
+                    }
+                }
+
+                // Make the call
+                try {
+                    client.evaluateProperties(entries, props, cb);
+                } catch (err) {
+                    //console.log(err.get_stack())
+                    console.log(err.stack);
+                }
+
+            }
+
+            // Set up listener
+            document.getElementById("button").addEventListener('click', computeCompounds, false);
+            window.onkeydown = function (e) {
+                if (e.keyCode === 13) {
+                    computeCompounds();
+                }
+            };
+            </script>
+        </div>
+    </body>
+</html>
+

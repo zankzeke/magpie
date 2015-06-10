@@ -1,0 +1,69 @@
+
+<html>
+<head>
+	<title>Material Property Predictor</title>
+	<link rel="stylesheet" href="style.css" type="text/css" media="screen" />
+	<script>
+	</script>
+</head>
+<body>
+<div id="wrapper">
+	<div id="header">
+		<h1>Material Property Predictor</h1>
+	</div>
+	<p>Run a search for ternary entries with a certain set of properties</p>
+	
+	<form id="userinput">
+		Elements: <input type="text" name="comps" id="comps" value="Na Zr Ti O">
+		<br>Target volume: <input type="text" name="vol" id="vol" value="20"> &#8491;&#179;/atom
+		<br>Target band gap: <input type="text" name="eg" id="eg" value="2"> eV
+		<br><button type="button" name="submit" id="button">Search!</button>
+	</form>
+	
+	<h2>Results</h2>
+	<div id="results">
+		<p>Nothing computed yet.</p>
+	</div>
+	
+	<!-- Script to run prediction software -->
+	<script>
+		function computeCompounds() {
+			/// Make call to evaluate.php
+			// Prepare the HTTP request
+			var xmlhttp;
+			if (window.XMLHttpRequest) {
+				// code for IE7+, Firefox, Chrome, Opera, Safari
+				xmlhttp=new XMLHttpRequest();
+			} else {
+				// code for IE6, IE5
+				xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+			}
+		
+			xmlhttp.onreadystatechange=function() {
+				if (xmlhttp.readyState==4 && xmlhttp.status==200)	{
+					document.getElementById("results").innerHTML=xmlhttp.responseText;
+				}
+			}
+			xmlhttp.open("POST","search.php",true);
+			xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+			var results = document.getElementById("results");
+			results.innerHTML = "<p>Computing...</p>"
+			
+			// Command
+			var comps = document.getElementById("comps").value;
+			command = "elements=" + comps;
+			command = command + "&objs=volume target " + document.getElementById("vol").value
+			command = command + "\tbandgap target " + document.getElementById("eg").value
+			
+			// Make the call
+			xmlhttp.send(command);
+		}
+		
+		// Set up listener
+		document.getElementById("button").addEventListener('click', computeCompounds, false);
+	</script>
+	
+</div>
+</body>
+</html>
+

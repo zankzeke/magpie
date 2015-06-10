@@ -1,0 +1,333 @@
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>Metallic Glass Predictor</title>
+        <link rel="stylesheet" href="style.css" type="text/css" media="screen">
+        <style>
+            button.element {
+                width: 32px; height: 32px;
+                background: white;
+            }
+            button.element-nope {
+                width: 32px; height: 32px;
+                background: gray;
+            }
+            button.element-selected {
+                background: green;
+            }
+        </style>
+        <script src="jquery.js"></script>
+    </head>
+    <body>
+        <div id="wrapper">
+            <div id="header">
+                <h1>Metallic Glass Finder</h1>
+            </div>
+            <p>This web application allows you to search for metallic glass alloys using a machine learning model trained on data from the
+                <a href="http://www.springermaterials.com/docs/navigation.do?m=n_132208_Nonequilibrium+Phase+Diagrams+of+Ternary+Amorphous+Alloys">
+                    "Nonequilibrium Phase Diagrams of Ternary Amorphous Alloys"</a> dataset. Provided with a list of elements and the maximum number of components
+                in the alloy, it will compute the probability that it is possible to form a fully-amorphous ribbon with melt spinning for all possible
+                compositions within those bounds (with a 10at% spacing) using the methods described in <a href="#">recent, yet-unpublished work by the Wolverton group</a>.
+                The 10 compositions with the highest probability will be displayed.</p>
+
+            <h2>Input</h2>
+            <p>Select which elements to include.
+            <form id="userinput">
+                Maximum number of components:
+                <select id="order">
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                </select></br>
+                <!-- Selectable Periodic Table -->
+                <table border=0 cellspacing=0 cellpadding=0>
+                    <tr> <!-- Row #1 -->
+                        <td><button id="H" class="element-nope">H</button></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><button id="He" class="element-nope">He</button></td>
+                    </tr>
+                    <tr> <!-- Row #2 -->
+                        <td><button id="Li" class="element">Li</button></td>
+                        <td><button id="Be" class="element">Be</button></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><button id="B" class="element">B</button></td>
+                        <td><button id="C" class="element">C</button></td>
+                        <td><button id="N" class="element">N</button></td>
+                        <td><button id="O" class="element">O</button></td>
+                        <td><button id="F" class="element">F</button></td>
+                        <td><button id="Ne" class="element-nope">Ne</button></td>
+                    </tr>
+                    <tr> <!-- Row #3 -->
+                        <td><button id="Na" class="element">Na</button></td>
+                        <td><button id="Mg" class="element">Mg</button></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><button id="Al" class="element">Al</button></td>
+                        <td><button id="Si" class="element">Si</button></td>
+                        <td><button id="P" class="element">P</button></td>
+                        <td><button id="S" class="element">S</button></td>
+                        <td><button id="Cl" class="element">Cl</button></td>
+                        <td><button id="Ar" class="element-nope">Ar</button></td>
+                    </tr>
+                    <tr> <!-- Row #4 -->
+                        <td><button id="K" class="element">K</button></td>
+                        <td><button id="Ca" class="element">Ca</button></td>
+                        <td><button id="Sc" class="element">Sc</button></td>
+                        <td><button id="Ti" class="element">Ti</button></td>
+                        <td><button id="V" class="element">V</button></td>
+                        <td><button id="Cr" class="element">Cr</button></td>
+                        <td><button id="Mn" class="element">Mn</button></td>
+                        <td><button id="Fe" class="element">Fe</button></td>
+                        <td><button id="Co" class="element">Co</button></td>
+                        <td><button id="Ni" class="element">Ni</button></td>
+                        <td><button id="Cu" class="element">Cu</button></td>
+                        <td><button id="Zn" class="element">Zn</button></td>
+                        <td><button id="Ga" class="element">Ga</button></td>
+                        <td><button id="Ge" class="element">Ge</button></td>
+                        <td><button id="As" class="element">As</button></td>
+                        <td><button id="Se" class="element">Se</button></td>
+                        <td><button id="Br" class="element">Br</button></td>
+                        <td><button id="Kr" class="element-nope">Kr</button></td>
+                    </tr>
+                    <tr> <!-- Row #5 -->
+                        <td><button id="Rb" class="element">Rb</button></td>
+                        <td><button id="Sr" class="element">Sr</button></td>
+                        <td><button id="Y" class="element">Y</button></td>
+                        <td><button id="Zr" class="element">Zr</button></td>
+                        <td><button id="Nb" class="element">Nb</button></td>
+                        <td><button id="Mo" class="element">Mo</button></td>
+                        <td><button id="Tc" class="element-nope">Tc</button></td>
+                        <td><button id="Ru" class="element">Ru</button></td>
+                        <td><button id="Rh" class="element">Rh</button></td>
+                        <td><button id="Pd" class="element">Pd</button></td>
+                        <td><button id="Ag" class="element">Ag</button></td>
+                        <td><button id="Cd" class="element">Cd</button></td>
+                        <td><button id="In" class="element">In</button></td>
+                        <td><button id="Sn" class="element">Sn</button></td>
+                        <td><button id="Sb" class="element">Sb</button></td>
+                        <td><button id="Te" class="element">Te</button></td>
+                        <td><button id="I" class="element">I</button></td>
+                        <td><button id="Xe" class="element-nope">Xe</button></td>
+                    </tr>
+                    <tr> <!-- Row #6 -->
+                        <td><button id="Cs" class="element">Cs</button></td>
+                        <td><button id="Ba" class="element">Ba</button></td>
+                        <td><button id="Lu" class="element">Lu</button></td>
+                        <td><button id="Hf" class="element">Hf</button></td>
+                        <td><button id="Ta" class="element">Ta</button></td>
+                        <td><button id="W" class="element">W</button></td>
+                        <td><button id="Re" class="element">Re</button></td>
+                        <td><button id="Os" class="element">Os</button></td>
+                        <td><button id="Ir" class="element">Ir</button></td>
+                        <td><button id="Pt" class="element">Pt</button></td>
+                        <td><button id="Au" class="element">Au</button></td>
+                        <td><button id="Hg" class="element">Hg</button></td>
+                        <td><button id="Tl" class="element">Tl</button></td>
+                        <td><button id="Pb" class="element">Pb</button></td>
+                        <td><button id="Bi" class="element">Bi</button></td>
+                        <td><button id="Po" class="element">Po</button></td>
+                        <td><button id="At" class="element">At</button></td>
+                        <td><button id="Rn" class="element-nope">Rn</button></td>
+                    </tr>
+                    <tr> <!-- Row #7 -->
+                        <td><button id="Fr" class="element-nope">Fr</button></td>
+                        <td><button id="Ra" class="element-nope">Ra</button></td>
+                        <td><button id="Lr" class="element-nope">Lr</button></td>
+                        <td><button id="Rf" class="element-nope">Rf</button></td>
+                        <td><button id="Db" class="element-nope">Db</button></td>
+                        <td><button id="Sg" class="element-nope">Sg</button></td>
+                        <td><button id="Bh" class="element-nope">Bh</button></td>
+                        <td><button id="Hs" class="element-nope">Hs</button></td>
+                        <td><button id="Mt" class="element-nope">Mt</button></td>
+                        <td><button id="Ds" class="element-nope">Ds</button></td>
+                        <td><button id="Rg" class="element-nope">Rg</button></td>
+                        <td><button id="Cn" class="element-nope">Cn</button></td>
+                    </tr>
+                    <tr><td height=24px></td></tr>
+                    <tr> <!-- Lanthanide -->
+                        <td></td><td></td>
+                        <td><button id="La" class="element">La</button></td>
+                        <td><button id="Ce" class="element">Ce</button></td>
+                        <td><button id="Pr" class="element">Pr</button></td>
+                        <td><button id="Nd" class="element">Nd</button></td>
+                        <td><button id="Pm" class="element">Pm</button></td>
+                        <td><button id="Sm" class="element">Sm</button></td>
+                        <td><button id="Eu" class="element">Eu</button></td>
+                        <td><button id="Gd" class="element">Gd</button></td>
+                        <td><button id="Tb" class="element">Tb</button></td>
+                        <td><button id="Dy" class="element">Dy</button></td>
+                        <td><button id="Ho" class="element">Ho</button></td>
+                        <td><button id="Er" class="element">Er</button></td>
+                        <td><button id="Tm" class="element">Tm</button></td>
+                        <td><button id="Yb" class="element">Yb</button></td>
+                    </tr>
+                    <tr> <!-- Actinide -->
+                        <td></td><td></td>
+                        <td><button id="Ac" class="element">Ac</button></td>
+                        <td><button id="Th" class="element">Th</button></td>
+                        <td><button id="Pa" class="element">Pa</button></td>
+                        <td><button id="U" class="element">U</button></td>
+                        <td><button id="Np" class="element">Np</button></td>
+                        <td><button id="Pu" class="element">Pu</button></td>
+                        <td><button id="Am" class="element-nope">Am</button></td>
+                        <td><button id="Cm" class="element-nope">Cm</button></td>
+                        <td><button id="Bk" class="element-nope">Bk</button></td>
+                        <td><button id="Cf" class="element-nope">Cf</button></td>
+                        <td><button id="Es" class="element-nope">Es</button></td>
+                        <td><button id="Fm" class="element-nope">Fm</button></td>
+                        <td><button id="Md" class="element-nope">Md</button></td>
+                        <td><button id="No" class="element-nope">No</button></td>
+                    </tr>
+                </table>
+                <button type="button" name="submit" id="button">Search!</button>
+            </form>
+
+            <h2>Results</h2>
+            <div id="results">
+                <p>Nothing computed yet.</p>
+            </div>
+
+            <!-- Script to assemble the periodic table -->
+            <script>
+                $(".element-nope").click(function (event) {
+                    event.preventDefault()
+                })
+                $(".element").click(function (event) {
+                    $(this).toggleClass("element-selected");
+                    event.preventDefault();
+                })
+            </script>
+
+            <!-- Script to run prediction software -->
+            <script src="thrift.js"></script>
+            <script src="gen-js/MagpieServer.js"></script>
+            <script src="gen-js/magpie_types.js"></script>
+            <script src="utility.js"></script>
+            <script>
+            // Initialize Client
+            // var transport = new Thrift.Transport("http://localhost:4582/");
+            var transport = new Thrift.Transport("http://josquin.northwestern.edu:5343/");
+            transport.open()
+            var protocol = new Thrift.TJSONProtocol(transport);
+            var client = new MagpieServerClient(protocol);
+
+            var callback = function (result) {
+                // Store result
+                var entries = result; 
+
+                // Initialize table
+                results.innerHTML = "<p>";
+                var tbl = document.createElement("table");
+                var tbody = document.createElement("tbdy");
+                tbl.appendChild(tbody);
+
+                // Create header   
+                var tr = document.createElement("tr");
+                var td = document.createElement("th");
+                td.innerHTML = "Composition";
+                tr.appendChild(td);
+                td = document.createElement("th");
+                td.innerHTML = "P(Can Form Glass) (&#37;)";
+                tr.appendChild(td);
+                tbody.appendChild(tr);
+
+                // Output table
+                for (i in entries) {
+                    // Store composition
+                    tr = document.createElement("tr");
+                    td = document.createElement("td");
+                    td.innerHTML = entries[i].name
+                    tr.appendChild(td)
+
+                    // Store probability
+                    td = document.createElement("td");
+                    p = entries[i].classProbs['landolt-gfa'][0] * 100
+                    td.innerHTML = p.toPrecision(3)
+                    tr.appendChild(td)
+
+                    tbody.appendChild(tr)
+                }
+
+                // Close table
+                results.appendChild(tbl);
+                results.innerHTML += "</p>"
+            }
+
+            // Script to run prediction software
+            function runGFASearch() {
+                // Get list of elements, compile into string
+                elem_list = $(".element-selected").map(function() { return this.id }).get()
+                var elems = ""
+                for (x in elem_list) {
+                    elems += " " + elem_list[x]
+                }
+
+                // Get desired order
+                var maxOrder = document.getElementById("order").value;
+
+                // Error check: Are enough elements provided
+                if (elem_list.length < maxOrder) {
+                    results.innerHTML = "<p><b>ERROR</b> Must selected at least " + maxOrder + " elements";
+                    return;
+                }
+                if (elem_list.length >= 10) {
+                    results.innerHTML = "<p><b>ERROR</b> Web app only supports fewer than 10 elements."
+                    + "<br>If you are interested in running a larger search, please contact the Wolverton group.";
+                    return;
+                }
+
+                // Print status message
+                results.innerHTML = "<p>Computing...</p>";
+
+                try {
+                    client.searchSingleObjective("landolt-gfa maximize ClassProbabilityRanker AM", 
+                        "PhaseDiagramCompositionEntryGenerator 1 " + maxOrder + " -alloy 10.0 " + elems,
+                        10, callback)
+                } catch (ouch) {
+                    results.innerHTML = "<p>"
+                    results.innerHTML += ouch.why
+                }
+            }
+
+            // Set up listener
+            document.getElementById("button").addEventListener('click', runGFASearch, false);
+
+            // Map pressing enter key to "submit" button
+            document.onkeydown = function(evt) { if (evt.keyCode === 13) runGFASearch() }
+            </script>
+
+        </div>
+

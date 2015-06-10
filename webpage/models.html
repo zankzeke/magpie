@@ -1,0 +1,101 @@
+
+<html>
+<head>
+	<title>Model Library</title>
+	<link rel="stylesheet" href="style.css" type="text/css" media="screen" />
+	<script src="jquery.js"></script>
+	<style>
+		div.model {
+			font-size: 20px;
+			width: 30%; height: 40px;
+			line-height: 40px;
+			background: gray;
+			color: white;
+			display: inline-block;
+			text-align: center;
+			margin: 10px 10px 10px 10px;
+		}
+		div.model-active {
+			background: blue;
+		}
+		label {
+			color: black;
+			font-weight: bold;
+			display: inline-block;
+			width: 20%;
+			font-size: 1.1em;
+		}
+	</style>
+</head>
+<body>
+<div id="wrapper">
+    <div id="header">
+        <h1>Model Library</h1>
+    </div>
+    <p>Summaries of models available through Magpie web interface.
+
+    <h2>Available Models</h2>
+    
+    <p>Click on one the names of a model to display more information about it.
+    
+    <div id="modelMenu">
+        <p>No available models.</p>
+    </div>
+    
+    <div id="modelInfoOutput">
+    </div>
+
+    <!-- Script to load model info -->
+    <script src="thrift.js"></script>
+	<script src="utility.js"></script>
+    <script src="gen-js/MagpieServer.js"></script>
+    <script src="gen-js/magpie_types.js"></script>
+    <script>
+	    // Initialize Client
+	//    var transport = new Thrift.Transport("http://localhost:4582/");
+	    var transport = new Thrift.Transport("http://josquin.northwestern.edu:5343/");
+	    transport.open()
+	    var protocol  = new Thrift.TJSONProtocol(transport);
+	    var client    = new MagpieServerClient(protocol);
+
+	    // Get the model information
+	    var models = client.getModelInformation();
+	    
+	    // Make the table
+	    var output = "";
+	    for (name in models) {
+			output += '<div id="' + name + '" class="model">' + name + '</div>';
+	    }
+	    
+	    // Print it out
+	    modelMenu.innerHTML = output
+	    
+	    // Create function to output model info
+	    mi = function(model) {
+	    	modelInfo = models[model];
+			modelInfoOutput.innerHTML = "<h2>Model Information: " + model + "</h2>";
+			outputModelInfo(modelInfo, modelInfoOutput);
+	    };
+	    
+	    // Attach functions
+	    $(".model").click(function (event) {
+	    	$(".model-active").toggleClass("model-active");
+			$(this).toggleClass("model-active");
+			mi($(this)[0].id)
+	    });
+	    
+    
+    	// See if the user requested any model through URL
+    	var req = location.search;
+    	if (req.startsWith("?model=")) {
+    		model = req.replace("?model=", "")
+    		mi(model);
+    		document.getElementById(model).className += " model-active";
+    	}
+    	
+    </script>
+	
+</div>
+</body>
+</html>
+
