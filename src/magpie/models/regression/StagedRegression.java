@@ -263,7 +263,7 @@ public class StagedRegression extends BaseRegression implements MultiModel, Abst
         // Print out models
         for (int m=0; m<NModels(); m++) {
             String[] submodel = getModel(m).printDescription(htmlFormat).split("\n");
-            submodel[0] = "Submodel #" + m + ":" + submodel[0];
+            submodel[0] = "Submodel #" + m + ": " + submodel[0];
             output.addAll(Arrays.asList(submodel));
         }
         

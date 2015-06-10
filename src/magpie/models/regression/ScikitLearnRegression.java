@@ -4,11 +4,13 @@ import java.io.*;
 import java.io.PrintStream;
 import java.net.Socket;
 import java.nio.file.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
+import sun.java2d.loops.GraphicsPrimitive;
 
 /**
  * Uses Scikit-learn to train a regression model. User must provide the path to
@@ -25,9 +27,11 @@ import magpie.data.Dataset;
  * files on whatever system Magpie is running on.
  *
  * <usage><p>
- * <b>Usage</b>: &lt;model&gt;
+ * <b>Usage</b>: &lt;model&gt; [&lt;compression level&gt;]
  * <br><pr><i>model</i>: Path to a file containing a Scikit-Learn regression
  * object
+ * <br><pr><i>compression</i>: Degree to which model is compressed before 
+ * storing in Magpie. 1: fastest, 9: lowest memory footprint (default: 5)
  * <br>See
  * <a href="http://scikit-learn.org/dev/tutorial/basic/tutorial.html#model-persistence">
  * this tutorial</a> for how to save Scikit-Learn objects.
@@ -36,16 +40,15 @@ import magpie.data.Dataset;
  * @author Logan Ward
  */
 public class ScikitLearnRegression extends BaseRegression {
-
     /**
      * Scikit-learn model. This is just the the pickle file as a char array that
      * has been split into chunks
      */
-    private List<byte[]> ScikitModel = new LinkedList<>();
+    private List<byte[]> ScikitModel = new ArrayList<>();
     /** 
      * Buffer size when reading in files / from sockets.
      */
-    private final int BufferSize = 1024 * 1024 * 4;
+    private final int BufferSize = 1024 * 1024 * 16;
     /**
      * Scikit server process
      */
@@ -54,6 +57,10 @@ public class ScikitLearnRegression extends BaseRegression {
      * Port on which server communicates
      */
     private transient int Port;
+    /**
+     * Compression level on ScikitLearn model
+     */
+    private int CompressionLevel = 5;
 
     @Override
     protected void finalize() throws Throwable {
@@ -73,21 +80,47 @@ public class ScikitLearnRegression extends BaseRegression {
     @Override
     public void setOptions(List<Object> Options) throws Exception {
         String path;
+        int level = 5;
         try {
-            if (Options.size() != 1) {
+            if (Options.size() > 2) {
                 throw new Exception();
             }
             path = Options.get(0).toString();
+            if (Options.size() > 1) {
+                level = Integer.parseInt(Options.get(1).toString());
+            }
         } catch (Exception e) {
             throw new Exception(printUsage());
         }
         readModel(new FileInputStream(path));
+        setCompressionLevel(level);
     }
 
     @Override
     public String printUsage() {
         return "Usage: <path to model.pkl>";
     }
+
+    /**
+     * Define how well model is compressed after training.
+     * 
+     * <p>This class works by launching a server than runs a scikit-learn model.
+     * After training, this server sends back the model as a pickle file. For
+     * large datasets, this could be a huge file. This option allows one to compress
+     * it before transmission.
+     * 
+     * @param level Desired level. 1: Fastest, 9: Smallest memory footprint
+     * @throws Exception 
+     * @see #ScikitModel
+     */
+    public void setCompressionLevel(int level) throws Exception {
+        if (level < 1 || level > 9) {
+            throw new Exception("Compression level must be 1-9");
+        }
+        this.CompressionLevel = level;
+    }
+    
+    
 
     /**
      * Read model from an input stream
@@ -139,13 +172,22 @@ public class ScikitLearnRegression extends BaseRegression {
                 + "from sys import argv\n"
                 + "import socket\n"
                 + "import array\n"
+                + "import bz2\n"
+                + "import binascii\n"
                 + "from sys import stdout\n"
                 + "\n" 
                 + "startPort = 5482; # First port to check\n"
                 + "endPort = 5582; # Last port to check\n"
                 + "fp = open(argv[1], 'r')\n"
-                + "model = pickle.load(fp)\n"
+                + "model_string = fp.read()\n"
                 + "fp.close()\n"
+                + "try:\n"
+                + " model = pickle.loads(model_string)\n"
+                + "except:\n"
+                + " model_data = bz2.decompress(model_string)\n"
+                + " model = pickle.loads(model_data)\n"
+                + " model_data = None\n"
+                + "model_string = None\n"
                 + "\n"
                 + "port = startPort;\n"
                 + "ss = socket.socket(socket.AF_INET, socket.SOCK_STREAM)\n"
@@ -173,7 +215,9 @@ public class ScikitLearnRegression extends BaseRegression {
                 + "		y.append(temp[0])\n"
                 + "	model.fit(X,y)\n"
                 + "	\n"
-                + "	pickle.dump(model, fo)\n"
+                + "\tmc = bz2.compress(pickle.dumps(model), " + CompressionLevel + ")\n"
+                + "\tprint >>fi, mc\n"
+                + "\tmc = None\n"
                 + "\n"
                 + "def runModel(fi, fo):\n"
                 + "	\n"
@@ -303,7 +347,7 @@ public class ScikitLearnRegression extends BaseRegression {
             }
             fo.flush();
             
-            // Receive the model
+            // Recieve the model
             readModel(socket.getInputStream());
             
             socket.close();

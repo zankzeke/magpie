@@ -2,6 +2,7 @@ import pickle
 from sys import argv
 import socket
 import array
+import bz2
 
 # Default values
 startPort = 5482; # First port to check
@@ -9,8 +10,20 @@ endPort = 5582; # Last port to check
 
 # Open the model file
 fp = open(argv[1], 'r')
-model = pickle.load(fp)
+model_string = fp.read()
 fp.close()
+try:
+	# Assume uncompressed first
+	model = pickle.loads(model_string)
+except:
+	# See if it is compressed
+	model_string = model_string[:len(model_string)-1] # Remove newline
+	model_data = binascii.unhexlify(model_string)
+	model_string = bz2.decompress(model_data)
+	model = pickle.loads(model_string)
+	model_data = None
+model_string = None
+	
 
 # Launch the server
 port = startPort;
@@ -34,13 +47,13 @@ def trainModel(fi, fo):
 	
 	First number on line should be class, followed by attributes
 	
-	Recieves rows of a matrix from a client
+	Receives rows of a matrix from a client
 	Sends back the pickled model after training
 	@param fi File pointer to reading from socket
 	@param fo File pointer to writing to socket
 	'''
 	
-	# Recieve
+	# Receive
 	print "Training model"
 	nRows = int(fi.readline())
 	print "\tExpected %d rows"%nRows
@@ -58,7 +71,9 @@ def trainModel(fi, fo):
 	
 	# Send back
 	print "\tSending back model"
-	pickle.dump(model, fo)
+	mc = bz2.compress(pickle.dumps(model), 5)
+	print >>fi, mc
+	mc = None
 
 def runModel(fi, fo):
 	'''
