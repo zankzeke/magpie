@@ -158,7 +158,6 @@ public class ScikitLearnRegression extends BaseRegression {
                 + "		continue\n"
                 + "	break\n"
                 + "ss.listen(0) # Only allow one connection\n"
-                + "ss.settimeout(36000)\n"
                 + "print \"Listening on port\", port\n"
                 + "stdout.flush();\n"
                 + "\n"
