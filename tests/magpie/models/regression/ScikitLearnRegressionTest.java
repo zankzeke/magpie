@@ -19,6 +19,7 @@ public class ScikitLearnRegressionTest extends BaseModelTest {
         ScikitLearnRegression model = new ScikitLearnRegression();
         try {
             model.readModel(new FileInputStream("test-files/sklearn-linreg.pkl"));
+            model.setCompressionLevel(1);
         } catch (Exception e) {
             throw new Error(e);
         }
