@@ -51,7 +51,7 @@ public class ModelPackage {
         info.citation = Citation;
         info.description = Description;
         info.property = Property;
-        info.training = TrainingSet;
+        info.training = Model.TrainingStats.NumberTested + " entries: " + TrainingSet;
         info.notes = Notes;
         
         // Store units or class names
