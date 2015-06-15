@@ -113,8 +113,8 @@ public class ElementalPropertyAttributeGenerator extends BaseAttributeGenerator 
     }
 
     @Override
-    public String printDescription(boolean htmlDescription) {
-        String output = getClass().getName() + ":";
+    public String printDescription(boolean htmlFormat) {
+        String output = getClass().getName() + (htmlFormat ? " " : ": ");
         
         // Print out number of attributes
         output += " (" + (ElementalProperties.size() * 6) + ") ";
@@ -124,7 +124,7 @@ public class ElementalPropertyAttributeGenerator extends BaseAttributeGenerator 
                 + " of " + ElementalProperties.size() + " elemental properties:\n";
         
         // Print out elemental properties
-        if (htmlDescription) {
+        if (htmlFormat) {
             output += "<br>";
         }
         boolean started = false;

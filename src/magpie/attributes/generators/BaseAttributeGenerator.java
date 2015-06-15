@@ -29,6 +29,8 @@ abstract public class BaseAttributeGenerator implements Serializable, Options {
      * <p>[Full Name of generator]: (Number of attributes) Text description
      * of what these attributes are
      * 
+     * <p>For HTML format, omit the ":".
+     * 
      * @param htmlFormat Whether to print in HTML format
      * @return Description of the attributes
      */

@@ -95,7 +95,7 @@ public class IonicityAttributeGenerator extends BaseAttributeGenerator {
 
     @Override
     public String printDescription(boolean htmlFormat) {
-        String output = getClass().getName() + ":";
+        String output = getClass().getName() + (htmlFormat ? " " : ": ");
         
         // Print out description
         output += " (3) Whether a charge-neutral, ionic compound can be formed, "

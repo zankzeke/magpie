@@ -122,7 +122,7 @@ public class StoichiometricAttributeGenerator extends BaseAttributeGenerator {
 
     @Override
     public String printDescription(boolean htmlFormat) {
-        String output = getClass().getName() + ": ";
+        String output = getClass().getName() + (htmlFormat ? " " : ": ");
         
         // Print description
         output += "(" + (PNorms.size() + 1) + ")"

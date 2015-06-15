@@ -15,7 +15,6 @@ import magpie.data.materials.util.LookupData;
 import magpie.data.materials.util.PropertyLists;
 import magpie.utility.tools.OxidationStateGuesser;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.math3.stat.*;
 
 /**
  * This class stores entries that describe a material based solely on its
