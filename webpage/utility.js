@@ -130,6 +130,29 @@ function outputModelInfo(modelInfo, outputDiv) {
 	}
 	
 	outputDiv.innerHTML += output
+
+	// Print out information about dataset
+	output = "<h3>Attribute Infomration</h3>\n";
+	dataInfo = modelInfo.dataType.split("\n");
+	for (i in dataInfo) {
+		line = dataInfo[i]
+		
+		words = line.split(" ")
+	
+		// Look for names of magpie classes
+		for (j in words) {
+			word = words[j]
+			if (word.indexOf("magpie.") == 0) {
+				words[j] = getDocReference(words[j])
+			}
+		}
+		
+		// Output line
+		for (j in words) {
+			output += " " + words[j]
+		}
+	}
+	outputDiv.innerHTML += output;
 	
 	// Print out model structure
 	output = "<h3>Model Structure</h3>"
@@ -166,5 +189,5 @@ var javadocURL = "http://oqmd.org/static/analytics/magpie/javadoc/"
  * @return Hyperlink to its documentation page
  */
 function getDocReference(className) {
-	return "<a href=\"" + javadocURL + className.replace(/\./g,"/") + ".html\">" + className + "</a>"
+	return "<a href=\"" + javadocURL + className.replace(/\./g,"/") + ".html\">" + className.replace("magpie.","") + "</a>"
 }
