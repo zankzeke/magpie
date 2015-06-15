@@ -30,6 +30,9 @@ public class StoichiometricAttributeGeneratorTest {
         assertEquals(2, data.getEntry(0).getAttribute(0), 1e-6);
         assertEquals(Math.sqrt(1.0/2), data.getEntry(0).getAttribute(1), 1e-6);
         assertEquals(Math.pow(0.25, 1.0/3), data.getEntry(0).getAttribute(2), 1e-6);
+        
+        // Print results
+        System.out.println(gen.printDescription(true));
     }
     
 }

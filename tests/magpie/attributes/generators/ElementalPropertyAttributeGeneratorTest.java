@@ -43,6 +43,9 @@ public class ElementalPropertyAttributeGeneratorTest {
         assertEquals(data.getAttributeName(3),   26, data.getEntry(1).getAttribute(3), 1e-6);
         assertEquals(data.getAttributeName(4),    8, data.getEntry(1).getAttribute(4), 1e-6);
         assertEquals(data.getAttributeName(5),    8, data.getEntry(1).getAttribute(5), 1e-6);
+        
+        // Print results
+        System.out.println(gen.printDescription(true));
     }
     
 }

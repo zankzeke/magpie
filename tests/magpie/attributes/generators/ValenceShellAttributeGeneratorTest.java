@@ -39,6 +39,9 @@ public class ValenceShellAttributeGeneratorTest {
         assertEquals(data.getAttributeName(1), 2.4/6, data.getEntry(1).getAttribute(1), 1e-6);
         assertEquals(data.getAttributeName(2), 1.4/6, data.getEntry(1).getAttribute(2), 1e-6);
         assertEquals(data.getAttributeName(3), 0.2/6, data.getEntry(1).getAttribute(3), 1e-6);
+        
+        // Test description
+        System.out.println(gen.printDescription(true));
     }
     
 }
