@@ -73,7 +73,7 @@ public class ModelPackage {
         }
         
         // Store names of models
-        info.dataType = Dataset.getClass().getName();
+        info.dataType = Dataset.printDescription(true);
         info.modelType = Model.printDescription(true);
         
         // Store validation performance data
