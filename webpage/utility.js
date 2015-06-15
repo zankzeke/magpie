@@ -8,7 +8,7 @@ function getModelsOfType(client, dataType) {
     var allModels = client.getModelInformation();
     var output = new Array();
     for (var model in allModels) {
-        if (allModels[model].dataType.includes(dataType)) {
+        if (allModels[model].dataType.indexOf(dataType) !== -1) {
             output[model] = allModels[model];
         }
     }
