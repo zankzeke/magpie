@@ -1438,9 +1438,33 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         return output;
     }
 
+    /**
+     * Print out name of dataset and how attributes are generated.
+     * @param htmlFormat Whether to print in HTML format.
+     * @return String describing this dataset
+     */
     @Override
     public String printDescription(boolean htmlFormat) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        // Print out class name
+        String output = getClass().getName() + "\n";
+        
+        // Print out what attributes are generated
+        if (htmlFormat) {
+            output += "<br>";
+        }
+        
+        return output;
+    }
+    
+    /**
+     * Print out description of attributes. 
+     * 
+     * <p><b>Implementation Guide</b>
+     * <p>Subclasses should describe what kind of attributes 
+     * @return 
+     */
+    public String printAttributeDescription(boolean htmlFormat) {
+        return "This class doesn't generate any attributes";
     }
 
     @Override
