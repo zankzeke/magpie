@@ -1494,11 +1494,11 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         if (Generators.size() > 0) {
             // Print out header
             if (htmlFormat) {
-                output += "<h3>";
+                output += "<h4>";
             }
             output += "Attribute Generators";
             if (htmlFormat) {
-                output += "</h3>";
+                output += "</h4>";
             }
             output += "\n";
             
@@ -1511,7 +1511,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         for (int i=0; i<Generators.size(); i++) {
             // Print out description of the generator
             if (htmlFormat) {
-                output += "<li>";
+                output += "<li> ";
             } else {
                 output += i + ". ";
             }
