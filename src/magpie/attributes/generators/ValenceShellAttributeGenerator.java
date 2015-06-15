@@ -74,5 +74,13 @@ public class ValenceShellAttributeGenerator extends BaseAttributeGenerator {
             ptr.getEntry(i).addAttributes(total_e);
         }
     }
+
+    @Override
+    public String printDescription(boolean htmlFormat) {
+        return getClass().getName() + ": (4) " 
+                + "Composition-weighted average number of {s,p,d,f} valence electrons "
+                + "of each constituent element divided by average number of total "
+                + "valence electrons";
+    }
     
 }

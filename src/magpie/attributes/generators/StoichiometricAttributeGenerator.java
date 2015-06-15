@@ -119,4 +119,25 @@ public class StoichiometricAttributeGenerator extends BaseAttributeGenerator {
             entry.addAttributes(attr);
         }
     }
+
+    @Override
+    public String printDescription(boolean htmlFormat) {
+        String output = getClass().getName() + ": ";
+        
+        // Print description
+        output += "(" + (PNorms.size() + 1) + ")"
+                + " Number of components, p = {";
+        boolean started = false;
+        for (int p : PNorms) {
+            if (started) {
+                output += ",";
+            }
+            output += p;
+            started = true;
+        }
+        output += "} norms of the fraction vector";
+        
+        return output;
+    }
+    
 }

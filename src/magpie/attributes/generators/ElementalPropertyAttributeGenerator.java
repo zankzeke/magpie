@@ -17,6 +17,8 @@ import magpie.data.materials.CompositionEntry;
  * @author Logan Ward
  */
 public class ElementalPropertyAttributeGenerator extends BaseAttributeGenerator {
+    /** Elemental properties used to generate attributes */
+    private List<String> ElementalProperties = null;
 
     @Override
     public void setOptions(List<Object> Options) throws Exception {
@@ -39,9 +41,9 @@ public class ElementalPropertyAttributeGenerator extends BaseAttributeGenerator 
         CompositionDataset ptr = (CompositionDataset) data;
         
         // Create attribute names
-        List<String> props = ptr.getElementalProperties();
-        List<String> newNames = new ArrayList<>(props.size());
-        for (String prop : props) {
+        ElementalProperties = ptr.getElementalProperties();
+        List<String> newNames = new ArrayList<>(ElementalProperties.size());
+        for (String prop : ElementalProperties) {
             newNames.add("mean_" + prop);
             newNames.add("maxdiff_" + prop);
             newNames.add("dev_" + prop);
@@ -59,7 +61,7 @@ public class ElementalPropertyAttributeGenerator extends BaseAttributeGenerator 
             int count = 0;
 
             // Generate data for each property
-            for (String prop : props) {
+            for (String prop : ElementalProperties) {
                 // Get the lookup table for this property
 				double[] lookup = ptr.getPropertyLookupTable(prop);
 
@@ -108,6 +110,33 @@ public class ElementalPropertyAttributeGenerator extends BaseAttributeGenerator 
             System.err.println();
             System.err.flush();
         }
+    }
+
+    @Override
+    public String printDescription(boolean htmlDescription) {
+        String output = getClass().getName() + ":";
+        
+        // Print out number of attributes
+        output += " (" + (ElementalProperties.size() * 6) + ") ";
+        
+        // Print out description
+        output += "Minimum, mean, maximum, mode, range, and mean absolute deviation"
+                + " of " + ElementalProperties.size() + " elemental properties:\n";
+        
+        // Print out elemental properties
+        if (htmlDescription) {
+            output += "<br>";
+        }
+        boolean started = false;
+        for (String prop : ElementalProperties) {
+            if (started) {
+                output += ", ";
+            }
+            output += prop;
+            started = true;
+        }
+        
+        return output;
     }
     
 }

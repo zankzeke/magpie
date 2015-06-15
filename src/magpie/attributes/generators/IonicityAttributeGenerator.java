@@ -92,5 +92,16 @@ public class IonicityAttributeGenerator extends BaseAttributeGenerator {
             entry.addAttributes(toAdd);
         }
     }
+
+    @Override
+    public String printDescription(boolean htmlFormat) {
+        String output = getClass().getName() + ":";
+        
+        // Print out description
+        output += " (3) Whether a charge-neutral, ionic compound can be formed, "
+                + "maximum bond ionicity, and mean bond ionicity";
+        
+        return output;
+    }
     
 }
