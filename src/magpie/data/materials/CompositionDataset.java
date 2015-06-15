@@ -765,7 +765,9 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
         }
     }
 
-    
-
+    @Override
+    public String printEntryDescription(boolean htmlFormat) {
+        return "List of elements and their relative proportions";
+    }
     
 }
