@@ -262,10 +262,8 @@ public class CompositionEntry extends MultiPropertyEntry {
         }
         
         // Normalize fraction, if it has not been already
-        if (NumberInCell == Double.NEGATIVE_INFINITY) {
-            NumberInCell = StatUtils.sum(Fraction);
-            for (int i=0; i<Fraction.length; i++) Fraction[i] /= NumberInCell;
-        }
+        NumberInCell = StatUtils.sum(Fraction);
+        for (int i=0; i<Fraction.length; i++) Fraction[i] /= NumberInCell;
     }
         
     // Feature calculation methods
