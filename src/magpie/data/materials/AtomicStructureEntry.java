@@ -1,6 +1,7 @@
 
 package magpie.data.materials;
 
+import java.util.Map;
 import vassal.data.Atom;
 import vassal.data.Cell;
 import magpie.data.materials.util.LookupData;
@@ -12,9 +13,11 @@ import org.apache.commons.lang3.ArrayUtils;
  */
 public class AtomicStructureEntry extends CompositionEntry {
 	/** Crystal structure */
-	final private Cell Structure;
+	private Cell Structure;
 	/** Name of entry */
 	private String Name;
+    /** Link to atomic radii array */
+    private double[] Radii;
 
 	/**
 	 * Create an entry given its crystal structure
@@ -32,27 +35,60 @@ public class AtomicStructureEntry extends CompositionEntry {
 			throw new Exception("Cannot handle blank crystal structures");
 		}
 		
-		// Get the composition
-		int[] elems = new int[structure.nTypes()];
-		double[] count = new double[structure.nTypes()];
-		for (int i=0; i < elems.length; i++) {
-			elems[i] = ArrayUtils.indexOf(LookupData.ElementNames,
-					structure.getTypeName(i));
-			if (elems[i] == ArrayUtils.INDEX_NOT_FOUND) {
-				throw new Exception("Element name not recognized: " + 
-						structure.getTypeName(i));
-			}
-			// Get the number of that atom
-			count[i] = (double) structure.numberOfType(i);
-			// Set the atomic radius of that atom
-			if (radii != null) {
-				Structure.setTypeRadius(i, radii[elems[i]]);
-			}
-		}
+        // Store the radii
+        Radii = radii;
+        
+        // Compute the composition of this crystal.
+		computeComposition();
+	}
+
+    /**
+     * Compute the composition of this crystal.
+     * @throws Exception If the composition fails to parse
+     */
+    final protected void computeComposition() throws Exception {
+        // Get the composition
+        int[] elems = new int[Structure.nTypes()];
+        double[] count = new double[Structure.nTypes()];
+        for (int i=0; i < elems.length; i++) {
+            elems[i] = ArrayUtils.indexOf(LookupData.ElementNames,
+                    Structure.getTypeName(i));
+            if (elems[i] == ArrayUtils.INDEX_NOT_FOUND) {
+                throw new Exception("Element name not recognized: " +
+                        Structure.getTypeName(i));
+            }
+            // Get the number of that atom
+            count[i] = (double) Structure.numberOfType(i);
+            // Set the atomic radius of that atom
+            if (Radii != null) {
+                Structure.setTypeRadius(i, Radii[elems[i]]);
+            }
+        }
         
         // Before reordering compsoitions
-		setComposition(elems, count, false);
-	}
+        setComposition(elems, count, false);
+    }
+    
+    /**
+     * Create a new entry by replacing elements on this entry
+     * @param replacements Map of elements to replace. Key: Old element, Value: New element
+     * @return New entry 
+     * @throws java.lang.Exception If composition fails to parse
+     */
+    public AtomicStructureEntry replaceElements(Map<String,String> replacements)
+            throws Exception {
+        AtomicStructureEntry newEntry = clone();
+        newEntry.Structure.replaceTypeNames(replacements);
+        newEntry.computeComposition();
+        return newEntry;
+    }
+
+    @Override
+    public AtomicStructureEntry clone() {
+        AtomicStructureEntry x = (AtomicStructureEntry) super.clone(); 
+        x.Structure = Structure.clone();
+        return x;
+    }
 
     @Override
     public boolean equals(Object other) {
