@@ -222,9 +222,9 @@ public class CrystalStructureDataset extends CompositionDataset {
 //                    + ": " + ptr.getName());
             
             // Call analysis
-            VoronoiCellBasedAnalysis tool = new VoronoiCellBasedAnalysis(false);
+            VoronoiCellBasedAnalysis tool;
             try {
-                tool.analyzeStructre(ptr.getStructure());
+                tool = ptr.computeVoronoiTessellation();
             } catch (Exception e) {
                 System.out.format("\tVoronoi error for %s (#%d). Setting NaN for all attributes.\n",
                         ptr.getName(), Entries.indexOf(entry));

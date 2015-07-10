@@ -6,6 +6,7 @@ import vassal.data.Atom;
 import vassal.data.Cell;
 import magpie.data.materials.util.LookupData;
 import org.apache.commons.lang3.ArrayUtils;
+import vassal.analysis.VoronoiCellBasedAnalysis;
 
 /**
  * Represents a crystal structure.
@@ -18,6 +19,8 @@ public class AtomicStructureEntry extends CompositionEntry {
 	private String Name;
     /** Link to atomic radii array */
     private double[] Radii;
+    /** Voronoi tessellation of this structure */
+    private VoronoiCellBasedAnalysis Voronoi;
 
 	/**
 	 * Create an entry given its crystal structure
@@ -68,7 +71,7 @@ public class AtomicStructureEntry extends CompositionEntry {
         // Before reordering compsoitions
         setComposition(elems, count, false);
     }
-    
+       
     /**
      * Create a new entry by replacing elements on this entry
      * @param replacements Map of elements to replace. Key: Old element, Value: New element
@@ -153,6 +156,22 @@ public class AtomicStructureEntry extends CompositionEntry {
         return Name;
     }
     
-    
+    /**
+     * Compute the Voronoi tessellation of this structure.
+     * @return Tool used to query properties of the tessellation
+     */
+    public VoronoiCellBasedAnalysis computeVoronoiTessellation() throws Exception {
+        if (Voronoi == null) {
+            Voronoi = new VoronoiCellBasedAnalysis(false);
+            Voronoi.analyzeStructre(Structure);
+        }
+        return Voronoi;
+    }
+
+    @Override
+    public void reduceMemoryFootprint() {
+        Voronoi = null;
+        super.reduceMemoryFootprint(); 
+    }
     
 }
