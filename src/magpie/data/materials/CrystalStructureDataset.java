@@ -6,10 +6,12 @@ import java.io.BufferedReader;
 import java.util.*;
 import java.io.File;
 import java.io.FileReader;
+import java.io.PrintWriter;
 import vassal.data.Cell;
 import vassal.io.VASP5IO;
 import magpie.data.BaseEntry;
 import magpie.utility.MathUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.stat.StatUtils;
 
@@ -114,9 +116,10 @@ public class CrystalStructureDataset extends CompositionDataset {
         
         // Import each file
         List<AtomicStructureEntry> toAdd = new LinkedList<>();
+        VASP5IO io = new VASP5IO();
         for (File file : files) {
             try {
-                Cell strc = new VASP5IO().parseFile(file.getAbsolutePath());
+                Cell strc = io.parseFile(file.getAbsolutePath());
                 AtomicStructureEntry entry = 
 						new AtomicStructureEntry(strc, file.getName(), radii);
 				// See if we have properties for this entry
@@ -315,5 +318,94 @@ public class CrystalStructureDataset extends CompositionDataset {
             }
             entry.addAttributes(newAttr);
         }
-    }    
+    }
+
+    @Override
+    public String saveCommand(String Basename, String Format) throws Exception {
+        if (Format.equalsIgnoreCase("poscar")) {
+            writePOSCARs(Basename);
+            return Basename;
+        } else {
+            return super.saveCommand(Basename, Format); 
+        }
+    }
+    
+    /**
+     * Save dataset as a directory full of POSCARs. Will delete directory at the 
+     * specified path if it exists. File names: [Entry #]-[Composition].vasp
+     * 
+     * Also writes out the measured and predicted class of these entries to a
+     * file named "properties.txt" in this directory
+     * 
+     * @param directory Path to output directory
+     */
+    public void writePOSCARs(String directory) throws Exception {
+        // Delete directory, if it exists
+        File outputDir = new File(directory);
+        if (outputDir.isDirectory()) {
+            FileUtils.deleteDirectory(outputDir);
+        }
+        
+        // Create the directory
+        outputDir.mkdirs();
+        
+        // Create the properties output file
+        PrintWriter fp = new PrintWriter(new File(outputDir, "properties.txt"));
+        fp.print("filename");
+        for (int p=0; p<NProperties(); p++) {
+            String pName = getPropertyName(p);
+            fp.format(" %s_measured %s_predicted", pName, pName);
+        }
+        if (getTargetPropertyIndex() == -1) {
+            fp.println(" class_measured class_predicted");
+        } else {
+            fp.println();
+        }
+        
+        // Write all the entries
+        VASP5IO io = new VASP5IO();
+        for (int e=0; e<NEntries(); e++) {
+            // Get the filename
+            AtomicStructureEntry entry = getEntry(e);
+            String filename = String.format("%d-%s.vasp", e, getEntry(e).toString());
+            
+            // Get path to output file
+            File file = new File(outputDir, filename);
+            
+            // Write out the POSCAR
+            io.writeStructureToFile(entry.getStructure(), file.getCanonicalPath());
+            
+            // Write path to output file
+            fp.print(filename);
+            
+            // Write out properties
+            for (int p=0; p<NProperties(); p++) {
+                if (entry.hasMeasuredProperty(p)) {
+                    fp.format(" %.6e", entry.getMeasuredProperty(p));
+                } else {
+                    fp.print(" None");
+                }
+                if (entry.hasPredictedProperty(p)) {
+                    fp.format(" %.6e", entry.getPredictedProperty(p));
+                } else {
+                    fp.print(" None");
+                }
+            }
+            if (getTargetPropertyIndex() == -1) {
+                if (entry.hasMeasurement()) {
+                    fp.format(" %.6e", entry.getMeasuredClass());
+                } else {
+                    fp.print(" None");
+                }
+                if (entry.hasPrediction()) {
+                    fp.format(" %.6e", entry.getPredictedClass());
+                } else {
+                    fp.print(" None");
+                }
+            }
+        }
+        
+        // Close up
+        fp.close();
+    }
 }
