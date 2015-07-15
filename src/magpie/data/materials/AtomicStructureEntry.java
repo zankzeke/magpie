@@ -82,6 +82,7 @@ public class AtomicStructureEntry extends CompositionEntry {
             throws Exception {
         AtomicStructureEntry newEntry = clone();
         newEntry.Structure.replaceTypeNames(replacements);
+        newEntry.Structure.mergeLikeTypes();
         newEntry.computeComposition();
         return newEntry;
     }
