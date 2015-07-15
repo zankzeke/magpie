@@ -8,7 +8,7 @@ import java.nio.charset.Charset;
 import java.nio.file.*;
 import java.util.*;
 import java.util.regex.*;
-import magpie.attributes.generators.*;
+import magpie.attributes.generators.composition.*;
 import magpie.data.BaseEntry;
 import magpie.data.materials.util.CompositionDatasetOutput;
 import magpie.data.materials.util.LookupData;
