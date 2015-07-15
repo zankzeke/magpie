@@ -1,19 +1,15 @@
 
 package magpie.data.materials;
 
-import vassal.analysis.VoronoiCellBasedAnalysis;
 import java.io.BufferedReader;
 import java.util.*;
 import java.io.File;
 import java.io.FileReader;
 import java.io.PrintWriter;
+import magpie.attributes.generators.crystal.*;
+import org.apache.commons.io.FileUtils;
 import vassal.data.Cell;
 import vassal.io.VASP5IO;
-import magpie.data.BaseEntry;
-import magpie.utility.MathUtils;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.math3.stat.StatUtils;
 
 /**
  * Holds a entries that represent crystal structures. Here, the attributes are
@@ -60,6 +56,45 @@ import org.apache.commons.math3.stat.StatUtils;
  * @author Logan Ward
  */
 public class CrystalStructureDataset extends CompositionDataset {
+
+    /**
+     * Create a instance with the default attribute generators
+     * @see CrystalStructureDataset#CrystalStructureDataset(boolean) 
+     */
+    public CrystalStructureDataset() {
+        this(true);
+    }
+    
+    /**
+     * Create a new instance.
+     * 
+     * <p>Default attribute generators are:
+     * <ol>
+     * <li>{@linkplain CoordinationNumberAttributeGenerator}
+     * <li>{@linkplain StructuralHeterogeneityAttributeGenerator}
+     * <li>{@linkplain ChemicalOrderingAttributeGenerator}
+     * <li>{@linkplain LatticeSimilarityAttributeGenerator}
+     * <li>{@linkplain PackingEfficiencyAttributeGenerator}
+     * <li>{@linkplain LocalPropertyDifferenceAttributeGenerator}
+     * <li>Default generators from {@linkplain CompositionDataset#CompositionDataset(boolean) }
+     * </ol>
+     * 
+     * @param useDefaultGenerators Whether to use the default attribute generators
+     */
+    public CrystalStructureDataset(boolean useDefaultGenerators) {        
+        super(useDefaultGenerators);
+        
+        // Add in the generators
+        if (useDefaultGenerators) {
+            Generators.add(0, new LocalPropertyDifferenceAttributeGenerator());
+            Generators.add(0, new PackingEfficiencyAttributeGenerator());
+            Generators.add(0, new LatticeSimilarityAttributeGenerator());
+            Generators.add(0, new ChemicalOrderingAttributeGenerator());
+            Generators.add(0, new StructuralHeterogeneityAttributeGenerator());
+            Generators.add(0, new CoordinationNumberAttributeGenerator());
+        }
+    }
+    
 
 	/**
 	 * Import all structure files in a directory.
@@ -142,15 +177,6 @@ public class CrystalStructureDataset extends CompositionDataset {
     }
 
     @Override
-    protected void calculateAttributes() {       
-        // Generate Voronoi-based attributes
-        generateVoronoiCellBasedAttributes();
-        
-        // Calculate composition-based attributes
-        super.calculateAttributes(); 
-    }
-
-    @Override
     public AtomicStructureEntry addEntry(String input) throws Exception {
         // Look up radii 
         double[] radii = getPropertyLookupTable("CovalentRadius");
@@ -165,159 +191,6 @@ public class CrystalStructureDataset extends CompositionDataset {
         // Add and return it
         addEntry(newEntry);
         return newEntry;
-    }
-    
-    /**
-     * Compute attributes based on the Voronoi tessellation of a crystal.
-     * 
-     * <p>Current attributes:
-     * <ol>
-     * <li>Mean coordination number of all atoms
-     * <li>Variance in coordination number
-     * <li>Minimum coordination number 
-     * <li>Maximum coordination number
-     * <li>Bond length statistics (variation between and within cells)
-     * <li>Variance in cell size as fraction of entire cell
-     * <li>Number of unique coordination polyhedron shapes
-     * <li>Maximum packing efficiency
-     * <li>Mean Warren-Cowley ordering parameter magnitude for 1st - 3rd shells
-     * <li>Dissimilarity between cell shapes and BCC/FCC/SC
-     * <li>Statistics regarding differences between elemental properties of neighbors of atoms
-     * </ol>
-     */
-    private void generateVoronoiCellBasedAttributes() {
-        int attributesAdded = AttributeName.size();
-        // Add names
-        AttributeName.add("mean_Coordination");
-        AttributeName.add("var_Coordination");
-        AttributeName.add("min_Coordination");
-        AttributeName.add("max_Coordination");
-        AttributeName.add("var_MeanBondLength");
-        AttributeName.add("min_MeanBondLength");
-        AttributeName.add("max_MeanBondLength");
-        AttributeName.add("mean_BondLengthVariation");
-        AttributeName.add("var_BondLengthVariation");
-        AttributeName.add("min_BondLengthVariation");
-        AttributeName.add("max_BondLengthVariation");
-        AttributeName.add("var_CellVolume");
-        AttributeName.add("UniquePolyhedronShapes");
-        AttributeName.add("MaxPackingEfficiency");
-        AttributeName.add("dissimilarity_FCC");
-        AttributeName.add("dissimilarity_BCC");
-        AttributeName.add("dissimilarity_SC");
-        AttributeName.add("mean_WCMagnitude_1stShell");
-        AttributeName.add("mean_WCMagnitude_2ndShell");
-        AttributeName.add("mean_WCMagnitude_3rdShell");
-        for (String prop : ElementalProperties) {
-            AttributeName.add("mean_NeighDiff_" + prop);
-            AttributeName.add("var_NeighDiff_" + prop);
-            AttributeName.add("min_NeighDiff_" + prop);
-            AttributeName.add("max_NeighDiff_" + prop);
-        }
-        
-        // Evaluate each entry
-        attributesAdded = AttributeName.size() - attributesAdded;
-        double[] newAttr = new double[attributesAdded];
-//        int entryCount = 0;
-        for (BaseEntry entry : Entries) {
-            AtomicStructureEntry ptr = (AtomicStructureEntry) entry;
-//            System.out.println("\tEvalauting entry #" + entryCount++ 
-//                    + ": " + ptr.getName());
-            
-            // Call analysis
-            VoronoiCellBasedAnalysis tool;
-            try {
-                tool = ptr.computeVoronoiTessellation();
-            } catch (Exception e) {
-                System.out.format("\tVoronoi error for %s (#%d). Setting NaN for all attributes.\n",
-                        ptr.getName(), Entries.indexOf(entry));
-                Arrays.fill(newAttr, Double.NaN);
-                entry.addAttributes(newAttr);
-                continue;
-            }
-            
-            // Coordination number attributes
-            int counter=0;
-            newAttr[counter++] = tool.faceCountAverage();
-            newAttr[counter++] = tool.faceCountVariance();
-            newAttr[counter++] = tool.faceCountMinimum();
-			newAttr[counter++] = tool.faceCountMaximum();
-            
-            // Bond length attributes
-            //    Variation between cells
-            double[] meanBondLengths = tool.meanBondLengths();
-            double lengthScale = StatUtils.mean(meanBondLengths);
-            for (int i=0; i<meanBondLengths.length; i++) {
-                meanBondLengths[i] /= lengthScale; // Normalize bond lengths
-            }
-            newAttr[counter++] = MathUtils.meanAbsoluteDeviation(meanBondLengths);
-            newAttr[counter++] = StatUtils.min(meanBondLengths);
-            newAttr[counter++] = StatUtils.max(meanBondLengths);
-            
-            //     Variation within a single cell
-            meanBondLengths = tool.meanBondLengths(); // Recompute bond lengths
-            double[] bondLengthVariation = tool.bondLengthVariance(meanBondLengths);
-            for (int i=0; i<bondLengthVariation.length; i++) {
-                // Normalize bond length variation by mean bond length of each cell
-                bondLengthVariation[i] /= meanBondLengths[i];
-            }
-            newAttr[counter++] = StatUtils.mean(bondLengthVariation);
-            newAttr[counter++] = MathUtils.meanAbsoluteDeviation(bondLengthVariation);
-            newAttr[counter++] = StatUtils.min(bondLengthVariation);
-            newAttr[counter++] = StatUtils.max(bondLengthVariation);
-            
-            // Cell volume / shape attributes
-            newAttr[counter++] = tool.volumeVariance() * 
-                    ptr.getStructure().nAtoms() / ptr.getStructure().volume();
-			newAttr[counter++] = (double) tool.getUniquePolyhedronShapes().size();
-			newAttr[counter++] = tool.maxPackingEfficiency();
-            newAttr[counter++] = tool.meanFCCDissimilarity();
-            newAttr[counter++] = tool.meanBCCDissimilarity();
-            newAttr[counter++] = tool.meanSCDissimilarity();
-            
-            // Ordering attributes
-            newAttr[counter++] = tool.warrenCowleyOrderingMagnituide(1);
-            newAttr[counter++] = tool.warrenCowleyOrderingMagnituide(2);
-            newAttr[counter++] = tool.warrenCowleyOrderingMagnituide(3);
-            
-            // Neighbor property difference attributes
-            int[] elemIndex = new int[ptr.getStructure().nTypes()];
-            for (int i=0; i<elemIndex.length; i++) {
-                elemIndex[i] = ArrayUtils.indexOf(ElementNames, 
-                        ptr.getStructure().getTypeName(i));
-            }
-            double[] propValues = new double[elemIndex.length];
-            for (String prop : ElementalProperties) {
-                // Get properties for elements in this structure
-                double[] lookupTable;
-                try {
-                    lookupTable = getPropertyLookupTable(prop);
-                } catch (Exception e) {
-                    throw new Error(e);
-                }
-                for (int i=0; i<propValues.length; i++) {
-                    propValues[i] = lookupTable[elemIndex[i]];
-                }
-                
-                // Compute the neighbor differences for each atom
-                double[] neighDiff;
-                try {
-                    neighDiff = tool.neighborPropertyDifferences(propValues);
-                } catch (Exception e) {
-                    throw new Error(e);
-                }
-                newAttr[counter++] = StatUtils.mean(neighDiff);
-                double[] meanDeviation = neighDiff.clone();
-                for (int i=0; i<meanDeviation.length; i++) {
-                    meanDeviation[i] = Math.abs(meanDeviation[i] 
-                            - newAttr[counter - 1]);
-                }
-                newAttr[counter++] = StatUtils.mean(meanDeviation);
-                newAttr[counter++] = StatUtils.min(neighDiff);
-                newAttr[counter++] = StatUtils.max(neighDiff);
-            }
-            entry.addAttributes(newAttr);
-        }
     }
 
     @Override
@@ -338,6 +211,7 @@ public class CrystalStructureDataset extends CompositionDataset {
      * file named "properties.txt" in this directory
      * 
      * @param directory Path to output directory
+     * @throws java.lang.Exception
      */
     public void writePOSCARs(String directory) throws Exception {
         // Delete directory, if it exists

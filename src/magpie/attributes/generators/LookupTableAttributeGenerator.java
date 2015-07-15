@@ -126,5 +126,14 @@ public class LookupTableAttributeGenerator extends BaseAttributeGenerator {
             }
         }
     }
+
+    @Override
+    public String printDescription(boolean htmlFormat) {
+        String output = getClass().getName() + (htmlFormat ? " " : ": ");
+        
+        output += " (" + NewNames.size() + ") Attributes computed externally";
+        
+        return output;
+    }
     
 }

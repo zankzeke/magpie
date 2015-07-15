@@ -51,7 +51,7 @@ public class ModelPackage {
         info.citation = Citation;
         info.description = Description;
         info.property = Property;
-        info.training = TrainingSet;
+        info.training = Model.TrainingStats.NumberTested + " entries: " + TrainingSet;
         info.notes = Notes;
         
         // Store units or class names
@@ -73,7 +73,7 @@ public class ModelPackage {
         }
         
         // Store names of models
-        info.dataType = Dataset.getClass().getName();
+        info.dataType = Dataset.printDescription(true);
         info.modelType = Model.printDescription(true);
         
         // Store validation performance data
