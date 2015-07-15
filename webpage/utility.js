@@ -132,7 +132,7 @@ function outputModelInfo(modelInfo, outputDiv) {
 	outputDiv.innerHTML += output
 
 	// Print out information about dataset
-	output = "<h3>Attribute Infomration</h3>\n";
+	output = "<h3>Attribute Information</h3>\n";
 	dataInfo = modelInfo.dataType.split("\n");
 	for (i in dataInfo) {
 		line = dataInfo[i]
