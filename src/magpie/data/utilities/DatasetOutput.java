@@ -43,7 +43,8 @@ abstract public class DatasetOutput extends Dataset {
                 for (int j=0; j < attributes.length; j++)
                     fp.format("%.7e%s", attributes[j], Delimiter);
                 if (hasMeasuredClass)
-                    fp.format("%.7e\n", e.getMeasuredClass());
+                    fp.format("%.7e", e.getMeasuredClass());
+                fp.println();
             }
             fp.close();
         } catch (Exception e) {
