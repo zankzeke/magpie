@@ -130,11 +130,15 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
      * <li>{@linkplain StoichiometricAttributeGenerator}: Generate attributes
      * based on fractions of elements. Does not depend on what the elements actually
      * are. Will use p = 2, 3, 5, 7, 10 norms.
+     * <li>{@linkplain ValenceShellAttributeGenerator}: Attributes based on the 
+     * valence shell electrons of the constituent elements
      * <li>{@linkplain ElementalPropertyAttributeGenerator}: Generate attributes
      * based on properties of constituent elements. Use the list of attributes
      * provided through "attributes properties add" or 
      * {@linkplain #addElementalProperty(java.lang.String) } operations for
      * the commandline and Java interfaces, respectively.
+     * <li>{@linkplain IonicityAttributeGenerator}: Attributes designed to represent
+     * the "ionicity" of a compound.
      * </ol>
      * @param useDefaultGenerators [in] Whether to use default generators
      */
