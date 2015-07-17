@@ -1,6 +1,7 @@
 package magpie.models;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import magpie.analytics.BaseStatistics;
@@ -100,11 +101,21 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
     private BaseDatasetNormalizer Normalizer = null;
     /** Stores description how this model validated. */
     private String ValidationMethod = "Unvalidated";
+    /** Date model was trained */
+    private Date TrainTime = null;
        
     /**
      * @return Whether this model has been trained
      */
     public boolean isTrained() { return trained; }
+    
+    /**
+     * Return when this model was trained
+     * @return When starting was started if this model is trained, null otherwise
+     */
+    public Date getTrainTime() {
+        return isTrained() ? TrainTime : null;
+    }
     
     /**
      * @return Whether any sort of validation has been run on this model
@@ -206,6 +217,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
      * @param recordStats Whether to record training statistics
      */
     public void train(Dataset data, boolean recordStats) {
+        TrainTime = new Date();
 		Dataset trainingData = data.getTrainingExamples();
         if (trainingData.NEntries() == 0)
             throw new Error("Data does not contain any training entries");
