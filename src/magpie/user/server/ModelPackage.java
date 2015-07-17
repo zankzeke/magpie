@@ -1,9 +1,13 @@
 package magpie.user.server;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import magpie.data.Dataset;
 import magpie.models.BaseModel;
 import magpie.models.classification.AbstractClassifier;
 import magpie.user.server.thrift.ModelInfo;
+import org.apache.commons.lang3.time.DateUtils;
 
 /**
  * Holds information about a model.
@@ -53,6 +57,7 @@ public class ModelPackage {
         info.property = Property;
         info.training = Model.TrainingStats.NumberTested + " entries: " + TrainingSet;
         info.notes = Notes;
+        info.trainTime = new SimpleDateFormat("dMMMyy HH:mm z").format(Model.getTrainTime());
         
         // Store units or class names
         if (Model instanceof AbstractClassifier) {
