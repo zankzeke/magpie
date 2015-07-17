@@ -26,6 +26,7 @@ struct Entry {
  *  notes       : Any pertinent details about the model
  *  property    : Property being modeled
  *  training    : Description of training set
+ *  trainTime   : When this model was trained (formatted string)
  *  units       : Units of prediction. (Classifiers) Name of classes, ";"-delimited
  *  valMethod   : Description of how this model was validated
  *  valScore    : Performance of model in cross-validation tests
@@ -43,6 +44,7 @@ struct ModelInfo {
    10: map<string,double> valScore
    11: string description
    12: string valMethod
+   13: string trainTime
 }
 
 exception MagpieException {
