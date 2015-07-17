@@ -115,6 +115,7 @@ public class ServerLauncherTest {
         Assert.assertEquals("NonZero;Zero", info.get("ismetal").units);
         Assert.assertTrue(info.get("volume_pa").valMethod.contains("10-fold"));
         Assert.assertTrue(info.get("delta_e").valMethod.contains("Un"));
+        System.out.println(info.get("delta_e").trainTime);
     }
     
     @Test
