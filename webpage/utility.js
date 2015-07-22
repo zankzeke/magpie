@@ -104,6 +104,7 @@ function outputModelInfo(modelInfo, outputDiv) {
 	output += "<label>Property</label></th><td>" + modelInfo.property + "</td>";
 	output += "<br><label>Units</label></th><td>" + modelInfo.units + "</td>";
 	output += "<br><label>Training Set</label></th><td>" + modelInfo.training + "</td>";
+	output += "<br><label>Training Time</label>" + modelInfo.trainTime;
 	output += "<br><label>Author</label></th><td>" + modelInfo.author + "</td>";
 	output += "<br><label>Citation</label></th><td>" + modelInfo.citation + "</td>";
 			
