@@ -8,7 +8,7 @@ function getModelsOfType(client, dataType) {
     var allModels = client.getModelInformation();
     var output = new Array();
     for (var model in allModels) {
-        if (allModels[model].dataType.indexOf(dataType) !== -1) {
+        if (allModels[model].dataType.indexOf(dataType)!== -1) {
             output[model] = allModels[model];
         }
     }
@@ -101,12 +101,11 @@ function outputModelInfo(modelInfo, outputDiv) {
 	
 	// Make a table storing general information about model
 	output = "<h3>General Information</h3>";
-	output += "<label>Property</label>" + modelInfo.property;
-	output += "<br><label>Units</label>" + modelInfo.units;
-	output += "<br><label>Training Set</label>" + modelInfo.training;
-	output += "<br><label>Training Time</label>" + modelInfo.trainTime;
-	output += "<br><label>Author</label>" + modelInfo.author;
-	output += "<br><label>Citation</label>" + modelInfo.citation;
+	output += "<label>Property</label></th><td>" + modelInfo.property + "</td>";
+	output += "<br><label>Units</label></th><td>" + modelInfo.units + "</td>";
+	output += "<br><label>Training Set</label></th><td>" + modelInfo.training + "</td>";
+	output += "<br><label>Author</label></th><td>" + modelInfo.author + "</td>";
+	output += "<br><label>Citation</label></th><td>" + modelInfo.citation + "</td>";
 			
 	outputDiv.innerHTML += output;
 	
