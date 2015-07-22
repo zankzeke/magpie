@@ -40,9 +40,15 @@ public class RegressionStatistics extends BaseStatistics {
         int NEntries = measured.length;
         NumberTested = NEntries;
         // Calculate correlation coefficients
-        R = new PearsonsCorrelation().correlation(measured, predicted);
-        Rho = new SpearmansCorrelation().correlation(measured, predicted);
-        Tau = new KendallsCorrelation().correlation(measured, predicted);
+        if (measured.length > 2) {
+            R = new PearsonsCorrelation().correlation(measured, predicted);
+            Rho = new SpearmansCorrelation().correlation(measured, predicted);
+            Tau = new KendallsCorrelation().correlation(measured, predicted);
+        } else {
+            Tau = Double.NaN;
+            Rho = Double.NaN;
+            R = Double.NaN;
+        }
         if (Double.isNaN(R)) R = 0;
         // Calculate statistics of absolute error
         double[] error = new double[NEntries];
