@@ -1017,15 +1017,17 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      */
     public Dataset[] splitForThreading(int NThreads) {
         Dataset[] output = new Dataset[NThreads];
+        
         // Number to split per thread
-        int to_split = this.NEntries() / NThreads;
+        int to_split = NEntries() / NThreads;
         Iterator<BaseEntry> iter = Entries.iterator();
+        
+        // Fill in each thread
         for (int i = 0; i < NThreads - 1; i++) {
             output[i] = emptyClone();
-            output[i].Entries.ensureCapacity(to_split + 1);
+            output[i].Entries.ensureCapacity(to_split);
             for (int j = 0; j < to_split; j++) {
                 output[i].Entries.add(iter.next());
-                iter.remove();
             }
         }
         // Fill in the last thread
@@ -1033,7 +1035,6 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         output[NThreads - 1].Entries.ensureCapacity(to_split + 1);
         while (iter.hasNext()) {
             output[NThreads - 1].Entries.add(iter.next());
-            iter.remove();
         }
         return output;
     }
