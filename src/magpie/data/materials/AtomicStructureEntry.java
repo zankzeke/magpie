@@ -170,10 +170,17 @@ public class AtomicStructureEntry extends CompositionEntry {
         }
         return Voronoi;
     }
+    
+    /**
+     * Clear out the representations used when computing attributes.
+     */
+    public void clearRepresentations() {
+        Voronoi = null;
+    }
 
     @Override
     public void reduceMemoryFootprint() {
-        Voronoi = null;
+        clearRepresentations();
         super.reduceMemoryFootprint(); 
     }
     

@@ -7,6 +7,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.PrintWriter;
 import magpie.attributes.generators.crystal.*;
+import magpie.data.BaseEntry;
+import magpie.data.Dataset;
 import org.apache.commons.io.FileUtils;
 import vassal.data.Cell;
 import vassal.io.VASP5IO;
@@ -191,6 +193,35 @@ public class CrystalStructureDataset extends CompositionDataset {
         // Add and return it
         addEntry(newEntry);
         return newEntry;
+    }
+
+    @Override
+    public void runAttributeGenerators() throws Exception {
+        // Since the reporesentations used to generate attributes (e.g., Voronoi tessellations)
+        //   take large amounts of memory, the idea is to split the dataset into 
+        //   smaller chunks and generate attributes in batches.
+        if (NEntries() > 1000) {
+            // Split dataset into groups of less than 1000 entries
+            Dataset[] splits = splitForThreading((int) Math.ceil(NEntries() / 1000));
+
+            // Run attribute generator on each split
+            for (Dataset d : splits) {
+                // Generate attributes
+                d.runAttributeGenerators(); 
+                
+                // Delete representations
+                for (BaseEntry e : d.getEntries()) {
+                    AtomicStructureEntry p = (AtomicStructureEntry) e;
+                    p.clearRepresentations();
+                }
+                System.gc();
+            }
+            
+            // Transfer attribute names
+            setAttributeNames(Arrays.asList(splits[0].getAttributeNames()));
+        } else {
+            super.runAttributeGenerators();
+        }
     }
 
     @Override
