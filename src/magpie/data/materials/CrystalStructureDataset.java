@@ -202,7 +202,7 @@ public class CrystalStructureDataset extends CompositionDataset {
         //   smaller chunks and generate attributes in batches.
         if (NEntries() > 1000) {
             // Split dataset into groups of less than 1000 entries
-            Dataset[] splits = splitForThreading((int) Math.ceil(NEntries() / 1000));
+            Dataset[] splits = splitForThreading(NEntries() / 1000 + 1);
 
             // Run attribute generator on each split
             for (Dataset d : splits) {
