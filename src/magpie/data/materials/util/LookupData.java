@@ -1,6 +1,12 @@
 
 package magpie.data.materials.util;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.TreeMap;
 import magpie.data.materials.CompositionDataset;
@@ -45,4 +51,31 @@ abstract public class LookupData {
 	 * Holds oxidation states of individual elements
 	 */
 	static public double[][] OxidationStates = null;
+
+    /**
+     * Load in an elemental property lookup table
+     * @param dataDir Directory containing lookup data
+     * @param property Property to be loaded
+     * @return List of elemental properties, ordered by atomic number
+     * @throws Exception
+     */
+    public static double[] loadPropertyLookupTable(String dataDir, String property) throws Exception {
+        Path datafile = Paths.get(dataDir);
+        BufferedReader is;
+        try {
+            is = Files.newBufferedReader(datafile.resolve(property + ".table"), Charset.forName("US-ASCII"));
+            double[] output = new double[LookupData.ElementNames.length];
+            for (int i = 0; i < output.length; i++) {
+                try {
+                    output[i] = Double.parseDouble(is.readLine());
+                } catch (IOException | NumberFormatException e) {
+                    output[i] = Double.NaN;
+                }
+            }
+            is.close();
+            return output;
+        } catch (IOException e) {
+            throw new Exception("Property " + property + " failed to read due to " + e);
+        }
+    }
 }
