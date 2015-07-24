@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.*;
 import java.util.*;
+import magpie.attributes.generators.BaseAttributeGenerator;
 import magpie.attributes.generators.composition.*;
 import magpie.data.BaseEntry;
 import magpie.data.materials.util.CompositionDatasetOutput;
@@ -110,9 +111,6 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
     public Map<String, double[]> PropertyData = LookupData.ElementalProperties;
 	/** Oxidation states of every element */
 	protected double[][] OxidationStates = LookupData.OxidationStates;
-	
-    /** Whether to use composition as attributes */
-    protected boolean UseComposition = false;
 
     /**
      * Create a dataset using the default set of attribute generators. 
@@ -333,7 +331,24 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
      * @param decision Whether to use it or not
      */
     public void useCompositionAsAttributes(boolean decision) {
-        this.UseComposition = decision;
+        boolean found = false;
+        Iterator<BaseAttributeGenerator> iter = Generators.iterator();
+        while (iter.hasNext()) {
+            if (iter.next() instanceof ElementFractionAttributeGenerator) {
+                // Remove it, if user wants to 
+                if (!decision) {
+                    iter.remove();
+                    return;
+                } else {
+                    return;
+                }
+            }
+        }
+        
+        // Add in, if desired
+        if (!found && decision) {
+            Generators.add(0, new ElementFractionAttributeGenerator());
+        } 
     }
 
     /**
@@ -392,10 +407,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
 
     @Override
     protected void calculateAttributes() {
-        // --> Create attributes based on elemental fractions, if desired
-        if (UseComposition) {
-            generateElementFractionAttributes();
-        }
+        // Nothing to do
     }
 
     /**
@@ -460,52 +472,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
             throw new Error("Oxidation states failed to read due to " + e);
         }
     }
-
-    /**
-     * Generate attributes that are simply the fraction of each element present
-     */
-    protected void generateElementFractionAttributes() {
-        for (String ElementName : ElementNames) {
-            AttributeName.add("X_" + ElementName);
-        }
-
-        // Determine the composition for each element
-        double[] composition = new double[ElementNames.length], fractions;
-        int[] elements;
-        for (int i = 0; i < NEntries(); i++) {
-            Arrays.fill(composition, 0);
-            elements = getEntry(i).getElements();
-            fractions = getEntry(i).getFractions();
-            for (int j = 0; j < elements.length; j++) {
-                composition[elements[j]] = fractions[j];
-            }
-            // Copy it into the feature array
-            getEntry(i).addAttributes(composition);
-        }
-    }
-
-    /**
-     * Generate the percent ionic character for each entry
-     */
-    protected void generateIonicCharacter() {
-        double x;
-        
-    }
-
-    /**
-     * Determine whether each entry can form an ionic compound. Assumes that
-     * each element can only take on a single oxidation state
-     */
-    protected void generateCanFormIonic() {
-        AttributeName.add("CanFormIonic");
-
-        for (BaseEntry ptr : getEntries()) {
-            CompositionEntry entry = (CompositionEntry) ptr;
-            double x = compositionCanFormIonic(entry) ? 1 : 0;
-            entry.addAttribute(x);
-        }
-    }
-
+    
     /**
      * Whether a composition can form a neutral compound assuming each element
      * takes only a single oxidation state.

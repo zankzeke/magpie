@@ -19,12 +19,21 @@ public class CompositionDatasetTest {
         data.addElementalProperty("Electronegativity");
         
         // Generate attributes
+        data.useCompositionAsAttributes(false);
         data.generateAttributes();
         
         // Print description in HTML and normal format
         System.out.println("Plain Format");
         System.out.println(data.printDescription(false));
-        System.out.println("HTML Format");
+        System.out.println("HTML Format");  
+        System.out.println(data.printDescription(true));
+        
+        // Generate attributes w/ elemental fractions
+        data.useCompositionAsAttributes(true);
+        data.generateAttributes();
+        System.out.println("Plain Format w/ Element fractions");
+        System.out.println(data.printDescription(false));
+        System.out.println("HTML Format w/ Element fractions");
         System.out.println(data.printDescription(true));
     }
     
