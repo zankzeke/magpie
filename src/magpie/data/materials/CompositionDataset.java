@@ -413,31 +413,9 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
             return PropertyData.get(PropertyName);
         }
 
-        // If not, load it in
-        // Open the file for reading
-        Path datafile = Paths.get(DataDirectory);
-        BufferedReader is;
-        try {
-            is = Files.newBufferedReader(
-                    datafile.resolve(PropertyName + ".table"), Charset.forName("US-ASCII"));
-
-            // Read the file
-            double[] output = new double[ElementNames.length];
-            for (int i = 0; i < ElementNames.length; i++) {
-                try {
-                    output[i] = Double.parseDouble(is.readLine());
-                } catch (IOException | NumberFormatException e) {
-                    output[i] = Double.NaN;
-                }
-            }
-            is.close();
-
-            /// Return the data table, and save a copy
-            PropertyData.put(PropertyName, output);
-            return output;
-        } catch (IOException e) {
-            throw new Exception("Property " + PropertyName + " failed to read due to " + e);
-        }
+        double[] table = LookupData.loadPropertyLookupTable(DataDirectory, PropertyName);
+        PropertyData.put(PropertyName, table);
+        return table;
     }
 
     /**
