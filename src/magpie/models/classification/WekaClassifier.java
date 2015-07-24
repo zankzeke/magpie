@@ -10,11 +10,15 @@ import weka.classifiers.AbstractClassifier;
 import weka.core.Instances;
 
 /**
- * Classifier that uses Weka 
+ * Classifier that uses algorithms from Weka. To use this class, simply provide 
+ * the name of the Weka algorithm and a list of options as input. 
  * 
- * <usage><p><b>Usage</b>: &lt;Weka classifier> [&lt;classifier ptions...>]
+ * <p>Example: model = new models.classification.WekaClassifier trees.REPTree -L 5
+ * 
+ * <usage><p><b>Usage</b>: &lt;Weka classifier> [&lt;classifier options...>]
  * <br><pr><i>Weka classifier</i>: Name of a Weka classifier model (i.e. trees.REPTree). "?" to list options
- * <br><pr><i>classifier options</i>: Any options for that model</usage>
+ * <br><pr><i>classifier options</i>: Any options for that model. (see 
+ * <a href="http://weka.sourceforge.net/doc.dev/">Weka Javadoc</a> for these options)</usage>
  * 
  * @author Logan Ward
  * @version 0.1

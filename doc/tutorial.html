@@ -145,11 +145,13 @@
 	<h2>Searching for New Materials</h2>
 	<p>If you have completed the other steps of this tutorial, you now have two Magpie object files (named delta_e-model.obj and delta_e-data.obj) that can be used to compute the formation energy of crystalline compounds. If you would prefer to skip those steps, simply add the save commands described at the end of the "Building a Model" section to the end of the <a href="../examples/simple-model.in">examples/simple-model.in</a> script, and run it. This portion of the tutorial shows how to use those components on a new dataset.
 	
-	<p>The step is to create a search space. To do so, first launch Magpie and load in the delta_e-data object using the load command:
+	<p>The first step is to create a dataset in which to store the search space. To do so, first launch Magpie and load in the object stored in delta_e&#8209;data.obj using the load command:
 	
 	<div style="margin-left: 40px">
 		<p><code>search = load delta_e-data.obj</code>
 	</div>
+	
+	<p>This command a empty dataset named "search." While this dataset does not contain any entries, it does contain all of the settings necessary to compute the same attributes used to train the model.
 	
 	<p>The next step is to generate a search space using the <a href="../javadoc/magpie/data/utilities/generators/IonicCompoundGenerator.html">IonicCompoundGenerator</a> command. As described in the "Usage" statement in the Javadoc, this entry generator takes 4 arguments: the minimum and maximum number of constituents, the maximum number of atoms per formula unit, and a list of elements to use. The appropriate command to generate all ternary ionic compounds with less than 10 atoms per unit cell composed of Li, Fe, Ni, Zr, O, or S is:
 	
