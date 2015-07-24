@@ -6,7 +6,10 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import magpie.data.utilities.DatasetOutput;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * Dataset that can store multiple properties for each entry. User can define the names
@@ -437,6 +440,76 @@ public class MultiPropertyDataset extends Dataset {
             default:
                 return super.saveCommand(Basename, Format);
         }
+    }
+
+    /**
+     * Given the line describing property names in the input file, read in property
+     * names and possible classes.
+     * @param line Line describing property names
+     * @see CompositionDataset
+     */
+    protected void importPropertyNames(String line) {
+        // Clear out current property data
+        clearPropertyData();
+        // Initialize regex
+        Pattern totalPattern = Pattern.compile("[\\d\\w]+(\\{.*\\})?"); // Captures entire name/classes
+        Pattern namePattern = Pattern.compile("^[\\d\\w]+"); // Given name/classes, get name
+        Pattern classPattern = Pattern.compile("\\{.*\\}"); // Get the possible classes
+        Matcher totalMatcher = totalPattern.matcher(line);
+        totalMatcher.find(); // First match is composition
+        // Find all property names
+        while (totalMatcher.find()) {
+            String total = totalMatcher.group();
+            Matcher tempMatcher = namePattern.matcher(total);
+            tempMatcher.find();
+            String name = tempMatcher.group();
+            if (!total.contains("{")) {
+                addProperty(name);
+            } else {
+                tempMatcher = classPattern.matcher(total);
+                tempMatcher.find();
+                String classList = tempMatcher.group();
+                // Trim off the "{,}"
+                classList = classList.substring(1);
+                classList = classList.substring(0, classList.length() - 1);
+                // Get the class names
+                String[] classes = classList.split(",");
+                for (int i = 0; i < classes.length; i++) {
+                    classes[i] = classes[i].trim();
+                }
+                addProperty(name, classes);
+            }
+        }
+    }
+
+    /**
+     * Used by {@linkplain #importText(java.lang.String, java.lang.Object[]) }
+     * to import property measurments for each entry.
+     *
+     * @param words Line describing entry, split into words
+     * @return Property measurements for this entry
+     */
+    protected double[] importEntryProperties(String[] words) {
+        double[] properties;
+        // Get the properties
+        properties = new double[NProperties()];
+        for (int p = 0; p < NProperties(); p++) {
+            try {
+                if (getPropertyClassCount(p) == 1) {
+                    properties[p] = Double.parseDouble(words[p + 1]);
+                } else {
+                    int index = ArrayUtils.indexOf(getPropertyClasses(p), words[p + 1]);
+                    if (index == -1) {
+                        index = Integer.parseInt(words[p + 1]);
+                    }
+                    properties[p] = index;
+                }
+            } catch (Exception exc) {
+                // System.err.println("Warning: Entry #"+i+" has an invalid property.");
+                properties[p] = Double.NaN;
+            }
+        }
+        return properties;
     }
     
     

@@ -7,14 +7,12 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.*;
 import java.util.*;
-import java.util.regex.*;
 import magpie.attributes.generators.composition.*;
 import magpie.data.BaseEntry;
 import magpie.data.materials.util.CompositionDatasetOutput;
 import magpie.data.materials.util.LookupData;
 import magpie.data.materials.util.PropertyLists;
 import magpie.utility.tools.OxidationStateGuesser;
-import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * This class stores entries that describe a material based solely on its
@@ -327,78 +325,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
         // Copy the entries
         this.Entries = new ArrayList<>(acceptedEntries.keySet());
     }
-
-    /**
-     * Used by {@linkplain #importText(java.lang.String, java.lang.Object[]) } 
-     * to import property measurments for each entry.
-     * 
-     * @param words Line describing entry, split into words
-     * @return Property measurements for this entry
-     */
-    protected double[] importEntryProperties(String[] words) {
-        double[] properties;
-        // Get the properties
-        properties = new double[NProperties()];
-        for (int p = 0; p < NProperties(); p++) {
-            try {
-                if (getPropertyClassCount(p) == 1) {
-                    properties[p] = Double.parseDouble(words[p + 1]);
-                } else {
-                    int index = ArrayUtils.indexOf(getPropertyClasses(p), words[p+1]);
-                    if (index == -1) {
-                        index = Integer.parseInt(words[p+1]);
-                    }
-                    properties[p] = index;
-                }
-            } catch (Exception exc) {
-                // System.err.println("Warning: Entry #"+i+" has an invalid property.");
-                properties[p] = Double.NaN;
-            }
-        }
-        return properties;
-    }
-
-	
-	/**
-	 * Given the line describing property names in the input file, read in property
-	 * names and possible classes.
-	 * @param line Line describing property names
-	 * @see CompositionDataset
-	 */
-	protected void importPropertyNames(String line) {
-        // Clear out current property data
-        clearPropertyData();
-        
-        // Initialize regex
-		Pattern totalPattern = Pattern.compile("[\\d\\w]+(\\{.*\\})?"), // Captures entire name/classes 
-				namePattern = Pattern.compile("^[\\d\\w]+"), // Given name/classes, get name
-				classPattern = Pattern.compile("\\{.*\\}"); // Get the possible classes
-		Matcher totalMatcher = totalPattern.matcher(line);
-		totalMatcher.find(); // First match is composition
-        
-        // Find all property names
-		while (totalMatcher.find()) {
-			String total = totalMatcher.group();
-			Matcher tempMatcher = namePattern.matcher(total); tempMatcher.find();
-			String name = tempMatcher.group();
-			if (! total.contains("{")) {
-				addProperty(name);
-			} else {
-				tempMatcher = classPattern.matcher(total); tempMatcher.find();
-				String classList = tempMatcher.group();
-				// Trim off the "{,}"
-				classList = classList.substring(1);
-				classList = classList.substring(0, classList.length()-1);
-				// Get the class names
-				String[] classes = classList.split(",");
-				for (int i=0; i<classes.length; i++) {
-					classes[i] = classes[i].trim();
-				}
-				addProperty(name, classes);
-			}
-		}
-	}
-    
+	    
     /**
      * Set whether to use composition (i.e. fraction of each element present) as attributes.
      * 
