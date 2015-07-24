@@ -25,7 +25,7 @@
 	<p>First identifies a subset of attributes that can be used to model the formation energy of a compound. Then, applies a clustering algorithm to separate entries into groups with similar values of these attributes. After this, prints the centers of the each group (defined as the average of all entries in that group) and saves the entries contained in each data cluster into csv format.</p>
 
 	<h2><b><a href="crm.in">crm.in</a></b></h2>
-	<p>Demonstrates the Clustering-Ranking-Modeling method of <a href="http://pubs.acs.org/doi/abs/10.1021/cm403727z">Meredig and Wolverton</a>. First, this script separates data into 4 subsets based on attributes selected to predict band gap energy. Then, it trains a quadratic model for band gap energy based on the attribute that best models band gap energy for each subset.</p>
+	<p>Demonstrates the Clustering-Ranking-Modeling method of <a href="http://pubs.acs.org/doi/abs/10.1021/cm403727z">Meredig and Wolverton</a>. First, this script separates data into 4 subsets using KMeans++ clustering. Then, it trains a quadratic model for dilute-limit solution energies in zirconia using on the attribute that best models that property for each subset.</p>
 
 	<h2><b><a href="csp.in">csp.in</a></b></h2>
 	<p>Uses the Data-Mining Structure Prediction (DMSP) method of  <a href="http://www.nature.com/nmat/journal/v5/n8/full/nmat1691.html">Fisher <i>et al</i></a> to predict the most-likely crystal structures of two example compounds: Na<sub>5</sub>Pb<sub>2</sub> and Al<sub>2</sub>NiCu.</p>
