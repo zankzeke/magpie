@@ -28,4 +28,19 @@ public class CompositionDatasetTest {
         System.out.println(data.printDescription(true));
     }
     
+    @Test
+    public void testImport() throws Exception {
+        // Make a dataset
+        CompositionDataset data = new CompositionDataset();
+        
+        // Load in dataset
+        data.importText("datasets/small_set.txt", null);
+        
+        // Make sure everything looks fine
+        assertEquals(612, data.NEntries());
+        assertEquals(7, data.NProperties());
+        assertArrayEquals(("bandgap energy_pa volume_pa magmom_pa"
+                + " fermi hull_distance delta_e").split(" "),
+                data.getPropertyNames());
+    }
 }
