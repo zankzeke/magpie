@@ -3,7 +3,7 @@
 
 // Load in data set
 data = new data.Dataset
-data import ./datasets/simple-data.csv
+data import ./datasets/simple-data.txt
 
 // Define the function to be fit. Notation:
 //  Variables are defined by #{<name>}. 
