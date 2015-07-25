@@ -17,9 +17,9 @@ import magpie.data.materials.CompositionEntry;
  * <p>To match the attributes from the Meredig & Agrawal <i>et al.</i> paper, Magpie input file:
  * <div style="margin-left: 25px; font-family:monospace">
  *     data attributes generators clear
- *     <br>data attributes generators add ElementFractionAttributeGenerator
- *     <br>data attributes generators add MeredigAttributeGenerator
- *     <br>data attributes generators add ValenceShellAttributeGenerator
+ *     <br>data attributes generators add composition.ElementFractionAttributeGenerator
+ *     <br>data attributes generators add composition.MeredigAttributeGenerator
+ *     <br>data attributes generators add composition.ValenceShellAttributeGenerator
  * </div>
  * 
  * <usage><p><b>Usage</b>: *No options*</usage>
