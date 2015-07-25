@@ -789,14 +789,8 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * @param d Array of DataStructures
      */
     public void combine(Dataset[] d) {
-        if (d[0].NAttributes() != NAttributes()) {
-            throw new Error("Data set has wrong number of features");
-        }
-        if (d[0].NClasses() != NClasses()) {
-            throw new Error("Data set has wrong number of classes");
-        }
-        for (Dataset d1 : d) {
-            Entries.addAll(d1.Entries);
+        for (Dataset data : d) {
+            combine(data);
         }
     }
 
@@ -807,15 +801,8 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * @param d Collection of Datasets
      */
     public void combine(Collection<Dataset> d) {
-        if (d.iterator().next().NAttributes() != NAttributes()) {
-            throw new Error("Data set has wrong number of features");
-        }
-        if (d.iterator().next().NClasses() != NClasses()) {
-            throw new Error("Data set has wrong number of classes");
-        }
-        Iterator<Dataset> iter = d.iterator();
-        while (iter.hasNext()) {
-            Entries.addAll(iter.next().Entries);
+        for (Dataset data : d) {
+            combine(data);
         }
     }
 
