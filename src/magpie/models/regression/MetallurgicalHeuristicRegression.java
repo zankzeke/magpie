@@ -105,7 +105,7 @@ public class MetallurgicalHeuristicRegression extends BaseRegression {
  * 
  * @author Logan Ward 
  */
-class BinaryConvexHullHolder {
+class BinaryConvexHullHolder implements java.io.Serializable {
 	/** 
 	 * Processed convex hulls. Key values are the two elements (Left &lt; Right).
 	 * Values are always (x<sub>left</sub>, &Delta;H<sub>f</sub>), sorted by x.
