@@ -65,6 +65,22 @@ public class MultiPropertyDataset extends Dataset {
         }
     }
 
+    /**
+     * Combine the dataset with another. Will change the target property of the 
+     * other dataset to be the same as this one
+     * @param d Other dataset. Will change target property to be the same as this class
+     */
+    @Override
+    public void combine(Dataset d) {
+        MultiPropertyDataset ptr = (MultiPropertyDataset) d;
+        if (! PNames.equals(Arrays.asList(ptr.getPropertyNames()))) {
+            throw new Error("Property lists are different");
+        }
+        super.combine(d);
+        setTargetProperty(TargetProperty, true);
+        ptr.setTargetProperty(TargetProperty, true);
+    }
+
 	@Override
 	public void addEntry(BaseEntry e) {
 		MultiPropertyEntry p = (MultiPropertyEntry) e;
