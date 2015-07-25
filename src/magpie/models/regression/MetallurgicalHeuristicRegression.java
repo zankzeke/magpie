@@ -81,13 +81,18 @@ public class MetallurgicalHeuristicRegression extends BaseRegression {
 
 	@Override
 	protected String printModel_protected() {
-		return "Metallurgical Heuristic model.";
+		return "Metallurgical heuristic model. Using " + HullHolder.NBinaries 
+                + " binary compounds.";
 	}
 
     @Override
-    public List<String> printModelDescriptionDetails(boolean htmlFormat) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    protected List<String> printModelDescriptionDetails(boolean htmlFormat) {
+        List<String> output = super.printModelDescriptionDetails(htmlFormat); 
+        output.add("Binary hulls based on " + HullHolder.NBinaries + " compounds");
+        return output;
     }
+    
+    
     
 	@Override
 	public int getNFittingParameters() {
@@ -107,8 +112,11 @@ class BinaryConvexHullHolder {
 	 */
 	final Map<ImmutablePair<Integer,Integer>, 
 			List<ImmutablePair<Double,Double>>> ConvexHulls = new TreeMap<>();
+    /** Number of binary compounds stored in this object */
+    int NBinaries;
 	
 	public BinaryConvexHullHolder(CompositionDataset HullData) {
+        NBinaries = 0;
 		/** --> First, assemble map */ 
 		int NElem = HullData.ElementNames.length;
 		for (int i = 0; i < NElem; i++) {
@@ -129,6 +137,7 @@ class BinaryConvexHullHolder {
 			int[] elem = Ptr.getElements();
 			// If entry has 2 elements, store the composition on the appropriate map
 			if (elem.length == 2) {
+                NBinaries++;
 				double[] frac = Ptr.getFractions();
 				// Get the lookup key
 				ImmutablePair<Integer,Integer> key;
@@ -253,7 +262,7 @@ class BinaryConvexHullHolder {
 	
 	/**
 	 * Predict the formation energy of a compound. Extrapolates from the binary
-	 *  formation energies in a manner described in <a href="http://www.cambridge.org.turing.library.northwestern.edu/us/academic/subjects/engineering/materials-science/phase-equilibria-phase-diagrams-and-phase-transformations-their-thermodynamic-basis-2nd-edition">
+	 *  formation energies in a manner described in <a href="http://www.cambridge.org/us/academic/subjects/engineering/materials-science/phase-equilibria-phase-diagrams-and-phase-transformations-their-thermodynamic-basis-2nd-edition">
 	 * Hillert's text</a>.
 	 * 
 	 * <p>Basic procedure:
