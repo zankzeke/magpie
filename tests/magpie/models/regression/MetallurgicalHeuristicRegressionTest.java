@@ -2,6 +2,7 @@ package magpie.models.regression;
 
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
+import magpie.data.materials.CompositionEntry;
 import magpie.models.BaseModel;
 import magpie.models.BaseModelTest;
 import org.junit.Test;
@@ -54,11 +55,37 @@ public class MetallurgicalHeuristicRegressionTest extends BaseModelTest {
         double Eab = 0 - 2 * 3.0/7.0 / 0.5;
         double Ebc = 0;
         double Etern = 0.375 * Eac + 0.375 * Eab + 0.25 * Ebc;
-        
+               
         // Compute the formation energy
         m.run(testData);
         
         // Check it
         assertEquals(Etern, testData.getEntry(0).getPredictedClass(), 1e-2);
+    }
+    
+    @Test
+    public void testBinaryHulls() throws Exception {
+        // Create fake hull data
+        CompositionDataset hullData = new CompositionDataset();
+        hullData.addProperty("delta_e");
+        hullData.addEntry("Al3C");
+        hullData.addEntry("AlBe");
+        hullData.addEntry("AlBe2");
+        hullData.setTargetProperty("delta_e", true);
+        hullData.setMeasuredClasses(new double[]{-1,-2,-1.75});
+        
+        // Create holder
+        BinaryConvexHullHolder holder = new BinaryConvexHullHolder(hullData);
+        
+        // Test binary hulls
+        assertEquals(0.0, holder.evaluatePoint(12, 5, 0), 1e-6);
+        assertEquals(-1.0, holder.evaluatePoint(12, 5, 0.75), 1e-6);
+        assertEquals(-0.5, holder.evaluatePoint(12, 5, 0.75/2), 1e-6);
+        assertEquals(-0.5, holder.evaluatePoint(12, 5, 0.875), 1e-6);
+        assertEquals(-1.0, holder.evaluateCompound(new CompositionEntry("Al3C")), 1e-6);
+        assertEquals(-0.5, holder.evaluateCompound(new CompositionEntry("Al7C")), 1e-6);
+        assertEquals(-2, holder.evaluateCompound(new CompositionEntry("AlBe")), 1e-6);
+        assertEquals(-1.875, holder.evaluateCompound(new CompositionEntry("Al5Be7")), 1e-6);
+        assertEquals(-1.75/2, holder.evaluateCompound(new CompositionEntry("AlBe5")), 1e-6);
     }
 }
