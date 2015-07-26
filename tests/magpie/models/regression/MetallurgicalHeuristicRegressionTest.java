@@ -61,6 +61,11 @@ public class MetallurgicalHeuristicRegressionTest extends BaseModelTest {
         
         // Check it
         assertEquals(Etern, testData.getEntry(0).getPredictedClass(), 1e-2);
+        
+        // Check fitting
+        m.setUseCorrection(true);
+        m.train(trainData);
+        System.out.println(m.printModel());
     }
     
     @Test
