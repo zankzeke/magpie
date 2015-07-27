@@ -111,8 +111,11 @@ public class MeredigAttributeGenerator extends BaseAttributeGenerator {
         if (htmlFormat) {
             output += "<a href=\"http://journals.aps.org/prb/abstract/10.1103/PhysRevB.89.094104\">";
         }
-        output += "Meredig and Agrawal" + (htmlFormat ? "<i>et al.</i>" : "et al.:");
+        output += "Meredig and Agrawal " + (htmlFormat ? "<i>et al.</i>" : "et al.") + " (2014)";
         output += "\n" + (htmlFormat ? "</br>" : "");
+        if (htmlFormat) {
+            output += "</a>";
+        }
         output += "Mean atomic mass, atomic number, electronegativity, radius,"
                 + " row and column on periodic table, and number of s/p/d/f valence"
                 + " electrons. Range in atomic number,"
