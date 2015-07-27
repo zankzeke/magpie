@@ -344,9 +344,10 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
     
     /** Read the state from file using serialization
      * @param filename Filename for input
-     * @return 
+     * @return Model stored in that file
+     * @throws java.lang.Exception 
      */
-    public static BaseModel loadState(String filename) {
+    public static BaseModel loadState(String filename) throws Exception {
         return (BaseModel) UtilityOperations.loadState(filename);
     }
     

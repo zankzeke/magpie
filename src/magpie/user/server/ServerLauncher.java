@@ -122,7 +122,12 @@ public class ServerLauncher {
                 break;
             }
             String[] words = line.split("[ \t]");
-            if (words[0].equalsIgnoreCase("entry"));
+            if (words.length == 0) {
+                continue;
+            }
+            if (! words[0].equalsIgnoreCase("entry")) {
+                continue;
+            }
             
             // Get the name of this model
             String name = words[1];
@@ -134,13 +139,26 @@ public class ServerLauncher {
                 throw new Exception("Format error: Missing line for model path");
             }
             System.out.println("\tReading in model from: " + line);
-            BaseModel model = BaseModel.loadState(line);
+            BaseModel model;
+            try {
+                model = BaseModel.loadState(line);
+            } catch (Exception e) {
+                System.err.println("Model failed to read: " + e.getLocalizedMessage());
+                continue;
+            }
+            
             line = reader.readLine();
             if (line == null) {
                 throw new Exception("Format error: Missing line for dataset path");
             }
             System.out.println("\tReading in dataset from: " + line);
-            Dataset data = Dataset.loadState(line).emptyClone();
+            Dataset data;
+            try {
+                data = Dataset.loadState(line).emptyClone();
+            } catch (Exception e) {
+                System.err.println("Dataset failed to read: " + e.getLocalizedMessage());
+                continue;
+            }
             
             // Create the information holder
             ModelPackage modelInfo = new ModelPackage(data, model);
