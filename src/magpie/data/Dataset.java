@@ -220,9 +220,10 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * Read the state from file using serialization
      *
      * @param filename Filename for input
-     * @return
+     * @return Dataset stored in that file
+     * @throws java.lang.Exception
      */
-    public static Dataset loadState(String filename) {
+    public static Dataset loadState(String filename) throws Exception {
         return (Dataset) UtilityOperations.loadState(filename);
     }
 

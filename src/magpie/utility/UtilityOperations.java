@@ -16,19 +16,16 @@ public class UtilityOperations {
 
     /** Read the state from file using serialization
      * @param filename Filename for input
-     * @return
+     * @return Object stored in that file
+     * @throws java.lang.Exception
      */
-    public static Object loadState(String filename) {
+    public static Object loadState(String filename) throws Exception {
         Object output;
-        try {
-            FileInputStream fp = new FileInputStream(filename);
-            ObjectInputStream in = new ObjectInputStream(fp);
-            output = in.readObject();
-            in.close();
-            fp.close();
-        } catch (Exception i) {
-            throw new Error(i);
-        }
+        FileInputStream fp = new FileInputStream(filename);
+        ObjectInputStream in = new ObjectInputStream(fp);
+        output = in.readObject();
+        in.close();
+        fp.close();
         return output;
     }
     
