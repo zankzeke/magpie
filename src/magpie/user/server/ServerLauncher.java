@@ -116,8 +116,11 @@ public class ServerLauncher {
         BufferedReader reader = new BufferedReader(new FileReader(path));
         
         // Read in model information
-        String line = reader.readLine();
+        String line = "";
         while (true) {
+            if (! line.toLowerCase().startsWith("entry ")) {
+                line = reader.readLine();
+            }
             if (line == null) {
                 break;
             }
