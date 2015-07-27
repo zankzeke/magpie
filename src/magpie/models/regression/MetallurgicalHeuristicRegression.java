@@ -51,6 +51,8 @@ public class MetallurgicalHeuristicRegression extends BaseRegression {
             if (Options.size() == 2) {
                 if (Options.get(1).toString().equalsIgnoreCase("-correction")) {
                     setUseCorrection(true);
+                } else {
+                    throw new Exception();
                 }
             }
 		} catch (Exception e) {
@@ -60,7 +62,7 @@ public class MetallurgicalHeuristicRegression extends BaseRegression {
 
 	@Override
 	public String printUsage() {
-		return "Usage: $<convex hull data>";
+		return "Usage: $<convex hull data> [-correction]";
 	}
 	
 	/**
