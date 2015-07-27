@@ -1,6 +1,5 @@
 package magpie.data.utilities.filters;
 
-import com.sun.java.swing.plaf.windows.WindowsTreeUI;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -37,12 +36,26 @@ public class CompositionSetDifferenceFilter extends BaseDatasetFilter {
 
     @Override
     public void setOptions(List<Object> Options) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        CompositionDataset data;
+        int norm;
+        double threshold;
+        try {
+            data = (CompositionDataset) Options.get(0);
+            norm = Integer.parseInt(Options.get(1).toString());
+            threshold = Double.parseDouble(Options.get(2).toString());
+        } catch (Exception e) {
+            throw new Exception(printUsage());
+        }
+        
+        // Set options
+        setCompositions(data);
+        setP(norm);
+        setDistanceThreshold(threshold);
     }
 
     @Override
     public String printUsage() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return "Usage: $<compositions> <p norm> <threshold>";
     }
     
     /**
