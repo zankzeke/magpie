@@ -136,8 +136,7 @@ public class CompositionSetDifferenceFilter extends BaseDatasetFilter {
         boolean[] output = new boolean[D.NEntries()];
         for (int i=0; i<D.NEntries(); i++) {
             CompositionEntry entry = (CompositionEntry) D.getEntry(i);
-            double dist = computeDistance(Compositions, entry, P);
-            output[i] = dist > Threshold;
+            output[i] = ! isCloserThan(Compositions, entry, P, Threshold);
         }
         return output;
     }
@@ -200,5 +199,25 @@ public class CompositionSetDifferenceFilter extends BaseDatasetFilter {
             dist = Math.min(dist, computeDistance(setEntry, entry, p));
         }
         return dist;
+    }
+    
+    /**
+     * Check whether an entry is closer to a known set of compounds than a certain
+     * threshold. 
+     * @param set Set of compositions to compare against
+     * @param entry Composition of entry to test
+     * @param p Desired <i>L<sub>p</sub></i> norm. Use -1 for <i>L<sub>inf</sub></i>
+     * @param dist Distance threshold
+     * @return Whether entry is closer to known set than the distance threshold
+     * @see #computeDistance(java.util.Collection, magpie.data.materials.CompositionEntry, int) 
+     */
+    static public boolean isCloserThan(Collection<CompositionEntry> set,
+            CompositionEntry entry, int p, double dist) {
+        for (CompositionEntry setEntry : set) {
+            if (computeDistance(setEntry, entry, p) < dist) {
+                return true;
+            }
+        }
+        return false;
     }
 }
