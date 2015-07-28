@@ -25,7 +25,17 @@ public class ClassProbabilityFilter extends BaseDatasetFilter {
 
     @Override
     public void setOptions(List<Object> Options) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String name;
+        double threshold;
+        try {
+            name = Options.get(0).toString();
+            threshold = Double.parseDouble(Options.get(1).toString());
+            if (Options.size() > 2) throw new Exception();
+        } catch (Exception e) {
+            throw new Exception(printUsage());
+        }
+        setClassName(name);
+        setThreshold(threshold);
     }
 
     @Override
