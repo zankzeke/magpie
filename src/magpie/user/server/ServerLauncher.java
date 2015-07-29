@@ -211,6 +211,9 @@ public class ServerLauncher {
             
             // Add in model to handler
             Handler.addModel(name, modelInfo);
+
+            // If at end of file, break
+            if (line == null) break;
         }
     }
     
