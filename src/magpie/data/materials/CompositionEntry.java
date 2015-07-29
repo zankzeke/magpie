@@ -3,6 +3,7 @@ package magpie.data.materials;
 import java.text.DecimalFormat;
 import magpie.data.MultiPropertyEntry;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
@@ -50,8 +51,202 @@ public class CompositionEntry extends MultiPropertyEntry {
         this.ElementNames = LookupData.ElementNames;
 		this.SortingOrder = LookupData.SortingOrder;
 		
+        // Parse the composition
+        Map<Integer, Double> compMap = parseComposition(Composition);
+        
+		// Crash if nothing read
+		if (compMap.isEmpty()) {
+			throw new Exception("No composition was read");
+		}
+		
+        // Store values
+        this.Element =  new int[compMap.keySet().size()];
+        this.Fraction = new double[Element.length];
+        Iterator<Map.Entry<Integer,Double>> iter = compMap.entrySet().iterator();
+        int i=0;
+        while (iter.hasNext()) {
+            Map.Entry<Integer,Double> entry = iter.next();
+            Element[i] = entry.getKey();
+            Fraction[i] = entry.getValue();
+            i++;
+        }
+        rectifyEntry(true);
+    }
+    
+    /**
+     * Parse string containing a composition. Supports parentheses and addition compounds
+     * (ex: Na<sub>2</sub>CO<sub>3</sub>-10H<sub>2</sub>O). Note, will 
+     * not propertly parse addition compounds inside parentheses (ex:
+     * Na<sub>2</sub>(CO<sub>3</sub>-10H<sub>2</sub>O)<sub>1</sub>).
+     * 
+     * @param composition String describing a composition
+     * @return Map of element ID (Z-1) to amount
+     * @throws Exception 
+     */
+    private Map<Integer, Double> parseComposition(String composition) 
+            throws Exception {
+        // Check for a guest structure (ex: Al2O3-2H20)
+        int startGuest = composition.indexOf("-");
+        int pos = composition.indexOf(183); 
+        if (pos != -1 && pos < startGuest) {
+            startGuest = pos;
+        }
+
+        // If this composition doesn't contain a guest either
+        if (startGuest == -1) {
+            // Check for ({['s
+            int startParen = composition.indexOf('(');
+            pos = composition.indexOf('{');
+            if (pos != -1 && pos < startParen) {
+                startParen = pos;
+            }
+            pos = composition.indexOf('[');
+            if (pos != -1 && pos < startParen) {
+                startParen = pos;
+            }
+
+            // If none found, parse as normal
+            if (startParen == -1) {
+                return parseElementAmounts(composition);
+            } else {
+                // First, get the part of string before the parens
+                String firstPart = composition.substring(0, startParen);
+
+                // Next, find the porition inside of the parens
+                char parenType = composition.charAt(startParen);
+                pos = startParen;
+                int parenBalence = 1;
+                while (parenBalence > 0) {
+                    // Increment position
+                    pos++;
+
+                    // Check whether we are past the end of the string
+                    if (pos > composition.length()) {
+                        throw new Exception("Missing close paren. Start: "
+                                + composition.substring(startParen, startParen + 3));
+                    }
+
+                    // Get the character at the current position
+                    char curChar = composition.charAt(pos);
+
+                    // Figure out change in paren balance
+                    if (parenType == '(') {
+                        if (curChar == '(') {
+                            parenBalence++;
+                        } else if (curChar == ')') {
+                            parenBalence--;
+                        }
+                    } else if (parenType == '{') {
+                        if (curChar == '{') {
+                            parenBalence++;
+                        } else if (curChar == '}') {
+                            parenBalence--;
+                        }
+                    } else if (parenType == '[') {
+                        if (curChar == '[') {
+                            parenBalence++;
+                        } else if (curChar == ']') {
+                            parenBalence--;
+                        }
+                    } else {
+                        throw new Exception("Unrecognized paren type: " + parenType);
+                    }
+                }
+
+                // Get the multiplier of the composition inside the parens
+                int endParen = pos;
+                pos++;
+                String mult = "";
+                while (pos < composition.length()
+                        && (Character.isDigit(composition.charAt(pos))
+                        || composition.charAt(pos) == '.')) {
+                    mult += composition.charAt(pos++);
+                }
+                double parenMult;
+                if (mult.isEmpty()) {
+                    parenMult = 1;
+                } else {
+                    parenMult = Double.parseDouble(mult);
+                }
+
+                // Get the portion insides of those parens, and end porition
+                String insideParen = composition.substring(startParen + 1, endParen);
+                String endPortion = composition.substring(pos);
+
+                // Parse those poritions and combine results
+                Map<Integer, Double> totalComp = parseElementAmounts(firstPart);
+                Map<Integer, Double> addComp = parseComposition(insideParen);
+
+                combineCompositions(totalComp, addComp, parenMult);
+
+                // Parse the end portion
+                addComp = parseComposition(endPortion);
+                combineCompositions(totalComp, addComp, 1.0);
+
+                // Done!
+                return totalComp;
+            }
+        } else {
+            // Find how many guests
+            int endHost = startGuest;
+            pos = startGuest + 1;
+            String mult = "";
+            while (pos < composition.length() && 
+                    (Character.isDigit(composition.charAt(pos)) ||
+                    composition.charAt(pos) == '.')) {
+                mult += composition.charAt(pos++);
+            }
+            startGuest = pos;
+            double guestMult = mult.isEmpty() ? 1.0 : Double.parseDouble(mult);
+            
+            // Split compound
+            String hostPart = composition.substring(0, endHost);
+            String guestPart = composition.substring(startGuest);
+            
+            // Compute them separately
+            Map<Integer, Double> hostComp = parseComposition(hostPart),
+                    guestComp = parseComposition(guestPart);
+            combineCompositions(hostComp, guestComp, guestMult);
+            
+            return hostComp;
+        }
+
+        
+        
+    }
+
+    /**
+     * Add composition from one map to another
+     * @param totalComp Composition to be added to
+     * @param addComp Composition to add
+     * @param multiplier Multiplier for added part
+     */
+    public void combineCompositions(Map<Integer, Double> totalComp,
+            Map<Integer, Double> addComp, double multiplier) {
+        for (Map.Entry<Integer, Double> entrySet : addComp.entrySet()) {
+            Integer elem = entrySet.getKey();
+            Double amount = entrySet.getValue();
+            Double curAmount = totalComp.get(elem);
+            
+            // If totalComp contains this element
+            if (curAmount != null) {
+                double newAmount = curAmount + amount * multiplier;
+                totalComp.put(elem, newAmount);
+            } else {
+                totalComp.put(elem, amount * multiplier);
+            }
+        }
+    }
+
+    /**
+     * Given a string of elements and amounts, compute fractions of each element.
+     * @param composition Composition as a string
+     * @return Map of element ID (Z-1) to amount
+     * @throws Exception 
+     */
+    private Map<Integer, Double> parseElementAmounts(String composition) throws Exception {
         // Add up all the constituents
-        Matcher compMatcher = Pattern.compile("[A-Z][^A-Z]*").matcher(Composition);
+        Matcher compMatcher = Pattern.compile("[A-Z][^A-Z]*").matcher(composition);
         Pattern elemPattern = Pattern.compile("[A-Z][a-z]?");
         Pattern fracPattern = Pattern.compile("[\\.0-9]+");
         Map<Integer, Double> compMap = new TreeMap<>();
@@ -79,6 +274,11 @@ public class CompositionEntry extends MultiPropertyEntry {
                 }
             }
             
+            // Skip if fraction is zero
+            if (elementFraction == 0) {
+                continue;
+            }
+            
             // Add (or update the value)
             if (compMap.containsKey(elementNumber)) {
                 Double newAmount = compMap.get(elementNumber) + elementFraction;
@@ -86,24 +286,7 @@ public class CompositionEntry extends MultiPropertyEntry {
             } else 
                 compMap.put(elementNumber, elementFraction);
         }
-        
-		// Crash if nothing read
-		if (compMap.isEmpty()) {
-			throw new Exception("No composition was read");
-		}
-		
-        // Store values
-        this.Element =  new int[compMap.keySet().size()];
-        this.Fraction = new double[Element.length];
-        Iterator<Map.Entry<Integer,Double>> iter = compMap.entrySet().iterator();
-        int i=0;
-        while (iter.hasNext()) {
-            Map.Entry<Integer,Double> entry = iter.next();
-            Element[i] = entry.getKey();
-            Fraction[i] = entry.getValue();
-            i++;
-        }
-        rectifyEntry(true);
+        return compMap;
     }
 
     /**
