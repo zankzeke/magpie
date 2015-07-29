@@ -27,9 +27,9 @@ import vassal.analysis.VoronoiCellBasedAnalysis;
  * <li>Minimum in average bond length, normalized by mean for all atoms
  * <li>Maximum in average bond length, normalized by mean for all atoms
  * <li>Mean bond length variance between bonds across all atom
- * <li>Mean absolution deviation in bond 
- * <li>Minimum bond length variation
- * <li>Maximum bond length variation
+ * <li>Mean absolute deviation in bond length variance
+ * <li>Minimum bond length variance
+ * <li>Maximum bond length variance
  * <li>Mean absolute deviation in atomic volume, normalized by mean atomic volume
  * <li>Number of unique coordination polyhedron shapes
  * </ol>
