@@ -5,6 +5,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import magpie.Magpie;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
@@ -112,13 +117,43 @@ public class CompositionSetDistanceModifier extends BaseDatasetModifier {
 		
 		// Add property to dataset
 		p.addProperty("compdistance");
-		
-		// Compute and add property to entries
-		for (BaseEntry ptr : p.getEntries()) {
-			CompositionEntry e = (CompositionEntry) ptr;
-			double x = CompositionSetDistanceFilter.computeDistance(Compositions, e, P);
-			e.addProperty(x, x);
-		}
+        
+        // Check if large enough to consider parallelization
+        if (p.NEntries() > 2000) {
+            // Split the dataset for threading
+            Dataset[] threads = Data.splitForThreading(Magpie.NThreads);
+
+            // Parallel run over the entries
+            ExecutorService service = Executors.newFixedThreadPool(Magpie.NThreads);
+            for (final Dataset part : threads) {
+                Runnable thread = new Runnable() {
+                    @Override
+                    public void run() {
+                        for (BaseEntry ptr : part.getEntries()) {
+                            CompositionEntry e = (CompositionEntry) ptr;
+                            double x = CompositionSetDistanceFilter.computeDistance(Compositions, e, P);
+                            e.addProperty(x, x);
+                        }
+                    }
+                };
+                service.submit(thread);
+            }
+            
+            // Wait for results
+            service.shutdown();
+            try {
+                service.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+            } catch (InterruptedException i) {
+                throw new Error(i);
+            }
+        } else {
+            // Run it serially
+            for (BaseEntry ptr : p.getEntries()) {
+                CompositionEntry e = (CompositionEntry) ptr;
+                double x = CompositionSetDistanceFilter.computeDistance(Compositions, e, P);
+                e.addProperty(x, x);
+            }
+        }
 	}
 	
 }
