@@ -17,7 +17,8 @@ import vassal.data.Cell;
  * Abstract class for methods that predict properties of crystal structures with 
  * KKR-based schemes. Data must be a {@linkplain CrystalStructureDataset}.
  * 
- * <p>At the moment, this classes uses Weka to perform the regression.
+ * <p>This implementation currently uses {@linkplain CholeskyDecomposition} to
+ * perform to solve the ridge regression.
  * 
  * <p><b>How to Extend this Class</b>
  * 
