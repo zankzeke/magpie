@@ -11,38 +11,38 @@ import static org.junit.Assert.*;
  *
  * @author Logan Ward
  */
-public class CompositionSetDifferenceFilterTest {
+public class CompositionSetDistanceFilterTest {
 
     @Test
     public void test() throws Exception {
         // Test binary distance
         assertEquals(0.0, 
-                CompositionSetDifferenceFilter.computeDistance(
+                CompositionSetDistanceFilter.computeDistance(
                         new CompositionEntry("Fe"),
                         new CompositionEntry("Fe"), -1),
                 1e-6);
         assertEquals(0.0, 
-                CompositionSetDifferenceFilter.computeDistance(
+                CompositionSetDistanceFilter.computeDistance(
                         new CompositionEntry("Fe"),
                         new CompositionEntry("Fe"), 0),
                 1e-6);
         assertEquals(0.0, 
-                CompositionSetDifferenceFilter.computeDistance(
+                CompositionSetDistanceFilter.computeDistance(
                         new CompositionEntry("Fe"),
                         new CompositionEntry("Fe"), 2),
                 1e-6);
         assertEquals(0.5, 
-                CompositionSetDifferenceFilter.computeDistance(
+                CompositionSetDistanceFilter.computeDistance(
                         new CompositionEntry("FeO"),
                         new CompositionEntry("Fe"), -1),
                 1e-6);
         assertEquals(2.0, 
-                CompositionSetDifferenceFilter.computeDistance(
+                CompositionSetDistanceFilter.computeDistance(
                         new CompositionEntry("FeO"),
                         new CompositionEntry("Fe"), 0),
                 1e-6);
         assertEquals(Math.sqrt(0.5), 
-                CompositionSetDifferenceFilter.computeDistance(
+                CompositionSetDistanceFilter.computeDistance(
                         new CompositionEntry("FeO"),
                         new CompositionEntry("Fe"), 2),
                 1e-6);
@@ -52,17 +52,17 @@ public class CompositionSetDifferenceFilterTest {
         entrySet.add(new CompositionEntry("NaCl"));
         entrySet.add(new CompositionEntry("Fe"));
         entrySet.add(new CompositionEntry("FeO"));
-        assertEquals(0, CompositionSetDifferenceFilter.computeDistance(entrySet,
+        assertEquals(0, CompositionSetDistanceFilter.computeDistance(entrySet,
                 new CompositionEntry("Fe"), 0), 1e-6);
-        assertEquals(2.0, CompositionSetDifferenceFilter.computeDistance(entrySet,
+        assertEquals(2.0, CompositionSetDistanceFilter.computeDistance(entrySet,
                 new CompositionEntry("Fe2O3"), 0), 1e-6);
-        assertEquals(0.1, CompositionSetDifferenceFilter.computeDistance(entrySet,
+        assertEquals(0.1, CompositionSetDistanceFilter.computeDistance(entrySet,
                 new CompositionEntry("Fe2O3"), -1), 1e-6);
-        assertEquals(Math.sqrt(0.02), CompositionSetDifferenceFilter.computeDistance(entrySet,
+        assertEquals(Math.sqrt(0.02), CompositionSetDistanceFilter.computeDistance(entrySet,
                 new CompositionEntry("Fe2O3"), 2), 1e-6);
         
         // Create filter
-        CompositionSetDifferenceFilter filter = new CompositionSetDifferenceFilter();
+        CompositionSetDistanceFilter filter = new CompositionSetDistanceFilter();
         filter.addCompositions(entrySet);
         filter.setP(2);
         
