@@ -1010,20 +1010,17 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         int to_split = NEntries() / NThreads;
         Iterator<BaseEntry> iter = Entries.iterator();
         
-        // Fill in each thread
-        for (int i = 0; i < NThreads - 1; i++) {
+        // Make the thread datasets
+        for (int i=0; i< NThreads; i++) {
             output[i] = emptyClone();
             output[i].Entries.ensureCapacity(to_split);
-            for (int j = 0; j < to_split; j++) {
-                output[i].Entries.add(iter.next());
-            }
         }
-        // Fill in the last thread
-        output[NThreads - 1] = emptyClone();
-        output[NThreads - 1].Entries.ensureCapacity(to_split + 1);
-        while (iter.hasNext()) {
-            output[NThreads - 1].Entries.add(iter.next());
+        
+        // Fill in each thread
+        for (int e=0; e<NEntries(); e++) {
+            output[e % NThreads].Entries.add(Entries.get(e));
         }
+        
         return output;
     }
 
