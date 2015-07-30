@@ -1011,7 +1011,6 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         
         // Number to split per thread
         int to_split = NEntries() / NThreads;
-        Iterator<BaseEntry> iter = Entries.iterator();
         
         // Make the thread datasets
         for (int i=0; i< NThreads; i++) {
