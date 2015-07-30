@@ -221,7 +221,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
         String[] words;
 
         // Read in properties from header
-        line = is.readLine();
+        line = is.readLine().trim();
 		importPropertyNames(line);
 
         // Determine which property is the energy ("energy_pa")
@@ -238,7 +238,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
             if (line == null) {
                 break;
             }
-            words = line.split("\\s+");
+            words = line.trim().split("\\s+");
             if (words.length < 2) {
                 continue;
             }

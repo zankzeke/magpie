@@ -102,7 +102,7 @@ public class ElementDataset extends MultiPropertyDataset {
         String line = fp.readLine();
         while (line != null) {            
             // Read in a new entry
-            String[] words = line.split("\\s+");
+            String[] words = line.trim().split("\\s+");
             ElementEntry entry = new ElementEntry(words[0]);
             double[] props = importEntryProperties(words);
             entry.setMeasuredProperties(props);
