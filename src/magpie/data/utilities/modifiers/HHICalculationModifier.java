@@ -10,7 +10,7 @@ import magpie.data.materials.CompositionEntry;
  * Calculates the Herfindahl-Hirschman Index (HHI) for compounds, stores as property.
  *  Uses <a href="http://www.mrl.ucsb.edu:8080/datamine/hhi.jsp">data</a> from 
  *  the Materials Research Laboratory at UCSB, and computes the HHI value as the
- *  minimum HHI<sub>p</sub> of any element present. Smaller HHI<sub>p</sub> values indicate
+ *  maximum HHI<sub>p</sub> of any element present. Smaller HHI<sub>p</sub> values indicate
  *  materials that are more economically-feasible to produce
  * 
  * <p>This property is added to the dataset and all entries it contains. Both the measured
