@@ -998,8 +998,11 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     }
 
     /**
-     * Split for threading purposes. Does not worry about randomization.
-     *
+     * Split for threading purposes. Does not worry about randomization,
+     * thread n contains all entries where [entry ID] % NThreads == 0. 
+     * 
+     * <p>Example: 4 threads, thread 1 has entry #1, 5, 9, ...
+     * 
      * @param NThreads Number of subsets to create
      * @return Array of equally-sized Dataset objects
      */
