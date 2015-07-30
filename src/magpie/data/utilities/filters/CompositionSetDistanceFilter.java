@@ -26,7 +26,7 @@ import magpie.data.materials.CompositionEntry;
  * 
  * @author Logan Ward
  */
-public class CompositionSetDifferenceFilter extends BaseDatasetFilter {
+public class CompositionSetDistanceFilter extends BaseDatasetFilter {
     /** Set of compositions to consider */
     private Set<CompositionEntry> Compositions = new TreeSet<>();
     /** P-norm to use when computing distance (default: 2) */

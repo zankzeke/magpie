@@ -8,7 +8,7 @@ import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.CompositionEntry;
-import magpie.data.utilities.filters.CompositionSetDifferenceFilter;
+import magpie.data.utilities.filters.CompositionSetDistanceFilter;
 
 /**
  * Rank entries based on distance from compositions in a user-provided dataset.
@@ -21,7 +21,7 @@ import magpie.data.utilities.filters.CompositionSetDifferenceFilter;
  * the L<sub>inf</sub> norm.</usage>
  * 
  * @author Logan Ward
- * @see CompositionSetDifferenceFilter
+ * @see CompositionSetDistanceFilter
  */
 public class CompositionDistanceRanker extends BaseEntryRanker {
     /** Set of compositions to consider */
@@ -115,7 +115,7 @@ public class CompositionDistanceRanker extends BaseEntryRanker {
 
     @Override
     public double objectiveFunction(BaseEntry Entry) {
-        return CompositionSetDifferenceFilter.computeDistance(Compositions, (CompositionEntry) Entry, P);
+        return CompositionSetDistanceFilter.computeDistance(Compositions, (CompositionEntry) Entry, P);
     }
     
 }
