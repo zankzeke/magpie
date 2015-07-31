@@ -2,6 +2,7 @@ package magpie.data.utilities.filters;
 
 import java.util.ArrayList;
 import java.util.List;
+import magpie.Magpie;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.CompositionEntry;
 import org.junit.Test;
@@ -82,6 +83,15 @@ public class CompositionSetDistanceFilterTest {
         assertFalse(filter.label(data)[0]);
         assertTrue(filter.label(data)[1]);
         assertTrue(filter.label(data)[2]);
+        
+        // Test parallelism
+        boolean[] serialLabels = filter.label(data);
+        Magpie.NThreads = 2;
+        boolean[] parallelLabels = filter.parallelLabel(data);
+        assertEquals(serialLabels.length, parallelLabels.length);
+        for (int i=0; i<serialLabels.length; i++) {
+            assertTrue(serialLabels[i] == parallelLabels[i]);
+        }
     }
     
 }
