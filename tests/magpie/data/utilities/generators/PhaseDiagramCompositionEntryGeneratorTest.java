@@ -3,6 +3,7 @@ package magpie.data.utilities.generators;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import java.util.*;
+import magpie.data.BaseEntry;
 import static org.junit.Assert.*;
 
 /**
@@ -39,8 +40,22 @@ public class PhaseDiagramCompositionEntryGeneratorTest {
 		assertEquals(1, comps.get(1).size());
 		assertEquals(5, comps.get(2).size());
 		assertEquals(4, comps.get(3).size());
+        
+        // Try making entries
+        Set<Integer> elems = new HashSet<>();
+        elems.add(0);
+        elems.add(1);
+        elems.add(2);
+        generator.setElementsByIndex(elems);
+        Set<BaseEntry> entries = new TreeSet<>(generator.generateEntries());
+        assertEquals(3 * 1 + 3 * 5 + 4, entries.size());
+        elems.add(3);
+        generator.setElementsByIndex(elems);
+        entries = new TreeSet<>(generator.generateEntries());
+        assertEquals(4 * 1 + 6 * 5 + 4 * 4, entries.size());
+        
         generator.setOrder(2, 3);
-        comps = generator.generateAlloyCompositions();
+        comps = generator.generateCrystalCompositions();
         assertEquals(2, comps.size());
 	}
 }
