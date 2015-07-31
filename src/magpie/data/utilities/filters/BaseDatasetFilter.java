@@ -1,6 +1,8 @@
 package magpie.data.utilities.filters;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.utility.interfaces.Options;
@@ -54,15 +56,18 @@ abstract public class BaseDatasetFilter implements java.io.Serializable, Options
      */
     public void filter(Dataset D) {
         boolean[] labels = label(D);
-        // Split it up
-        Iterator<BaseEntry> iter = D.getEntries().iterator();
-        int i=0; 
-        while (iter.hasNext()) {
-            iter.next();
-            if (labels[i] == Exclude)
-                iter.remove();
-            i++;
+        
+        // Create a list containing only the entires that pass the filter
+        ArrayList<BaseEntry> newList = new ArrayList<>(D.NEntries());
+        for (int i=0; i<D.NEntries(); i++) {
+            if (labels[i] != Exclude) {
+                newList.add(D.getEntry(i));
+            }
         }
+        
+        // Set that as the entry list for D
+        D.clearData();
+        D.addEntries(newList);
     }
     
     /**
