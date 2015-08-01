@@ -1,7 +1,11 @@
 package magpie.utility.tools;
 
+import java.util.*;
+import magpie.Magpie;
 import magpie.analytics.RegressionStatistics;
 import magpie.data.materials.CompositionDataset;
+import magpie.data.utilities.filters.AllMetalsFilter;
+import magpie.data.utilities.generators.PhaseDiagramCompositionEntryGenerator;
 import magpie.models.regression.WekaRegression;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -40,6 +44,41 @@ public class BatchModelEvaluatorTest {
         RegressionStatistics runStats = new RegressionStatistics();
         runStats.evaluate(data);
         assertEquals(trainStats.MAE, runStats.MAE, 1e-6);
+        
+        // Run the model
+        Magpie.NThreads = 2;
+        eval = new BatchModelEvaluator();
+        eval.setModel(weka);
+        eval.setBatchSize(100);
+        eval.evaluate(data);
+        
+        // Make sure it gives the same results
+        trainStats = (RegressionStatistics) weka.TrainingStats;
+        runStats = new RegressionStatistics();
+        runStats.evaluate(data);
+        assertEquals(trainStats.MAE, runStats.MAE, 1e-6);
+        
+        // Test out the run and filter
+        AllMetalsFilter filter = new AllMetalsFilter();
+        filter.setExclude(false);
+        
+        PhaseDiagramCompositionEntryGenerator gen = new PhaseDiagramCompositionEntryGenerator();
+        Set<String> elems = new TreeSet<>();
+        elems.add("Fe");
+        elems.add("Al");
+        elems.add("O");
+        gen.setElementsByName(elems);
+        gen.setEvenSpacing(false);
+        gen.setSize(2);
+        gen.setOrder(2, 2);
+        
+        CompositionDataset outputData = data.emptyClone();
+        outputData.clearData();
+        
+        eval.evaluate(outputData, gen, filter);
+        
+        assertEquals(1, outputData.NEntries());
+        assertEquals(0, outputData.getEntry(0).NAttributes());
     }
     
 }
