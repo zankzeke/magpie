@@ -107,7 +107,7 @@ public class MeredigAttributeGenerator extends BaseAttributeGenerator {
         String output = getClass().getName() + (htmlFormat ? " " : ": ");
         
         // Print description
-        output += "(9) Attributes used in ";
+        output += "(13) Attributes used in ";
         if (htmlFormat) {
             output += "<a href=\"http://journals.aps.org/prb/abstract/10.1103/PhysRevB.89.094104\">";
         }

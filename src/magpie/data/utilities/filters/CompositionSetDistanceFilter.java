@@ -122,6 +122,11 @@ public class CompositionSetDistanceFilter extends BaseDatasetFilter {
     }
 
     @Override
+    protected int parallelMinimum() {
+        return 200;
+    }
+
+    @Override
     public void train(Dataset TrainingSet) {
         // Nothing to train
     }    

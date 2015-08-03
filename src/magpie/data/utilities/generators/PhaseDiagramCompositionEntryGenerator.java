@@ -140,29 +140,70 @@ public class PhaseDiagramCompositionEntryGenerator extends BaseEntryGenerator {
     }
 
 	@Override
-	public List<BaseEntry> generateEntries() {
+	public Iterator<BaseEntry> iterator() {
 		// Get list of compositions at which to create entries
-		Map<Integer, List<double[]>> compositions;
+		final Map<Integer, List<double[]>> compositions;
 		compositions = evenSpacing ? generateAlloyCompositions() : 
 				generateCrystalCompositions();
 		
-		// Generate entries
-		List<BaseEntry> output = new LinkedList<>();
-		for (Map.Entry<Integer, List<double[]>> entrySet : compositions.entrySet()) {
-			Integer or = entrySet.getKey();
-			List<double[]> comps = entrySet.getValue();
-			for (int[] elemID : new Combinations(Elements.size(), or)) {
-				int[] elems = new int[or];
-				for (int i=0; i<or; i++) {
-					elems[i] = Elements.get(elemID[i]);
-				}
-				for (double[] comp : comps) {
-					CompositionEntry newEntry = new CompositionEntry(elems, comp);
-					output.add(newEntry);
-				}
-			}
-		}
-		return output;
+        return new Iterator<BaseEntry>() {
+            // Intialize iterators
+            Iterator<Map.Entry<Integer, List<double[]>>> compIter =
+                    compositions.entrySet().iterator();
+            Map.Entry<Integer, List<double[]>> curComp = compIter.next();
+            Iterator<double[]> fracIter = curComp.getValue().iterator();
+            Iterator<int[]> elemIter = new Combinations(Elements.size(), curComp.getKey()).iterator();
+            double[] curFracs = fracIter.next();
+            
+            @Override
+            public boolean hasNext() {
+                return compIter.hasNext() || fracIter.hasNext() || elemIter.hasNext();
+            }
+
+            @Override
+            public BaseEntry next() {
+                // What we need to get 
+                int[] elemIDs;
+                
+                // Loop through phase diagrams
+                if (elemIter.hasNext()) {
+                    // Get next phase diagram
+                    elemIDs = elemIter.next();
+                } else if (fracIter.hasNext()) {
+                    // Get next fractions
+                    curFracs = fracIter.next();
+                    
+                    // Reset element counter
+                    elemIter = new Combinations(Elements.size(), curComp.getKey()).iterator();
+                    elemIDs = elemIter.next();
+                } else {
+                    // Get the next set of compositions
+                    curComp = compIter.next();
+                    
+                    // Reset fraction counter
+                    fracIter = curComp.getValue().iterator();
+                    curFracs = fracIter.next();
+                    
+                    // Reset element counter
+                    elemIter = new Combinations(Elements.size(), curComp.getKey()).iterator();
+                    elemIDs = elemIter.next();
+                }
+                
+                // Get the corresponding elements from user's list
+                for (int e=0; e<elemIDs.length; e++) {
+                    elemIDs[e] = Elements.get(elemIDs[e]);
+                }
+                
+                // Make the entry
+                CompositionEntry entry = new CompositionEntry(elemIDs, curFracs);
+                return entry;
+            }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            }
+        };
 	}
 	
 	/**

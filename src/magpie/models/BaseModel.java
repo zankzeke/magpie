@@ -4,6 +4,11 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import magpie.Magpie;
 import magpie.analytics.BaseStatistics;
 import magpie.attributes.selectors.BaseAttributeSelector;
 import magpie.data.BaseEntry;
@@ -91,10 +96,6 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
     public BaseStatistics TrainingStats; 
     /** Statistics generated during model validation */
     public BaseStatistics ValidationStats;
-    /** Maximum number of threads to launch */
-    public int MaxNumberOfThreads = 1;
-    /** Maximum dataset size to run serially */
-    public int SerialCutoff = 75000;
     /** BaseAttributeSelector used to screen attributes during training */
     protected BaseAttributeSelector AttributeSelector = null;
     /** Used to normalize attributes before training / running model */
@@ -292,30 +293,40 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
             AttributeSelector.run(data);
         }
         
-        if (MaxNumberOfThreads > 1 && data.NEntries() > SerialCutoff) {
-            // Determine how many threads to use
-            System.err.print("WARNING: Multithreading currently sucks.");
-            int thread_count = data.NEntries() / SerialCutoff + 1;
-            thread_count = Math.min(thread_count, MaxNumberOfThreads);
-           // thread_count = 1;
-            // Start each new thread
-            try { 
-                Thread[] workers = new Thread[thread_count - 1];
-                Dataset[] split_data = data.splitForThreading(thread_count);
-                for (int i=0; i<workers.length; i++) {
-                    BaseModel model_copy = this.clone();
-                    workers[i] = new Thread(new ModelRunningThread(model_copy, split_data[i]));
-                    workers[i].start();
-                }
-                run_protected(split_data[thread_count-1]);
-                // Wait until they complete
-                for (Thread worker : workers) {
-                    worker.join();
-                }
-                // Collect the results
-                data.combine(split_data);
+        if (Magpie.NThreads > 1 && testData.NEntries() > Magpie.NThreads) {
+            // Original thread count
+            int originalNThreads = Magpie.NThreads;
+            
+            // Make sure any children of this model don't launch competing threads
+            Magpie.NThreads = 1; 
+            
+            // Split data for threads
+            Dataset[] threadData = testData.splitForThreading(originalNThreads);
+            
+            // Launch threads
+            ExecutorService service = Executors.newFixedThreadPool(originalNThreads);
+            for (int i=0; i<originalNThreads; i++) {
+                final Dataset part = threadData[i];
+                final BaseModel model = i == 0 ? this : clone();
+                Runnable thread = new Runnable() {
+                    @Override
+                    public void run() {
+                        model.run_protected(part);
+                    }
+                };
+                service.submit(thread);
             }
-            catch (Exception e) { throw new Error(e); }
+            
+            // Wait until everything is done
+            service.shutdown();
+            try {
+                service.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+            } catch (InterruptedException i) {
+                throw new Error(i);
+            }
+            
+            // Restore parallelism
+            Magpie.NThreads = originalNThreads;
         } else {
             // Run it serially 
             run_protected(data);
@@ -351,7 +362,8 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         return (BaseModel) UtilityOperations.loadState(filename);
     }
     
-    @Override public BaseModel clone() {
+    @Override 
+    public BaseModel clone() {
         BaseModel x;
         try { 
             x = (BaseModel) super.clone(); 

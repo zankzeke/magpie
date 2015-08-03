@@ -1,6 +1,8 @@
 
 package magpie.data.utilities.generators;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
@@ -32,13 +34,20 @@ import magpie.utility.interfaces.Options;
  * 
  * @author Logan Ward
  */
-abstract public class BaseEntryGenerator implements Options {
+abstract public class BaseEntryGenerator implements Options, Iterable<BaseEntry> {
     
     /**
      * Generate a list of new entries according to the currently-defined settings.
      * @return List of entries
      */
-    abstract public List<BaseEntry> generateEntries();
+    final public List<BaseEntry> generateEntries() {
+        Iterator<BaseEntry> iter = iterator();
+        List<BaseEntry> output = new ArrayList<>();
+        while (iter.hasNext()) {
+            output.add(iter.next());
+        }
+        return output;
+    }
     
     /**
      * Generate entries, and add them new a dataset. Takes care of tedious things

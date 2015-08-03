@@ -1,6 +1,7 @@
 package magpie.data.utilities.generators;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -77,20 +78,47 @@ public class IonicCompoundGenerator extends PhaseDiagramCompositionEntryGenerato
     }
 
     @Override
-    public List<BaseEntry> generateEntries() {
-        if (LookupData == null) {
-            throw new Error("Dataset used to lookup oxidation states is not set.");
+    public Iterator<BaseEntry> iterator() {
+        final Iterator<BaseEntry> allIter = super.iterator();
+        
+        // Find the first entry that can form an ionic compound
+        BaseEntry firstEntry = allIter.next();
+        while (! LookupData.compositionCanFormIonic((CompositionEntry) firstEntry) &&
+                allIter.hasNext()) {
+            firstEntry = allIter.next();
         }
         
-        List<BaseEntry> totalList = super.generateEntries(); 
-        List<BaseEntry> outputList = new ArrayList<>(totalList.size() / 2);
-        for (BaseEntry e : totalList) {
-            CompositionEntry entry = (CompositionEntry) e;
-            if (LookupData.compositionCanFormIonic(entry)) {
-                outputList.add(e);
+        // See if the first entry is an ionic
+        final BaseEntry startEntry = LookupData.compositionCanFormIonic((CompositionEntry) firstEntry) ?
+                firstEntry : null;
+        
+        return new Iterator<BaseEntry>() {
+            BaseEntry nextEntry = startEntry;
+            
+            @Override
+            public boolean hasNext() {
+                return nextEntry != null;
             }
-        }
-        return outputList;
+
+            @Override
+            public BaseEntry next() {
+                BaseEntry output = nextEntry;
+                nextEntry = null;
+                while (allIter.hasNext()) {
+                    BaseEntry candEntry = allIter.next();
+                    if (LookupData.compositionCanFormIonic((CompositionEntry) candEntry)) {
+                        nextEntry = candEntry;
+                        break;
+                    }
+                }
+                return output;
+            }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException("Not supported."); 
+            }
+        };
     }
 
     @Override

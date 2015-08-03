@@ -5,7 +5,13 @@ import java.io.FileReader;
 import magpie.data.utilities.DatasetHelper;
 import weka.core.*;
 import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import javax.naming.OperationNotSupportedException;
+import magpie.Magpie;
 import magpie.attributes.evaluators.BaseAttributeEvaluator;
 import magpie.attributes.expansion.BaseAttributeExpander;
 import magpie.attributes.generators.BaseAttributeGenerator;
@@ -420,23 +426,78 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * @throws java.lang.Exception If any error is encountered
      */
     final public void generateAttributes() throws Exception {
-        // First things first, clear out old data
-        AttributeName.clear();
-        for (BaseEntry e : Entries) {
-            e.clearAttributes();
+        if (Magpie.NThreads > 1 && NEntries() > Magpie.NThreads) {
+            // Store the number of threads 
+            int originalNThreads = Magpie.NThreads;
+            
+            // Set Magpie.NThreads to 1 to prevent children from spawning threads
+            Magpie.NThreads = 1;
+            
+            // Split dataset for threading
+            Dataset[] threadData = splitForThreading(originalNThreads);
+            
+            // Create executor
+            ExecutorService executor = Executors.newFixedThreadPool(originalNThreads);
+            
+            // Launch threads
+            List<Future<Integer>> results = new ArrayList<>(originalNThreads);
+            for (final Dataset part : threadData) {
+                Callable<Integer> thread = new Callable<Integer>() {
+
+                    @Override
+                    public Integer call() throws Exception {
+                        part.generateAttributes();
+                        return part.NAttributes();
+                    }
+                };
+                results.add(executor.submit(thread));
+            }
+            
+            // Wait until all threads are done
+            executor.shutdown();
+            
+            // Get attribute names from thread #0
+            try {
+                // Wait until that thread finishes
+                results.get(0).get();
+                
+                // Set the names for this instance to those of the first part
+                AttributeName = threadData[0].AttributeName;
+            } catch (ExecutionException e) {
+                throw new Exception(e.getCause());
+            }
+            
+            // Wait for the other entries
+            for (int id=1; id<originalNThreads; id++) {
+                try {
+                    // Wait until that thread finishes
+                    results.get(id).get();
+                } catch (ExecutionException e) {
+                    throw new Exception(e.getCause());
+                }
+            }
+            
+            // Restore the number of threads
+            Magpie.NThreads = originalNThreads;
+        } else {
+            // First things first, clear out old data
+            AttributeName.clear();
+            for (BaseEntry e : Entries) {
+                e.clearAttributes();
+            }
+
+            // Now compute attributes
+            calculateAttributes();
+
+            // Run generators
+            runAttributeGenerators();
+
+            // Run expanders
+            runAttributeExpanders();
+
+            // Reduce memory footprint, where possible
+            finalizeGeneration();
         }
-
-        // Now compute attributes
-        calculateAttributes();
-
-        // Run generators
-        runAttributeGenerators();
-
-        // Run expanders
-        runAttributeExpanders();
-
-        // Reduce memory footprint, where possible
-        finalizeGeneration();
     }
 
     /**
