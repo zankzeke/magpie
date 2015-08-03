@@ -6,6 +6,7 @@ import magpie.data.materials.AtomicStructureEntry;
 import magpie.data.materials.CrystalStructureDataset;
 import magpie.data.materials.util.LookupData;
 import magpie.utility.CartesianSumGenerator;
+import magpie.utility.NDGridIterator;
 import org.apache.commons.lang3.ArrayUtils;
 import vassal.data.Cell;
 
@@ -45,7 +46,6 @@ public class CombinatorialSubstitutionGenerator extends BaseEntryGenerator {
             // Get the list of prototypes
             CrystalStructureDataset data = (CrystalStructureDataset) Options.get(pos++);
             setPrototypes(data);
-            
             
             // Get the list of elements
             for (int o=pos; o<Options.size(); o++) {
@@ -124,61 +124,99 @@ public class CombinatorialSubstitutionGenerator extends BaseEntryGenerator {
     }
    
     @Override
-    public List<BaseEntry> generateEntries() {
-        // If desired, compute the Voronoi tessellations
+    public Iterator<BaseEntry> iterator() {
+        // If desired compute the Voronoi tessellation of the prototypes
         if (ComputeVoronoi) {
             Iterator<AtomicStructureEntry> iter = Prototypes.iterator();
             while (iter.hasNext()) {
-                AtomicStructureEntry e = iter.next();
                 try {
-                    e.computeVoronoiTessellation();
-                } catch (Exception ex) {
-                    iter.remove(); // If the tessellation fails
+                    iter.next().computeVoronoiTessellation();
+                } catch (Exception e) {
+                    iter.remove(); // If tessellation fails, delete this structure
                 }
             }
         }
         
-        // For each entry, compute the the expansions
-        List<BaseEntry> output = new ArrayList<>();
-        for (AtomicStructureEntry prototype : Prototypes) {
-            // Get the current list of elements
-            Cell strc = prototype.getStructure();
-            List<String> curTypes = new ArrayList<>(strc.nTypes());
-            for (int i=0; i<strc.nTypes(); i++) {
-                curTypes.add(strc.getTypeName(i));
+        // Get iterator over prototypes
+        final Iterator<AtomicStructureEntry> protIter = Prototypes.iterator();
+        
+        // Initialize iterator element combinations(use entry 0 in Prototypes list)
+        final Iterator<List<Integer>> elemIterInitial =
+                getReplacementIterator(Prototypes.get(0));
+        
+        return new Iterator<BaseEntry>() {
+            Iterator<List<Integer>> elemIter = elemIterInitial;
+            AtomicStructureEntry curProt = protIter.next();
+
+            @Override
+            public boolean hasNext() {
+                return protIter.hasNext() || elemIter.hasNext();
             }
-            
-            // Prepare combinatorial generator
-            List<Collection<Integer>> stackedSets = new ArrayList<>(curTypes.size());
-            for (int i=0; i<strc.nTypes(); i++) {
-                stackedSets.add(Elements);
-            }
-            CartesianSumGenerator<Integer> combGen = new CartesianSumGenerator<>(stackedSets);
-            
-            // Create all combinations
-            Map<String,String> changes = new TreeMap<>();
-            for (List<Integer> comb : combGen) {
-                // Mark the changes to be made
-                for (int i=0; i<curTypes.size(); i++) {
-                    changes.put(curTypes.get(i), LookupData.ElementNames[comb.get(i)]);
+
+            @Override
+            public BaseEntry next() {
+                List<Integer> newElems;
+                // If there is another set of elements available
+                if (elemIter.hasNext()) {
+                    // Get the new element identities
+                    newElems = elemIter.next();
+                    
+                    
+                } else {
+                    // Get a new prototype
+                    curProt = protIter.next();
+                    
+                    // Restart the element iterator
+                    elemIter = getReplacementIterator(curProt);
+                    
+                    // Get the first set of replacements
+                    newElems = elemIter.next();
                 }
-                
-                // Generate a new entry based on the these changes
-                AtomicStructureEntry newEntry;
+            
+                // Get the map of swaps to make
+                Map<String, String> changes = new HashMap<>();
+                Cell curStrc = curProt.getStructure();
+                for (int i = 0; i < curStrc.nTypes(); i++) {
+                    changes.put(curStrc.getTypeName(i),
+                            LookupData.ElementNames[newElems.get(i)]);
+                }
+
+                // Make the new entry
                 try {
-                    newEntry = prototype.replaceElements(changes);
-                } catch (Exception ex) {
-                    continue; // I doubt this will ever happen. This operation
-                    // only throws exceptions if the elements fair to parse,
-                    // which are checked well before this stage.
+                    return curProt.replaceElements(changes);
+                } catch (Exception e) {
+                    // We should never get here. replaceElements only crashes
+                    //  if element names fail to parse, which have already 
+                    //  been checked.
+                    throw new Error(e);
                 }
-                
-                // Add it to the output
-                output.add(prototype);
             }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException("Not supported."); 
+            }
+        };
+    }
+    
+    /**
+     * Get an iterator over all possible combinations of elements on each site 
+     * of this structure
+     * @param entry Entry to make the iterator for
+     * @return Iterator over all combinations
+     */
+    protected Iterator<List<Integer>> getReplacementIterator(
+            AtomicStructureEntry entry) {
+        // Get stacked list of all possible elements for each site
+        Cell strc = entry.getStructure();
+        List<Collection<Integer>> stack = new ArrayList<>(strc.nTypes());
+        for (int i=0; i<strc.nTypes(); i++) {
+            stack.add(Elements);
         }
         
-        return output;
+        // Make the sum generator
+        CartesianSumGenerator<Integer> gen = new CartesianSumGenerator<>(stack);
+        return gen.iterator();
     }
     
 }

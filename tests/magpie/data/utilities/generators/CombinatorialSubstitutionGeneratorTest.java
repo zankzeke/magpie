@@ -41,6 +41,7 @@ public class CombinatorialSubstitutionGeneratorTest {
         // Create entries
         List<BaseEntry> newEntries = gen.generateEntries();
         assertEquals(4, newEntries.size());
+        assertNotEquals(newEntries.get(0), newEntries.get(1));
     }
     
 }
