@@ -56,6 +56,9 @@ import weka.core.converters.ArffLoader;
  * <p>
  * <b><u>Implemented Commands:</u></b>
  * 
+ * <command><p><b>add &lt;entries...&gt;</b> - Add entries to a dataset
+ * <br><i>entries...</i>: Strings describing entries to be added</command>
+ * 
  * <command><p>
  * <b>&lt;output> = clone [-empty]</b> - Create a copy of this dataset
  * <br><pr><i>-empty</i>: Do not copy entries from dataset into clone
@@ -1756,6 +1759,20 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         }
         String Action = Command.get(0).toString();
         switch (Action.toLowerCase()) {
+            case "add": {
+                int nAdded = 0;
+                for (Object entry : Command.subList(1, Command.size())) {
+                    try {
+                        addEntry(entry.toString());
+                        nAdded++;
+                    } catch (Exception ex) {
+                        System.err.println(entry.toString() +
+                                " failed to parse: " + ex.getMessage());
+                    }
+                }
+                System.out.println("\tAdded " + nAdded + " entries.");
+                return null;
+            }
             case "attributes": case "attr":
                 return runAttributeCommand(Command.subList(1, Command.size()));
             case "clone":
