@@ -3,8 +3,10 @@ package magpie.data.materials.util;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.CompositionEntry;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -51,22 +53,22 @@ public class GCLPCalculatorTest {
         
         // Simple test: No phases
         CompositionEntry NaCl = new CompositionEntry("NaCl");
-        calc.doGCLP(NaCl);
-        assertEquals(0.0, calc.getGroundStateEnergy(), 1e-6);
-        assertEquals(2, calc.getPhaseEquilibria().size());
+        Pair<Double, Map<CompositionEntry,Double>> equil = calc.runGCLP(NaCl);
+        assertEquals(0.0, equil.getLeft(), 1e-6);
+        assertEquals(2, equil.getRight().size());
         
         // Add in Na2Cl and NaCl2 to map
         calc.addPhase(new CompositionEntry("Na2Cl"), -1);
         calc.addPhase(new CompositionEntry("NaCl2"), -1);
-        calc.doGCLP(NaCl);
-        assertEquals(-1, calc.getGroundStateEnergy(), 1e-6);
-        assertEquals(2, calc.getPhaseEquilibria().size());
+        equil = calc.runGCLP(NaCl);
+        assertEquals(-1, equil.getLeft(), 1e-6);
+        assertEquals(2, equil.getRight().size());
         
         // Add NaCl to map
         calc.addPhase(NaCl, -2);
-        calc.doGCLP(NaCl);
-        assertEquals(-2, calc.getGroundStateEnergy(), 1e-6);
-        assertEquals(1, calc.getPhaseEquilibria().size());
+        equil = calc.runGCLP(NaCl);
+        assertEquals(-2, equil.getLeft(), 1e-6);
+        assertEquals(1, equil.getRight().size());
         
         // Test for complex case: AlNiFeZrTiSiBrFOSeKHHe
         if (Files.isReadable(Paths.get("big-datasets/oqmd-hull.energies"))) {
@@ -75,9 +77,9 @@ public class GCLPCalculatorTest {
             hullData.importText("big-datasets/oqmd-hull.energies", null);
             hullData.setTargetProperty("delta_e", false);
             calc.addPhases(hullData);
-            calc.doGCLP(new CompositionEntry("AlNiFeZrTiSiBrFOSeKHHe"));
-            assertEquals(10, calc.getPhaseEquilibria().size());
-            assertEquals(-1.553, calc.getGroundStateEnergy(), 1e-2);
+            equil = calc.runGCLP(new CompositionEntry("AlNiFeZrTiSiBrFOSeKHHe"));
+            assertEquals(10, equil.getRight().size());
+            assertEquals(-1.553, equil.getLeft(), 1e-2);
         }
     }
 }

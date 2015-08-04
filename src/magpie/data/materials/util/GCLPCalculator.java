@@ -5,6 +5,8 @@ import magpie.data.BaseEntry;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.CompositionEntry;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.math3.optim.PointValuePair;
 import org.apache.commons.math3.optim.linear.*;
 
@@ -16,7 +18,7 @@ import org.apache.commons.math3.optim.linear.*;
  * <ol>
  * <li>Load in phase equilibria data with {@linkplain #addPhase(magpie.data.materials.CompositionEntry, double) }, 
  * {@linkplain #setMu(java.lang.String, double) }, or {@linkplain #addPhases(magpie.data.materials.CompositionDataset) }.
- * <li>Compute equilibrium with {@linkplain #doGCLP(magpie.data.materials.CompositionEntry) }
+ * <li>Compute equilibrium with {@link #runGCLP(magpie.data.materials.CompositionEntry)}
  * <li>Access ground state energy with {@linkplain #getGroundStateEnergy() }
  * and equilibrium with {@linkplain #getPhaseEquilibria() }
  * </ol>
@@ -36,14 +38,6 @@ public class GCLPCalculator {
      * Composition for which equilibrium is currently computed.
      */
     protected CompositionEntry CurrentComposition = null;
-    /**
-     * Final phase equilibrium. Maps composition to fraction
-     */
-    protected Map<CompositionEntry, Double> Equilibrium = new TreeMap<>();
-    /**
-     * Ground state energy at this composition.
-     */
-    protected double GroundStateEnergy;
 
     /**
      * Initialize a GCLP calculator. Sets the chemical potential of each
@@ -116,9 +110,12 @@ public class GCLPCalculator {
     /**
      * Compute the ground state phase equilibria for a certain composition.
      * @param composition Composition to be considered
+     * @return Map describing ground state equilibrium: 
+     * (GCLP energy, {'phase composition' -> fraction}
      * @throws java.lang.Exception
      */
-    public void doGCLP(CompositionEntry composition) throws Exception {
+    public Pair<Double,Map<CompositionEntry,Double>> 
+            runGCLP(CompositionEntry composition) throws Exception {
         // Set the composition and pull up lookup data
         CurrentComposition = composition.clone();
         int[] curElems = CurrentComposition.getElements();
@@ -182,37 +179,15 @@ public class GCLPCalculator {
                 new NonNegativeConstraint(true));
         
         // Store result
-        Equilibrium.clear();
+        Map<CompositionEntry, Double> Equilibrium = new TreeMap<>();
         double[] equilFracs = result.getPoint();
         for (int i=0; i<components.size(); i++) {
             if (equilFracs[i] > 1e-6) {
                 Equilibrium.put(components.get(i), equilFracs[i]);
             }
         }
-        GroundStateEnergy = result.getValue();
-    }
-    
-    /**
-     * Get computed ground state energy of last composition computed with this solver.
-     * @return Ground state energy
-     * @throws java.lang.Exception
-     */
-    public double getGroundStateEnergy() throws Exception {
-        if (Equilibrium.isEmpty()) {
-            throw new Exception("GCLP has not yet been run");
-        }
-        return GroundStateEnergy;
-    }
-    
-    /**
-     * Get computed phase equilibria of last composition computed with this solver.
-     * @return Ground state phase equilibrium (compositions) and their relative fractions
-     * @throws java.lang.Exception
-     */
-    public Map<CompositionEntry, Double> getPhaseEquilibria() throws Exception {
-        if (Equilibrium.isEmpty()) {
-            throw new Exception("GCLP has not yet been run");
-        }
-        return new TreeMap<>(Equilibrium);
+        double GroundStateEnergy = result.getValue();
+        
+        return new ImmutablePair<>(GroundStateEnergy, Equilibrium);
     }
 }
