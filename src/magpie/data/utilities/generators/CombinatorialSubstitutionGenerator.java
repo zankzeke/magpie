@@ -62,7 +62,7 @@ public class CombinatorialSubstitutionGenerator extends BaseEntryGenerator {
 
     @Override
     public String printUsage() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return "Usage: [-voro] $<prototypes> <elements...>";
     }
 
     /**
