@@ -189,12 +189,21 @@ public class CrystalStructureDataset extends CompositionDataset {
         // Look up radii 
         double[] radii = getPropertyLookupTable("CovalentRadius");
         
-        // Split string based on newlines
-        List<String> inputFile = Arrays.asList(input.split("\n"));
-        Cell strc = new VASP5IO().parseStructure(inputFile);
+        Cell strc;
+        String name;
+        if (input.contains("\n")) {
+            // Assume input is a complete VASP file
+            List<String> inputFile = Arrays.asList(input.split("\n"));
+            strc = new VASP5IO().parseStructure(inputFile);
+            name = inputFile.get(0);
+        } else {
+            // Assume it is a filename
+            strc = new VASP5IO().parseFile(input);
+            name = input;
+        }
         
         // Create the entry
-        AtomicStructureEntry newEntry = new AtomicStructureEntry(strc, inputFile.get(0), radii);
+        AtomicStructureEntry newEntry = new AtomicStructureEntry(strc, name, radii);
         
         // Add and return it
         addEntry(newEntry);
