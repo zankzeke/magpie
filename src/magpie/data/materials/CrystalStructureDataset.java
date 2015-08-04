@@ -54,6 +54,12 @@ import vassal.io.VASP5IO;
  * find the equilibrium lattice parameter. The attributes are also design to be
  * insensitive to unit cell selection.
  * 
+ * <p><b><u>Implemented Save Formats</u></b>
+ * 
+ * <save><p><b>poscar</b> - Save dataset as a directory full of POSCARs.
+ * <br>Properties of each entry will be saved in a file in that 
+ * directory named "properties.txt"</save>
+ * 
  * <usage><p><b>Usage</b>: *No options*</usage>
  * @author Logan Ward
  */
