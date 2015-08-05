@@ -168,6 +168,8 @@ public class CrystalStructureDataset extends CompositionDataset {
 				// See if we have properties for this entry
 				if (properties.containsKey(file.getName())) {
 					entry.setMeasuredProperties(properties.get(file.getName()));
+				} else { 
+					entry.setNProperties(NProperties());
 				}
                 toAdd.add(entry);
             } catch (Exception e) {
