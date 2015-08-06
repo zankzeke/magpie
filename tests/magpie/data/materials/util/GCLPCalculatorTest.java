@@ -70,6 +70,11 @@ public class GCLPCalculatorTest {
         assertEquals(-2, equil.getLeft(), 1e-6);
         assertEquals(1, equil.getRight().size());
         
+        // Make sure it can do systems not included in origiaal
+        equil = calc.runGCLP(new CompositionEntry("AlNiFeZrTiSiBrFOSeKHHe"));
+        assertEquals(0.0, equil.getLeft(), 1e-6);
+        assertEquals(13, equil.getRight().size());
+        
         // Test for complex case: AlNiFeZrTiSiBrFOSeKHHe
         if (Files.isReadable(Paths.get("big-datasets/oqmd-hull.energies"))) {
             calc = new GCLPCalculator();
