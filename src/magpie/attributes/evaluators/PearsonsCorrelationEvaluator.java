@@ -1,5 +1,6 @@
 package magpie.attributes.evaluators;
 
+import java.util.Comparator;
 import java.util.List;
 import magpie.data.Dataset;
 import magpie.utility.MathUtils;
@@ -28,12 +29,15 @@ public class PearsonsCorrelationEvaluator extends BaseAttributeEvaluator {
     public String printUsage() {
         return "Usage: *No options*";
     }
-    
-    
 
-    @Override
-    protected boolean positiveIsBetter() {
-        return true;
+   @Override
+    protected Comparator<Double> compare() {
+        return new Comparator<Double>() {
+            @Override
+            public int compare(Double o1, Double o2) {
+                return Double.compare(Math.abs(o2), Math.abs(o1));
+            }
+        };
     }
 
     @Override
@@ -45,7 +49,6 @@ public class PearsonsCorrelationEvaluator extends BaseAttributeEvaluator {
             output[i] = new PearsonsCorrelation()
                     .correlation(feature_array[i], class_array);
             if (Double.isNaN(output[i])) output[i] = 0.0;
-            else output[i] *= output[i];
         }
         return output;
     }
