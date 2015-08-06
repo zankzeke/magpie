@@ -35,6 +35,8 @@ abstract public class DatasetOutput extends Dataset {
                 fp.format("%s%s", attributeNames[i], Delimiter);
             if (hasMeasuredClass)
                 fp.println("Class");
+            else 
+                fp.println();
             
             // Print out the data
             for (int i=0; i<Data.NEntries(); i++) {
