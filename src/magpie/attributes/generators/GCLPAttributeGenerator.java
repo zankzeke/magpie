@@ -5,6 +5,7 @@ import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.CompositionEntry;
 import magpie.data.materials.util.GCLPCalculator;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.math3.stat.StatUtils;
 
 /**
@@ -18,7 +19,7 @@ import org.apache.commons.math3.stat.StatUtils;
  * <li>Distance from closest composition (i.e., ||x<sub>i</sub> - x<sub>i,f</sub>||<sub>2</sub>
  * for each component i for phase f)
  * <li>Average distance from all neighbors
- * <li>Quasi-entropy (sum x<sub>i</sub> * ln(x<sub>i</sub>), where x_i is fraction of phase)
+ * <li>Quasi-entropy (sum x<sub>i</sub> * ln(x<sub>i</sub>), where x<sub>i</sub> is fraction of phase)
  * </ul>
  * 
  * <usage><p><b>Usage</b>: $&lt;phases&gt;
@@ -85,11 +86,12 @@ public class GCLPAttributeGenerator extends BaseAttributeGenerator {
             
             try {
                 // Run GCLP
-                Calculator.doGCLP(entry);
+                Pair<Double,Map<CompositionEntry,Double>> result = 
+                        Calculator.runGCLP(entry);
                 
                 // Compute simple
-                newAttributes[a++][e] = Calculator.getGroundStateEnergy();
-                Map<CompositionEntry, Double> phases = Calculator.getPhaseEquilibria();
+                newAttributes[a++][e] = result.getLeft();
+                Map<CompositionEntry, Double> phases = result.getRight();
                 newAttributes[a++][e] = phases.size();
                 
                 // Compute distances
@@ -125,5 +127,19 @@ public class GCLPAttributeGenerator extends BaseAttributeGenerator {
             data.addAttribute(newAttributeNames.get(a), newAttributes[a]);
         }
     }
-    
+
+    @Override
+    public String printDescription(boolean htmlFormat) {
+        String output = getClass().getName() + (htmlFormat ? " " : ": ");
+        
+        // Add information about these attributes
+        output += "(5) Attributes based on the T=0K phase stability"
+                + " computed using Grand Canonical Linear Programming: "
+                + (htmlFormat ? "&Delta;" : "d") + "H, number of phases at"
+                + " equilibrium, distance from composition to closest phase in equilibirum, "
+                + " mean distance from all phases in equilibirum at composition,"
+                + " and quasi-entropy computed from the fractions of phases in equilibirum.";
+        
+        return output;
+    }
 }
