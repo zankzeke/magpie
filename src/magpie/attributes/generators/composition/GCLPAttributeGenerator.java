@@ -1,6 +1,7 @@
-package magpie.attributes.generators;
+package magpie.attributes.generators.composition;
 
 import java.util.*;
+import magpie.attributes.generators.BaseAttributeGenerator;
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.CompositionEntry;
