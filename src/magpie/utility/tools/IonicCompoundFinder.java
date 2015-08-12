@@ -16,9 +16,8 @@ import org.apache.commons.lang3.tuple.Pair;
  * that are within a certain distance of the target composition with less than
  * a certain number of atoms per unit cell.
  * 
- * <p>Distance is computed as the L<sub>1</sub> distance of the composition vector
- * for N - 1 elements (N is the number of compounds). Example: Fe3Al and FeAl 
- * are 0.25 apart.
+ * <p>Distance is computed as the L<sub>1</sub> distance of the composition vector.
+ * Example: Fe3Al and FeAl are 0.5 apart.
  * 
  * <p><b><u>Implemented Command</u></b>
  * 
