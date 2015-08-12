@@ -14,7 +14,7 @@ public class FunctionExpanderTest {
 
     public Dataset getTestSet() throws Exception {
         Dataset out = new Dataset();
-        out.importText("datasets/simple-data.csv", null);
+        out.importText("datasets/simple-data.txt", null);
         return out;
     }
 

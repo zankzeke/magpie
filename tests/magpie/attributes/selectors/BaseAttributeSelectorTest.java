@@ -16,7 +16,7 @@ public class BaseAttributeSelectorTest {
         // Get data
         Dataset data = new Dataset();
         try {
-            data.importText("datasets/simple-data.csv", null);
+            data.importText("datasets/simple-data.txt", null);
         } catch (Exception e) {
             throw new Error(e);
         }
