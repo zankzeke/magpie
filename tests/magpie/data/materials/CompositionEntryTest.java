@@ -72,6 +72,15 @@ public class CompositionEntryTest {
         assertEquals(2.0 / 15.3, entry.getElementFraction("N"), 1e-6);
         assertEquals(8.1 / 15.3, entry.getElementFraction("O"), 1e-6);
         assertEquals(4.2 / 15.3, entry.getElementFraction("H"), 1e-6);
+        
+        entry = new CompositionEntry("{[(Fe0.6Co0.4)0.75B0.2Si0.05]0.96Nb0.04}96Cr4");
+        assertEquals(6, entry.Element.length);
+        assertEquals(0.41472, entry.getElementFraction("Fe"), 1e-6);
+        assertEquals(0.27648, entry.getElementFraction("Co"), 1e-6);
+        assertEquals(0.18432, entry.getElementFraction("B"), 1e-6);
+        assertEquals(0.04608, entry.getElementFraction("Si"), 1e-6);
+        assertEquals(0.0384, entry.getElementFraction("Nb"), 1e-6);
+        assertEquals(0.04, entry.getElementFraction("Cr"), 1e-6);
 
     }
     
