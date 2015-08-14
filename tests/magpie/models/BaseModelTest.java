@@ -33,7 +33,7 @@ public class BaseModelTest {
         // Generate the appropriate kind of data
         if (DataType.getClass().equals(Dataset.class)) {
             data = new Dataset();
-            data.importText("datasets/simple-data.csv", null);
+            data.importText("datasets/simple-data.txt", null);
             
         } else if (DataType.getClass().equals(CompositionDataset.class)) {
             data = new CompositionDataset();

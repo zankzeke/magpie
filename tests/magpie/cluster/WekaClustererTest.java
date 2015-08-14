@@ -13,7 +13,7 @@ public class WekaClustererTest {
     @Test
     public void test() throws Exception {
         Dataset data = new Dataset();
-        data.importText("datasets/simple-data.csv", null);
+        data.importText("datasets/simple-data.txt", null);
         
         WekaClusterer clstr = new WekaClusterer();
         clstr.train(data);

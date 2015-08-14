@@ -15,7 +15,7 @@ public class UserSpecifiedExcludingAttributeSelectorTest {
     public void test() throws Exception {
         // Load in dataset
         Dataset data = new Dataset();
-        data.importText("datasets/simple-data.csv", null);
+        data.importText("datasets/simple-data.txt", null);
         
         // Create attribue selector
         UserSpecifiedExcludingAttributeSelector selector = 

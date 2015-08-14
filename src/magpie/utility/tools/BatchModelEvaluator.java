@@ -14,6 +14,7 @@ import magpie.data.Dataset;
 import magpie.data.utilities.filters.BaseDatasetFilter;
 import magpie.data.utilities.generators.BaseEntryGenerator;
 import magpie.models.BaseModel;
+import magpie.models.classification.AbstractClassifier;
 import magpie.utility.interfaces.Commandable;
 import magpie.utility.interfaces.Options;
 
@@ -154,6 +155,13 @@ public class BatchModelEvaluator implements Commandable, Options {
             Magpie.NThreads = nThreads;
             BatchSize = origBatchSize;
         }
+
+        // If the model was a classifier, add the class names to the dataset
+        if (Model instanceof AbstractClassifier) {
+            AbstractClassifier modelPtr = (AbstractClassifier) Model;
+            String[] classNames = modelPtr.getClassNames();
+            data.setClassNames(classNames);
+        }
     }
     
     /**
@@ -289,6 +297,7 @@ public class BatchModelEvaluator implements Commandable, Options {
             
             // Optional: Filter out data
             if (filter != null) {
+                filter.train(data);
                 filter.filter(data);
             }
             

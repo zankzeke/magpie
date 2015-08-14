@@ -233,8 +233,9 @@ abstract public class SplitModel extends BaseModel implements MultiModel {
     @Override
     protected String printModel_protected() {
         String output = "";
+        List<String> splitNames = Partitioner.getSplitNames();
         for (int i=0; i < NModels(); i++) {
-            output += "Submodel #" + i + ":\n";
+            output += splitNames.get(i) + ":\n";
             output += getModel(i).printModel();
         }
         return output;

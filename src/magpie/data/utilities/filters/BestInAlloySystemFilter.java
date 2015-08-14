@@ -139,6 +139,7 @@ public class BestInAlloySystemFilter extends BaseDatasetFilter {
         });
         
         // Compute the ranking score of each entry
+        Ranker.train(D);
         final double[] score = Ranker.runObjectiveFunction(D);
         
         // Create tool to sort entries by score

@@ -1,11 +1,6 @@
 package magpie.data;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import magpie.data.utilities.DatasetOutput;
@@ -83,10 +78,28 @@ public class MultiPropertyDataset extends Dataset {
 
 	@Override
 	public void addEntry(BaseEntry e) {
+		// Make sure the entry has the correct number of properties
+		//  and the correct target property
 		MultiPropertyEntry p = (MultiPropertyEntry) e;
 		p.setNProperties(NProperties());
+		p.setTargetProperty(getTargetPropertyIndex());
 		super.addEntry(e); 
 	}
+
+	@Override
+    public void addEntries(Collection<? extends BaseEntry> entries) {
+        // Update these entries to have the correct number and target property
+        int nProps = NProperties();
+        int tProp = getTargetPropertyIndex();
+		for (BaseEntry ePtr : entries) {
+             MultiPropertyEntry entry = (MultiPropertyEntry) ePtr;
+             entry.setNProperties(nProps);
+             entry.setTargetProperty(tProp);
+        }
+
+        // Add entry to the dataset
+	    super.addEntries(entries);
+    }
 
     /**
      * @return Number of properties known by this Dataset

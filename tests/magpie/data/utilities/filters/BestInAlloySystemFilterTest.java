@@ -30,7 +30,7 @@ public class BestInAlloySystemFilterTest {
         options.add("maximize");
         options.add("measured");
         options.add("TargetEntryRanker");
-        options.add("1.0");
+        options.add("0.5");
         filter.setOptions(options);
         filter.setExclude(false);
         
@@ -39,6 +39,17 @@ public class BestInAlloySystemFilterTest {
         assertFalse(res[0]);
         assertTrue(res[1]);
         assertTrue(res[2]);
+        
+        // Reverse direction of filter, add another entry
+        data.addEntry("NaTi4");
+        data.getEntry(3).setMeasuredClass(0.75);
+        options.set(1, "minimize");
+        filter.setOptions(options);
+        res = filter.label(data);
+        assertFalse(res[0]);
+        assertFalse(res[1]);
+        assertTrue(res[2]);
+        assertTrue(res[3]);
     }
     
 }

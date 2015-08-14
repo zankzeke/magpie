@@ -1,6 +1,7 @@
 package magpie.analytics;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import magpie.data.Dataset;
@@ -55,12 +56,17 @@ public class ClassificationStatistics extends BaseStatistics {
     public double MCC;
     /** F1 Score */
     public double F1;
+    /** Names of classes (used when printing) */
+    public String[] ClassNames;
     
-    @Override public void evaluate(Dataset Data) {
+    @Override 
+    public void evaluate(Dataset Data) {
+        // Store basic statistics
         NumberTested = Data.NEntries(); NumberCorrect=0;
         Measured = Data.getMeasuredClassArray();
         Predicted = Data.getPredictedClassArray();
         double[] predicted_discrete = applyClassCutoff(Predicted, Data.NClasses());
+        ClassNames = Data.getClassNames();
         
         // Build a contigency table
         ContingencyTable = new int[Data.NClasses()][Data.NClasses()];
@@ -218,5 +224,57 @@ public class ClassificationStatistics extends BaseStatistics {
         return output;
     }
     
-    
+    /**
+     * Print out the contingency table 
+     * @return Formatted contingency table
+     */
+    public String printContingencyTable() {
+        // Determine the width of fields
+        int maxNameLength = ClassNames[0].length();
+        for (int i=1; i<ClassNames.length; i++) {
+            maxNameLength = Math.max(ClassNames[i].length(), maxNameLength);
+        }
+        for (int[] row : ContingencyTable) {
+            for (int num : row) {
+                maxNameLength = Math.max(maxNameLength,
+                        Integer.toString(num).length());
+            }
+        }
+        
+        // Print out header
+        String fieldStart = "%" + (maxNameLength + 1);
+        String output = String.format(fieldStart + "s\tPredicted Class\n", " ");
+        output += String.format(fieldStart + "s", "");
+        for (String name : ClassNames) {
+            output += String.format(fieldStart + "s", name);
+        }
+        output += "\n";
+        
+        // Print out data
+        for (int i=0; i<ClassNames.length; i++) {
+            output += String.format(fieldStart + "s", ClassNames[i]);
+            for (int j=0; j<ClassNames.length; j++) {
+                output += String.format(fieldStart + "d", ContingencyTable[i][j]);
+            }
+            output += "\n";
+        }
+        
+        return output;
+    }
+
+    @Override
+    public String printCommand(List<String> Command) throws Exception {
+        if (Command.isEmpty()) {
+            return super.printCommand(Command);
+        }
+        
+        // Get the action
+        String action = Command.get(0).toLowerCase();
+        switch (action) {
+            case "contingency":
+                return printContingencyTable();
+            default:
+                return super.printCommand(Command);
+        }
+    }
 }
