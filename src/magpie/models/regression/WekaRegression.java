@@ -55,20 +55,24 @@ public class WekaRegression extends BaseRegression implements WekaModel {
     @Override
     public void setOptions(List OptionsObj) throws Exception {
         String[] Options = CommandHandler.convertCommandToString(OptionsObj);
+        String modelName;
+        String[] modelOptions;
         try {
             if (Options.length == 0) return; // Nothing to set (stay with ZeroR)
             else {
-                String ModelName = Options[0];
-                String[] ModelOptions = null;
+                modelName = Options[0];
+                modelOptions = null;
                 if (Options.length > 1) {
-                    ModelOptions = new String[Options.length - 1];
-                    System.arraycopy(Options, 1, ModelOptions, 0, ModelOptions.length);
+                    modelOptions = new String[Options.length - 1];
+                    System.arraycopy(Options, 1, modelOptions, 0, modelOptions.length);
                 }
-                setModel(ModelName, ModelOptions);
             }
         } catch (Exception e) {
             throw new Exception(printUsage());
         }
+
+        // Set the model
+        setModel(modelName, modelOptions);
     }
 
     @Override
