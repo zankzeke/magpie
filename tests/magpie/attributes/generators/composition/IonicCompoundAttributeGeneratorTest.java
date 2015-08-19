@@ -1,5 +1,6 @@
-package magpie.attributes.generators;
+package magpie.attributes.generators.composition;
 
+import magpie.attributes.generators.composition.IonicCompoundAttributeGenerator;
 import magpie.data.materials.CompositionDataset;
 import org.junit.Test;
 import static org.junit.Assert.*;
