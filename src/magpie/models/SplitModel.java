@@ -166,53 +166,64 @@ abstract public class SplitModel extends BaseModel implements MultiModel {
         }
     }
     
-    @Override protected void train_protected(Dataset TrainingData) {
+    @Override 
+    protected void train_protected(Dataset TrainingData) {
+        // Get the desired labels
         Partitioner.train(TrainingData);
-        List<Dataset> SplitData = Partitioner.split(TrainingData);
-        setNumberOfModels(SplitData.size());
-        checkModelCount(SplitData.size());
-        for (int i=0; i<SplitData.size(); i++) {
-            if (SplitData.get(i).NEntries() == 0)
+        int[] label = Partitioner.label(TrainingData);
+        
+        // Determine the number of splits
+        int nSplits = NumberUtils.max(label) + 1;
+        
+        // Create subsets
+        List<Dataset> splitData = new ArrayList<>(nSplits);
+        for (int s=0; s<nSplits; s++) {
+            splitData.add(TrainingData.emptyClone());
+        }
+        for (int e=0; e<label.length; e++) {
+            splitData.get(label[e]).addEntry(TrainingData.getEntry(e));
+        }
+        
+        // Train the submodels
+        setNumberOfModels(splitData.size());
+        checkModelCount(splitData.size());
+        for (int i=0; i<splitData.size(); i++) {
+            if (splitData.get(i).NEntries() == 0)
                 System.err.println("WARNING: No entries provided to train submodel #" + i);
             else
-                Model.get(i).train(SplitData.get(i), true);
+                Model.get(i).train(splitData.get(i), true);
         }
-        TrainingData.combine(SplitData);
         trained=true; 
     }
     
     @Override public void run_protected(Dataset Data) {
-		// Determine / act on split
-		int[] label = Partitioner.label(Data);
-        List<Dataset> SplitData = new LinkedList<>();
-		for (int i=0; i <= NumberUtils.max(label); i++) {
-			SplitData.add(Data.emptyClone());
-		}
-        Iterator<BaseEntry> iter = Data.getEntries().iterator();
-        int i=0; 
-        while (iter.hasNext()) {
-            BaseEntry E = iter.next();
-            SplitData.get(label[i]).addEntry(E);
-            i++; iter.remove();
+		// Get the desired labels
+        Partitioner.train(Data);
+        int[] label = Partitioner.label(Data);
+        
+        // Determine the number of splits
+        int nSplits = NumberUtils.max(label) + 1;
+        
+        // Create subsets
+        List<Dataset> splitData = new ArrayList<>(nSplits);
+        for (int s=0; s<nSplits; s++) {
+            splitData.add(Data.emptyClone());
+        }
+        for (int e=0; e<label.length; e++) {
+            splitData.get(label[e]).addEntry(Data.getEntry(e));
         }
 		
 		// Run the models
-        checkModelCount(SplitData.size());
-        for (i=0; i<SplitData.size(); i++) 
-            if (SplitData.get(i).NEntries() > 0)
-                if (Model.get(i).isTrained())
-                    Model.get(i).run(SplitData.get(i));
-                else 
+        checkModelCount(splitData.size());
+        for (int i = 0; i < splitData.size(); i++) {
+            if (splitData.get(i).NEntries() > 0) {
+                if (Model.get(i).isTrained()) {
+                    Model.get(i).run(splitData.get(i));
+                } else {
                     throw new Error("ERROR: Submodel #" + i + "has not yet been trained");
-		
-		// Combine results (preserving order)
-		List<Iterator<BaseEntry>> iters = new ArrayList<>(SplitData.size());
-		for (i=0; i < SplitData.size(); i++) {
-			iters.add(SplitData.get(i).getEntries().iterator());
-		}
-		for (i=0; i < label.length; i++) {
-			Data.addEntry(iters.get(label[i]).next());
-		}
+                }
+            }
+        }
     }
 
     @Override
@@ -233,10 +244,31 @@ abstract public class SplitModel extends BaseModel implements MultiModel {
     @Override
     protected String printModel_protected() {
         String output = "";
+        List<String> splitNames = Partitioner.getSplitNames();
         for (int i=0; i < NModels(); i++) {
-            output += "Submodel #" + i + ":\n";
+            output += splitNames.get(i) + ":\n";
             output += getModel(i).printModel();
         }
+        return output;
+    }
+
+    @Override
+    public List<String> printModelDescriptionDetails(boolean htmlFormat) {
+        List<String> output = super.printModelDescriptionDetails(htmlFormat);
+        
+        // Print out partitioner and its details
+        String[] partr = Partitioner.printDescription(htmlFormat).split("\n");
+        partr[0] = "Partitioner: " + partr[0];
+        output.addAll(Arrays.asList(partr));
+        
+        // Print out submodel details
+        List<String> splitNames = Partitioner.getSplitNames();
+        for (int i=0; i<NModels(); i++) {
+            String[] submodel = getModel(i).printDescription(htmlFormat).split("\n");
+            submodel[0] = splitNames.get(i) + ": " + submodel[0];
+            output.addAll(Arrays.asList(submodel));
+        }
+        
         return output;
     }
 

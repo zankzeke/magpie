@@ -189,4 +189,14 @@ public class PolynomialRegression extends BaseRegression {
         }
         return output + "\n";
     }
+
+    @Override
+    public List<String> printModelDescriptionDetails(boolean htmlFormat) {
+        List<String> output = super.printModelDescriptionDetails(htmlFormat);
+        
+        output.add("Order: " + order);
+        
+        return output;
+    }
+    
 }

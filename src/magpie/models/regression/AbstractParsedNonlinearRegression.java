@@ -1,11 +1,15 @@
 package magpie.models.regression;
 
+import java.util.LinkedList;
 import java.util.List;
 import magpie.user.CommandHandler;
 
 /**
  * Superclass of {@link AbstractNonlinearRegression}-based models which parse the equation
  * of interest from text input. 
+ * 
+ * <p>Use this class by passing a specially-formatted equation to 
+ * {@linkplain #parseFormula(java.lang.String) .
  * 
  * <usage><p><b>Usage</b>: &lt;equation>
  * <br><pr><i>equation</i>: Equation to be fitted. See Javadoc for rules.</usage>
@@ -61,9 +65,24 @@ public abstract class AbstractParsedNonlinearRegression extends AbstractNonlinea
         for (int i = 1; i < Options.length; i++) {
             formula += " " + Options[i];
         }
+        
+        parseFormula(formula);
+    }
+
+    /**
+     * Parse formula to use as model. See description of {@linkplain AbstractParsedNonlinearRegression}
+     * for rules.
+     * @param formula Formula to be parsed
+     * @throws Exception 
+     * @see AbstractParsedNonlinearRegression
+     */
+    public void parseFormula(String formula) throws Exception {
+        // Parse formula
         UserFormula = formula;
+        
         // Get list of variables
         formula = defineVariables(formula);
+        
         // Set up the evaluator
         prepareEvaluator(formula);
     }
@@ -71,6 +90,15 @@ public abstract class AbstractParsedNonlinearRegression extends AbstractNonlinea
     @Override
     public String printUsage() {
         return "Usage: <equation to be fit (see docs)>";
+    }
+
+    @Override
+    public List<String> printModelDescriptionDetails(boolean htmlFormat) {
+        List<String> output = new LinkedList<>();
+        
+        output.add("Equation: " + UserFormula);
+        
+        return output;
     }
 
     @Override

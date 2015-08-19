@@ -14,8 +14,25 @@ abstract public class BaseAttributeGenerator implements Serializable, Options {
     /**
      * Generate new attributes for a dataset. This operation must both add the 
      * new attribute names to the dataset and new values to each entry.
-     * @param data 
+     * @param data Dataset to be added to
+     * @throws java.lang.Exception 
      * @see Dataset#addAttribute(java.lang.String, double[]) 
      */
     abstract public void addAttributes(Dataset data) throws Exception;
+    
+    /**
+     * Print out description of attributes. 
+     * 
+     * <p><b>Implementation Notes</b></p>
+     * <p>Format should look like
+     * 
+     * <p>[Full Name of generator]: (Number of attributes) Text description
+     * of what these attributes are
+     * 
+     * <p>For HTML format, omit the ":".
+     * 
+     * @param htmlFormat Whether to print in HTML format
+     * @return Description of the attributes
+     */
+    abstract public String printDescription(boolean htmlFormat);
 }

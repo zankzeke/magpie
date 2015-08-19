@@ -29,7 +29,7 @@ public class IonicCompoundFinderTest {
     public void testFeO() throws Exception {
         IonicCompoundFinder finder = new IonicCompoundFinder();
         finder.setNominalComposition(new CompositionEntry("Fe2O"));
-        finder.setMaximumDistance(0.2);
+        finder.setMaximumDistance(0.34);
         finder.setMaxFormulaUnitSize(5);
         
         // Make sure it only finds one (FeO)
@@ -37,7 +37,7 @@ public class IonicCompoundFinderTest {
         assertEquals(1, accepted.size());
         
         // Make sure it finds two (FeO, Fe2O3)
-        finder.setMaximumDistance(0.4);
+        finder.setMaximumDistance(0.54);
         accepted = finder.findAllCompounds();
         assertEquals(2, accepted.size());
         assertEquals("FeO", accepted.get(0).toString());
@@ -59,7 +59,7 @@ public class IonicCompoundFinderTest {
     public void testBa2As2S() throws Exception {
         IonicCompoundFinder finder = new IonicCompoundFinder();
         finder.setNominalComposition(new CompositionEntry("Ba2As2S"));
-        finder.setMaximumDistance(0.3);
+        finder.setMaximumDistance(0.35);
         finder.setMaxFormulaUnitSize(7);
         
         // Make sure it finds Ba4As2S
@@ -68,7 +68,7 @@ public class IonicCompoundFinderTest {
         
         // Check on the run
         CompositionDataset data = (CompositionDataset) 
-                finder.runCommand(Arrays.asList(new Object[]{"run", "Ba2As2S", "0.3", "7"}));
+                finder.runCommand(Arrays.asList(new Object[]{"run", "Ba2As2S", "0.35", "7"}));
         assertEquals(accepted.size(), data.NEntries());
     }
     
@@ -78,7 +78,7 @@ public class IonicCompoundFinderTest {
         
         // Run command
         CompositionDataset data = (CompositionDataset) 
-                finder.runCommand(Arrays.asList(new Object[]{"run", "Fe2O", "0.4", "5"}));
+                finder.runCommand(Arrays.asList(new Object[]{"run", "Fe2O", "0.54", "5"}));
         assertEquals(2, data.NEntries());
     }
 }

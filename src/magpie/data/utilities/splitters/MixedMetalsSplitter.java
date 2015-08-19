@@ -1,5 +1,7 @@
 package magpie.data.utilities.splitters;
 
+import java.util.ArrayList;
+import java.util.List;
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionEntry;
 
@@ -28,4 +30,14 @@ public class MixedMetalsSplitter extends AllMetalsSplitter {
         }
         return output;
     }
+
+    @Override
+    public List<String> getSplitNames() {
+        List<String> output = new ArrayList<>(2);
+        output.add("Only Metals");
+        output.add("Only Nonmetals");
+        output.add("Metals and Nonmetals");
+        return output;
+    }
+    
 }

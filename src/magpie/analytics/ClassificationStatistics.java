@@ -1,6 +1,9 @@
 package magpie.analytics;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import magpie.data.Dataset;
 import org.apache.commons.math3.stat.*;
 
@@ -53,12 +56,17 @@ public class ClassificationStatistics extends BaseStatistics {
     public double MCC;
     /** F1 Score */
     public double F1;
+    /** Names of classes (used when printing) */
+    public String[] ClassNames;
     
-    @Override public void evaluate(Dataset Data) {
+    @Override 
+    public void evaluate(Dataset Data) {
+        // Store basic statistics
         NumberTested = Data.NEntries(); NumberCorrect=0;
         Measured = Data.getMeasuredClassArray();
         Predicted = Data.getPredictedClassArray();
         double[] predicted_discrete = applyClassCutoff(Predicted, Data.NClasses());
+        ClassNames = Data.getClassNames();
         
         // Build a contigency table
         ContingencyTable = new int[Data.NClasses()][Data.NClasses()];
@@ -91,7 +99,7 @@ public class ClassificationStatistics extends BaseStatistics {
         TN = ConfusionMatrix[1][1];
         Sensitivity = (double) TP/ (double) (TP+FN);
         FPR = (double) FP/ (double) (FP+TN);
-        Accuracy = (double) (TP+FN) / (double) Data.NEntries();
+        Accuracy = (double) (TP+TN) / (double) Data.NEntries();
         Specificity = 1.0 - FPR;
         PPV = (double) TP / (double) (TP + FP);
         NPV = (double) TN / (double) (TN + FN);
@@ -194,5 +202,79 @@ public class ClassificationStatistics extends BaseStatistics {
                 +String.format("F1: %.4f\n", F1)
                 +String.format("ROC AUC: %.4f\n", ROC_AUC);
         return out;
+    }
+
+    @Override
+    public Map<String, Double> getStatistics() {
+        Map<String, Double> output = new TreeMap<>();
+        
+        output.put("NEvaluated", (double) NumberTested);
+        output.put("NCorrect", (double) NumberCorrect);
+        output.put("Kappa", Kappa);
+        output.put("Sensitivity", Sensitivity);
+        output.put("FPR", FPR);
+        output.put("Accuracy", Accuracy);
+        output.put("PPV", PPV);
+        output.put("NPV", NPV);
+        output.put("FDR", FDR);
+        output.put("MCC", MCC);
+        output.put("F1", F1);
+        output.put("ROCAUC", ROC_AUC);
+        
+        return output;
+    }
+    
+    /**
+     * Print out the contingency table 
+     * @return Formatted contingency table
+     */
+    public String printContingencyTable() {
+        // Determine the width of fields
+        int maxNameLength = ClassNames[0].length();
+        for (int i=1; i<ClassNames.length; i++) {
+            maxNameLength = Math.max(ClassNames[i].length(), maxNameLength);
+        }
+        for (int[] row : ContingencyTable) {
+            for (int num : row) {
+                maxNameLength = Math.max(maxNameLength,
+                        Integer.toString(num).length());
+            }
+        }
+        
+        // Print out header
+        String fieldStart = "%" + (maxNameLength + 1);
+        String output = String.format(fieldStart + "s\tPredicted Class\n", " ");
+        output += String.format(fieldStart + "s", "");
+        for (String name : ClassNames) {
+            output += String.format(fieldStart + "s", name);
+        }
+        output += "\n";
+        
+        // Print out data
+        for (int i=0; i<ClassNames.length; i++) {
+            output += String.format(fieldStart + "s", ClassNames[i]);
+            for (int j=0; j<ClassNames.length; j++) {
+                output += String.format(fieldStart + "d", ContingencyTable[i][j]);
+            }
+            output += "\n";
+        }
+        
+        return output;
+    }
+
+    @Override
+    public String printCommand(List<String> Command) throws Exception {
+        if (Command.isEmpty()) {
+            return super.printCommand(Command);
+        }
+        
+        // Get the action
+        String action = Command.get(0).toLowerCase();
+        switch (action) {
+            case "contingency":
+                return printContingencyTable();
+            default:
+                return super.printCommand(Command);
+        }
     }
 }

@@ -122,7 +122,7 @@ public class AdaptiveScalarizingEntryRanker extends MultiObjectiveEntryRanker {
 
     @Override
     public String printUsage() {
-        return "Usage: <p> -obj <maximize|minimize> <property> <ranker name> [<ranker options...>] [-opt <...>]";
+        return "Usage: <p> -opt <maximize|minimize> <property> <ranker name> [<ranker options...>] [-opt <...>]";
     }
 
 	@Override
@@ -213,6 +213,14 @@ public class AdaptiveScalarizingEntryRanker extends MultiObjectiveEntryRanker {
         ObjectiveMaximum = new double[ObjectiveFunction.size()];
         ObjectiveMinimum = new double[ObjectiveFunction.size()];
         PropertyIndex = new int[ObjectiveFunction.size()];
+        
+        // Train the sub entry rankers
+        for (Map.Entry<String, BaseEntryRanker> entrySet : ObjectiveFunction.entrySet()) {
+            String prop = entrySet.getKey();
+            BaseEntryRanker ranker = entrySet.getValue();
+            data.setTargetProperty(prop, true);
+            ranker.train(data);
+        }
         
         // Main work
         int pos = 0;

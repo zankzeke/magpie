@@ -72,7 +72,7 @@ public class InputFileParser {
         }
         String Line = readLine();
         if (Line == null) return null;
-        String[] Words = Line.split(" ");
+        String[] Words = Line.split("\\s+");
         commands.addAll(Arrays.asList(Words));
         
         // Read any extra lines 
@@ -80,7 +80,7 @@ public class InputFileParser {
             commands.remove("&");
             Line = readLine();
             if (Line == null) return null;
-            Words = Line.split(" ");
+            Words = Line.split("\\s+");
             commands.addAll(Arrays.asList(Words));
         }
         

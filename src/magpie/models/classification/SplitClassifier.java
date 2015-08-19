@@ -87,8 +87,14 @@ public class SplitClassifier extends SplitModel implements AbstractClassifier {
     }
     @Override
     public double getClassCutoff() { return ValidationStatsPtr.getClassCutoff(); }
+    
     @Override
     public int getNClasses() { return NClasses; };
+
+    @Override
+    public String[] getClassNames() {
+        return ClassNames.clone();
+    }
 
     @Override
     protected void train_protected(Dataset TrainingData) {
@@ -105,6 +111,5 @@ public class SplitClassifier extends SplitModel implements AbstractClassifier {
 		}
 		super.run_protected(Data); 
 	}
-	
-	
+
 }

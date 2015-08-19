@@ -2,12 +2,15 @@ package magpie.data.utilities.splitters;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 
 /**
- * Splits based on measured class (Data must have multiple classes for this to be usable).
+ * Splits based on measured class variable. Each split corresponds to data measured
+ * to have a certain classification. Only useful if data has multiple classes 
+ * for this to be usable.
  * 
  * <usage><p><b>Usage</b>: *No options to set*</usage>
  * 
@@ -15,6 +18,8 @@ import magpie.data.Dataset;
  * @version 0.1
  */
 public class MeasuredClassSplitter extends BaseDatasetSplitter {
+    /** Names of classes */
+    private String[] ClassNames;
 
     @Override
     public void setOptions(List Options) throws Exception {
@@ -44,6 +49,17 @@ public class MeasuredClassSplitter extends BaseDatasetSplitter {
 
     @Override
     public void train(Dataset TrainingSet) {
-        // Do not need to train anything
+        ClassNames = TrainingSet.getClassNames();
     }
+
+    @Override
+    protected List<String> getSplitterDetails(boolean htmlFormat) {
+        return new LinkedList<>();
+    }
+
+    @Override
+    public List<String> getSplitNames() {
+        return new LinkedList<>(Arrays.asList(ClassNames));
+    }
+    
 }

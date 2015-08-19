@@ -10,11 +10,15 @@ import weka.classifiers.AbstractClassifier;
 import weka.core.Instances;
 
 /**
- * Implementation of {@link WekaModel} for regression purposes. 
+ * Implementation of {@link WekaModel} for regression purposes. To use this class, simply provide 
+ * the name of the Weka algorithm and a list of options as input. 
  * 
- * <usage><p><b>Usage</b>: &lt;Weka classifier> [&lt;classifier ptions...>]
+ * <p>Example: model = new models.classification.WekaClassifier trees.REPTree -L 5
+ * 
+ * <usage><p><b>Usage</b>: &lt;Weka classifier> [&lt;classifier options...>]
  * <br><pr><i>Weka classifier</i>: Name of a Weka classifier model (i.e. trees.REPTree). "?" to list options
- * <br><pr><i>classifier options</i>: Any options for that model</usage>
+ * <br><pr><i>classifier options</i>: Any options for that model. (see 
+ * <a href="http://weka.sourceforge.net/doc.dev/">Weka Javadoc</a> for these options)</usage> 
  * 
  * @author Logan Ward
  * @version 0.1
@@ -51,20 +55,24 @@ public class WekaRegression extends BaseRegression implements WekaModel {
     @Override
     public void setOptions(List OptionsObj) throws Exception {
         String[] Options = CommandHandler.convertCommandToString(OptionsObj);
+        String modelName;
+        String[] modelOptions;
         try {
             if (Options.length == 0) return; // Nothing to set (stay with ZeroR)
             else {
-                String ModelName = Options[0];
-                String[] ModelOptions = null;
+                modelName = Options[0];
+                modelOptions = null;
                 if (Options.length > 1) {
-                    ModelOptions = new String[Options.length - 1];
-                    System.arraycopy(Options, 1, ModelOptions, 0, ModelOptions.length);
+                    modelOptions = new String[Options.length - 1];
+                    System.arraycopy(Options, 1, modelOptions, 0, modelOptions.length);
                 }
-                setModel(ModelName, ModelOptions);
             }
         } catch (Exception e) {
             throw new Exception(printUsage());
         }
+
+        // Set the model
+        setModel(modelName, modelOptions);
     }
 
     @Override
@@ -145,4 +153,19 @@ public class WekaRegression extends BaseRegression implements WekaModel {
     protected String printModel_protected() {
         return this.Model.toString();
     }    
+
+    @Override
+    public List<String> printModelDescriptionDetails(boolean htmlFormat) {
+        List<String> output = super.printModelDescriptionDetails(htmlFormat);
+        output.add("Model name:    " + Model_Type);
+        
+        String options = "";
+        for (String option : Model.getOptions()) {
+            options += " " + option;
+        }
+        
+        output.add("Model options:" + options);
+        
+        return output;
+    }
 }

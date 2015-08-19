@@ -152,7 +152,7 @@ public class PrototypeEntryGenerator extends BaseEntryGenerator {
     }
 
     @Override
-    public List<BaseEntry> generateEntries() {
+    public Iterator<BaseEntry> iterator() {
         // Generate all possible combinations
         List<List<CompositionEntry>> siteCombinations = 
                 generateCombinations(SiteElements, AllowedMixing);
@@ -166,7 +166,7 @@ public class PrototypeEntryGenerator extends BaseEntryGenerator {
             }
             output.add(entry);
         }
-        return output;
+        return output.iterator();
     }
     
     /**

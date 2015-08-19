@@ -1,6 +1,7 @@
 
 package magpie.models.regression;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -12,26 +13,48 @@ import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.CompositionEntry;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.math3.stat.regression.MillerUpdatingRegression;
+import org.apache.commons.math3.stat.regression.SimpleRegression;
 
 /**
  * Estimate formation energy for ternary+ alloys using a metallurgical heuristic. 
  * Works by estimating multi-component formation energy based on formation energies of binaries.
- * See <a href="http://www.cambridge.org.turing.library.northwestern.edu/us/academic/subjects/engineering/materials-science/phase-equilibria-phase-diagrams-and-phase-transformations-their-thermodynamic-basis-2nd-edition">
+ * See <a href="http://www.cambridge.org/us/academic/subjects/engineering/materials-science/phase-equilibria-phase-diagrams-and-phase-transformations-their-thermodynamic-basis-2nd-edition">
  * Hillert's</a> text for a detailed description.
  * 
- * <p><usage><b>Usage</b>: $&lt;hull data>
- * <br><pr><i>hull data</i>: A {@linkplain CompositionDataset} containing formation energies for all known binary compounds.</usage>
+ * <p>You can also compute correction factors using the technique demonstrated
+ * by <a href="http://link.aps.org/doi/10.1103/PhysRevB.89.094104">Meredig and
+ * Agrawal <i>et al.</i></a>, where:
+ * 
+ * <br> &Delta;H<sub>modified</sub> = a * &Delta;H<sub>heuristic</sub> + b
+ * 
+ * <p><usage><b>Usage</b>: $&lt;hull data> [-correction]
+ * <br><pr><i>hull data</i>: A {@linkplain CompositionDataset} containing formation energies for all known binary compounds.
+ * <br><pr><i>-correction</i>: Compute correction factors</usage>
  * 
  * @author Logan Ward
  */
 public class MetallurgicalHeuristicRegression extends BaseRegression {
 	/** Holds binary convex hulls */
 	private BinaryConvexHullHolder HullHolder;
+    /** Whether to fit correction factors */
+    private boolean FitCorrection = false;
+    /** Correction slope term */
+    private double FitSlope;
+    /** Correction intercept term */
+    private double FitIntercept;
 
 	@Override
 	public void setOptions(List<Object> Options) throws Exception {
 		try {
 			setBinaryConvexHulls((CompositionDataset) Options.get(0));
+            if (Options.size() == 2) {
+                if (Options.get(1).toString().equalsIgnoreCase("-correction")) {
+                    setUseCorrection(true);
+                } else {
+                    throw new Exception();
+                }
+            }
 		} catch (Exception e) {
 			throw new Exception(printUsage());
 		}
@@ -39,7 +62,7 @@ public class MetallurgicalHeuristicRegression extends BaseRegression {
 
 	@Override
 	public String printUsage() {
-		return "Usage: $<convex hull data>";
+		return "Usage: $<convex hull data> [-correction]";
 	}
 	
 	/**
@@ -50,20 +73,60 @@ public class MetallurgicalHeuristicRegression extends BaseRegression {
 	 * 
 	 * <p>This code does not currently have the capability to calculate convex hulls. Since, this
 	 * class is intended to be used with data from <a href="https://github.com/wolverton-research-group/qmpy">qmpy</a> I 
-	 * figured that you you just use that code's capabilities.
+	 * figured that you can just use that code's capabilities.
 	 * 
 	 * @param hullData Dataset holding all known compounds to be used for calculating delta_e
 	 */
 	public void setBinaryConvexHulls(CompositionDataset hullData) {
 		HullHolder = new BinaryConvexHullHolder(hullData);
-	}	
+	}
+    
+    /**
+     * Set whether to employ correction factors
+     * @param x Desired setting
+     */
+    public void setUseCorrection(boolean x) {
+        FitCorrection = x;
+    }
 
 	@Override
 	protected void train_protected(Dataset TrainData) {
-		// Nothing to train
 		if (! (TrainData instanceof CompositionDataset)) {
 			throw new Error("Data must extend CompositionDataaset");
 		}
+        
+        // If not fitting correction factors, nothing to train
+        if (!FitCorrection) {
+            return;
+        }
+        
+        // Fit correction terms
+        SimpleRegression reg = new SimpleRegression(true);
+        for (BaseEntry ptr : TrainData.getEntries()) {
+            CompositionEntry entry = (CompositionEntry) ptr;
+            
+            // Check if it has enough elements
+            if (entry.getElements().length <= 2) {
+                continue;
+            }
+            
+            // Compute the heuristic
+            double h = HullHolder.evaluateCompound(entry);
+            
+            // Add to fit
+            reg.addData(h, entry.getMeasuredClass());
+        }
+        
+        // Make sure enough terms have been supplied
+        if (reg.getN() < 2) {
+            // If less than 2, ignore fit
+            FitSlope = 1.0;
+            FitIntercept = 0.0;
+        }
+        
+        // Store correction terms
+        FitSlope = reg.getSlope();
+        FitIntercept = reg.getIntercept();
 	}
 
 	@Override
@@ -71,22 +134,42 @@ public class MetallurgicalHeuristicRegression extends BaseRegression {
 		if (! (TrainData instanceof CompositionDataset)) {
 			throw new Error("Data must extend CompositionDataaset");
 		}
-		double[] predictions = new double[TrainData.NEntries()];
 		CompositionDataset Ptr = (CompositionDataset) TrainData;
 		for (int i=0; i<TrainData.NEntries(); i++) {
-			predictions[i] = HullHolder.evaluateCompound(Ptr.getEntry(i));
+			double h = HullHolder.evaluateCompound(Ptr.getEntry(i));
+            if (FitCorrection) {
+                h = FitSlope * h + FitIntercept;
+            }
+            Ptr.getEntry(i).setPredictedClass(h);
 		}
-		TrainData.setPredictedClasses(predictions);
 	}
 
 	@Override
 	protected String printModel_protected() {
-		return "Metallurgical Heuristic model.";
+		String output = "Metallurgical heuristic model. Using " + HullHolder.NBinaries 
+                + " binary compounds.";
+        if (FitCorrection) {
+            output += String.format("\nCorrection terms: Class = %.4e * hueristic + %.4e",
+                    FitSlope, FitIntercept);
+        }
+        return output;
 	}
 
+    @Override
+    protected List<String> printModelDescriptionDetails(boolean htmlFormat) {
+        List<String> output = super.printModelDescriptionDetails(htmlFormat); 
+        output.add("Binary hulls based on " + HullHolder.NBinaries + " compounds");
+        if (FitCorrection) {
+            output.add("Fitting correction factors");
+        }
+        return output;
+    }
+    
+    
+    
 	@Override
 	public int getNFittingParameters() {
-		return 0;
+		return FitCorrection ? 2 : 0;
 	}
 }
 
@@ -95,15 +178,18 @@ public class MetallurgicalHeuristicRegression extends BaseRegression {
  * 
  * @author Logan Ward 
  */
-class BinaryConvexHullHolder {
+class BinaryConvexHullHolder implements java.io.Serializable {
 	/** 
 	 * Processed convex hulls. Key values are the two elements (Left &lt; Right).
 	 * Values are always (x<sub>left</sub>, &Delta;H<sub>f</sub>), sorted by x.
 	 */
 	final Map<ImmutablePair<Integer,Integer>, 
 			List<ImmutablePair<Double,Double>>> ConvexHulls = new TreeMap<>();
+    /** Number of binary compounds stored in this object */
+    int NBinaries;
 	
 	public BinaryConvexHullHolder(CompositionDataset HullData) {
+        NBinaries = 0;
 		/** --> First, assemble map */ 
 		int NElem = HullData.ElementNames.length;
 		for (int i = 0; i < NElem; i++) {
@@ -124,6 +210,7 @@ class BinaryConvexHullHolder {
 			int[] elem = Ptr.getElements();
 			// If entry has 2 elements, store the composition on the appropriate map
 			if (elem.length == 2) {
+                NBinaries++;
 				double[] frac = Ptr.getFractions();
 				// Get the lookup key
 				ImmutablePair<Integer,Integer> key;
@@ -248,7 +335,7 @@ class BinaryConvexHullHolder {
 	
 	/**
 	 * Predict the formation energy of a compound. Extrapolates from the binary
-	 *  formation energies in a manner described in <a href="http://www.cambridge.org.turing.library.northwestern.edu/us/academic/subjects/engineering/materials-science/phase-equilibria-phase-diagrams-and-phase-transformations-their-thermodynamic-basis-2nd-edition">
+	 *  formation energies in a manner described in <a href="http://www.cambridge.org/us/academic/subjects/engineering/materials-science/phase-equilibria-phase-diagrams-and-phase-transformations-their-thermodynamic-basis-2nd-edition">
 	 * Hillert's text</a>.
 	 * 
 	 * <p>Basic procedure:
@@ -311,5 +398,5 @@ class BinaryConvexHullHolder {
 		
 		return output / totalWeight;
 	}
-	
+
 }

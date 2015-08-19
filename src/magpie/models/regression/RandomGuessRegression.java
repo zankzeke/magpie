@@ -1,6 +1,7 @@
 package magpie.models.regression;
 
 import java.util.List;
+import java.util.Random;
 import magpie.data.Dataset;
 
 /**
@@ -31,8 +32,6 @@ public class RandomGuessRegression extends BaseRegression {
     public String printUsage() {
         return "Usage: <lower bound> <upper bound>";
     }
-    
-    
 
     @Override
     protected void train_protected(Dataset TrainData) {
@@ -41,10 +40,11 @@ public class RandomGuessRegression extends BaseRegression {
 
     @Override
     public void run_protected(Dataset TrainData) {
+        Random rand = new Random(TrainData.NAttributes());
         double[] guess = new double[TrainData.NEntries()];
         double Range = UpperBound - LowerBound;
         for (int i=0; i<guess.length; i++)
-            guess[i] = LowerBound + Range * Math.random();
+            guess[i] = LowerBound + Range * rand.nextDouble();
         TrainData.setPredictedClasses(guess);
     }
 
@@ -56,5 +56,15 @@ public class RandomGuessRegression extends BaseRegression {
     @Override
     protected String printModel_protected() {
         return "Class = (Random number between " + LowerBound + " and " + UpperBound + ")";
+    }
+
+    @Override
+    public List<String> printModelDescriptionDetails(boolean htmlFormat) {
+        List<String> output = super.printModelDescriptionDetails(htmlFormat);
+        
+        output.add(String.format("Lower Bound: %.4e", LowerBound));
+        output.add(String.format("Upper Bound: %.4e", UpperBound));
+        
+        return output;
     }
 }

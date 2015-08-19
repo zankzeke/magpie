@@ -1,6 +1,7 @@
 
 package magpie.models.regression;
 
+import java.util.LinkedList;
 import java.util.List;
 import magpie.data.Dataset;
 import magpie.data.utilities.modifiers.PartitionToClassModifier;
@@ -53,6 +54,14 @@ public class ClassificationRegression extends BaseRegression {
      */
     public ClassificationRegression() throws Exception {
         this.Clfr = new WekaClassifier();
+    }
+
+    @Override
+    public ClassificationRegression clone() {
+        ClassificationRegression x = (ClassificationRegression) super.clone();
+        x.Clfr = Clfr.clone();
+        x.ObjFunction = ObjFunction.clone();
+        return x;
     }
 
     @Override
@@ -165,6 +174,23 @@ public class ClassificationRegression extends BaseRegression {
         String output = "Ranking Method: " + ObjFunction.getClass().getSimpleName();
         output += String.format("\nThreshold: %.3e", Threshold);
         output += "\nClassifier:\n" + Clfr.printModel();
+        return output;
+    }
+
+    @Override
+    public List<String> printModelDescriptionDetails(boolean htmlFormat) {
+        List<String> output = super.printModelDescriptionDetails(htmlFormat);
+        output.add("Ranking Method: " + ObjFunction.getClass().getSimpleName());
+        output.add(String.format("Threshold: %.3e", Threshold));
+        
+        // Get submodel description
+        String[] submodel = Clfr.printDescription(htmlFormat).split("\n");
+        output.add("Classifier: " + submodel[0]);
+        
+        for (int i=1; i<submodel.length; i++) {
+            output.add(submodel[i]);
+        }
+        
         return output;
     }
 

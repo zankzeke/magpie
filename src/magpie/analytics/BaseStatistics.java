@@ -1,10 +1,10 @@
 package magpie.analytics;
 
-import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import magpie.data.Dataset;
 import magpie.utility.interfaces.Commandable;
 import magpie.utility.interfaces.Options;
@@ -172,10 +172,15 @@ abstract public class BaseStatistics implements java.io.Serializable,
         return Output;
     }
     
-        @Override
+    @Override
     public String about() {
         // Print the number entries tested
         return "Number Tested: " + this.NumberTested;
+    }
+
+    @Override
+    public String printDescription(boolean htmlFormat) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
@@ -246,4 +251,10 @@ abstract public class BaseStatistics implements java.io.Serializable,
         }
         fp.close();
     }
+    
+    /**
+     * Retrieve list of statistics stored in this class.
+     * @return Map of statistic name to value.
+     */
+    abstract public Map<String, Double> getStatistics();
 }

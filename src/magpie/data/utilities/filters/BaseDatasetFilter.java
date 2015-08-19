@@ -1,6 +1,12 @@
 package magpie.data.utilities.filters;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import magpie.Magpie;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.utility.interfaces.Options;
@@ -40,6 +46,14 @@ abstract public class BaseDatasetFilter implements java.io.Serializable, Options
         return Exclude;
     }
     
+    /**
+     * Minimum number of entries to label in parallel. 
+     * @return Implementer-specified minimum threshold
+     */
+    protected int parallelMinimum() {
+        return 10000;
+    }
+    
     /** 
      * Given a dataset, determine which entries passes the filter. Please
      * ensure that D remains unaltered (clone if you must)
@@ -48,21 +62,76 @@ abstract public class BaseDatasetFilter implements java.io.Serializable, Options
      */
     abstract protected boolean[] label(Dataset D);
     
+    /**
+     * Label entries in parallel. 
+     * @param D Dataset to be labeled
+     * @return A list of entries to be labeled
+     */
+    protected boolean[] parallelLabel(Dataset D) {
+        final boolean[] output = new boolean[D.NEntries()];
+        
+        // Set thread count to zero, prevent children from spawning threads
+        final int nThreads = Magpie.NThreads;
+        Magpie.NThreads = 1;
+        
+        // Split dataset into threads
+        Dataset[] parts = D.splitForThreading(nThreads);
+        
+        // Launch parallel threads
+        ExecutorService service = Executors.newFixedThreadPool(nThreads);
+        for (int i=0; i<nThreads; i++) {
+            final int threadID = i;
+            final Dataset part = parts[i];
+            Runnable thread = new Runnable() {
+
+                @Override
+                public void run() {
+                    boolean[] subLabels = label(part);
+                    for (int e=0; e<subLabels.length; e++) {
+                        output[e * nThreads + threadID] = subLabels[e];
+                    }
+                }
+            };
+            service.submit(thread);
+        }
+        
+        // Wait until the threads complete
+        service.shutdown();
+        try {
+            service.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+        } catch (Exception e) {
+            throw new Error(e);
+        }
+        
+        // Reset thread count
+        Magpie.NThreads = 1;
+        
+        return output;
+    }
+    
     /** 
      * Filters entries in a Dataset depending
      * @param D Dataset to be split. Returns empty from this operation
      */
     public void filter(Dataset D) {
-        boolean[] labels = label(D);
-        // Split it up
-        Iterator<BaseEntry> iter = D.getEntries().iterator();
-        int i=0; 
-        while (iter.hasNext()) {
-            iter.next();
-            if (labels[i] == Exclude)
-                iter.remove();
-            i++;
+        boolean[] labels;
+        if (Magpie.NThreads > 1 && D.NEntries() > parallelMinimum()) {
+            labels = parallelLabel(D);
+        } else {
+            labels = label(D);
         }
+        
+        // Create a list containing only the entires that pass the filter
+        ArrayList<BaseEntry> newList = new ArrayList<>(D.NEntries());
+        for (int i=0; i<D.NEntries(); i++) {
+            if (labels[i] != Exclude) {
+                newList.add(D.getEntry(i));
+            }
+        }
+        
+        // Set that as the entry list for D
+        D.clearData();
+        D.addEntries(newList);
     }
     
     /**

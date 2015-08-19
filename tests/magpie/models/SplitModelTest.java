@@ -22,11 +22,5 @@ public class SplitModelTest extends BaseModelTest {
         model.setPartitioner(spltr);
         return model;
     }
-    
-    
-
-    @Test
-    public void testSomeMethod() {
-    }
-    
+        
 }

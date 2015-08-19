@@ -188,7 +188,56 @@ abstract public class BaseClusterer implements Options, Printable,
             Output += " - Number of clusters: " + NClusters();
         return Output;
     }
+
+    @Override
+    public String printDescription(boolean htmlFormat) {
+        String output = getClass().getName() + "\n";
+        
+        // Add HTML indentation
+        if (htmlFormat) {
+            output += "<div style=\"margin-left: 25px\">\n";
+        }
+        
+        // Get model details
+        List<String> details = getClustererDetails(htmlFormat);
+        boolean started = false;
+        String lastLine = "";
+        for (String line : details) {
+            output += "\t";
+            
+            // Add <br> where appropriate
+            if (started && // Not for the first line int the block
+                    htmlFormat // Only for HTML-formatted output
+                    // Not on lines for the "<div>" tags
+                    && ! (line.contains("<div") || line.contains("</div>")) 
+                    // Not immediately after <div> tags
+                    && ! (lastLine.contains("<div") || lastLine.contains("</div>")) 
+                    // Not if the line already has a break
+                    && ! line.contains("<br>")) {
+                output += "<br>";
+            }
+            
+            // Add line to ouput
+            output += line + "\n";
+            
+            // Update loop variables
+            started = true;
+            lastLine = line;
+        }
+        
+        // Deindent
+        if (htmlFormat) {
+            output += "</div>\n";
+        }
+        return output;
+    }
     
+    /**
+     * Get any user-specified options of this clusterer. 
+     * Used with {@linkplain #printDescription(boolean) }
+     * @return List of clusterer options
+     */
+    abstract protected List<String> getClustererDetails(boolean htmlFormat);
     
     @Override
     public String printCommand(List<String> Command) throws Exception {

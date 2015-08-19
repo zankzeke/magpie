@@ -1,11 +1,13 @@
 package magpie.data.utilities.modifiers;
 
 import java.util.List;
+import java.util.Map;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.CompositionEntry;
 import magpie.data.materials.util.GCLPCalculator;
+import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * Use GCLP compute the stability with respect to other phases. 
@@ -13,7 +15,7 @@ import magpie.data.materials.util.GCLPCalculator;
  * <usage><p><b>Usage</b>: $&lt;data&gt; &lt;energy name&gt; &lt;stability name&gt;
  * <br><pr><i>data</i>: {@linkplain CompositionDataset} containing energies of known compounds as the measured class variable
  * <br><pr><i>energy name</i>: Name of property storing energies of new compounds
- * <br><pr><i>stability name</i>: Name of property in which to store computed stablities</usage>
+ * <br><pr><i>stability name</i>: Name of property in which to store computed stabilities</usage>
  * 
  * @author Logan Ward
  */
@@ -100,8 +102,8 @@ public class StabilityCalculationModifier extends BaseDatasetModifier {
             // Perform GCLP
             double hullEnergy;
             try {
-                GCLPCalculator.doGCLP(entry);
-                hullEnergy = GCLPCalculator.getGroundStateEnergy();
+                Pair<Double, Map<CompositionEntry, Double>> res = GCLPCalculator.runGCLP(entry);
+                hullEnergy = res.getLeft();
             } catch (Exception e) {
                 throw new Error(e);
             }

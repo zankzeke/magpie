@@ -1,11 +1,10 @@
 package magpie.data;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.TreeSet;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import magpie.data.utilities.DatasetOutput;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * Dataset that can store multiple properties for each entry. User can define the names
@@ -36,11 +35,13 @@ public class MultiPropertyDataset extends Dataset {
     private int TargetProperty = -1;
 
     @Override
-    @SuppressWarnings({"CloneDeclaresCloneNotSupported", "CloneDoesntCallSuperClone"})
-    public Dataset clone() {
-        MultiPropertyDataset x = (MultiPropertyDataset) super.clone(); 
-        x.PNames = new LinkedList<>(PNames);
-        x.PClassNames = new LinkedList<>(PClassNames);
+    public Dataset emptyClone() {
+        MultiPropertyDataset x = (MultiPropertyDataset) super.emptyClone(); 
+        x.PNames = new ArrayList<>(PNames);
+        x.PClassNames = new LinkedList<>();
+        for (String[] ar : PClassNames) {
+            x.PClassNames.add(ar.clone());
+        }
         x.TargetProperty = TargetProperty;
         return x;
     }
@@ -59,12 +60,46 @@ public class MultiPropertyDataset extends Dataset {
         }
     }
 
+    /**
+     * Combine the dataset with another. Will change the target property of the 
+     * other dataset to be the same as this one
+     * @param d Other dataset. Will change target property to be the same as this class
+     */
+    @Override
+    public void combine(Dataset d) {
+        MultiPropertyDataset ptr = (MultiPropertyDataset) d;
+        if (! PNames.equals(Arrays.asList(ptr.getPropertyNames()))) {
+            throw new Error("Property lists are different");
+        }
+        super.combine(d);
+        setTargetProperty(TargetProperty, true);
+        ptr.setTargetProperty(TargetProperty, true);
+    }
+
 	@Override
 	public void addEntry(BaseEntry e) {
+		// Make sure the entry has the correct number of properties
+		//  and the correct target property
 		MultiPropertyEntry p = (MultiPropertyEntry) e;
 		p.setNProperties(NProperties());
+		p.setTargetProperty(getTargetPropertyIndex());
 		super.addEntry(e); 
 	}
+
+	@Override
+    public void addEntries(Collection<? extends BaseEntry> entries) {
+        // Update these entries to have the correct number and target property
+        int nProps = NProperties();
+        int tProp = getTargetPropertyIndex();
+		for (BaseEntry ePtr : entries) {
+             MultiPropertyEntry entry = (MultiPropertyEntry) ePtr;
+             entry.setNProperties(nProps);
+             entry.setTargetProperty(tProp);
+        }
+
+        // Add entry to the dataset
+	    super.addEntries(entries);
+    }
 
     /**
      * @return Number of properties known by this Dataset
@@ -248,6 +283,23 @@ public class MultiPropertyDataset extends Dataset {
             }
         }
     }
+    
+    /**
+     * Clear all property information from this dataset.
+     */
+    public void clearPropertyData() {
+        // Clear property names 
+        PClassNames.clear();
+        PNames.clear();
+        
+        // Clear property entries
+        for (BaseEntry e : Entries) {
+            MultiPropertyEntry ptr = (MultiPropertyEntry) e;
+        }
+        
+        // Set target property to default class variable
+        setTargetProperty(-1, true);
+    }
 
     /**
      * Add a new property to dataset. 
@@ -417,6 +469,76 @@ public class MultiPropertyDataset extends Dataset {
             default:
                 return super.saveCommand(Basename, Format);
         }
+    }
+
+    /**
+     * Given the line describing property names in the input file, read in property
+     * names and possible classes.
+     * @param line Line describing property names
+     * @see CompositionDataset
+     */
+    protected void importPropertyNames(String line) {
+        // Clear out current property data
+        clearPropertyData();
+        // Initialize regex
+        Pattern totalPattern = Pattern.compile("[\\d\\w]+(\\{.*\\})?"); // Captures entire name/classes
+        Pattern namePattern = Pattern.compile("^[\\d\\w]+"); // Given name/classes, get name
+        Pattern classPattern = Pattern.compile("\\{.*\\}"); // Get the possible classes
+        Matcher totalMatcher = totalPattern.matcher(line);
+        totalMatcher.find(); // First match is composition
+        // Find all property names
+        while (totalMatcher.find()) {
+            String total = totalMatcher.group();
+            Matcher tempMatcher = namePattern.matcher(total);
+            tempMatcher.find();
+            String name = tempMatcher.group();
+            if (!total.contains("{")) {
+                addProperty(name);
+            } else {
+                tempMatcher = classPattern.matcher(total);
+                tempMatcher.find();
+                String classList = tempMatcher.group();
+                // Trim off the "{,}"
+                classList = classList.substring(1);
+                classList = classList.substring(0, classList.length() - 1);
+                // Get the class names
+                String[] classes = classList.split(",");
+                for (int i = 0; i < classes.length; i++) {
+                    classes[i] = classes[i].trim();
+                }
+                addProperty(name, classes);
+            }
+        }
+    }
+
+    /**
+     * Used by {@linkplain #importText(java.lang.String, java.lang.Object[]) }
+     * to import property measurments for each entry.
+     *
+     * @param words Line describing entry, split into words
+     * @return Property measurements for this entry
+     */
+    protected double[] importEntryProperties(String[] words) {
+        double[] properties;
+        // Get the properties
+        properties = new double[NProperties()];
+        for (int p = 0; p < NProperties(); p++) {
+            try {
+                if (getPropertyClassCount(p) == 1) {
+                    properties[p] = Double.parseDouble(words[p + 1]);
+                } else {
+                    int index = ArrayUtils.indexOf(getPropertyClasses(p), words[p + 1]);
+                    if (index == -1) {
+                        index = Integer.parseInt(words[p + 1]);
+                    }
+                    properties[p] = index;
+                }
+            } catch (Exception exc) {
+                // System.err.println("Warning: Entry #"+i+" has an invalid property.");
+                properties[p] = Double.NaN;
+            }
+        }
+        return properties;
     }
     
     

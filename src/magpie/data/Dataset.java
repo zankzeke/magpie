@@ -5,7 +5,13 @@ import java.io.FileReader;
 import magpie.data.utilities.DatasetHelper;
 import weka.core.*;
 import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import javax.naming.OperationNotSupportedException;
+import magpie.Magpie;
 import magpie.attributes.evaluators.BaseAttributeEvaluator;
 import magpie.attributes.expansion.BaseAttributeExpander;
 import magpie.attributes.generators.BaseAttributeGenerator;
@@ -40,6 +46,8 @@ import weka.core.converters.ArffLoader;
  * associated entry type
  * <li>{@linkplain #calculateAttributes() } - Compute any new attributes for for
  * class
+ * <li>{@linkplain #emptyClone() } - Create clone of dataset. Cloning entries
+ * is handled in {@linkplain #clone() }, which does not need to be modified.
  * </ul>
  *
  * <usage><p>
@@ -47,9 +55,17 @@ import weka.core.converters.ArffLoader;
  *
  * <p>
  * <b><u>Implemented Commands:</u></b>
+ * 
+ * <command><p><b>add &lt;entries...&gt;</b> - Add entries to a dataset
+ * <br><i>entries...</i>: Strings describing entries to be added</command>
+ * 
  * <command><p>
  * <b>&lt;output> = clone [-empty]</b> - Create a copy of this dataset
  * <br><pr><i>-empty</i>: Do not copy entries from dataset into clone
+ * </command>
+ * 
+ * <command><p><b>combine $&lt;dataset&gt;</b> - Add all entries from another dataset
+ * <br><pr><i>dataset</i>: Dataset to merge with this one. It will remain unchanged.
  * </command>
  *
  * <command><p>
@@ -213,9 +229,10 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * Read the state from file using serialization
      *
      * @param filename Filename for input
-     * @return
+     * @return Dataset stored in that file
+     * @throws java.lang.Exception
      */
-    public static Dataset loadState(String filename) {
+    public static Dataset loadState(String filename) throws Exception {
         return (Dataset) UtilityOperations.loadState(filename);
     }
 
@@ -264,18 +281,14 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         return "Usage: *No Options*";
     }
 
+    /**
+     * Creates a new instance of this dataset, and clones of each entry.
+     * @return Clone of this dataset
+     */
     @Override
     @SuppressWarnings("CloneDeclaresCloneNotSupported")
     public Dataset clone() {
-        Dataset copy;
-        try {
-            copy = (Dataset) super.clone();
-        } catch (CloneNotSupportedException c) {
-            throw new Error(c);
-        }
-        copy.AttributeName = new ArrayList<>(AttributeName);
-        copy.ClassName = ClassName.clone();
-        copy.Expanders = new LinkedList<>(Expanders);
+        Dataset copy = emptyClone();
 
         // Make unique copies of the entries
         copy.Entries = new ArrayList<>(NEntries());
@@ -301,8 +314,11 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         }
         copy.AttributeName = new ArrayList<>(AttributeName);
         copy.ClassName = ClassName.clone();
+        copy.Expanders = new LinkedList<>(Expanders);
+        copy.Generators = new LinkedList<>(Generators);
+        
         // Make unique copies of the entries
-        copy.Entries = new ArrayList<>(NEntries());
+        copy.Entries = new ArrayList<>();
         return copy;
     }
 
@@ -413,23 +429,78 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * @throws java.lang.Exception If any error is encountered
      */
     final public void generateAttributes() throws Exception {
-        // First things first, clear out old data
-        AttributeName.clear();
-        for (BaseEntry e : Entries) {
-            e.clearAttributes();
+        if (Magpie.NThreads > 1 && NEntries() > Magpie.NThreads) {
+            // Store the number of threads 
+            int originalNThreads = Magpie.NThreads;
+            
+            // Set Magpie.NThreads to 1 to prevent children from spawning threads
+            Magpie.NThreads = 1;
+            
+            // Split dataset for threading
+            Dataset[] threadData = splitForThreading(originalNThreads);
+            
+            // Create executor
+            ExecutorService executor = Executors.newFixedThreadPool(originalNThreads);
+            
+            // Launch threads
+            List<Future<Integer>> results = new ArrayList<>(originalNThreads);
+            for (final Dataset part : threadData) {
+                Callable<Integer> thread = new Callable<Integer>() {
+
+                    @Override
+                    public Integer call() throws Exception {
+                        part.generateAttributes();
+                        return part.NAttributes();
+                    }
+                };
+                results.add(executor.submit(thread));
+            }
+            
+            // Wait until all threads are done
+            executor.shutdown();
+            
+            // Get attribute names from thread #0
+            try {
+                // Wait until that thread finishes
+                results.get(0).get();
+                
+                // Set the names for this instance to those of the first part
+                AttributeName = threadData[0].AttributeName;
+            } catch (ExecutionException e) {
+                throw new Exception(e.getCause());
+            }
+            
+            // Wait for the other entries
+            for (int id=1; id<originalNThreads; id++) {
+                try {
+                    // Wait until that thread finishes
+                    results.get(id).get();
+                } catch (ExecutionException e) {
+                    throw new Exception(e.getCause());
+                }
+            }
+            
+            // Restore the number of threads
+            Magpie.NThreads = originalNThreads;
+        } else {
+            // First things first, clear out old data
+            AttributeName.clear();
+            for (BaseEntry e : Entries) {
+                e.clearAttributes();
+            }
+
+            // Now compute attributes
+            calculateAttributes();
+
+            // Run generators
+            runAttributeGenerators();
+
+            // Run expanders
+            runAttributeExpanders();
+
+            // Reduce memory footprint, where possible
+            finalizeGeneration();
         }
-
-        // Now compute attributes
-        calculateAttributes();
-
-        // Run generators
-        runAttributeGenerators();
-
-        // Run expanders
-        runAttributeExpanders();
-
-        // Reduce memory footprint, where possible
-        finalizeGeneration();
     }
 
     /**
@@ -783,14 +854,8 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * @param d Array of DataStructures
      */
     public void combine(Dataset[] d) {
-        if (d[0].NAttributes() != NAttributes()) {
-            throw new Error("Data set has wrong number of features");
-        }
-        if (d[0].NClasses() != NClasses()) {
-            throw new Error("Data set has wrong number of classes");
-        }
-        for (Dataset d1 : d) {
-            Entries.addAll(d1.Entries);
+        for (Dataset data : d) {
+            combine(data);
         }
     }
 
@@ -801,15 +866,8 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * @param d Collection of Datasets
      */
     public void combine(Collection<Dataset> d) {
-        if (d.iterator().next().NAttributes() != NAttributes()) {
-            throw new Error("Data set has wrong number of features");
-        }
-        if (d.iterator().next().NClasses() != NClasses()) {
-            throw new Error("Data set has wrong number of classes");
-        }
-        Iterator<Dataset> iter = d.iterator();
-        while (iter.hasNext()) {
-            Entries.addAll(iter.next().Entries);
+        for (Dataset data : d) {
+            combine(data);
         }
     }
 
@@ -1004,31 +1062,31 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     }
 
     /**
-     * Split for threading purposes. Does not worry about randomization.
-     *
+     * Split for threading purposes. Does not worry about randomization,
+     * thread n contains all entries where [entry ID] % NThreads == 0. 
+     * 
+     * <p>Example: 4 threads, thread 1 has entry #1, 5, 9, ...
+     * 
      * @param NThreads Number of subsets to create
      * @return Array of equally-sized Dataset objects
      */
     public Dataset[] splitForThreading(int NThreads) {
         Dataset[] output = new Dataset[NThreads];
+        
         // Number to split per thread
-        int to_split = this.NEntries() / NThreads;
-        Iterator<BaseEntry> iter = Entries.iterator();
-        for (int i = 0; i < NThreads - 1; i++) {
+        int to_split = NEntries() / NThreads;
+        
+        // Make the thread datasets
+        for (int i=0; i< NThreads; i++) {
             output[i] = emptyClone();
-            output[i].Entries.ensureCapacity(to_split + 1);
-            for (int j = 0; j < to_split; j++) {
-                output[i].Entries.add(iter.next());
-                iter.remove();
-            }
+            output[i].Entries.ensureCapacity(to_split);
         }
-        // Fill in the last thread
-        output[NThreads - 1] = emptyClone();
-        output[NThreads - 1].Entries.ensureCapacity(to_split + 1);
-        while (iter.hasNext()) {
-            output[NThreads - 1].Entries.add(iter.next());
-            iter.remove();
+        
+        // Fill in each thread
+        for (int e=0; e<NEntries(); e++) {
+            output[e % NThreads].Entries.add(Entries.get(e));
         }
+        
         return output;
     }
 
@@ -1432,6 +1490,122 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         return output;
     }
 
+    /**
+     * Print out name of dataset and what attributes are generated.
+     * @param htmlFormat Whether to print in HTML format
+     * @return String describing this dataset
+     */
+    @Override
+    public String printDescription(boolean htmlFormat) {
+        // Print out class name
+        String output = "";
+        if (htmlFormat) {
+            output += "<label>";
+        }
+        output += "Dataset Type";
+        if (htmlFormat) {
+            output += "</label> ";
+        } else {
+            output += ": ";
+        }
+        output += getClass().getName() + "\n";
+        
+        // Print out entry description
+        if (htmlFormat) {
+            output += "<br><label>";
+        }
+        output += "Entry Description";
+        if (htmlFormat) {
+            output += "</label> ";
+        } else {
+            output += ": ";
+        }
+        output += printEntryDescription(htmlFormat) + "\n";
+        
+        // Print out what attributes are generated by default
+        String defaultAttr = printAttributeDescription(htmlFormat);
+        if (defaultAttr.length() > 1) {
+            // Print out header
+            if (htmlFormat) {
+                output += "<h3>";
+            }
+            output += "Default Attributes";
+            if (htmlFormat) {
+                output += "</h3>";
+            }
+            output += "\n";
+            
+            // Print out description
+            if (htmlFormat) {
+                output += "<p>";
+            }
+            output += defaultAttr + "\n";
+        }
+        
+        // Print out attribute generators
+        if (Generators.size() > 0) {
+            // Print out header
+            if (htmlFormat) {
+                output += "<h4>";
+            }
+            output += "Attribute Generators";
+            if (htmlFormat) {
+                output += "</h4>";
+            }
+            output += "\n";
+            
+            // Print out start of HTML list
+            if (htmlFormat) {
+                output += "<ol>\n";
+            }
+        }
+        
+        for (int i=0; i<Generators.size(); i++) {
+            // Print out description of the generator
+            if (htmlFormat) {
+                output += "<li> ";
+            } else {
+                output += i + ". ";
+            }
+            output += Generators.get(i).printDescription(htmlFormat);
+            if (htmlFormat) {
+                output += "</li>";
+            }
+            output += "\n";
+        }
+        
+        if (Generators.size() > 0 && htmlFormat) {
+            output += "</ol>\n";
+        }
+        
+        // Print out attribute expanders
+        return output;
+    }
+    
+    /**
+     * Print out description of attributes. 
+     * 
+     * <p><b>Implementation Guide</b>
+     * <p>Subclasses should describe what kind of attributes are generated 
+     * <i>by default</i>. If it uses a separate generator class, those are captured
+     * by the {@linkplain #printDescription(boolean) } section.
+     * @param htmlFormat Whether to print in HTML format
+     * @return Description of the attributes or an empty string ("") if there
+     * are no default attributes.
+     */
+    public String printAttributeDescription(boolean htmlFormat) {
+        return "";
+    }
+    
+    /**
+     * Print out what the entries to this dataset are.
+     * @param htmlFormat Whether to print in HTML format
+     * @return Description of each entry (i.e., what kind of data is this).
+     */
+    public String printEntryDescription(boolean htmlFormat) {
+        return "A list of ordinary numbers";
+    }
+
     @Override
     public String toString() {
         String output = "Number of entries:  " + NEntries();
@@ -1585,8 +1759,21 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         }
         String Action = Command.get(0).toString();
         switch (Action.toLowerCase()) {
-            case "attributes":
-            case "attr":
+            case "add": {
+                int nAdded = 0;
+                for (Object entry : Command.subList(1, Command.size())) {
+                    try {
+                        addEntry(entry.toString());
+                        nAdded++;
+                    } catch (Exception ex) {
+                        System.err.println(entry.toString() +
+                                " failed to parse: " + ex.getMessage());
+                    }
+                }
+                System.out.println("\tAdded " + nAdded + " entries.");
+                return null;
+            }
+            case "attributes": case "attr":
                 return runAttributeCommand(Command.subList(1, Command.size()));
             case "clone":
                 // Usage: <output> = clone [-emptyy]
@@ -1597,6 +1784,19 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 } else {
                     throw new Exception("Usage: clone [-empty]");
                 }
+            case "combine": {
+                try {
+                    if (Command.size() != 2) {
+                        throw new Exception();
+                    }
+                    Dataset other = (Dataset) Command.get(1);
+                    combine(other);
+                    System.out.format("\tAdded %d entries. New size: %d\n", 
+                            other.NEntries(), NEntries());
+                } catch (Exception e) {
+                    throw new Exception("Usage: combine $<other dataset>");
+                }
+            } break;
             case "filter": {
                 // Usage: <include|exclude> <method> [<options...>]
                 String Method;

@@ -81,4 +81,13 @@ public class SingleGuessRegression extends BaseRegression {
         String output = "Class = " + String.format("%.5e\n", Guess);
         return output;
     }
+
+    @Override
+    public List<String> printModelDescriptionDetails(boolean htmlFormat) {
+        List<String> output = super.printModelDescriptionDetails(htmlFormat);
+        
+        output.add(String.format("Guess: %.4e", Guess));
+        
+        return output;
+    }
 }

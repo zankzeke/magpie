@@ -23,11 +23,30 @@ public interface Printable {
     /**
      * Handles more complicated printing commands. 
      * 
-     
-     * 
      * @param Command Command specifying what to print
      * @return String formatted as requested
      * @throws Exception If command not understood
      */
     abstract public String printCommand(List<String> Command) throws Exception;
+
+    /**
+     * Print full name of object, and a simple description of the options. This
+     * description should print enough information to reproduce how this 
+     * object was created, but not necessarily enough to run it (e.g., coefficients
+     * for the model). 
+     *
+     * <p>Example: For a model training a separate WekaRegression for intermetallics
+     * <p>magpie.models.regression.SplitRegression
+     * <div style="margin: 0 0 0 25px">
+     * Splitter: AllMetalsSplitter
+     * <br>All Metals: magpie.models.regression.WekaRegression trees.REPTree
+     * <br>Contains Nonmetal: magpie.regression.LASSORegreession -maxterms 2
+     * </div>
+     *
+     * @param htmlFormat Whether format for output to an HTML page
+     * (e.g., &lt;div&gt; to create indentation) or for printing to screen.
+     * @return String describing the model
+     * @see #printModel()
+     */
+    String printDescription(boolean htmlFormat);
 }

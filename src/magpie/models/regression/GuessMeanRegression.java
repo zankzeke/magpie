@@ -39,10 +39,9 @@ public class GuessMeanRegression extends SingleGuessRegression {
         return 1;
     }
     
-    
-
     @Override
     public void train_protected(Dataset E) {
         Guess = StatUtils.mean(E.getMeasuredClassArray());
     }
+    
 }

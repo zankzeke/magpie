@@ -70,8 +70,8 @@ public class PrototypeDataset extends CompositionDataset {
     }
 
     @Override
-    public PrototypeDataset clone() {
-        PrototypeDataset x = (PrototypeDataset) super.clone();
+    public PrototypeDataset emptyClone() {
+        PrototypeDataset x = (PrototypeDataset) super.emptyClone();
         x.SiteInfo = this.SiteInfo;
         return x; 
     }
@@ -130,7 +130,7 @@ public class PrototypeDataset extends CompositionDataset {
             Line = is.readLine();
             if (Line == null) 
                 break;
-            Words=Line.split("[ \t]");
+            Words=Line.trim().split("[ \t]");
             if (Words.length == 1) // For blank lines
                 continue;
             

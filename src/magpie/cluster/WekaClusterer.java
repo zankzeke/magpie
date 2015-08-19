@@ -1,6 +1,7 @@
 package magpie.cluster;
 
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import magpie.data.Dataset;
 import magpie.user.CommandHandler;
@@ -8,6 +9,7 @@ import magpie.utility.WekaUtility;
 import weka.clusterers.AbstractClusterer;
 import weka.clusterers.Clusterer;
 import weka.core.Instances;
+import weka.core.OptionHandler;
 
 /**
  * Use Weka to cluster data.
@@ -21,7 +23,7 @@ import weka.core.Instances;
  */
 public class WekaClusterer extends BaseClusterer {
     /** Clusterer used internally */
-    Clusterer Clusterer = null;
+    AbstractClusterer Clusterer = null;
 
     public WekaClusterer() {
         Clusterer = instantiateClusterer("SimpleKMeans", null);
@@ -32,7 +34,7 @@ public class WekaClusterer extends BaseClusterer {
         WekaClusterer x = (WekaClusterer) super.clone(); 
         try {
             WekaUtility.importWekaHome();
-            x.Clusterer = AbstractClusterer.makeCopy(Clusterer);
+            x.Clusterer = (AbstractClusterer) AbstractClusterer.makeCopy((Clusterer) Clusterer);
         } catch (Exception e) {
             throw new Error(e);
         }
@@ -45,13 +47,13 @@ public class WekaClusterer extends BaseClusterer {
      * @param Options List of options
      * @return New instance, as requested
      */
-    protected static Clusterer instantiateClusterer(String Name, String[] Options) {
+    protected static AbstractClusterer instantiateClusterer(String Name, String[] Options) {
         if (! Name.startsWith("weka.clusterers.")) {
             Name = "weka.clusterers." + Name;
         }
         try {
 			WekaUtility.importWekaHome();
-            return (Clusterer) AbstractClusterer.forName(Name, Options);
+            return (AbstractClusterer) AbstractClusterer.forName(Name, Options);
         } catch (Exception e) {
             throw new Error(e);
         }
@@ -115,4 +117,22 @@ public class WekaClusterer extends BaseClusterer {
             throw new Error(e);
         }
     }
+
+    @Override
+    protected List<String> getClustererDetails(boolean htmlFormat) {
+        List<String> output = new LinkedList<>();
+        output.add("Clusterer name:    " + Clusterer.getClass().getSimpleName());
+        
+        String options = "";
+        OptionHandler ptr = (OptionHandler) Clusterer;
+        for (String option : ptr.getOptions()) {
+            options += " " + option;
+        }
+        
+        output.add("Clusterer options:" + options);
+        
+        return output;
+    }
+    
+    
 }

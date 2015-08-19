@@ -2,6 +2,7 @@
 package magpie.data.utilities.splitters;
 
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import magpie.data.Dataset;
 import magpie.data.utilities.modifiers.ClassIntervalModifier;
@@ -35,8 +36,6 @@ public class PredictedClassIntervalSplitter extends BaseDatasetSplitter {
         Clfr = new WekaClassifier();
     }
 
-    
-    
     @Override
     public PredictedClassIntervalSplitter clone() {
         PredictedClassIntervalSplitter x = 
@@ -120,5 +119,36 @@ public class PredictedClassIntervalSplitter extends BaseDatasetSplitter {
             output[i] = (int) variable[i];
         }
         return output;
+    }
+
+    @Override
+    protected List<String> getSplitterDetails(boolean htmlFormat) {
+        List<String> output = new LinkedList<>();
+        
+        // Get classifier details
+        String[] submodelDetails = Clfr.printDescription(htmlFormat).split("\n");
+        submodelDetails[0] = "Classifier: " + submodelDetails[0];
+        output.addAll(Arrays.asList(submodelDetails));
+        
+        return output;
+    }
+
+    
+    @Override
+    public List<String> getSplitNames() {    
+        List<String> splits = new LinkedList<>();
+        
+        // Split 1: Less than bottom edge
+        splits.add(String.format("Class <= %.4e", Edges[0]));
+        
+        // Splits 2 - ...: Bins in between
+        for (int bin=1; bin<Edges.length; bin++) {
+            splits.add(String.format("%.4e < Class <= %.4e", Edges[bin-1], Edges[bin]));
+        }
+        
+        // Split N: Greater than last edge
+        splits.add(String.format("Class > %.4e", Edges[Edges.length - 1]));
+        
+        return splits;
     }
 }

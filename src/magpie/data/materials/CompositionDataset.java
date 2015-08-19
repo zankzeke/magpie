@@ -7,19 +7,19 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.*;
 import java.util.*;
-import java.util.regex.*;
+import magpie.attributes.generators.BaseAttributeGenerator;
+import magpie.attributes.generators.composition.*;
 import magpie.data.BaseEntry;
 import magpie.data.materials.util.CompositionDatasetOutput;
 import magpie.data.materials.util.LookupData;
 import magpie.data.materials.util.PropertyLists;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.math3.stat.*;
+import magpie.utility.tools.OxidationStateGuesser;
 
 /**
  * This class stores entries that describe a material based solely on its
- * composition.<p>
- *
- * Some of the available features include:
+ * composition.
+ * 
+ * <p>Some of the available features include:
  * <ul>
  * <li>Generate attributes based on composition only</li>
  * <li>Read in data from specially-formatted input file</li>
@@ -52,6 +52,11 @@ import org.apache.commons.math3.stat.*;
  * value of continuous properties or the lowest-index class value (i.e. which
  * ever one is listed first in the header of the input file)
  * </ol>
+ * 
+ * <p><b><u>Attributes</u></b>
+ * 
+ * Generates several categories of attributes by default, which are described
+ * in {@linkplain #CompositionDataset(boolean) }.
  *
  * <p><b><u>Implemented Commands:</u></b>
  * 
@@ -99,23 +104,67 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
     /**
      * List of properties used when generating attributes
      */
-    public List<String> ElementalProperties = new LinkedList<>();
+    protected List<String> ElementalProperties = new ArrayList<>();
     /**
      * Map of elemental property names to values
      */
     public Map<String, double[]> PropertyData = LookupData.ElementalProperties;
 	/** Oxidation states of every element */
-	public double[][] OxidationStates = LookupData.OxidationStates;
-	
-    /** Whether to use composition as attributes */
-    protected boolean UseComposition = false;
+	protected double[][] OxidationStates = LookupData.OxidationStates;
 
-    @Override
-    @SuppressWarnings("CloneDeclaresCloneNotSupported")
-    public CompositionDataset clone() {
-        CompositionDataset x = (CompositionDataset) super.clone();
-        x.ElementNames = ElementNames.clone();
-        return x;
+    /**
+     * Create a dataset using the default set of attribute generators. 
+     */
+    public CompositionDataset() {
+        this(true);
+    }
+    
+    /**
+     * Create a blank dataset. Default attribute generator set:
+     * 
+     * <ol>
+     * <li>{@linkplain StoichiometricAttributeGenerator}: Generate attributes
+     * based on fractions of elements. Does not depend on what the elements actually
+     * are. Will use p = 2, 3, 5, 7, 10 norms.
+     * <li>{@linkplain ValenceShellAttributeGenerator}: Attributes based on the 
+     * valence shell electrons of the constituent elements
+     * <li>{@linkplain ElementalPropertyAttributeGenerator}: Generate attributes
+     * based on properties of constituent elements. Use the list of attributes
+     * provided through "attributes properties add" or 
+     * {@linkplain #addElementalProperty(java.lang.String) } operations for
+     * the commandline and Java interfaces, respectively.
+     * <li>{@linkplain IonicityAttributeGenerator}: Attributes designed to represent
+     * the "ionicity" of a compound.
+     * </ol>
+     * @param useDefaultGenerators [in] Whether to use default generators
+     */
+    public CompositionDataset(boolean useDefaultGenerators) {
+        if (!useDefaultGenerators) {
+            return;
+        }
+        
+        try {
+            // Add stoichiometric generator
+            StoichiometricAttributeGenerator sgen = new StoichiometricAttributeGenerator();
+            sgen.addPNorm(2); sgen.addPNorm(3); 
+            sgen.addPNorm(5); sgen.addPNorm(7); sgen.addPNorm(10);
+            addAttribueGenerator(sgen);
+            
+            // Add elemental property generator
+            ElementalPropertyAttributeGenerator pgen;
+            pgen = new ElementalPropertyAttributeGenerator();
+            addAttribueGenerator(pgen);
+            
+            // Add valence shell attributes
+            ValenceShellAttributeGenerator vgen = new ValenceShellAttributeGenerator();
+            addAttribueGenerator(vgen);
+            
+            // Add ionicity attributes
+            IonicityAttributeGenerator igen = new IonicityAttributeGenerator();
+            addAttribueGenerator(igen);
+        } catch (Exception e) {
+            throw new Error(e);
+        }
     }
 
     @Override
@@ -155,6 +204,9 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
     @Override
     @SuppressWarnings("empty-statement")
     public void importText(String filename, Object[] options) throws Exception {
+        // Clear out entry data
+        clearData();
+        
         // Count the number of lines (1 per entry + 1 header)
         // Thanks to: http://stackoverflow.com/questions/453018/number-of-lines-in-a-file-in-java
         LineNumberReader lr = new LineNumberReader(new FileReader(filename));
@@ -169,7 +221,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
         String[] words;
 
         // Read in properties from header
-        line = is.readLine();
+        line = is.readLine().trim();
 		importPropertyNames(line);
 
         // Determine which property is the energy ("energy_pa")
@@ -186,7 +238,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
             if (line == null) {
                 break;
             }
-            words = line.split("\\s+");
+            words = line.trim().split("\\s+");
             if (words.length < 2) {
                 continue;
             }
@@ -271,72 +323,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
         // Copy the entries
         this.Entries = new ArrayList<>(acceptedEntries.keySet());
     }
-
-    /**
-     * Used by {@linkplain #importText(java.lang.String, java.lang.Object[]) } 
-     * to import property measurments for each entry.
-     * 
-     * @param words Line describing entry, split into words
-     * @return Property measurements for this entry
-     */
-    protected double[] importEntryProperties(String[] words) {
-        double[] properties;
-        // Get the properties
-        properties = new double[NProperties()];
-        for (int p = 0; p < NProperties(); p++) {
-            try {
-                if (getPropertyClassCount(p) == 1) {
-                    properties[p] = Double.parseDouble(words[p + 1]);
-                } else {
-                    int index = ArrayUtils.indexOf(getPropertyClasses(p), words[p+1]);
-                    if (index == -1) {
-                        index = Integer.parseInt(words[p+1]);
-                    }
-                    properties[p] = index;
-                }
-            } catch (NumberFormatException exc) {
-                // System.err.println("Warning: Entry #"+i+" has an invalid property.");
-                properties[p] = Double.NaN;
-            }
-        }
-        return properties;
-    }
-
-	
-	/**
-	 * Given the line describing property names in the input file, read in property
-	 * names and possible classes.
-	 * @param line Line describing property names
-	 * @see CompositionDataset
-	 */
-	protected void importPropertyNames(String line) {
-		Pattern totalPattern = Pattern.compile("[\\d\\w]+(\\{.*\\})?"), // Captures entire name/classes 
-				namePattern = Pattern.compile("^[\\d\\w]+"), // Given name/classes, get name
-				classPattern = Pattern.compile("\\{.*\\}"); // Get the possible classes
-		Matcher totalMatcher = totalPattern.matcher(line);
-		totalMatcher.find(); // First match is composition
-		while (totalMatcher.find()) {
-			String total = totalMatcher.group();
-			Matcher tempMatcher = namePattern.matcher(total); tempMatcher.find();
-			String name = tempMatcher.group();
-			if (! total.contains("{")) {
-				addProperty(name);
-			} else {
-				tempMatcher = classPattern.matcher(total); tempMatcher.find();
-				String classList = tempMatcher.group();
-				// Trim off the "{,}"
-				classList = classList.substring(1);
-				classList = classList.substring(0, classList.length()-1);
-				// Get the class names
-				String[] classes = classList.split(",");
-				for (int i=0; i<classes.length; i++) {
-					classes[i] = classes[i].trim();
-				}
-				addProperty(name, classes);
-			}
-		}
-	}
-    
+	    
     /**
      * Set whether to use composition (i.e. fraction of each element present) as attributes.
      * 
@@ -344,7 +331,24 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
      * @param decision Whether to use it or not
      */
     public void useCompositionAsAttributes(boolean decision) {
-        this.UseComposition = decision;
+        boolean found = false;
+        Iterator<BaseAttributeGenerator> iter = Generators.iterator();
+        while (iter.hasNext()) {
+            if (iter.next() instanceof ElementFractionAttributeGenerator) {
+                // Remove it, if user wants to 
+                if (!decision) {
+                    iter.remove();
+                    return;
+                } else {
+                    return;
+                }
+            }
+        }
+        
+        // Add in, if desired
+        if (!found && decision) {
+            Generators.add(0, new ElementFractionAttributeGenerator());
+        } 
     }
 
     /**
@@ -376,6 +380,14 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
             ElementalProperties.add(Name);
         }
     }
+    
+    /**
+     * Get list of elemental properties currently being used to generate attributes.
+     * @return List of elemental properties
+     */
+    public List<String> getElementalProperties() {
+        return new ArrayList<>(ElementalProperties);
+    }
 
     /**
      * Remove an elemental property from the list used when generating
@@ -393,44 +405,9 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
         }
     }
 
-    /**
-     * Calculate attributes for each entry. Currently, this set is equipped to
-     * calculate four kinds of properties:
-     *
-     * <ol>
-     * <li><b>Fraction Only:</b> Only depends on the fraction of elements
-     * present, and not what they are.
-     * <li><b>Elemental Properties:</b> Various statistics based on the supplied
-     * properties of each present element
-     * <li><b>Band structure:</b> Fraction of electrons expected to be in each
-     * orbital (s/p/d/f)
-     * <li><b>Other:</b> Bond ionicity, sum of oxidation states, etc
-     * </ol>
-     * 
-     * <p>Depending on value of {@linkplain #UseComposition}, may also use fractions
-     * of each element as attributes.
-     */
     @Override
     protected void calculateAttributes() {
-        // --> Create attributes based on elemental fractions, if desired
-        if (UseComposition) {
-            generateElementFractionAttributes();
-        }
-
-        // --> Add attributes that are dependant on fraction only (not element type)
-        generateCompositionAttributes();
-
-        // --> Add attributes related to properties
-        generatePropertyBasedAttributes();
-
-        // --> Add attributes related to valance shell occupation
-        generateValenceShellAttributes();
-
-        // --> Calculate the percent ionic character for each entry
-        generateIonicCharacter();
-
-        // --> Add attribute based on whether it can form an ionic compound
-        generateCanFormIonic();
+        // Nothing to do
     }
 
     /**
@@ -448,40 +425,27 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
             return PropertyData.get(PropertyName);
         }
 
-        // If not, load it in
-        // Open the file for reading
-        Path datafile = Paths.get(DataDirectory);
-        BufferedReader is;
-        try {
-            is = Files.newBufferedReader(
-                    datafile.resolve(PropertyName + ".table"), Charset.forName("US-ASCII"));
+        double[] table = LookupData.loadPropertyLookupTable(DataDirectory, PropertyName);
+        PropertyData.put(PropertyName, table);
+        return table;
+    }
 
-            // Read the file
-            double[] output = new double[ElementNames.length];
-            for (int i = 0; i < ElementNames.length; i++) {
-                try {
-                    output[i] = Double.parseDouble(is.readLine());
-                } catch (IOException | NumberFormatException e) {
-                    output[i] = Double.NaN;
-                }
-            }
-            is.close();
-
-            /// Return the data table, and save a copy
-            PropertyData.put(PropertyName, output);
-            return output;
-        } catch (IOException e) {
-            throw new Exception("Property " + PropertyName + " failed to read due to " + e);
-        }
+    /**
+     * Get the list of known oxidation states
+     * @return List of oxidation states
+     */
+    public double[][] getOxidationStates() {
+        if (OxidationStates == null) {
+            readOxidationStates();
+        }   
+        return OxidationStates;
     }
 
     /**
      * Reads in a data file that contains known oxidation states for each
      * element. List should be contained in a file named OxidationStates.table
-     *
-     * @return List of possible oxidation states for each element
      */
-    public double[][] getOxidationStates() {
+    protected void readOxidationStates() {
         // Open the file for reading
         Path datafile = Paths.get(DataDirectory);
         BufferedReader is;
@@ -491,254 +455,24 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
 
             // Read the file
             int i, j; // Counters
-            double[][] output = new double[LookupData.ElementNames.length][];
-            for (i = 0; i < LookupData.ElementNames.length; i++) {
+            OxidationStates = new double[ElementNames.length][];
+            for (i = 0; i < ElementNames.length; i++) {
                 String[] States = is.readLine().split(" ");
                 if (States[0].isEmpty()) {
-                    output[i] = null;
+                    OxidationStates[i] = new double[0];
                 } else {
-                    output[i] = new double[States.length];
-                    for (j = 0; j < output[i].length; j++) {
-                        output[i][j] = Double.parseDouble(States[j]);
+                    OxidationStates[i] = new double[States.length];
+                    for (j = 0; j < OxidationStates[i].length; j++) {
+                        OxidationStates[i][j] = Double.parseDouble(States[j]);
                     }
                 }
             }
             is.close();
-            return output;
         } catch (IOException | NumberFormatException e) {
             throw new Error("Oxidation states failed to read due to " + e);
         }
     }
-
-    /**
-     * Generate attributes that only deal with composition (ignores element
-     * types)
-     */
-    protected void generateCompositionAttributes() {
-        double x;
-
-        // --> Generate the variables only dependant on composition
-        // Number of components
-        AttributeName.add("NComp");
-        for (int i = 0; i < NEntries(); i++) {
-            getEntry(i).addAttribute((double) getEntry(i).getElements().length);
-        }
-        // L2 Norm of composition
-        AttributeName.add("Comp_L2Norm");
-        for (int i = 0; i < NEntries(); i++) {
-            x = StatUtils.sumSq(getEntry(i).getFractions());
-            getEntry(i).addAttribute(Math.sqrt(x));
-        }
-
-        // Some other norms  
-        double[] norms = new double[]{3, 5, 7, 10};
-        for (int i = 0; i < norms.length; i++) {
-            AttributeName.add("Comp_L" + ((int) norms[i]) + "Norm");
-        }
-
-        for (int j = 0; j < NEntries(); j++) {
-            double[] fractions = getEntry(j).getFractions();
-            double[] newAttributes = new double[norms.length];
-            for (int n = 0; n < norms.length; n++) {
-                newAttributes[n] = 0.0;
-                for (int k = 0; k < fractions.length; k++) {
-                    newAttributes[n] += Math.pow(fractions[k], norms[n]);
-                }
-                newAttributes[n] = Math.pow(newAttributes[n], 1.0 / norms[n]);
-            }
-            getEntry(j).addAttributes(newAttributes);
-        }
-    }
-
-    /**
-     * Generate attributes that are simply the fraction of each element present
-     */
-    protected void generateElementFractionAttributes() {
-        for (String ElementName : ElementNames) {
-            AttributeName.add("X_" + ElementName);
-        }
-
-        // Determine the composition for each element
-        double[] composition = new double[ElementNames.length], fractions;
-        int[] elements;
-        for (int i = 0; i < NEntries(); i++) {
-            Arrays.fill(composition, 0);
-            elements = getEntry(i).getElements();
-            fractions = getEntry(i).getFractions();
-            for (int j = 0; j < elements.length; j++) {
-                composition[elements[j]] = fractions[j];
-            }
-            // Copy it into the feature array
-            getEntry(i).addAttributes(composition);
-        }
-    }
-
-    /**
-     * Generate attributes that are based on elemental properties
-     */
-    protected void generatePropertyBasedAttributes() {
-        // Create list of entries with missing elemental properties and properties
-        //   with key missing values
-        // Dev Note: I am not sure what to do with these entries, options: 
-        //   1) Remove them from the dataset, which is a viable option
-        //   2) Remove offending properties, which means different datasets will have different attributes
-        // For now, I am passing the problem onto the user by issuing a warning
-        Set<String> MissingData = new TreeSet<>();
-
-        // Add in property names
-        for (String prop : ElementalProperties) {
-            AttributeName.add("mean_" + prop);
-            AttributeName.add("maxdiff_" + prop);
-            AttributeName.add("dev_" + prop);
-            AttributeName.add("max_" + prop);
-            AttributeName.add("min_" + prop);
-            AttributeName.add("most_" + prop);
-        }
-
-        // Generate attributes for each entry
-        double[] toAdd = new double[ElementalProperties.size() * 6];
-        for (int e = 0; e < NEntries(); e++) {
-            CompositionEntry entry = getEntry(e);
-            int count = 0;
-
-            // Generate data for each property
-            for (String prop : ElementalProperties) {
-                // Get the lookup table for this property
-				double[] lookup;
-				try {
-					lookup = getPropertyLookupTable(prop);
-				} catch (Exception ex) {
-					throw new Error(ex);
-				}
-
-                // Check if any required lookup data is missing;
-                for (int i = 0; i < entry.getElements().length; i++) {
-                    if (Double.isNaN(lookup[entry.Element[i]])) {
-                        MissingData.add(ElementNames[entry.Element[i]] + ":" + prop);
-                    }
-                }
-
-                // Calculate the mean
-                double mean = entry.getMean(lookup);
-                toAdd[count++] = mean;
-
-                // Calculate the maximum diff
-                toAdd[count++] = entry.getMaxDifference(lookup);
-                // Calculate the mean deviation
-                toAdd[count++] = entry.getAverageDeviation(lookup, mean);
-                toAdd[count++] = entry.getMaximum(lookup);
-                toAdd[count++] = entry.getMinimum(lookup);
-                toAdd[count++] = entry.getMost(lookup);
-            }
-
-            // Add attributes to entry
-            entry.addAttributes(toAdd);
-        }
-
-        // Print out warning of which properties have missing (see def of 
-        //    OffendingProperties)
-        if (MissingData.size() > 0) {
-            System.err.println("WARNING: There are " + MissingData.size()
-                    + " missing elmental properties:");
-            int i = 0;
-            Iterator<String> iter = MissingData.iterator();
-            while (iter.hasNext()) {
-                System.err.format("%32s", iter.next());
-                if (i % 2 == 1) {
-                    System.err.println();
-                }
-                i++;
-            }
-            if (i % 2 == 1) {
-                System.err.println();
-            }
-            System.err.println();
-            System.err.flush();
-        }
-    }
-
-    /**
-     * Generate attributes related to valence shell occupation
-     */
-    protected void generateValenceShellAttributes() {
-        // Load in the number of electrons in each shell
-        Character[] shell = new Character[]{'s', 'p', 'd', 'f'};
-        double[][] n_valance = new double[4][];
-		try {
-			for (int i = 0; i < 4; i++) {
-				n_valance[i] = getPropertyLookupTable("N" + shell[i] + "Valence");
-			}
-		} catch (Exception ex) {
-			throw new Error("Failed to import number of valence electrons");
-		}
-
-        // Determine the fraction of electrons in each valence cell
-        for (int i = 0; i < 4; i++) {
-            AttributeName.add("frac_" + shell[i] + "Valence");
-        }
-        for (int i = 0; i < NEntries(); i++) {
-            double[] total_e = new double[4];
-            double sum_e = 0.0;
-            // First, get the average number of electrons in each shell
-            for (int j = 0; j < 4; j++) {
-                total_e[j] = getEntry(i).getMean(n_valance[j]);
-                sum_e += total_e[j];
-            }
-
-            // Convert to fractions
-            for (int j = 0; j < 4; j++) {
-                total_e[j] /= sum_e;
-            }
-
-            // Add to entry
-            getEntry(i).addAttributes(total_e);
-        }
-    }
-
-    /**
-     * Generate the percent ionic character for each entry
-     */
-    protected void generateIonicCharacter() {
-        double x;
-        // --> Calculate the maximum and mean %Ionic character
-		double[] en;
-		try {
-			en = getPropertyLookupTable("Electronegativity");
-		} catch (Exception e) {
-			throw new Error("Failed to import electronegativity");
-		}
-        AttributeName.add("MaxIonicChar");
-        AttributeName.add("MeanIonicChar");
-        for (int i = 0; i < NEntries(); i++) {
-            getEntry(i).addAttribute(1
-                    - Math.exp(-0.25 * Math.pow(getEntry(i).getMaxDifference(en), 2.0)));
-            int[] elem = getEntry(i).getElements();
-            double[] frac = getEntry(i).getFractions();
-            x = 0.0;
-            for (int j = 0; j < elem.length; j++) {
-                for (int k = 0; k < elem.length; k++) {
-                    x += frac[j] * frac[k] * (1 - Math.exp(-0.25
-                            * Math.pow(en[elem[j]] - en[elem[k]], 2.0)));
-                }
-            }
-            getEntry(i).addAttribute(x);
-        }
-    }
-
-    /**
-     * Determine whether each entry can form an ionic compound. Assumes that
-     * each element can only take on a single oxidation state
-     */
-    protected void generateCanFormIonic() {
-        AttributeName.add("CanFormIonic");
-
-        for (BaseEntry ptr : getEntries()) {
-            CompositionEntry entry = (CompositionEntry) ptr;
-            double x = compositionCanFormIonic(entry) ? 1 : 0;
-            entry.addAttribute(x);
-        }
-    }
-
+    
     /**
      * Whether a composition can form a neutral compound assuming each element
      * takes only a single oxidation state.
@@ -746,56 +480,16 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
      * @return Whether it can form an ionic compound
      */
     public boolean compositionCanFormIonic(CompositionEntry entry) {
-        if (OxidationStates == null) {
-			OxidationStates = getOxidationStates();
-			LookupData.OxidationStates = OxidationStates;
-		}
+        OxidationStateGuesser g = new OxidationStateGuesser();
         
-        double x, y;
-        int[] elem = entry.getElements();
-        double[] frac = entry.getFractions();
-        x = 0; // Initially assume that it cannot form
-        // If any of the compounds are noble gasses, it cannot form an ionic compound
-        for (int j = 0; j < elem.length; j++) {
-            if (OxidationStates[elem[j]] == null) {
-                x = -1;
-                break;
-            }
+        try {
+            g.setElectronegativity(getPropertyLookupTable("Electronegativity"));
+            g.setOxidationStates(getOxidationStates());
+        } catch (Exception e) {
+            throw new Error(e);
         }
         
-        // If no allowed oxidation states
-        if (x == -1) {
-            return false;
-        } 
-        
-        // Loop through each possible combination
-        int[] guess = new int[elem.length]; // Initialize a guess
-        boolean was_incremented = true;
-        while (was_incremented) {
-            // Calculate the charge
-            y = 0; // Start the charge out at zero
-            for (int j = 0; j < elem.length; j++) {
-                y += frac[j] * OxidationStates[elem[j]][guess[j]];
-            }
-
-            // If the charge is equal to zero, we have found a valid compound
-            if (Math.abs(y) < 1e-6) {
-                return true;
-            }
-
-            // If not, increment the compound
-            was_incremented = false;
-            for (int j = 0; j < guess.length; j++) {
-                guess[j]++;
-                if (guess[j] == OxidationStates[elem[j]].length) {
-                    guess[j] = 0;
-                } else {
-                    was_incremented = true;
-                    break;
-                }
-            }
-        }
-        return false;
+        return ! g.getPossibleStates(entry).isEmpty();
     }
 
     @Override
@@ -946,7 +640,9 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
         }
     }
 
-    
-
+    @Override
+    public String printEntryDescription(boolean htmlFormat) {
+        return "List of elements and their relative proportions";
+    }
     
 }

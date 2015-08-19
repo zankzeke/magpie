@@ -43,6 +43,14 @@ public class SingleElementGroupSplitter extends BaseDatasetSplitter {
         return "Usage: <Element names...>";
     }
 
+    /**
+     * Define list of elements to define the split.
+     * @param elems List of element symbols
+     */
+    public void setElements(List<String> elems) {
+        this.Elements = elems;
+    }
+
     @Override
     public void train(Dataset TrainingSet) {
         /* Nothing to train */
@@ -86,5 +94,32 @@ public class SingleElementGroupSplitter extends BaseDatasetSplitter {
         }
         return output;
     }
-    
+
+    @Override
+    protected List<String> getSplitterDetails(boolean htmlFormat) {
+        List<String> output = new LinkedList<>();
+        
+        String line = "Elements:";
+        for (String elem : Elements) {
+            line += " "  + elem;
+        }
+        output.add(line);
+        
+        return output;
+    }
+
+    @Override
+    public List<String> getSplitNames() {
+        List<String> output = new LinkedList<>();
+        
+        String line = "Contains";
+        for (String elem : Elements) {
+            line += " "  + elem;
+        }
+        output.add(line);
+        output.add("Otherwise");
+        
+        return output;
+    }
+
 }

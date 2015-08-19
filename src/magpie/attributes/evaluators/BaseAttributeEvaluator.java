@@ -1,5 +1,6 @@
 package magpie.attributes.evaluators;
 
+import java.util.Comparator;
 import magpie.data.Dataset;
 import magpie.optimization.algorithms.OptimizationHelper;
 import magpie.utility.interfaces.Options;
@@ -40,9 +41,10 @@ abstract public class BaseAttributeEvaluator implements Options{
     abstract protected double[] evaluateAttributes_internal(Dataset Data);
     
     /**
+     * Create a comparator that will sort entries from the best to worst
      * @return Whether the predictive power of an attribute increases with increasing parameter 
      */
-    abstract protected boolean positiveIsBetter();
+    abstract protected Comparator<Double> compare();
     
     /**
      * Generate rank of attributes sorted by their predictive power
@@ -51,7 +53,7 @@ abstract public class BaseAttributeEvaluator implements Options{
      */
     public int[] getAttributeRanks(Dataset Data) {
         double[] power = evaluateAttributes(Data);
-        return OptimizationHelper.sortAndGetRanks(power, positiveIsBetter());
+        return OptimizationHelper.sortAndGetRanks(power, compare());
     }
     
     /**
@@ -63,7 +65,7 @@ abstract public class BaseAttributeEvaluator implements Options{
     public String printRankings(Dataset Data, int NumberToPrint) {
         String output = "Rank\t       Attribute_Name     \t  Power\n";
         double[] power = evaluateAttributes(Data);
-        int[] rank = OptimizationHelper.sortAndGetRanks(power, positiveIsBetter());
+        int[] rank = OptimizationHelper.sortAndGetRanks(power, compare());
         for (int i = 0; i < Math.min(NumberToPrint, Data.NAttributes()); i++) {
             output += String.format("#%4d\t%24s\t%7.4f\n", i + 1, Data.getAttributeName(rank[i]), power[i]);
         }

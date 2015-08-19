@@ -2,87 +2,316 @@ package magpie.models.regression;
 
 import java.io.*;
 import java.io.PrintStream;
+import java.net.Socket;
 import java.nio.file.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
+import sun.java2d.loops.GraphicsPrimitive;
 
 /**
  * Uses Scikit-learn to train a regression model. User must provide the path to
  * a pickle file containing a Python object that fulfills two operations:
- * 
+ *
  * <ol>
  * <li><b><code>fit(X, y)</code></b>: Train the model given attribute matrix X,
  * and observation matrix y.
  * <li><b><code>predict(X)</code></b>: Run the model
  * </ol>
- * 
- * <p><b>Note:</b> This implementation requires the ability to write temporary files
- * on whatever system Magpie is running on.
- * 
- * <usage><p><b>Usage</b>: &lt;model&gt;
- * <br><pr><i>model</i>: Path to a file containing a Scikit-Learn regression object
- * <br>See <a href="http://scikit-learn.org/dev/tutorial/basic/tutorial.html#model-persistence">
+ *
+ * <p>
+ * <b>Note:</b> This implementation requires the ability to write temporary
+ * files on whatever system Magpie is running on.
+ *
+ * <usage><p>
+ * <b>Usage</b>: &lt;model&gt; [&lt;compression level&gt;]
+ * <br><pr><i>model</i>: Path to a file containing a Scikit-Learn regression
+ * object
+ * <br><pr><i>compression</i>: Degree to which model is compressed before 
+ * storing in Magpie. 1: fastest, 9: lowest memory footprint (default: 5)
+ * <br>See
+ * <a href="http://scikit-learn.org/dev/tutorial/basic/tutorial.html#model-persistence">
  * this tutorial</a> for how to save Scikit-Learn objects.
  * </usage>
+ *
  * @author Logan Ward
  */
 public class ScikitLearnRegression extends BaseRegression {
-    /** Scikit-learn model. This is just the the pickle file as a byte array */
-    private byte[] ScikitModel;
+    /**
+     * Scikit-learn model. This is just the the pickle file as a char array that
+     * has been split into chunks
+     */
+    private List<byte[]> ScikitModel = new ArrayList<>();
+    /** 
+     * Buffer size when reading in files / from sockets.
+     */
+    private final int BufferSize = 1024 * 1024 * 16;
+    /**
+     * Scikit server process
+     */
+    protected transient Process ScikitServer;
+    /**
+     * Port on which server communicates
+     */
+    private transient int Port;
+    /**
+     * Compression level on ScikitLearn model
+     */
+    private int CompressionLevel = 5;
+
+    @Override
+    protected void finalize() throws Throwable {
+        ScikitServer.destroy();
+        super.finalize();
+    }
 
     @Override
     public ScikitLearnRegression clone() {
         ScikitLearnRegression x = (ScikitLearnRegression) super.clone();
-        x.ScikitModel = ScikitModel.clone();
+        x.ScikitModel = new LinkedList<>(ScikitModel);
+        x.ScikitServer = null;
+        x.Port = Integer.MIN_VALUE;
         return x;
     }
 
     @Override
     public void setOptions(List<Object> Options) throws Exception {
         String path;
+        int level = 5;
         try {
-            if (Options.size() != 1) {
+            if (Options.size() > 2) {
                 throw new Exception();
             }
             path = Options.get(0).toString();
+            if (Options.size() > 1) {
+                level = Integer.parseInt(Options.get(1).toString());
+            }
         } catch (Exception e) {
             throw new Exception(printUsage());
         }
-        readModel(path);
+        readModel(new FileInputStream(path));
+        setCompressionLevel(level);
     }
 
     @Override
     public String printUsage() {
         return "Usage: <path to model.pkl>";
     }
-    
+
     /**
-     * Read model from disk.
-     * @param path Path to a pickle file describing the model
-     * @throws java.io.IOException
+     * Define how well model is compressed after training.
+     * 
+     * <p>This class works by launching a server than runs a scikit-learn model.
+     * After training, this server sends back the model as a pickle file. For
+     * large datasets, this could be a huge file. This option allows one to compress
+     * it before transmission.
+     * 
+     * @param level Desired level. 1: Fastest, 9: Smallest memory footprint
+     * @throws Exception 
+     * @see #ScikitModel
      */
-    public void readModel(String path) throws IOException {
-        ScikitModel = Files.readAllBytes(Paths.get(path));
+    public void setCompressionLevel(int level) throws Exception {
+        if (level < 1 || level > 9) {
+            throw new Exception("Compression level must be 1-9");
+        }
+        this.CompressionLevel = level;
     }
     
+    
+
+    /**
+     * Read model from an input stream
+     *
+     * @param input Input stream providing model data
+     * @throws java.io.IOException
+     */
+    public void readModel(InputStream input) throws Exception {
+        // Clear out old model
+        ScikitModel.clear();
+        
+        // Create the byte reader
+        BufferedInputStream fp = new BufferedInputStream(input);
+        while (true) {
+            byte[] chunk = new byte[BufferSize];
+            int nRead = fp.read(chunk);
+            if (nRead == chunk.length) {
+                ScikitModel.add(chunk);
+            } else if (nRead > 0) {
+                ScikitModel.add(Arrays.copyOf(chunk, nRead));
+            } else {
+                break;
+            }
+        }
+    }
+
     /**
      * Write stored model to disk.
+     *
      * @param path Path to desired output file
      * @throws java.io.IOException
      */
     public void writeModel(String path) throws IOException {
-        Files.write(Paths.get(path), ScikitModel, StandardOpenOption.WRITE);
+        BufferedOutputStream fo = new BufferedOutputStream(new FileOutputStream(path));
+        for (byte[] chunk : ScikitModel) {
+            fo.write(chunk);
+        }
+        fo.close();
     }
-    
+
+    /**
+     * Start the server hosting the Scikit model. This process will initialize
+     * the server and get the communication port number.
+     *
+     * @throws java.lang.Exception
+     */
+    protected void startScikitServer() throws Exception {
+        String script = "import pickle\n"
+                + "from sys import argv\n"
+                + "import socket\n"
+                + "import array\n"
+                + "import bz2\n"
+                + "import binascii\n"
+                + "from sys import stdout\n"
+                + "\n" 
+                + "startPort = 5482; # First port to check\n"
+                + "endPort = 5582; # Last port to check\n"
+                + "fp = open(argv[1], 'r')\n"
+                + "model_string = fp.read()\n"
+                + "fp.close()\n"
+                + "try:\n"
+                + " model = pickle.loads(model_string)\n"
+                + "except:\n"
+                + " model_data = bz2.decompress(model_string)\n"
+                + " model = pickle.loads(model_data)\n"
+                + " model_data = None\n"
+                + "model_string = None\n"
+                + "\n"
+                + "port = startPort;\n"
+                + "ss = socket.socket(socket.AF_INET, socket.SOCK_STREAM)\n"
+                + "while port <= endPort:\n"
+                + "	try:\n"
+                + "		ss.bind(('localhost', port))\n"
+                + "	except:\n"
+                + "		port = port + 1\n"
+                + "		continue\n"
+                + "	break\n"
+                + "ss.listen(0) # Only allow one connection\n"
+                + "print \"Listening on port\", port\n"
+                + "stdout.flush();\n"
+                + "\n"
+                + "def trainModel(fi, fo):\n"
+                + "	nRows = int(fi.readline())\n"
+                + "	X = []\n"
+                + "	y = []\n"
+                + "	for i in range(nRows):\n"
+                + "		line = fi.readline()\n"
+                + "		x = array.array('d')\n"
+                + "		temp = [ float(w) for w in line.split() ]\n"
+                + "		x.fromlist(temp[1:])\n"
+                + "		X.append(x)\n"
+                + "		y.append(temp[0])\n"
+                + "	model.fit(X,y)\n"
+                + "	\n"
+                + "\tmc = bz2.compress(pickle.dumps(model), " + CompressionLevel + ")\n"
+                + "\tprint >>fi, mc\n"
+                + "\tmc = None\n"
+                + "\n"
+                + "def runModel(fi, fo):\n"
+                + "	\n"
+                + "	# Recieve\n"
+                + "	nRows = int(fi.readline())\n"
+                + "	X = []\n"
+                + "	y = []\n"
+                + "	for i in range(nRows):\n"
+                + "		line = fi.readline()\n"
+                + "		x = array.array('d')\n"
+                + "		temp = [ float(w) for w in line.split() ]\n"
+                + "		x.fromlist(temp)\n"
+                + "		X.append(x)\n"
+                + "	\n"
+                + "	# Compute\n"
+                + "	y = model.predict(X)\n"
+                + "	\n"
+                + "	# Send back\n"
+                + "	for yi in y:\n"
+                + "		print >>fo, yi\n"
+                + "\n"
+                + "while 1:\n"
+                + " (client, address) = ss.accept()\n"
+                + " \n"
+                + " fi = client.makefile('r')\n"
+                + " fo = client.makefile('w')\n"
+                + " command = fi.readline()\n"
+                + " if \"train\" in command:\n"
+                + "     trainModel(fi, fo)\n"
+                + " elif \"run\" in command:\n"
+                + "     runModel(fi, fo)\n"
+                + " elif \"type\" in command:\n" 
+                + "     print >>fo, model\n"
+                + " fi.close()\n"
+                + " fo.close()\n"
+                + "		\n"
+                + "	# Close the client\n"
+                + " client.close()";
+        
+        // Write out the script file
+        File scriptFile = File.createTempFile("scikit", "py");
+        scriptFile.deleteOnExit();
+        PrintWriter fp = new PrintWriter(scriptFile);
+        fp.println(script);
+        fp.close();
+        
+        // Write out the model
+        File modelFile = File.createTempFile("scikit", "pkl");
+        modelFile.deleteOnExit();
+        writeModel(modelFile.getCanonicalPath());
+        
+        // Start the process
+        ScikitServer = new ProcessBuilder("python", 
+                scriptFile.getCanonicalPath(), 
+                modelFile.getCanonicalPath()).start();
+        
+        // Get the port number
+        BufferedReader fo = new BufferedReader(
+                new InputStreamReader(ScikitServer.getInputStream()));
+        String[] words = fo.readLine().split(" ");
+        Port = Integer.parseInt(words[3]);
+        
+        // Check if file is running
+        if (! serverIsRunning()) {
+            BufferedReader fe = new BufferedReader(
+                    new InputStreamReader(ScikitServer.getErrorStream()));
+            String line = fe.readLine();
+            while (line != null) {
+                System.err.println(line);
+                line = fe.readLine();
+            }
+            throw new Exception("Server failed to start");
+        }
+        
+        // Make sure the process is killed
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            @Override
+            public void run() {
+                ScikitServer.destroy();
+            }
+        }));
+    }
+
     /**
      * Check if the python process is still running
-     * @param py Python process
+     *
      * @return Whether it is still running
      */
-    private boolean processIsRunning(Process py) {
+    private boolean serverIsRunning() {
+        if (ScikitServer == null) {
+            return false;
+        }
         try {
-            py.exitValue();
+            ScikitServer.exitValue();
             return false;
         } catch (Exception e) {
             return true;
@@ -91,194 +320,101 @@ public class ScikitLearnRegression extends BaseRegression {
 
     @Override
     protected void train_protected(Dataset TrainData) {
-        // Create a temporary file to which to output the model
-        File modelIn, modelOut;
-        String modelInPath, modelOutPath;
+        PrintWriter fo = null;
+        Socket socket = null;
+        
         try {
-            modelIn = File.createTempFile(Long.toHexString(System.currentTimeMillis()), null);
-            modelOut = File.createTempFile(Long.toHexString(System.currentTimeMillis()+1), null);
-            modelInPath = modelIn.getCanonicalPath();
-            modelOutPath = modelOut.getCanonicalPath();
-            writeModel(modelIn.getCanonicalPath());
-            modelIn.deleteOnExit();
-            modelOut.deleteOnExit();
-        } catch (Exception e) {
-            throw new Error(e);
-        }
-        
-        // Create the program to run the scikit learn model
-        String runID = Double.toHexString(Math.random());
-        PrintStream scriptWriter;
-        File scriptFile;
-        try {
-            scriptFile = File.createTempFile("script" + runID, null);
-            scriptFile.deleteOnExit();
-            scriptWriter = new PrintStream(scriptFile);
-        } catch (Exception e) {
-            throw new Error(e);
-        }
-        
-        //  Load in the model
-        scriptWriter.println("from sklearn.externals import joblib");
-        scriptWriter.format("model = joblib.load(r\"%s\")\n", modelInPath);
-        
-        // Read in the data
-        scriptWriter.println("import sys");
-        scriptWriter.println("X = []");
-        scriptWriter.println("y = []");
-        scriptWriter.println("for line in sys.stdin:");
-        scriptWriter.println(" row = [ float(n) for n in line.split() ]");
-        scriptWriter.println(" X.append(row[1:])");
-        scriptWriter.println(" y.append(row[0])");
-        
-        // Fit the model and save it to disc
-        scriptWriter.println("model.fit(X,y)");
-        scriptWriter.format("joblib.dump(model, r\"%s\")\n", modelOutPath);
-        scriptWriter.println("print \"Done\"");
-        scriptWriter.close();
-        
-        // Launch the Python code
-        Process python;
-        PrintStream pythonInput; // Use to write to Python program
-        BufferedReader pythonError; // Use to read Python error output
-        try {
-            // Launch a python thread 
-            ProcessBuilder pb = new ProcessBuilder("python", scriptFile.getCanonicalPath());
-            python = pb.start();
-            if (! processIsRunning(python)) {
-                throw new Exception("System doesn't have python installed");
+            if (! serverIsRunning()) {
+                startScikitServer();
             }
-            pythonInput = new PrintStream(new BufferedOutputStream(python.getOutputStream()));
-            pythonError = new BufferedReader(new InputStreamReader(python.getErrorStream()));
-        } catch (Exception e) {
-            throw new Error(e);
-        }
-        
-        // Write the data to Python script's stdin
-        for (BaseEntry entry : TrainData.getEntries()) {
-            pythonInput.print(Double.toString(entry.getMeasuredClass()));
-            for (double a : entry.getAttributes()) {
-                pythonInput.print(" " + Double.toString(a));
-            }
-            pythonInput.println();
-        }
-        
-        // Close the input, signalling no more data will be sent
-        pythonInput.close();
-        
-        // Read the model back in
-        try {
-            // Wait until Process closes
-            python.waitFor();
-            readModel(modelOutPath);
-            if (ScikitModel.length == 0) {
-                throw new Exception();
-            }
-        } catch (Exception e) {
-            System.err.println("Error from scikit-learn script:");
-            try {
-                String line = pythonError.readLine();
-                while (line != null) {
-                    System.err.println("\t" + line);
-                    line = pythonError.readLine();
+            
+            // Connect to server
+            socket = new Socket("localhost", Port);
+            
+            // Write to the socket that we want to train
+            fo = new PrintWriter(socket.getOutputStream());
+            fo.println("train");
+            
+            // Write out the data
+            fo.println(TrainData.NEntries());
+            for (BaseEntry e : TrainData.getEntries()) {
+                fo.print(e.getMeasuredClass());
+                for (int a=0; a<TrainData.NAttributes(); a++) {
+                    fo.print(" ");
+                    fo.print(e.getAttribute(a));
                 }
-            } catch (IOException e2) {
-                throw new Error(e2);
+                fo.println();
             }
-            throw new Error(e);
-        }
+            fo.flush();
+            
+            // Recieve the model
+            readModel(socket.getInputStream());
+            
+            socket.close();
+        } catch (Exception ex) {
+            // Read python error out
+            try {
+                BufferedReader er = new BufferedReader(
+                        new InputStreamReader(ScikitServer.getErrorStream()));
+                String line = er.readLine();
+                while (line != null) {
+                    System.err.println(line);
+                    line = er.readLine();
+                }
+            } catch (Exception e) {
+                // Do nothing
+            }
+            throw new Error(ex);
+        } 
     }
 
     @Override
     public void run_protected(Dataset TrainData) {
-        // Create a temporary file to which to output the model
-        File modelFile;
-        String modelFilePath;
+        PrintWriter fo = null;
+        Socket socket = null;
+        
         try {
-            modelFile = File.createTempFile(Long.toHexString(System.currentTimeMillis()), null);
-            modelFilePath = modelFile.getCanonicalPath();
-            modelFile.deleteOnExit();
-            writeModel(modelFile.getCanonicalPath());
-        } catch (Exception e) {
-            throw new Error(e);
-        }
-        
-        // Create the program to run the scikit learn model
-        String runID = Double.toHexString(Math.random());
-        PrintStream scriptWriter;
-        File scriptFile;
-        try {
-            scriptFile = File.createTempFile("script" + runID, null);
-            scriptFile.deleteOnExit();
-            scriptWriter = new PrintStream(scriptFile);
-        } catch (Exception e) {
-            throw new Error(e);
-        }
-        
-        //  Load in the model
-        scriptWriter.println("from sklearn.externals import joblib");
-        scriptWriter.format("model = joblib.load(r\"%s\")\n", modelFilePath);
-        
-        // Read in the data
-        scriptWriter.println("import sys");
-        scriptWriter.println("X = []");
-        scriptWriter.println("for line in sys.stdin:");
-        scriptWriter.println(" row = [ float(n) for n in line.split() ]");
-        scriptWriter.println(" X.append(row)");
-        
-        // Run the model, print out results
-        scriptWriter.println("y = model.predict(X)");
-        scriptWriter.println("for val in y: print val"); 
-        
-        // Launch the Python code
-        Process python;
-        PrintStream pythonInput; // Use to write to Python program
-        BufferedReader pythonOutput; // Use to read Python output
-        BufferedReader pythonError; // Use to read Python error output
-        try {
-            // Launch a python thread 
-            ProcessBuilder pb = new ProcessBuilder("python", scriptFile.getCanonicalPath());
-            python = pb.start();
-            if (! processIsRunning(python)) {
-                throw new Exception("System doesn't have python installed");
+            if (! serverIsRunning()) {
+                startScikitServer();
             }
-            pythonInput = new PrintStream(new BufferedOutputStream(python.getOutputStream()));
-            pythonOutput = new BufferedReader(new InputStreamReader(python.getInputStream()));
-            pythonError = new BufferedReader(new InputStreamReader(python.getErrorStream()));
-        } catch (Exception e) {
-            throw new Error(e);
-        }
-        
-        // Write the data to Python script's stdin
-        for (BaseEntry entry : TrainData.getEntries()) {
-            for (double a : entry.getAttributes()) {
-                pythonInput.print(" " + Double.toString(a));
-            }
-            pythonInput.println();
-        }
-        
-        // Close the input, signalling no more data will be sent
-        pythonInput.close();
-        
-        // Read the results
-        for (int i=0; i<TrainData.NEntries(); i++) {
-            try {
-                String res = pythonOutput.readLine();
-                double y = Double.parseDouble(res);
-                TrainData.getEntry(i).setPredictedClass(y);
-            } catch (Exception e) {
-                System.err.println("Error from scikit-learn script:");
-                try {
-                    String line = pythonError.readLine();
-                    while (line != null) {
-                        System.err.println("\t" + line);
-                        line = pythonError.readLine();
-                    }
-                } catch (IOException e2) {
-                    throw new Error(e2);
+            
+            // Connect to server
+            socket = new Socket("localhost", Port);
+            
+            // Write to the socket that we want to run
+            fo = new PrintWriter(socket.getOutputStream());
+            fo.println("run");
+            
+            // Write out the data
+            fo.println(TrainData.NEntries());
+            for (BaseEntry e : TrainData.getEntries()) {
+                for (int a=0; a<TrainData.NAttributes(); a++) {
+                    fo.print(" ");
+                    fo.print(e.getAttribute(a));
                 }
-                throw new Error(e);
+                fo.println();
             }
+            fo.flush();
+            
+            // Recieve the results
+            BufferedReader fi = new BufferedReader(
+                    new InputStreamReader(socket.getInputStream()));
+            for (BaseEntry e : TrainData.getEntries()) {
+                double x;
+                try {
+                    x = Double.parseDouble(fi.readLine());
+                    e.setPredictedClass(x);
+                } catch (NumberFormatException ex) {
+                    // Skip
+                }
+            }
+            
+            // Done!
+            socket.close();
+        } catch (Exception ex) {
+            throw new Error(ex);
+        } finally {
+            fo.close();
         }
     }
 
@@ -289,6 +425,46 @@ public class ScikitLearnRegression extends BaseRegression {
 
     @Override
     protected String printModel_protected() {
-        return String.format("%.3f MB Scikit learn model", (double) ScikitModel.length / 1e6);
+        return String.format("Scikit learn model");
+    }
+
+    @Override
+    public List<String> printModelDescriptionDetails(boolean htmlFormat) {
+        if (! serverIsRunning()) {
+            try {
+                startScikitServer();
+            } catch (Exception e) {
+                throw new Error(e);
+            }
+        }
+        
+        // Get the output
+        List<String> output = super.printModelDescriptionDetails(htmlFormat);
+        
+        // Open up socket to server
+        try {
+            Socket socket = new Socket("localhost", Port);
+            
+            // Indicate that we want type info
+            PrintWriter fo = new PrintWriter(socket.getOutputStream());
+            fo.println("type");
+            fo.flush();
+            
+            // Get the model info
+            BufferedReader fi = new BufferedReader(
+                    new InputStreamReader(socket.getInputStream()));
+            String line = fi.readLine();
+            while (line != null) {
+                output.add(line);
+                line = fi.readLine();
+            }
+            
+            // Close the socket
+            socket.close();
+        } catch (Exception e) {
+            throw new Error(e);
+        }
+        
+        return output;
     }
 }
