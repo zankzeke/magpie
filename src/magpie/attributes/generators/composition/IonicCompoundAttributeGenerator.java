@@ -1,9 +1,7 @@
 package magpie.attributes.generators.composition;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import magpie.attributes.generators.BaseAttributeGenerator;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
@@ -37,12 +35,14 @@ public class IonicCompoundAttributeGenerator extends BaseAttributeGenerator {
     
     @Override
     public void setOptions(List<Object> Options) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (! Options.isEmpty()) {
+            throw new Exception(printUsage());
+        }
     }
 
     @Override
     public String printUsage() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return "No options";
     }
 
     @Override
@@ -94,10 +94,15 @@ public class IonicCompoundAttributeGenerator extends BaseAttributeGenerator {
             }
         }
         
+        // Create storage for missing ionization energies
+        Map<Integer, Set<Integer>> missingIonizationData = new HashMap<>();
+        
         // Compute the attributes for each entry
         double[] attrs = new double[newNames.size()];
         for (BaseEntry ptr : data.getEntries()) {
             CompositionEntry entry = (CompositionEntry) ptr;
+            double[] fracs = entry.getFractions();
+            int[] elems = entry.getElements();
             
             // Compute charge states
             List<int[]> possibleStates = ChargeGuesser.getPossibleStates(entry);
@@ -109,15 +114,34 @@ public class IonicCompoundAttributeGenerator extends BaseAttributeGenerator {
                 continue;
             }
             
-            // Convert charge states to double array
+            // Check that we have data for all ionization energies
             int[] chargesInt = possibleStates.get(0); 
+            boolean anyMissing = false;
+            for (int i=0; i<elems.length; i++) {
+                if (IonizationEnergies[elems[i]].length < chargesInt[i]) {
+                    if (missingIonizationData.containsKey(elems[i])) {
+                        missingIonizationData.get(elems[i]).add(chargesInt[i]);
+                    } else {
+                        Set<Integer> temp = new TreeSet<>();
+                        temp.add(chargesInt[i]);
+                        missingIonizationData.put(elems[i], temp);
+                    }
+                    anyMissing = true;
+                    break;
+                }
+            }
+            if (anyMissing) {
+                Arrays.fill(attrs, Double.NaN);
+                ptr.addAttributes(attrs);
+                continue;
+            }
+            
+            // Convert charge states to double array
             double[] charges = new double[chargesInt.length];
             for (int i=0; i<charges.length; i++) {
                 charges[i] = (double) chargesInt[i];
             }
             
-            double[] fracs = entry.getFractions();
-            int[] elems = entry.getElements();
             // Compute attributes relating to charge states
             int pos = 0;
             attrs[pos++] = StatUtils.min(charges);
@@ -162,6 +186,20 @@ public class IonicCompoundAttributeGenerator extends BaseAttributeGenerator {
             // Add attributes to entry
             entry.addAttributes(attrs);
         }
+        
+        // Print out summary of missing data
+        if (! missingIonizationData.isEmpty()) {
+            System.err.println("WARNING: Missing ionization energy data for");
+            for (Map.Entry<Integer, Set<Integer>> element : 
+                    missingIonizationData.entrySet()) {
+                String elem = LookupData.ElementNames[element.getKey()];
+                System.err.print("\t" + elem + ":");
+                for (int state : element.getValue()) {
+                    System.err.print(" +" + state);
+                }
+                System.err.println();
+            }
+        }
     }
 
     @Override
@@ -172,7 +210,7 @@ public class IonicCompoundAttributeGenerator extends BaseAttributeGenerator {
         output += "(8) Minimum, maximum, range, mean, and mean absolute deviation "
                 + "in oxidation state. Electronegativity difference between anions "
                 + "and cations. Cumulative ionization energies for cations and "
-                + " electron affinitity times charge state for anions.";
+                + "electron affinitity times charge state for anions.";
         
         return output;
     }
