@@ -1,6 +1,5 @@
 package magpie.attributes.generators.composition;
 
-import magpie.attributes.generators.composition.IonicCompoundAttributeGenerator;
 import magpie.data.materials.CompositionDataset;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -25,11 +24,14 @@ public class IonicCompoundAttributeGeneratorTest {
         assertEquals(data.getAttributeName(0), -1, attr[0], 1e-6);
         assertEquals(data.getAttributeName(1), 1, attr[1], 1e-6);
         assertEquals(data.getAttributeName(2), 2, attr[2], 1e-6);
-        assertEquals(data.getAttributeName(3), 0, attr[3], 1e-6);
+        assertEquals(data.getAttributeName(3), 1.0, attr[3], 1e-6);
         assertEquals(data.getAttributeName(4), 1, attr[4], 1e-6);
         assertEquals(data.getAttributeName(5), 5.139076, attr[5], 1e-6);
         assertEquals(data.getAttributeName(6), 349, attr[6], 1e-6);
         assertEquals(data.getAttributeName(7), 3.16-0.93, attr[7], 1e-6);
+        
+        // Print description
+        System.out.println(gen.printDescription(true));
     }
     
 }
