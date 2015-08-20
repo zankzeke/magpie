@@ -26,13 +26,14 @@ import org.apache.commons.math3.stat.StatUtils;
  * <li>Cumulative ionization energies / electron affinities
  * <li>Difference in electronegativity between cation and anion.
  * </ol>
+ * 
  * @author Logan Ward
  */
 public class IonicCompoundAttributeGenerator extends BaseAttributeGenerator {
     /** Tool used to compute electronegativity */
     protected OxidationStateGuesser ChargeGuesser = null;
     /** Ionization energies of each element */
-    protected double[][] IonizationEnergies = LookupData.IonizationEnergies;
+    protected double[][] IonizationEnergies;
     
     @Override
     public void setOptions(List<Object> Options) throws Exception {
@@ -124,7 +125,7 @@ public class IonicCompoundAttributeGenerator extends BaseAttributeGenerator {
             attrs[pos] = attrs[pos-1] - attrs[pos-2];
             attrs[++pos] = 0;
             for (int i=0; i<fracs.length; i++) {
-                attrs[pos] += fracs[i] * charges[i];
+                attrs[pos] += fracs[i] * Math.abs(charges[i]);
             }
             attrs[++pos] = 0;
             for (int i=0; i<fracs.length; i++) {
@@ -162,56 +163,18 @@ public class IonicCompoundAttributeGenerator extends BaseAttributeGenerator {
             entry.addAttributes(attrs);
         }
     }
-    
-    /**
-     * Compute formal charges of each element in a compound.
-     * @param data Dataset storing oxidation state information
-     * @param entry Composition to be evaluated
-     * @return List of formal charges (same order as entry.getElements()). Null
-     * if a charge-balanced ionic compound can't be formed.
-     * @deprecated Never finished it actually. Decided to use {@linkplain OxidationStateGuesser}
-     */
-    static public int[] getFormalCharges(CompositionDataset data, CompositionEntry entry) {
-        // Get list of elements and compositions
-        int[] elems = entry.getElements();
-        double[] fracs = entry.getFractions();
+
+    @Override
+    public String printDescription(boolean htmlFormat) {
+        String output = getClass().getName() + (htmlFormat ? " " : ": ");
         
-        // Trivial case: Elemental compounds
-        if (elems.length == 1) {
-            return null;
-        }
+        // Add in description
+        output += "(8) Minimum, maximum, range, mean, and mean absolute deviation "
+                + "in oxidation state. Electronegativity difference between anions "
+                + "and cations. Cumulative ionization energies for cations and "
+                + " electron affinitity times charge state for anions.";
         
-        // Get the charge states
-        double[][] allKnownStates = data.getOxidationStates();
-        double[][] possibleStates = new double[elems.length][];
-        int nMultiOx = 0;
-        for (int e=0; e<elems.length; e++) {
-            possibleStates[e] = allKnownStates[elems[e]];
-            if (possibleStates[e].length == 0) {
-                return null; // Nobel gass
-            } else if (possibleStates[e].length > 1) {
-                nMultiOx++;
-            }
-        }
-        
-        int[] states = new int[elems.length];
-        // Case #1: All elements only have one charge state
-        if (nMultiOx == 0) {
-            double charge=0;
-            // Assign the charge state to each 
-            for (int e=0; e<elems.length; e++) {
-                states[e] = (int) Math.round(possibleStates[e][0]);
-                charge += states[e] * fracs[e];
-            }
-            
-            // Check if it is charge balance
-            return Math.abs(charge) < 1e-6 ? states : null;
-        } else if (nMultiOx > 2) {
-            return null;
-        }
-        
-        // 
-        return null;
+        return output;
     }
     
 }
