@@ -44,7 +44,8 @@ import magpie.utility.interfaces.Options;
  * 
  * @author Logan Ward
  */
-public class OxidationStateGuesser implements Commandable, Options {
+public class OxidationStateGuesser implements Commandable, Options,
+        java.io.Serializable {
     /** Allowed oxidation states for each element */
     private int[][] OxidationStates;
     /** Electronegativity for each element */
