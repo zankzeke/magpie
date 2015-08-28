@@ -1,6 +1,7 @@
 package magpie.utility;
 
 import expr.*;
+import java.io.Serializable;
 import java.util.*;
 import java.util.regex.*;
 import org.apache.commons.math3.analysis.MultivariateFunction;
@@ -17,7 +18,7 @@ import org.apache.commons.math3.exception.DimensionMismatchException;
  * @author Logan Ward
  * @see expr.Parser
  */
-public class ParsedFunction implements MultivariateFunction {
+public class ParsedFunction implements MultivariateFunction, Serializable {
     /**
      * Variables of this function
      */
