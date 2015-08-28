@@ -189,7 +189,8 @@ public class CommandHandler {
                 } catch (InvalidClassException i) {
                     throw new Exception("File contains out-of-date class: " + i.classname);
                 } catch (IOException i) {
-                    throw new Exception("Failed to load object at: " + Filename);
+                    throw new Exception("Failed to load object at: " + Filename
+                            + "\nReason: " + i.getMessage());
                 } catch (ClassNotFoundException e) {
                     throw new Exception("Class definition not found. Check libaries. Error text: " + e.getLocalizedMessage());
                 }
