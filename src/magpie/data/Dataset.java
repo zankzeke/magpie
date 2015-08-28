@@ -127,7 +127,7 @@ import weka.core.converters.ArffLoader;
  * <b>attributes</b> - Print all attributes</command>
  *
  * <command><p>
- * <b>attributes expander add &lt;method> [&lt;options...>]</b> - Add an
+ * <b>attributes expanders add &lt;method> [&lt;options...>]</b> - Add an
  * attribute expander to be run after generating attributes
  * <br><pr><i>method</i>: How to expand attributes. Name of a
  * {@linkplain BaseAttributeExpander} ("?" to print available methods)
@@ -136,11 +136,11 @@ import weka.core.converters.ArffLoader;
  * ones.</command>
  *
  * <command><p>
- * <b>attributes expander clear</b> - Clear the current list of attribute
+ * <b>attributes expanders clear</b> - Clear the current list of attribute
  * expanders</command>
  *
  * <command><p>
- * <b>attributes expander run</b> - Run the currently-defined list of attribute
+ * <b>attributes expanders run</b> - Run the currently-defined list of attribute
  * expanders</command>
  *
  * <command><p>
