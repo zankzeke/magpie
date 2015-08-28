@@ -49,6 +49,12 @@ public class FunctionExpanderTest {
         int initialCount = data.NAttributes();
         expdr.expand(data);
         assertTrue(initialCount * 2 < data.NAttributes());
+        
+        // Test out the names
+        assertTrue(ArrayUtils.contains(data.getAttributeNames(), 
+                data.getAttributeName(0) + "^2"));
+        assertTrue(ArrayUtils.contains(data.getAttributeNames(), "(" + 
+                data.getAttributeName(0) + " + " + data.getAttributeName(1) + ")^2"));
     }
     
     @Test

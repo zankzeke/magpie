@@ -79,7 +79,7 @@ public class FunctionExpander extends BaseAttributeExpander {
                 // Get the new attribute name for this combination
                 String newName = inputString;
                 for (int i=0; i<variableNames.size(); i++) {
-                    newName = inputString.replace("#{" + variableNames.get(i) + "}",
+                    newName = newName.replace("#{" + variableNames.get(i) + "}",
                             oldNames[comb[i]]);
                 }
                 newNames.add(newName);
