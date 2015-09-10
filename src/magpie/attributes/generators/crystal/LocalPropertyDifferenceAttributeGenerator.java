@@ -1,8 +1,6 @@
 package magpie.attributes.generators.crystal;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import magpie.attributes.generators.BaseAttributeGenerator;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
@@ -12,6 +10,7 @@ import magpie.data.materials.util.LookupData;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.stat.StatUtils;
 import vassal.analysis.VoronoiCellBasedAnalysis;
+import vassal.analysis.voronoi.VoronoiFace;
 
 /**
  * Compute attributes based on the difference in elemental properties between
@@ -33,6 +32,12 @@ import vassal.analysis.VoronoiCellBasedAnalysis;
 public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGenerator {
     /** Elemental properties used to generate attributes */
     private List<String> ElementalProperties = null;
+    /** Shells to consider. */
+    private Set<Integer> Shells = new TreeSet<>();
+
+    public LocalPropertyDifferenceAttributeGenerator() {
+        Shells.add(1);
+    }
     
     @Override
     public void setOptions(List<Object> Options) throws Exception {
@@ -57,11 +62,13 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
         // Create attribute names
         ElementalProperties = dPtr.getElementalProperties();
         List<String> newAttr = new ArrayList<>();
-        for (String prop : ElementalProperties) {
-            newAttr.add("mean_NeighDiff_" + prop);
-            newAttr.add("var_NeighDiff_" + prop);
-            newAttr.add("min_NeighDiff_" + prop);
-            newAttr.add("max_NeighDiff_" + prop);
+        for (Integer shell : Shells) {
+            for (String prop : ElementalProperties) {
+                newAttr.add("mean_NeighDiff_shell" + shell + "_" + prop);
+                newAttr.add("var_NeighDiff_shell" + shell + "_" + prop);
+                newAttr.add("min_NeighDiff_shell" + shell + "_" + prop);
+                newAttr.add("max_NeighDiff_shell" + shell + "_" + prop);
+            }
         }
         data.addAttributes(newAttr);
         
@@ -90,6 +97,10 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
             }
             double[] propValues = new double[elemIndex.length];
             
+            // Loop through each shell
+            for (Integer shell : Shells) {
+            }
+            
             // Loop through each elemental property
             for (String prop : ElementalProperties) {
                 // Get properties for elements in this structure
@@ -110,6 +121,8 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
                 } catch (Exception e) {
                     throw new Error(e);
                 }
+                
+                // Compute statistics
                 temp[pos++] = StatUtils.mean(neighDiff);
                 double[] meanDeviation = neighDiff.clone();
                 for (int i=0; i<meanDeviation.length; i++) {
