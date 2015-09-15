@@ -24,7 +24,7 @@ public class FunctionExpanderTest {
         
         // Create attributes that are the square of every attribute
         FunctionExpander expdr = new FunctionExpander();
-        expdr.addNewFunction("${x}^2");
+        expdr.addNewFunction("#{x}^2");
         
         // Test expansion
         int initialCount = data.NAttributes();
@@ -42,13 +42,19 @@ public class FunctionExpanderTest {
         
         // Create attributes that are the square of every attribute
         FunctionExpander expdr = new FunctionExpander();
-        expdr.addNewFunction("${x}^2");
-        expdr.addNewFunction("(${x} + ${y})^2");
+        expdr.addNewFunction("#{x}^2");
+        expdr.addNewFunction("(#{x} + #{y})^2");
         
         // Test expansion
         int initialCount = data.NAttributes();
         expdr.expand(data);
         assertTrue(initialCount * 2 < data.NAttributes());
+        
+        // Test out the names
+        assertTrue(ArrayUtils.contains(data.getAttributeNames(), 
+                data.getAttributeName(0) + "^2"));
+        assertTrue(ArrayUtils.contains(data.getAttributeNames(), "(" + 
+                data.getAttributeName(0) + " + " + data.getAttributeName(1) + ")^2"));
     }
     
     @Test
@@ -56,7 +62,7 @@ public class FunctionExpanderTest {
         // Create attributes that are the square of every attribute
         FunctionExpander expdr = new FunctionExpander();
         List<Object> options = new LinkedList<>();
-        options.add("${x} + ${y}");
+        options.add("#{x} + #{y}");
         expdr.setOptions(options);
     }
     

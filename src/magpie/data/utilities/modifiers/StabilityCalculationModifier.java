@@ -15,7 +15,7 @@ import org.apache.commons.lang3.tuple.Pair;
  * <usage><p><b>Usage</b>: $&lt;data&gt; &lt;energy name&gt; &lt;stability name&gt;
  * <br><pr><i>data</i>: {@linkplain CompositionDataset} containing energies of known compounds as the measured class variable
  * <br><pr><i>energy name</i>: Name of property storing energies of new compounds
- * <br><pr><i>stability name</i>: Name of property in which to store computed stablities</usage>
+ * <br><pr><i>stability name</i>: Name of property in which to store computed stabilities</usage>
  * 
  * @author Logan Ward
  */
