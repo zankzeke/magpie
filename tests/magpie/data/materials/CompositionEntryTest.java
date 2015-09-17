@@ -84,4 +84,13 @@ public class CompositionEntryTest {
 
     }
     
+    @Test 
+    public void testSetComposition() throws Exception {
+        int[] elem = new int[]{0,1};
+        double[] frac = new double[]{1,0};
+        CompositionEntry entry = new CompositionEntry(elem, frac);
+        assertEquals(1, entry.Element.length);
+        assertEquals(1, entry.getElementFraction("H"), 1e-6);
+    }
+    
 }

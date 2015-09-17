@@ -50,8 +50,12 @@ public class GCLPCalculator implements java.io.Serializable {
         frac[0] = 1.0;
         for (int i=0; i<LookupData.ElementNames.length; i++) {
             elem[0] = i;
-            CompositionEntry entry = new CompositionEntry(elem, frac);
-            Phases.put(entry, 0.0);
+            try {
+                CompositionEntry entry = new CompositionEntry(elem, frac);
+                Phases.put(entry, 0.0);
+            } catch (Exception e) {
+                throw new Error(e);
+            }
         }
     }
     

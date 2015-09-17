@@ -41,9 +41,11 @@ import magpie.utility.interfaces.*;
  * <command><p><b>train $&lt;dataset&gt;</b> - Train model using measured class values 
  * <br><pr><i>dataset</i>: Dataset used to train this model</command>
  * 
- * <command><p><b>crossvalidate $&lt;dataset> [&lt;folds>]</b> - Crossvalidate model
+ * <command><p><b>output = crossvalidate $&lt;dataset> [&lt;folds>]</b> - 
+ * Use k-fold cross-validation to assess model performance.
  * <br><pr><i>dataset</i>: Dataset to use for cross validation
  * <br><pr><i>folds</i>: Number of crossvalidation folds (default = 10)
+ * <br><pr><i>output</i>: Dataset, result of used to compute performance staistics
  * <br>Splits <i>dataset</i> into <i>folds</i> parts. Trains model on <i>folds</i> - 1 parts, validates against remaining part.
  * Repeats using each part as the validation set.</command>
  * 
@@ -145,31 +147,36 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         this.AttributeSelector = AttributeSelector;
     }
     
-    /** Perform an n-fold cross validation
+    /** 
+     * Perform n-fold cross validation
      * @param folds Number of folds in CV test
      * @param cvData Data to use for CV
+     * @return Clone of input dataset. Class variable is the predicted 
+     * value of the model used when computing CV statistics
      */
-    public void crossValidate(int folds, Dataset cvData) {
+    public Dataset crossValidate(int folds, Dataset cvData) {
         // Split into several parts
-        Dataset InternalTest = cvData.clone();
-        Dataset[] TestFolds = InternalTest.splitIntoFolds(folds);
+        Dataset internalTest = cvData.clone();
+        Dataset[] testFolds = internalTest.splitIntoFolds(folds);
         
         // Generate a clone of the model to play with
-        BaseModel TestModel;
-        TestModel = (BaseModel) this.clone(); 
+        BaseModel testModel;
+        testModel = (BaseModel) this.clone(); 
         
         for(int i=0; i<folds; i++){
             Dataset TrainData = cvData.emptyClone();
             // Build a training set that does not inclue the current iteration
             for(int j=0; j<folds; j++) 
-                if (i!=j) TrainData.combine(TestFolds[j]);
+                if (i!=j) TrainData.combine(testFolds[j]);
+            
             // Build a model on the training set, evaluate on the remaining data
-            TestModel.train(TrainData, false);
-            TestModel.run(TestFolds[i]);
+            testModel.train(TrainData, false);
+            testModel.run(testFolds[i]);
         }
+        
         // Evaluate stats on the whole thing
-        InternalTest.combine(TestFolds);
-        ValidationStats.evaluate(InternalTest);
+        internalTest.combine(testFolds);
+        ValidationStats.evaluate(internalTest);
         validated = true;
         
         // Store that this model was cross valided
@@ -180,6 +187,8 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
             ValidationMethod = String.format("%d-fold cross-validation using %d entries",
                     folds, cvData.NEntries());
         }           
+        
+        return internalTest;
     }
     
     /** Use external testing data to validate a model (should not contain any data
@@ -534,8 +543,8 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                 } catch (Exception e) {
                     throw new Exception("Usage: crossvalidate $<dataset> [<folds = 10>]");
                 }
-                crossValidate(folds, Data);
-            } break;
+                return crossValidate(folds, Data);
+            }
             case "normalize": {
                 boolean doAttributes = false, doClass = false;
                 String Method; List<Object> Options;
