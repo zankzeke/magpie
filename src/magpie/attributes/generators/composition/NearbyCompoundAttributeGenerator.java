@@ -1,12 +1,18 @@
 package magpie.attributes.generators.composition;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.PriorityQueue;
 import java.util.Set;
 import magpie.attributes.generators.BaseAttributeGenerator;
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionEntry;
 import magpie.data.utilities.filters.CompositionDistanceFilter;
+import magpie.data.utilities.filters.CompositionSetDistanceFilter;
+import magpie.data.utilities.modifiers.CompositionSetDistanceModifier;
 
 /**
  * Attributes based on the presence of nearby compounds. Current attributes:
@@ -118,5 +124,50 @@ public class NearbyCompoundAttributeGenerator extends BaseAttributeGenerator {
     @Override
     public String printDescription(boolean htmlFormat) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
+    /**
+     * Get closest compositions 
+     * @param targetComposition Composition from which to measure distance
+     * @param otherCompositions Compositions that whose distance from the 
+     * target composition will be ranked
+     * @param nClosest Number of closest compounds to retrieve
+     * @param pNorm P-norm to use when computing distance
+     * @return The 
+     */
+    static public List<CompositionEntry> getClosestCompositions(
+            CompositionEntry targetComposition,
+            Collection<CompositionEntry> otherCompositions,
+            int nClosest,
+            int pNorm) {
+        
+        // Create a priority queue in which to store closest compositions
+        final CompositionEntry targetFinal = targetComposition;
+        final int pFinal = pNorm;
+        PriorityQueue<CompositionEntry> queue = new PriorityQueue<>(nClosest + 1,
+                new Comparator<CompositionEntry>() {
+            @Override
+            public int compare(CompositionEntry o1, CompositionEntry o2) {
+                return Double.compare(
+                        CompositionSetDistanceFilter.computeDistance(targetFinal, o2, pFinal),
+                        CompositionSetDistanceFilter.computeDistance(targetFinal, o1, pFinal));
+            }
+        });
+        
+        // Loop through all compositions, store only the top nClosest
+        for (CompositionEntry other : otherCompositions) {
+            // Add it to queue
+            queue.add(other);
+            
+            // If we have too many, pop off the worst (at the front)
+            if (queue.size() > nClosest) {
+                queue.poll();
+            }
+        }
+        
+        // Output list in reverse order
+        List<CompositionEntry> output = new ArrayList<>(queue);
+        Collections.reverse(output);
+        return output;
     }
 }
