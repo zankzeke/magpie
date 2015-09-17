@@ -195,8 +195,12 @@ public class PhaseDiagramCompositionEntryGenerator extends BaseEntryGenerator {
                 }
                 
                 // Make the entry
-                CompositionEntry entry = new CompositionEntry(elemIDs, curFracs);
-                return entry;
+                try {
+                    CompositionEntry entry = new CompositionEntry(elemIDs, curFracs);
+                    return entry;
+                } catch (Exception e) {
+                    throw new Error(e);
+                }
             }
 
             @Override

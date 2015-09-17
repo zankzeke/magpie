@@ -397,7 +397,11 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
             throw new Error("Entry must have the same number of sites as the number of elements in siteIdentity");
         }
         for (int i = 0; i < siteIdentity.length; i++) {
-            entry.setSiteComposition(i, new CompositionEntry(new int[]{siteIdentity[i]}, new double[]{1.0}));
+            try {
+                entry.setSiteComposition(i, new CompositionEntry(new int[]{siteIdentity[i]}, new double[]{1.0}));
+            } catch (Exception e) {
+                throw new Error(e);
+            }
         }
     }
 

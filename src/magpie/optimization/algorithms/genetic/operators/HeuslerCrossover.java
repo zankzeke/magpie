@@ -57,7 +57,11 @@ public class HeuslerCrossover extends BaseCrossoverFunction {
             elem_choice[index++] = to_add;
         }
         // Build a new entry
-        C = new CompositionEntry(elem_choice, composition);
+        try {
+            C = new CompositionEntry(elem_choice, composition);
+        } catch (Exception e) {
+            throw new Error(e);
+        }
         return C;
     }
 }

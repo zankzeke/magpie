@@ -70,8 +70,12 @@ public class CompositionDistanceRanker extends BaseEntryRanker {
      */
     public void addComposition(CompositionEntry entry) {
         // Make a copy without any attributes, properties, etc.
-        CompositionEntry toAdd = new CompositionEntry(entry.getElements(), entry.getFractions());
-        Compositions.add(toAdd);
+        try {
+            CompositionEntry toAdd = new CompositionEntry(entry.getElements(), entry.getFractions());
+            Compositions.add(toAdd);
+        } catch (Exception e) {
+            throw new Error(e);
+        }
     }
     
     /**
