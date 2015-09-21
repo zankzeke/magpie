@@ -4,26 +4,27 @@
 
 Magpie, the Materials-Agnostic Platform for Informatics and Exploration, is designed to simplify the use of machine learning to predict properties of materials. 
 
-## How do I learn to use Magpie? ##
-
-Documentation for Magpie is available on [oqmd.org](http://oqmd.org/static/analytics/magpie/doc/)
-
 ## How do I get Magpie? ##
 
-There are currently two options for obtaining a working copy of Magpie
+There are currently two options for installing Magpie
 
 ### Building from Source ###
 
-First, download or clone a copy of this repository from BitBucket. For convenience, all necessary libraries are contained within this repository. Once downloaded, compile Magpie by copying "simple-build.xml" to "build.xml" and calling [Apache Ant](http://ant.apache.org/) using the command
+First, download or clone a copy of this repository from BitBucket. For convenience, all necessary libraries are contained within this repository. Once downloaded, compile Magpie by calling [Apache Ant](http://ant.apache.org/) using the command
 ```
 #!shell
 
-ant jar
+ant -f simple-build.xml jar
 ```
 
 ### Downloading a Precompiled Version ###
 
-A complete version of Magpie that has already been compiled is available for [download](http://oqmd.org/static/analytics/magpie/Magpie.zip). Since Magpie is written entirely in Java, this version should work without modification on any system with the Java Runtime Environment installed.
+A complete version of Magpie that has already been compiled is available for **[download](http://oqmd.org/static/analytics/magpie/Magpie.zip)**. Since Magpie is written entirely in Java, this version should work without modification on any system with the Java Runtime Environment installed.
+
+## How do I learn to use Magpie? ##
+
+Documentation for Magpie is available on [oqmd.org](http://oqmd.org/static/analytics/magpie/doc/). You may want to start with the [tutorial](oqmd.org/static/analytics/magpie/doc/tutorial.html).
+
 
 ## Who can answer my questions? ##
 

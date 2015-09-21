@@ -67,18 +67,21 @@ public class PrototypeEntry extends CompositionEntry {
     /**
      * Create a Prototype entry without specifying composition. These must be defined
      *  later for the entry to be usable (by using {@linkplain #setSiteComposition(int, magpie.data.oqmd.CompositionEntry) })
-     * @param SiteInfo Information about each site in prototype crystal
-     * @param ElementList Names of elements (useful for printing)
-     * @param SortingOrder In what order to sort elements of the same type
+     * @param SiteInfo Information about each site in prototype crystalm
      */
     public PrototypeEntry(PrototypeSiteInformation SiteInfo) {
         this.SiteInfo = SiteInfo;
         // Make all sites have H on them
         this.SiteComp = new CompositionEntry[SiteInfo.NSites()];
-        CompositionEntry blank = new CompositionEntry(new int[]{0}, new double[]{1.0});
-        for (int i=0; i<SiteComp.length; i++) {
-            this.SiteComp[i] = blank.clone();
+        try {
+            CompositionEntry blank = new CompositionEntry(new int[]{0}, new double[]{1.0});
+            for (int i=0; i<SiteComp.length; i++) {
+                this.SiteComp[i] = blank.clone();
+            }
+        } catch (Exception e) {
+            throw new Error(e);
         }
+        
         this.ElementNames = LookupData.ElementNames;
         this.SortingOrder = LookupData.SortingOrder;
     }

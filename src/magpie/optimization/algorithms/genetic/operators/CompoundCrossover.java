@@ -49,7 +49,11 @@ public class CompoundCrossover extends BaseCrossoverFunction {
             index++;
         }
         // Build a new entry
-        C = new CompositionEntry(elem_choice, Arrays.copyOf(A.getFractions(), nelem));
+        try {
+            C = new CompositionEntry(elem_choice, Arrays.copyOf(A.getFractions(), nelem));
+        } catch (Exception e) {
+            throw new Error(e);
+        }
 		C.setAttributes(A.getAttributes());
         return C;
     }
