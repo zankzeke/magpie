@@ -18,7 +18,7 @@ import org.apache.commons.lang3.ArrayUtils;
  * @author Logan Ward
  * @version 0.1
  */
-public class ContainsOnlyElementsFilter extends ContainsElementFilter {
+public class PhaseDiagramExclusionFilter extends ContainsElementFilter {
 
     @Override
     protected boolean[] label(Dataset D) {
