@@ -203,9 +203,15 @@ public class APEAttributeGenerator extends BaseAttributeGenerator {
             
             // Compute the averages 
             int pos=0;
-            for (Integer n : NNearestToEval) {
-                // Average the nearest distances
-                attrs[pos++] = StatUtils.mean(distances, 0, Math.min(n, distances.length - 1));
+            if (distances.length == 0) {
+                for (Integer n : NNearestToEval) {
+                    attrs[pos++] = 1000.0; // Artificially-high number
+                }
+            } else {
+                for (Integer n : NNearestToEval) {
+                    // Average the nearest distances
+                    attrs[pos++] = StatUtils.mean(distances, 0, Math.min(n, distances.length - 1));
+                }
             }
             
             // Compute the packing effiency of clusters around each atom, 
