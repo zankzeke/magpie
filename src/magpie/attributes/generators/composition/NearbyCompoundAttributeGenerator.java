@@ -166,8 +166,10 @@ public class NearbyCompoundAttributeGenerator extends BaseAttributeGenerator {
         }
         
         // Output list in reverse order
-        List<CompositionEntry> output = new ArrayList<>(queue);
-        Collections.reverse(output);
+        List<CompositionEntry> output = new ArrayList<>(queue.size());
+        while (! queue.isEmpty()) {
+            output.add(0, queue.poll());
+        }
         return output;
     }
 }

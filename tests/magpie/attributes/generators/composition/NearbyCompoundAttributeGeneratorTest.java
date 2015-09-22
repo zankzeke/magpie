@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import magpie.data.materials.CompositionEntry;
+import magpie.data.utilities.filters.CompositionSetDistanceFilter;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -24,17 +25,21 @@ public class NearbyCompoundAttributeGeneratorTest {
         Collections.shuffle(others);
         
         // Find the 2 closest to H
+        CompositionEntry h = new CompositionEntry("H");
         List<CompositionEntry> closest = 
                 NearbyCompoundAttributeGenerator.getClosestCompositions(
-                        new CompositionEntry("H"),
+                        h,
                         others,
-                        2,
+                        3,
                         2);
         
         // Check results
-        assertEquals(2, closest.size());
+        assertEquals(3, closest.size());
+        assertTrue(CompositionSetDistanceFilter.computeDistance(h, closest.get(0), 2)
+                < CompositionSetDistanceFilter.computeDistance(h, closest.get(1), 2));
         assertEquals(new CompositionEntry("H0.9He0.1"), closest.get(0));
         assertEquals(new CompositionEntry("H0.8He0.2"), closest.get(1));
+        assertEquals(new CompositionEntry("H0.7He0.3"), closest.get(2));
     }
     
 }
