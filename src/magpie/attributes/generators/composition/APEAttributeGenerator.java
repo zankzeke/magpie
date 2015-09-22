@@ -29,7 +29,7 @@ import org.apache.commons.math3.stat.StatUtils;
  * <p>The actual ratio is computed by dividing the radius of the central atom 
  * by the average radius of the central atoms. 
  * 
- * <p>We use this 
+ * <p>We currently use this framework to create two types of attributes:
  * 
  * <ol>
  * <li>Distance to nearest clusters with a packing efficiency better than
@@ -46,6 +46,12 @@ import org.apache.commons.math3.stat.StatUtils;
  * are efficiently packed. We compute the average APE for each atom in the system,
  * under this assumption, and the average deviation from perfect packing.
  * </ol>
+ * 
+ * <usage><p><b>Usage</b>: &lt;packing threshold&gt; -neighbors &lt;neighbors to evaluate&gt;
+ * <pr><br><i>packing threshold</i>: Threshold at which to define a cluster
+ * as "efficiently-packed" (suggestion = 0.01)
+ * <pr><br><i>neighbors to evaluate</i>: List of number of nearest neighbors
+ * to consider when generating attributes (suggestion = 1 3 5)</usage>
  * 
  * @author Logan Ward
  */
@@ -71,12 +77,32 @@ public class APEAttributeGenerator extends BaseAttributeGenerator {
 
     @Override
     public void setOptions(List<Object> Options) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        double pEff;
+        List<Integer> neighs = new ArrayList<>();
+        
+        try {
+            pEff = Double.parseDouble(Options.get(0).toString());
+            if (pEff >= 1) {
+                System.err.println("WARNING: Expecting a value between "
+                        + " 0 and 100 for packing efficiency.");
+            }
+            if (! Options.get(1).toString().equalsIgnoreCase("-neighbors")) {
+                throw new Exception();
+            }
+            for (Object opt : Options.subList(2, Options.size())) {
+                neighs.add(Integer.valueOf(opt.toString()));
+            }
+        } catch (Exception e) {
+            throw new Exception(printUsage());
+        }
+        
+        setPackingThreshold(pEff);
+        setNNearestToEval(neighs);
     }
 
     @Override
     public String printUsage() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return "Usage: <threshold packing efficiency> -neighbors <number of neighbors to consider...>";
     }
 
     /**
@@ -208,7 +234,32 @@ public class APEAttributeGenerator extends BaseAttributeGenerator {
 
     @Override
     public String printDescription(boolean htmlFormat) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String output = getClass().getName() + (htmlFormat ? " " : ": ");
+        
+        // Get list clusters to evaluate as text
+        List<Integer> nToEval = new ArrayList<>(NNearestToEval);
+        Collections.sort(nToEval);
+        String clusters;
+        clusters = nToEval.get(0).toString();
+        if (nToEval.size() > 1) {
+            for (int i=1; i<nToEval.size() - 1; i++) {
+                clusters += ", " + nToEval.get(i).toString();
+            }
+            clusters += " and " + nToEval.get(nToEval.size() - 1).toString();
+        }
+        
+        // Print description
+        output += "(" + (NNearestToEval.size() + 2) + ")";
+        output += " Attributes based on the estimated packing efficiency of "
+                + "individual atomic clusters using the Atomic Packing Efficiency "
+                + "approach of Laws et al. Includes the estimated average packing "
+                + "efficiency and deviation from perfect packing of each atom, "
+                + "assuming that the nearest neighbor shell composition is equal "
+                + "to the alloy composition. Additionally, the distance to the "
+                + clusters + " nearest clusters with a packing efficiency "
+                + "within 1 +/- " + PackingThreshold + ".";
+        
+        return output;
     }
     
     /**

@@ -134,5 +134,8 @@ public class APEAttributeGeneratorTest {
                 data.getEntry(0).getAttribute(1));
         assertEquals(0.979277669, data.getEntry(0).getAttribute(2), 1e-6);
         assertEquals(0.020722331, data.getEntry(0).getAttribute(3), 1e-6);
+        
+        // Print description
+        System.out.println(gen.printDescription(false));
     }
 }
