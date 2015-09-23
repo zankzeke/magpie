@@ -1,6 +1,7 @@
 package magpie.utility.tools;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import magpie.data.materials.CompositionDataset;
 import magpie.models.regression.GuessMeanRegression;
@@ -51,6 +52,7 @@ public class PhaseDiagramExclusionValidatorTest {
         
         // Print out results
         System.out.println(val.printLastResults());
+        System.out.println(val.printCommand(Arrays.asList(new String[]{"last", "stats"})));
     }
     
 }

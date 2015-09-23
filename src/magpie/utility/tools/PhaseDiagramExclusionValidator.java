@@ -15,6 +15,7 @@ import magpie.models.BaseModel;
 import magpie.models.regression.AbstractRegressionModel;
 import magpie.utility.interfaces.Commandable;
 import magpie.utility.interfaces.Options;
+import magpie.utility.interfaces.Printable;
 import magpie.utility.interfaces.Savable;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -47,12 +48,20 @@ import org.apache.commons.math3.util.Combinations;
  * <save><p><b>human</b> - Print out results for each phase diagram from last
  * evaluation in a human-readable format.</save>
  * 
+ * <p><b><u>Implemented Print Commands</u></b>
+ * 
+ * <print><p><b>last [&lt;command>]</b> - Print out statistics generated during last model evaluation
+ * <br><pr><i>command</i>: Command to be passed to internal {@linkplain BaseStatistics} object.</print>
+ * 
+ * <print><p><b>nsystems</b> - Print number of systems evaluated in last test</print>
+ * 
  * <usage><p><b>Usage</b>: &lt;# elements&gt;
  * <br><pr><i># elements</i>: Number of elements in each phase diagram
  * </usage>
  * @author Logan Ward
  */
-public class PhaseDiagramExclusionValidator implements Options, Commandable, Savable {
+public class PhaseDiagramExclusionValidator implements Options, Commandable,
+        Savable, Printable {
     /** 
      * Number of elements to use. Default = 2 
      */
@@ -62,6 +71,10 @@ public class PhaseDiagramExclusionValidator implements Options, Commandable, Sav
      * performance when those elements were used as the test set
      */
     final protected List<Pair<int[], BaseStatistics>> LastResults = new ArrayList<>();
+    /**
+     * Statistics from last test
+     */
+    protected BaseStatistics LastStatistics;
 
     @Override
     public void setOptions(List<Object> Options) throws Exception {
@@ -86,8 +99,7 @@ public class PhaseDiagramExclusionValidator implements Options, Commandable, Sav
     @Override
     public Object runCommand(List<Object> Command) throws Exception {
         if (Command.isEmpty()) {
-            System.out.println(this.getClass().getSimpleName() + " : "
-                    + "Excluding " + NElements + " elements at a time");
+            System.out.println(about());
             return null;
         }
         
@@ -181,6 +193,11 @@ public class PhaseDiagramExclusionValidator implements Options, Commandable, Sav
             LastResults.add(new ImmutablePair<>(elemsToExclude, stats));
         }
         
+        // Store overall results
+        LastStatistics = model instanceof AbstractRegressionModel ? 
+                    new RegressionStatistics() : new ClassificationStatistics();
+        LastStatistics.evaluate(output);
+        
         return output;
     }
     
@@ -235,6 +252,44 @@ public class PhaseDiagramExclusionValidator implements Options, Commandable, Sav
         
         // Close and return
         return filename;
+    }
+
+    @Override
+    public String about() {
+        return this.getClass().getSimpleName() + " : "
+                    + "Excluding " + NElements + " elements at a time";
+    }
+
+    @Override
+    public String printCommand(List<String> Command) throws Exception {
+        // If command is empty, print about
+        if (Command.isEmpty()) {
+            return about();
+        }
+        
+        // Print statistics
+        String action = Command.get(0).toLowerCase();
+        switch (action) {
+            case "last": {
+                // Pass on to statistics object
+                return LastStatistics.printCommand(Command.subList(1, Command.size()));
+            }
+            case "nsystems": {
+                return "Evaluated " + LastResults.size() + " systems with " 
+                        + NElements + " elements"; 
+            }
+            default:
+                throw new Exception("Print command not supported:" + action);
+        }
+    }
+
+    @Override
+    public String printDescription(boolean htmlFormat) {
+        String output = getClass().getName() + (htmlFormat ? " " : ": ");
+        
+        output += "Excluding " + NElements + " elements at a time";
+        
+        return output;
     }
     
     /**
