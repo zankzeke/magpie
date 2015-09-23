@@ -343,6 +343,16 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     public void clearData() {
         this.Entries.clear();
     }
+    
+    /**
+     * Clear attribute data. Used when it is necessary to conserve memory
+     */
+    public void clearAttributes() {
+        AttributeName.clear();
+        for (BaseEntry entry : Entries) {
+            entry.clearAttributes();
+        }
+    }
 
     /**
      * Add a new tool to expand the number of attributes for this dataset.
