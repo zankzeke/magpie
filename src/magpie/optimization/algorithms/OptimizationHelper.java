@@ -1,5 +1,6 @@
 package magpie.optimization.algorithms;
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.NavigableSet;
@@ -19,45 +20,53 @@ abstract public class OptimizationHelper {
     /**
      * Sort an array and return the original indices of the each value. 
      * @param x Array to be sorted
-     * @param Descending Whether to sort the list in descending order
+     * @param descending Whether to sort the list in descending order
      * @return List of indices, sorted in same order as x
      */
-    public static int[] sortAndGetRanks(double[] x, boolean Descending) {
+    public static int[] sortAndGetRanks(double[] x, boolean descending) {
         // Put each entry in a sorted set
-        Comparator comp = new Comparator() {
-            @Override  public int compare(Object o1, Object o2) {
-                Pair<Integer,Double> n1 = (Pair) o1;
-                Pair<Integer,Double> n2 = (Pair) o2;
-                int output = n1.getRight().compareTo(n2.getRight());
-                if (output == 0)
-                    return n1.getLeft().compareTo(n2.getLeft());
-                else
-                    return output;
+        final boolean desFinal = descending;
+        Comparator<Double> comp = new Comparator<Double>() {
+            @Override
+            public int compare(Double o1, Double o2) {
+                return desFinal ? o2.compareTo(o1) : o1.compareTo(o2);
             }
         };
-        NavigableSet<Pair<Integer,Double>> set = new TreeSet<>(comp);
-        Pair<Integer,Double> temp;
-        for (int i = 0; i < x.length; i++) {
-             temp = new MutablePair<>(i,x[i]);
-             set.add(temp);
+        
+        return sortAndGetRanks(x, comp);
+    }
+    
+    /**
+     * Sort an array and return the original index of each member. After 
+     * operation, x will be sorted.
+     * @param x Array to be sorted
+     * @param comp How to compare entries in the array
+     * @return Original index of each point
+     */
+    public static int[] sortAndGetRanks(double[] x, Comparator<Double> comp) {
+        // Initialize the output array
+        Integer[] output = new Integer[x.length];
+        for (int i=0; i<x.length; i++) {
+            output[i] = i;
         }
         
-        // Retrieve the data from the set
-        int[] output = new int[x.length];
-        int i=0; 
-        Iterator<Pair<Integer,Double>> iter = set.descendingIterator();
-        while (iter.hasNext()) {
-            temp = iter.next();
-            output[i] = temp.getLeft();
-            x[i] = temp.getRight();
-            i++;
-        }
+        // Create a copy of x that won't be sorted
+        final double[] xOriginal = x.clone();
         
-        // Flip the order if needed    
-        if (! Descending) {
-            ArrayUtils.reverse(x);
-            ArrayUtils.reverse(output);
+        // Make a comparator for the indicies
+        final Comparator<Double> compFinal = comp;
+        Comparator<Integer> indexComp = new Comparator<Integer>() {
+            @Override
+            public int compare(Integer o1, Integer o2) {
+                return compFinal.compare(xOriginal[o1], xOriginal[o2]);
+            }
+        };
+        Arrays.sort(output, indexComp);
+        
+        // Sort x and return list
+        for (int i=0; i<output.length; i++) {
+            x[i] = xOriginal[output[i]];
         }
-        return output;
+        return ArrayUtils.toPrimitive(output);
     }
 }

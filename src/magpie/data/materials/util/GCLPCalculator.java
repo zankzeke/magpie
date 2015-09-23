@@ -28,7 +28,7 @@ import org.apache.commons.math3.optim.linear.*;
  * 19 (2007), 3233.</a>
  * @author Logan Ward
  */
-public class GCLPCalculator {
+public class GCLPCalculator implements java.io.Serializable {
     /** 
      * Phases to consider for equilibria and their energy. Only contains
      * the lowest-energy phase at each entry
@@ -46,8 +46,12 @@ public class GCLPCalculator {
         frac[0] = 1.0;
         for (int i=0; i<LookupData.ElementNames.length; i++) {
             elem[0] = i;
-            CompositionEntry entry = new CompositionEntry(elem, frac);
-            Phases.put(entry, 0.0);
+            try {
+                CompositionEntry entry = new CompositionEntry(elem, frac);
+                Phases.put(entry, 0.0);
+            } catch (Exception e) {
+                throw new Error(e);
+            }
         }
     }
     

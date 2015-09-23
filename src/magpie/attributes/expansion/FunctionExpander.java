@@ -10,13 +10,13 @@ import org.apache.commons.math3.util.CombinatoricsUtils;
 /**
  * Generates new attributes that are arbitrary functions of other attributes. To 
  * define a function used to generate new attributes, simply write out a 
- * expression with the variables surrounded by ${}'s (e.g., (${x} + ${y}/${x})).
+ * expression with the variables surrounded by ${}'s (e.g., (#{x} + #{y}/#{x})).
  * This expander will substitute the all possible combinations of attributes
  * for each of those variables.
  * 
- * <p>The idea for this class was based on work by L. Ghiringhelli <i>et al.</i> 
- * posted to ArXiv. If you're reading this and the proper citation is not 
- * yet in this documentation, please contact Logan Ward.
+ * <p>The idea for this class was based on work by 
+ * <a href="http://link.aps.org/doi/10.1103/PhysRevLett.114.105503">
+ * L. Ghiringhelli <i>et al.</i></a>
  * 
  * <p><usage><b>Usage</b>: "&lt;function #1&gt;" ["&lt;function #2&gt;] [&lt;...&gt;]
  * <br><pr><i>function</i>: Function describing a new combination of attributes.
@@ -79,7 +79,7 @@ public class FunctionExpander extends BaseAttributeExpander {
                 // Get the new attribute name for this combination
                 String newName = inputString;
                 for (int i=0; i<variableNames.size(); i++) {
-                    newName = inputString.replace("${" + variableNames.get(i) + "}",
+                    newName = newName.replace("#{" + variableNames.get(i) + "}",
                             oldNames[comb[i]]);
                 }
                 newNames.add(newName);

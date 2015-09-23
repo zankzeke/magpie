@@ -122,7 +122,7 @@ public class AdaptiveScalarizingEntryRanker extends MultiObjectiveEntryRanker {
 
     @Override
     public String printUsage() {
-        return "Usage: <p> -obj <maximize|minimize> <property> <ranker name> [<ranker options...>] [-opt <...>]";
+        return "Usage: <p> -opt <maximize|minimize> <property> <ranker name> [<ranker options...>] [-opt <...>]";
     }
 
 	@Override

@@ -1,6 +1,7 @@
 package magpie.utility;
 
 import expr.*;
+import java.io.Serializable;
 import java.util.*;
 import java.util.regex.*;
 import org.apache.commons.math3.analysis.MultivariateFunction;
@@ -9,15 +10,15 @@ import org.apache.commons.math3.exception.DimensionMismatchException;
 /**
  * Parses a function from text string.
  * 
- * <p>Variables in the function must be surrounded by "${" and "}" (think Bash),
- * and should not contain any characters that would be confused with a math 
- * operation or be named after a math function (e.g., cos). Also, don't put any
- * whitespace inside the {}'s.
+ * <p>Variables in the function must be surrounded by "#{" and "}" (think Bash,
+ * but using # instaed of $ to denote variables), and should not contain any characters 
+ * that would be confused with a math operation (e.g., +) or be named after a math function 
+ * (e.g., cos). Also, don't put any whitespace inside the {}'s.
  * 
  * @author Logan Ward
  * @see expr.Parser
  */
-public class ParsedFunction implements MultivariateFunction {
+public class ParsedFunction implements MultivariateFunction, Serializable {
     /**
      * Variables of this function
      */
@@ -44,7 +45,7 @@ public class ParsedFunction implements MultivariateFunction {
         // Get variable names
         Set<String> variableNames = new TreeSet<>();
         
-        Matcher varMatcher = Pattern.compile("\\$\\{[^}]*\\}").matcher(function);
+        Matcher varMatcher = Pattern.compile("\\#\\{[^}]*\\}").matcher(function);
         while (varMatcher.find()) {
             String variableName = varMatcher.group();
             variableNames.add(variableName);

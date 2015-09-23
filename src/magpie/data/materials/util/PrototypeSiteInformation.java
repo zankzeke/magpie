@@ -77,7 +77,7 @@ public class PrototypeSiteInformation implements java.io.Serializable, Cloneable
             if (Line == null) {
                 break;
             }
-            String[] Words = Line.split(" ");
+            String[] Words = Line.split("\\s+");
 
             // Get the number of atoms on this site
             double NAtoms;
@@ -98,12 +98,10 @@ public class PrototypeSiteInformation implements java.io.Serializable, Cloneable
                         break;
                     case "-equiv":
                         p++;
+                        System.out.println(Line);
                         while (p < Words.length
-                                && UtilityOperations.isInteger(Words[p + 1])) {
+                                && UtilityOperations.isInteger(Words[p])) {
                             equivSites.add(Integer.parseInt(Words[p++]));
-                            if (p == Words.length) {
-                                break;
-                            }
                         }
                         break;
                     default:

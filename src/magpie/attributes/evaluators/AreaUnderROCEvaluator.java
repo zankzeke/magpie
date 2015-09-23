@@ -1,6 +1,7 @@
 
 package magpie.attributes.evaluators;
 
+import java.util.Comparator;
 import java.util.List;
 import magpie.data.Dataset;
 import magpie.optimization.algorithms.OptimizationHelper;
@@ -46,11 +47,17 @@ public class AreaUnderROCEvaluator extends BaseAttributeEvaluator {
     public void setTargetClass(String className) {
         this.TargetClass = className;
     }
-    
+
     @Override
-    protected boolean positiveIsBetter() {
-        return true;
-    }
+    protected Comparator<Double> compare() {
+        return new Comparator<Double>() {
+
+            @Override
+            public int compare(Double o1, Double o2) {
+                return o2.compareTo(o1);
+            }
+        };
+    }    
 
     @Override
     protected double[] evaluateAttributes_internal(Dataset Data) {

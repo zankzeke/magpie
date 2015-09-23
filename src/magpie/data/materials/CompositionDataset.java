@@ -216,12 +216,13 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
         lr.close();
 
         // Define the reader
-        BufferedReader is = Files.newBufferedReader(Paths.get(filename), Charset.forName("US-ASCII"));
+        BufferedReader is = new BufferedReader(new FileReader(filename));
         String line;
         String[] words;
 
         // Read in properties from header
-        line = is.readLine().trim();
+        line = is.readLine();
+        line = line.trim();
 		importPropertyNames(line);
 
         // Determine which property is the energy ("energy_pa")

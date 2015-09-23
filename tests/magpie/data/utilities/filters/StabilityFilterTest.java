@@ -34,8 +34,14 @@ public class StabilityFilterTest {
         data.getEntry(2).setPredictedClass(-1);
         
         // Test the filter
+        boolean[] res = filter.label(data);
+        assertFalse(res[0]);
+        assertTrue(res[1]);
+        assertTrue(res[2]);
+        
+        // Test parallel implementation
         Magpie.NThreads = 2;
-        boolean[] res = filter.parallelLabel(data);
+        res = filter.parallelLabel(data);
         assertFalse(res[0]);
         assertTrue(res[1]);
         assertTrue(res[2]);

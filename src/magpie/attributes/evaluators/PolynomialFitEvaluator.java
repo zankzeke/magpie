@@ -1,6 +1,7 @@
 
 package magpie.attributes.evaluators;
 
+import java.util.Comparator;
 import java.util.List;
 import magpie.data.Dataset;
 import magpie.models.regression.PolynomialRegression;
@@ -37,9 +38,14 @@ public class PolynomialFitEvaluator extends BaseAttributeEvaluator {
         return "Usage: <order>";
     }
     
-    @Override
-    protected boolean positiveIsBetter() {
-        return false;
+     @Override
+    protected Comparator<Double> compare() {
+        return new Comparator<Double>() {
+            @Override
+            public int compare(Double o1, Double o2) {
+                return o1.compareTo(o2);
+            }
+        };
     }
 
     @Override

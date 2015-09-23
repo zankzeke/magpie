@@ -210,9 +210,6 @@ public class CompositionEntry extends MultiPropertyEntry {
             
             return hostComp;
         }
-
-        
-        
     }
 
     /**
@@ -293,22 +290,53 @@ public class CompositionEntry extends MultiPropertyEntry {
      * Given the element numbers (probably Z-1) and fractions, create an entry
      * @param Element Numbers of element in ElementList
      * @param Amount Amount of each element present
+     * @throws java.lang.Exception
      */
-    public CompositionEntry(int[] Element, double[] Amount) {
+    public CompositionEntry(int[] Element, double[] Amount) throws Exception {
         setComposition(Element, Amount, true);
     }
 
 	/**
-	 * Set the composition of this entry
+	 * Set the composition of this entry.
+     * 
+     * <p>Checks to make sure all elements have positive amounts.
 	 * @param elements Elements in sample (listed by index 
 	 * in {@linkplain LookupData#ElementNames})
 	 * @param amount Amount of each element
      * @param toSort Whether to store elements in sorted order
+     * @throws java.lang.Exception
 	 */
 	final protected void setComposition(int[] elements, double[] amount, 
-            boolean toSort) {
-		this.Element = elements.clone();
-		this.Fraction = amount.clone();
+            boolean toSort) throws Exception {
+        // Check that all entries are valid and nonzero
+        boolean[] isNonZero = new boolean[elements.length];
+        int nNonZero = 0;
+        for (int i=0; i<amount.length; i++) {
+            if (amount[i] > 0) {
+                nNonZero++;
+                isNonZero[i] = true;
+            } else if (amount[i] == 0) {
+                isNonZero[i] = false;
+            } else {
+                throw new Exception("Negative amount for " + 
+                        LookupData.ElementNames[elements[i]]);
+            }
+        }
+        
+        // Set the information
+		this.Element = new int[nNonZero];
+		this.Fraction = new double[nNonZero];
+        int pos = 0;
+        nNonZero--; // Using it as a counter
+        while (pos < elements.length) {
+            if (isNonZero[pos]) {
+                Element[nNonZero] = elements[pos];
+                Fraction[nNonZero] = amount[pos];
+                nNonZero--;
+            }
+            pos++;
+        }
+            
 		this.ElementNames = LookupData.ElementNames;
 		this.SortingOrder = LookupData.SortingOrder;
 		rectifyEntry(toSort);

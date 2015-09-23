@@ -12,7 +12,7 @@ public class ParsedFunctionTest {
 
     @Test
     public void test() throws Exception {
-        ParsedFunction func = new ParsedFunction("${a} - ${b}");
+        ParsedFunction func = new ParsedFunction("#{a} - #{b}");
         
         // Check that it read correctly
         assertEquals(2, func.numVariables());

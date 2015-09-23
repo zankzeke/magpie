@@ -1,14 +1,9 @@
 package magpie.models;
 
-import java.util.LinkedList;
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
-import magpie.data.materials.PrototypeDataset;
-import magpie.data.materials.PrototypeEntry;
-import magpie.data.materials.util.PrototypeSiteInformation;
 import magpie.models.BaseModel;
 import magpie.models.regression.GuessMeanRegression;
-import magpie.models.regression.PolynomialRegression;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -33,7 +28,7 @@ public class BaseModelTest {
         // Generate the appropriate kind of data
         if (DataType.getClass().equals(Dataset.class)) {
             data = new Dataset();
-            data.importText("datasets/simple-data.csv", null);
+            data.importText("datasets/simple-data.txt", null);
             
         } else if (DataType.getClass().equals(CompositionDataset.class)) {
             data = new CompositionDataset();
@@ -91,8 +86,9 @@ public class BaseModelTest {
         assertFalse(model.isValidated());
 		
         // Run CV
-		model.crossValidate(10, data);
+		Dataset output = model.crossValidate(10, data);
         assertTrue(model.getValidationMethod().contains("10-fold"));
+        assertEquals(data.NEntries(), output.NEntries());
         
         // Reset model
         model.resetModel();

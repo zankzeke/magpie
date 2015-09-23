@@ -23,7 +23,7 @@ public class DatasetTest {
     public void testDataImport() {
         Dataset data = new Dataset();
         try {
-            data.importText("datasets/simple-data.csv", null);
+            data.importText("datasets/simple-data.txt", null);
         } catch (Exception e) {
             fail(e.getLocalizedMessage());
         }
@@ -72,7 +72,7 @@ public class DatasetTest {
     public void testARFF() throws Exception {
         // Read it in
         Dataset data = new Dataset();
-        data.importText("datasets/simple-data.csv", null);
+        data.importText("datasets/simple-data.txt", null);
         
         // Write it out in ARFF format
         data.saveCommand("temp", "arff");
@@ -96,7 +96,7 @@ public class DatasetTest {
     public void testWekaTransfer() throws Exception {
         // Read data
         Dataset data = new Dataset();
-        data.importText("datasets/simple-data.csv", null);
+        data.importText("datasets/simple-data.txt", null);
         
         // Make a copy
         Dataset original = data.clone();

@@ -1,8 +1,6 @@
 package magpie.attributes.generators.composition;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import magpie.attributes.generators.BaseAttributeGenerator;
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
@@ -55,7 +53,7 @@ public class ElementalPropertyAttributeGenerator extends BaseAttributeGenerator 
         ptr.addAttributes(newNames);
 
         // Generate attributes for each entry
-        List<String> MissingData = new ArrayList<>();
+        Map<String,Set<String>> missingData = new TreeMap<>();
         double[] toAdd = new double[newNames.size()];
         for (int e = 0; e < ptr.NEntries(); e++) {
             CompositionEntry entry = ptr.getEntry(e);
@@ -70,7 +68,13 @@ public class ElementalPropertyAttributeGenerator extends BaseAttributeGenerator 
                 int[] elems = entry.getElements();
                 for (int i = 0; i < elems.length; i++) {
                     if (Double.isNaN(lookup[elems[i]])) {
-                        MissingData.add(ptr.ElementNames[elems[i]] + ":" + prop);
+                        if (missingData.containsKey(prop)) {
+                            missingData.get(prop).add(ptr.ElementNames[elems[i]]);
+                        } else {
+                            Set<String> temp = new TreeSet<>();
+                            temp.add(ptr.ElementNames[elems[i]]);
+                            missingData.put(prop, temp);
+                        }
                     }
                 }
 
@@ -91,25 +95,19 @@ public class ElementalPropertyAttributeGenerator extends BaseAttributeGenerator 
             entry.addAttributes(toAdd);
         }
 
-        // Print out warning of which properties have missing (see def of 
-        //    OffendingProperties)
-        if (MissingData.size() > 0) {
-            System.err.println("WARNING: There are " + MissingData.size()
-                    + " missing elmental properties:");
+        // Print out warning of which properties have missing data
+        if (missingData.size() > 0) {
+            System.err.println("WARNING: There are " + missingData.size()
+                    + " elmental properties with missing values:");
             int i = 0;
-            Iterator<String> iter = MissingData.iterator();
-            while (iter.hasNext()) {
-                System.err.format("%32s", iter.next());
-                if (i % 2 == 1) {
-                    System.err.println();
+            for (Map.Entry<String,Set<String>> entry : missingData.entrySet()) {
+                String prop = entry.getKey();
+                System.err.print("\t" + prop + ":");
+                for (String elem : entry.getValue()) {
+                    System.err.print(" " + elem);
                 }
-                i++;
-            }
-            if (i % 2 == 1) {
                 System.err.println();
             }
-            System.err.println();
-            System.err.flush();
         }
     }
 
