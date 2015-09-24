@@ -1,4 +1,4 @@
-Information about elemental property lookup tables. Most of this data was taken from Mathematica's elemental property data. Modifications and, when not from Mathematica, original sources (recovered based on data from http://reference.wolfram.com/mathematica/note/ElementDataSourceInformation.html) are listed. 
+Information about elemental property lookup tables. Most of this data was taken from Mathematica's elemental property data (sources described at http://reference.wolfram.com/mathematica/note/ElementDataSourceInformation.html). Modifications and, when not from Mathematica, original sources are listed.
 
 AtomicVolume.table
     Property: Volume of an atom of each element
