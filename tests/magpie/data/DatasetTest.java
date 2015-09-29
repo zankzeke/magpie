@@ -121,4 +121,17 @@ public class DatasetTest {
         }
     }
     
+    @Test
+    public void testClearAttributes() throws Exception {
+        // Import dataset
+        Dataset data = new Dataset();
+        data.importText("datasets/simple-data.txt", null);
+        
+        // Test
+        data.clearAttributes();
+        assertEquals(0, data.NAttributes()); 
+        for (BaseEntry entry : data.getEntries()) {
+            assertEquals(0, entry.NAttributes());
+        }
+    }
 }
