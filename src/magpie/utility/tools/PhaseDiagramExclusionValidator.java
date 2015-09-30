@@ -184,6 +184,9 @@ public class PhaseDiagramExclusionValidator implements Options, Commandable,
             // Add entries to output
             output.addEntries(results.getEntries());
             
+            // Clear attributes from output
+            output.clearAttributes();
+            
             // Evaluate statistics
             BaseStatistics stats = model instanceof AbstractRegressionModel ? 
                     new RegressionStatistics() : new ClassificationStatistics();

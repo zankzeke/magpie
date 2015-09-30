@@ -191,7 +191,7 @@ abstract public class SplitModel extends BaseModel implements MultiModel {
             if (splitData.get(i).NEntries() == 0)
                 System.err.println("WARNING: No entries provided to train submodel #" + i);
             else
-                Model.get(i).train(splitData.get(i), true);
+                Model.get(i).train(splitData.get(i), false);
         }
         trained=true; 
     }

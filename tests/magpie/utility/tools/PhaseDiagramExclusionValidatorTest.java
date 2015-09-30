@@ -3,6 +3,8 @@ package magpie.utility.tools;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import magpie.data.BaseEntry;
+import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
 import magpie.models.regression.GuessMeanRegression;
 import org.junit.Test;
@@ -34,8 +36,16 @@ public class PhaseDiagramExclusionValidatorTest {
         // Test on binaries
         PhaseDiagramExclusionValidator val = new PhaseDiagramExclusionValidator();
         val.setNElements(2);
-        val.evaluateModel(model, data);
+        Dataset output = val.evaluateModel(model, data);
         assertEquals(5, val.LastResults.size());
+        
+        // Make sure the results have no attributes, but the dataset does
+        for (BaseEntry entry : data.getEntries()) {
+            assertTrue(entry.NAttributes() > 0);
+        }
+        for (BaseEntry entry : output.getEntries()) {
+            assertTrue(entry.NAttributes() == 0);
+        }
         
         // Test on ternaries using command interface
         List<Object> options = new ArrayList<>();
