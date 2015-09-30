@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -16,7 +15,6 @@ import magpie.data.Dataset;
 import magpie.data.utilities.normalizers.BaseDatasetNormalizer;
 import magpie.models.regression.AbstractRegressionModel;
 import magpie.user.CommandHandler;
-import magpie.utility.ModelRunningThread;
 import magpie.utility.UtilityOperations;
 import magpie.utility.interfaces.*;
 
@@ -165,9 +163,13 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         
         for(int i=0; i<folds; i++){
             Dataset TrainData = cvData.emptyClone();
+            
             // Build a training set that does not inclue the current iteration
-            for(int j=0; j<folds; j++) 
-                if (i!=j) TrainData.combine(testFolds[j]);
+            for(int j=0; j<folds; j++) {
+                if (i!=j) {
+                    TrainData.combine(testFolds[j]);
+                }
+            }
             
             // Build a model on the training set, evaluate on the remaining data
             testModel.train(TrainData, false);
