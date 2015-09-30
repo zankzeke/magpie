@@ -161,10 +161,11 @@ public class StagedRegression extends BaseRegression implements MultiModel, Abst
         double[] measuredClass = TrainData.getMeasuredClassArray();
         double[] errorSignal = TrainData.getMeasuredClassArray();
         double[] prediction;
+        
         // Train subsequent models on the error signal from the previous
         for (int i=0; i<NModels(); i++) {
             Clone.setMeasuredClasses(errorSignal);
-            Model.get(i).train(Clone);
+            Model.get(i).train(Clone, false);
             prediction = Clone.getPredictedClassArray();
             if (i == NModels() - 1) break; // Shortcut for last step
             for (int j=0; j < measuredClass.length; j++) {

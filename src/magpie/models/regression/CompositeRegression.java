@@ -124,7 +124,7 @@ public class CompositeRegression extends BaseRegression implements MultiModel {
         checkStatus();
         // Train each model individually
         for (int i=0; i<NModels(); i++)
-            Model.get(i).train(TrainData);
+            Model.get(i).train(TrainData, false);
     }
 
     @Override
