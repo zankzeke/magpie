@@ -61,21 +61,22 @@ public class LinearCorrectedRegression extends BaseRegression {
     }
 
     @Override
-    protected void train_protected(Dataset TrainData) {
+    protected void train_protected(Dataset trainData) {
         if (Submodel == null) {
             throw new Error("Submodel not defined");
         }
         
-        // Train submodel
-        Submodel.train(TrainData);
+        // Make clone of TrainData to ensure predicted class variables are not affected
+        Dataset localCopy = trainData.clone();
         
-        
+        // Train submodel (run it as well)
+        Submodel.train(localCopy, true);
         
         // Fit linear correction (i.e., error = a + b * predicted)
         
         //    Compute error
-        double[] error = TrainData.getMeasuredClassArray();
-        double[] predicted = TrainData.getPredictedClassArray();
+        double[] error = localCopy.getMeasuredClassArray();
+        double[] predicted = localCopy.getPredictedClassArray();
         for (int i=0; i<error.length; i++) {
             error[i] -= predicted[i];
         }
