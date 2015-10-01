@@ -157,16 +157,19 @@ public class StagedRegression extends BaseRegression implements MultiModel, Abst
 
     @Override protected void train_protected(Dataset TrainData) {
         checkStatus();
-        Dataset Clone = TrainData.clone();
+        
+        // Make a local copy of the training data
+        Dataset localCopy = TrainData.clone();
+        
         double[] measuredClass = TrainData.getMeasuredClassArray();
         double[] errorSignal = TrainData.getMeasuredClassArray();
         double[] prediction;
         
         // Train subsequent models on the error signal from the previous
         for (int i=0; i<NModels(); i++) {
-            Clone.setMeasuredClasses(errorSignal);
-            Model.get(i).train(Clone, false);
-            prediction = Clone.getPredictedClassArray();
+            localCopy.setMeasuredClasses(errorSignal);
+            Model.get(i).train(localCopy, true);
+            prediction = localCopy.getPredictedClassArray();
             if (i == NModels() - 1) break; // Shortcut for last step
             for (int j=0; j < measuredClass.length; j++) {
                 errorSignal[j] -= prediction[j];
@@ -176,7 +179,7 @@ public class StagedRegression extends BaseRegression implements MultiModel, Abst
             }
                 
         }
-        Clone.setMeasuredClasses(measuredClass);
+        localCopy.setMeasuredClasses(measuredClass);
     }
 
     @Override
