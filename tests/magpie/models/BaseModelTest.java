@@ -139,4 +139,20 @@ public class BaseModelTest {
         assertTrue(dcrpt.length() > 0);
         System.out.println(dcrpt);
     }
+    
+    @Test
+    public void testTrain() throws Exception {
+        // Get model and training set
+        BaseModel model = generateModel();
+        Dataset data = getData();
+        
+        // Train model without computing training data, make sure it does not run model
+        model.train(data, false);
+        assertFalse(data.getEntry(0).hasPrediction());
+        
+        // Make sure that training the model normally does
+        model.train(data);
+        assertTrue(data.getEntry(0).hasPrediction());
+        assertTrue(model.TrainingStats.NumberTested > 0);
+    }
 }
