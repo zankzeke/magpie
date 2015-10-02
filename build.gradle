@@ -1,0 +1,49 @@
+apply plugin: 'java'
+apply plugin: 'cobertura'
+apply plugin: 'com.github.kt3k.coveralls'
+
+repositories {
+    mavenCentral()
+    flatDir {
+        dirs 'required-libraries'
+    }
+}
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'net.saliman:gradle-cobertura-plugin:2.2.4'
+        classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.4.0'
+    }
+}
+
+cobertura.coverageFormats = ['html', 'xml']
+cobertura {
+    coverageFormats = [ 'html', 'xml' ]
+    coverageIgnoreTrivial = true
+}
+
+dependencies {
+    compile name: 'commons-collections-3.2.1'
+    compile name: 'commons-lang3-3.1'
+    compile name: 'commons-math3-3.3'
+    compile name: 'expr'
+    compile name: 'guava-16.0.1'
+    compile name: 'javassist'
+    compile name: 'jetty-http-9.2.10.v20150310'
+    compile name: 'jetty-io-9.2.10.v20150310'
+    compile name: 'jetty-security-9.2.10.v20150310'
+    compile name: 'jetty-server-9.2.10.v20150310'
+    compile name: 'jetty-servlet-9.2.10.v20150310'
+    compile name: 'jetty-servlets-9.2.10.v20150310'
+    compile name: 'jetty-util-9.2.10.v20150310'
+    testCompile 'junit:junit:4.12'
+    compile name: 'libthrift-0.9.2'
+    compile name: 'reflections-0.9.9-RC1'
+    compile name: 'servlet-api-3.1'
+    compile name: 'slf4j-api-1.7.6'
+    compile name: 'slf4j-nop-1.7.6'
+    compile name: 'weka'
+}
