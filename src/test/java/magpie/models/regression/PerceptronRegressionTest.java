@@ -18,8 +18,6 @@ public class PerceptronRegressionTest extends BaseModelTest {
         PerceptronRegression model = new PerceptronRegression();
         List<Integer> layers = new LinkedList<>();
         layers.add(2);
-        layers.add(2);
-        layers.add(2);
         model.setHiddenLayers(layers);
         return model;
     }

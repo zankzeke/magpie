@@ -110,7 +110,6 @@ public class PerceptronRegression extends BaseRegression {
         // Step 3: Train the network
         try {
             Instances trainingData = TrainData.convertToWeka();
-            network.setDebug(true);
             network.buildClassifier(trainingData);
         } catch (Exception e) {
             throw new Error("Network failed to build due to: " + e.getMessage());

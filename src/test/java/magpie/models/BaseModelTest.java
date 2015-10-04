@@ -134,6 +134,8 @@ public class BaseModelTest {
         model.externallyValidate(data);
         assertTrue(model.isValidated());
         assertTrue(model.getValidationMethod().contains(Integer.toString(data.NEntries())));
+        
+        // Make sure that validation stats are the same as training stats
         assertEquals(model.TrainingStats.toString(), model.ValidationStats.toString());
 	}
     
