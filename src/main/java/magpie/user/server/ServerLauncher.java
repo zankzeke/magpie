@@ -283,4 +283,16 @@ public class ServerLauncher {
         SocketServer.stop();
         HTTPServer.stop();
     }
+    
+    /**
+     * Check if the servers are running
+     * @return Whether they are running
+     */
+    public static boolean isRunning() {
+        if (SocketServer == null || HTTPServer == null) {
+            return false;
+        } else {
+            return SocketServer.isServing() && HTTPServer.isStarted();
+        }
+    }
 }

@@ -24,11 +24,9 @@ import org.junit.rules.Timeout;
  * @author Logan Ward
  */
 public class ServerLauncherTest {
-    public TServer Server = null;
-
     /** Timeout for test */
     @Rule
-    public Timeout globalTimeout = Timeout.seconds(60);
+    public Timeout globalTimeout = new Timeout(60000);
 
     public ServerLauncherTest() throws Exception {
         // Make a fake dataset
@@ -92,6 +90,10 @@ public class ServerLauncherTest {
     
     @Before
     public void launchServer() throws Exception {
+        if (ServerLauncher.isRunning()) {
+            ServerLauncher.stopServer();
+        }
+        
         List<String> args = new LinkedList<>();
         args.add("-model");
         args.add("ms-model.info");
@@ -106,7 +108,6 @@ public class ServerLauncherTest {
 
     @Test
     public void testServerStarting() throws Exception {
-        Assert.assertTrue(ServerLauncher.SocketServer.isServing());
         Assert.assertTrue(ServerLauncher.HTTPServer.isStarted());
     }
     

@@ -327,7 +327,11 @@ public class MagpieServerHandler implements MagpieServer.Iface {
             
             // Generate attributes for these entries
             Dataset tempData = ModelInformation.get(prop).Dataset.emptyClone();
-            tempData.addEntries(genEntries.getEntries());
+            
+            // Make a clone of each entry, add to new dataset
+            for (BaseEntry entry : genEntries.getEntries()) {
+                tempData.addEntry(entry.clone());
+            }
             if (model == null) {
                 throw new MagpieException("No model for property: " + prop);
             }
@@ -338,8 +342,16 @@ public class MagpieServerHandler implements MagpieServer.Iface {
             }
             
             // Run model
+            model.run(tempData);
+            
+            // Transfer over results
             dataptr.setTargetProperty(prop, true); // Also sets attributes of entries
-            model.run(genEntries);
+            if (model instanceof AbstractClassifier) {
+                dataptr.setClassNames(tempData.getClassNames());
+                dataptr.setClassProbabilities(tempData.getClassProbabilityArray());
+            } else {
+                dataptr.setPredictedClasses(tempData.getPredictedClassArray());
+            }
             
             // Clear attributes
             for (BaseEntry e : tempData.getEntries()) {
