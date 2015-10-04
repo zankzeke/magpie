@@ -25,8 +25,9 @@ buildscript {
 
 // Parameters for the coverage test
 cobertura {
-    coverageFormats = [ 'html', 'xml' ]
+    coverageFormats = [ 'xml' ]
     coverageIgnoreTrivial = true
+    coverageExcludes = [ '.*autogen.*' ]
 }
 
 // Dependency list
