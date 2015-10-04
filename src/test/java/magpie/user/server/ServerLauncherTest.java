@@ -17,6 +17,7 @@ import org.apache.thrift.server.TServer;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.junit.*;
+import org.junit.rules.Timeout;
 
 /**
  * Run basic tests on Magpie Server
@@ -24,6 +25,10 @@ import org.junit.*;
  */
 public class ServerLauncherTest {
     public TServer Server = null;
+
+    /** Timeout for test */
+    @Rule
+    public Timeout globalTimeout = Timeout.seconds(60);
 
     public ServerLauncherTest() throws Exception {
         // Make a fake dataset
