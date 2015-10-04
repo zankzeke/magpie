@@ -2,6 +2,8 @@ apply plugin: 'java'
 apply plugin: 'cobertura'
 apply plugin: 'com.github.kt3k.coveralls'
 
+
+// Where to find libraries for Magpie
 repositories {
     mavenCentral()
     flatDir {
@@ -9,6 +11,8 @@ repositories {
     }
 }
 
+
+// Resources for the build script
 buildscript {
     repositories {
         mavenCentral()
@@ -19,12 +23,13 @@ buildscript {
     }
 }
 
-cobertura.coverageFormats = ['html', 'xml']
+// Parameters for the coverage test
 cobertura {
     coverageFormats = [ 'html', 'xml' ]
     coverageIgnoreTrivial = true
 }
 
+// Dependency list
 dependencies {
     compile name: 'commons-collections-3.2.1'
     compile name: 'commons-lang3-3.1'
@@ -46,4 +51,22 @@ dependencies {
     compile name: 'slf4j-api-1.7.6'
     compile name: 'slf4j-nop-1.7.6'
     compile name: 'weka'
+}
+
+// Distribution instructions
+jar {
+    // Set the name
+    baseName = 'Magpie'
+
+    // Define output to be the 'dist' direction
+    destinationDir = new File('dist')
+
+    // Add classpath and main file to jar
+    manifest.attributes(
+        'Main-Class': 'magpie.Magpie',
+        'Class-Path': configurations.compile.files.collect { 'lib/' + it.name }.join(' ')
+    )
+
+    // Package it with dependencies
+    from configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
 }
