@@ -1,5 +1,6 @@
 package magpie.models.classification;
 
+import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.PrototypeDataset;
 import magpie.models.BaseModel;
@@ -19,6 +20,7 @@ public class CumulantExpansionClassifierTest extends BaseClassifierTest {
     @Override
     public BaseModel generateModel() {
         CumulantExpansionClassifier clfr = new CumulantExpansionClassifier();
+        clfr.setNComponents(2);
         clfr.defineKnownCompounds("datasets/prototypes.list");
         return clfr;
     }

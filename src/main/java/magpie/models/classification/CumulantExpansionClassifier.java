@@ -56,7 +56,7 @@ public class CumulantExpansionClassifier extends BaseClassifier implements Savab
         String filename;
         try {
             filename = Options.get(0).toString();
-            NComponents = Integer.parseInt(Options.get(1).toString());
+            setNComponents(Integer.parseInt(Options.get(1).toString()));
         } catch (Exception e) {
             throw new Exception(printUsage());
         }
@@ -92,6 +92,15 @@ public class CumulantExpansionClassifier extends BaseClassifier implements Savab
     }
 
     /**
+     * Set the number of components in the material being considered.
+     * @param n Number of elements
+     */
+    public void setNComponents(int n) {
+        this.NComponents = n;
+        resetModel();
+    }
+
+    /**
      * Define the phase diagram statistics object used to make predictions. 
      * 
      * <p>NOTE: Also sets {@linkplain #NComponents}.
@@ -101,8 +110,6 @@ public class CumulantExpansionClassifier extends BaseClassifier implements Savab
         this.PhaseDiagramStats = PhaseDiagramStats;
         NComponents = PhaseDiagramStats.NComponents();
     }
-    
-    
 
     @Override
     protected String printModel_protected() {

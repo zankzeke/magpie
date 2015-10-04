@@ -1,9 +1,15 @@
 package magpie.models;
 
+import java.util.LinkedList;
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
+import magpie.data.materials.CompositionEntry;
+import magpie.data.materials.PrototypeDataset;
+import magpie.data.materials.PrototypeEntry;
+import magpie.data.materials.util.PrototypeSiteInformation;
 import magpie.models.BaseModel;
 import magpie.models.regression.GuessMeanRegression;
+import org.apache.commons.math3.util.Combinations;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -37,6 +43,32 @@ public class BaseModelTest {
             
             CompositionDataset ptr = (CompositionDataset) data;
             ptr.setTargetProperty("delta_e", false);
+        } else if (DataType.getClass().equals(PrototypeDataset.class)) {
+            data = new PrototypeDataset();
+            
+            // Make the site info thingy for an A2B2 compound
+            PrototypeSiteInformation siteInfo = new PrototypeSiteInformation();
+            siteInfo.addSite(2, true, new LinkedList<Integer>());
+            siteInfo.addSite(2, true, new LinkedList<Integer>());
+            
+            // Set it for the dataset
+            PrototypeDataset dPtr = (PrototypeDataset) data;
+            dPtr.setSiteInfo(siteInfo);
+            
+            // Make some random data
+            for (int[] elems : new Combinations(10, 2)) {
+                // Only do binary compounds
+                if (elems[0] == elems[1]) continue;
+                
+                // Make an entry
+                PrototypeEntry entry = new PrototypeEntry(siteInfo);
+                for (int i=0; i<elems.length; i++) {
+                    entry.setSiteComposition(i, new CompositionEntry(
+                            new int[]{elems[i] + 25}, new double[]{1.0}));
+                }
+                entry.setMeasuredClass(Math.pow(-1, elems[0]));
+                data.addEntry(entry);
+            }
         } else {
             throw new Exception("Dataset type not supported: " + DataType.getClass().getName());
         }
@@ -47,6 +79,8 @@ public class BaseModelTest {
         if (DataType.getClass().equals(Dataset.class)) {
             data.addEntry("0.0, -1.5");
         } else if (DataType.getClass().equals(CompositionDataset.class)) {
+            data.addEntry("NaCl");
+        } else if (DataType.getClass().equals(PrototypeDataset.class)) {
             data.addEntry("NaCl");
         } else {
             throw new Exception("Dataset type not supported: " + DataType.getClass().getName());
