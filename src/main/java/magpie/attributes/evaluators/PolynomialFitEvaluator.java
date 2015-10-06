@@ -1,4 +1,3 @@
-
 package magpie.attributes.evaluators;
 
 import java.util.Comparator;
@@ -6,7 +5,6 @@ import java.util.List;
 import magpie.data.Dataset;
 import magpie.models.regression.PolynomialRegression;
 import magpie.user.CommandHandler;
-import org.apache.commons.math3.stat.StatUtils;
 
 /**
  * Evaluate an attribute based on the RMSE of polynomial model using that attribute.
@@ -76,9 +74,6 @@ public class PolynomialFitEvaluator extends BaseAttributeEvaluator {
             output[a] = rmse;
         }
         
-        // Normalize
-        double best = StatUtils.min(output);
-        for (int i=0; i<output.length; i++) output[i] /= best;
         return output;
     }
     
