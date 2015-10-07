@@ -7,7 +7,6 @@ import magpie.data.materials.CompositionEntry;
 import magpie.data.materials.PrototypeDataset;
 import magpie.data.materials.PrototypeEntry;
 import magpie.data.materials.util.PrototypeSiteInformation;
-import magpie.models.BaseModel;
 import magpie.models.regression.GuessMeanRegression;
 import org.apache.commons.math3.util.Combinations;
 import org.junit.Test;
@@ -183,12 +182,28 @@ public class BaseModelTest {
         Dataset data = getData();
         
         // Train model without computing training data, make sure it does not run model
+        double[][] attrBefore = data.getEntryArray();
         model.train(data, false);
         assertFalse(data.getEntry(0).hasPrediction());
+        
+        // Make sure the attributes / measured class values are not changed
+        double[][] attrAfter = data.getEntryArray();
+        assertEquals(attrBefore.length, attrAfter.length);
+        for (int e=0; e<attrAfter.length; e++) {
+            assertArrayEquals(attrBefore[e], attrAfter[e], 1e-6);
+        }
         
         // Make sure that training the model normally does
         model.train(data);
         assertTrue(data.getEntry(0).hasPrediction());
         assertTrue(model.TrainingStats.NumberTested > 0);
+        
+        // Check to make sure train + run doesn't change attributes / class
+        attrAfter = data.getEntryArray();
+        assertEquals(attrBefore.length, attrAfter.length);
+        for (int e=0; e<attrAfter.length; e++) {
+            assertArrayEquals(attrBefore[e], attrAfter[e], 1e-6);
+        }
+
     }
 }
