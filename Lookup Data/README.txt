@@ -1,4 +1,4 @@
-Information about elemental property lookup tables. Most of this data was taken from Mathematica's elemental property data. Modifications and, when not from Mathematica, original sources (recovered based on data from http://reference.wolfram.com/mathematica/note/ElementDataSourceInformation.html) are listed. 
+Information about elemental property lookup tables. Most of this data was taken from Mathematica's elemental property data (sources described at http://reference.wolfram.com/mathematica/note/ElementDataSourceInformation.html). Modifications and, when not from Mathematica, original sources are listed.
 
 AtomicVolume.table
     Property: Volume of an atom of each element
@@ -33,13 +33,22 @@ GSbandgap.table
     Property: DFT bandgap energy of T=0K ground state
     Units: eV
     Source: OQMD
+GSestBCClatcnt.table
+    Property: Estimated BCC lattice parameter based on the DFT volume of the
+OQMD ground state for each element
+    Units: Angstrom
+    Source: OQMD
+GSestFCClatcnt.table
+    Property: Estimated FCC lattice parameter based on the DFT volume of the
+OQMD ground state for each element
+    Units: Angstrom
+    Source: OQMD
 GSenergy_pa.table
     Property: DFT energy per atom (raw VASP value) of T=0K ground state
     Units: eV/atom
     Source: OQMD
 GSmagmom.table
     Property: DFT magnetic momenet of T=0K ground state
-    Units: TBD
     Source: OQMD
 GSvolume_pa.table
     Property: DFT volume per atom of T=0K ground state
@@ -78,7 +87,7 @@ MiracleRadius.table
     Units: pm
     Source: Miracle et al., 2010. doi:10.1179/095066010X12646898728200
 n_ws^third.table
-    Property: Electron density at surface of Wigner-Sietz cell.
+    Property: Electron density at surface of Wigner-Sietz cell. Used in Miedema's model
     Source: Cohesion in metals: transition metal alloys, (North-Holland, Amsterdam, 1988)
 NdUnfilled.table
     Property: Number of unfilled d valence orbitals
@@ -121,7 +130,7 @@ OxidationStates.table
     Property: Observed oxidation states for each element
     Source: Wikipedia
 phi.table
-    Property: Adjusted work function (used in the Miedema(sp?) model)
+    Property: Adjusted work function (used in the Miedema's model)
     Units: eV
     Source: Cohesion in metals: transition metal alloys, (North-Holland, Amsterdam, 1988)
 Row.table
@@ -133,6 +142,5 @@ ShearModulus.table
     Notes: Mn shear modulus from: http://www.azom.com/properties.aspx?ArticleID=1699
 SpaceGroupNumber.table
     Property: Space group of T=0K ground state structure
-    Units: TBD
     Source: Only structures from the ICSD were evaluated 
         Pm used OQMD groundstate in Spacegroup 194, which is only 4 meV/atom below 166. No ICSD structure
