@@ -28,10 +28,13 @@ import magpie.utility.interfaces.Printable;
  * 
  * <command><p><b>save $&lt;data&gt; &lt;filename&gt; [&lt;format&gt;]</b> -
  *  Split a dataset, then print it out to files
- * <br><pr><i>data</i>: Dataset to be printed
+ * <br><pr><i>data</i>: {@linkplain Dataset}to be printed
  * <br><pr><i>filename</i>: Names of files. Output will be this + split number for
  * each split.
  * <br><pr><i>format</i>: Optional: Format in which to write data (default=serialized)</command>
+ * 
+ * <command><p><b>train $&lt;data&gt; - Train splitter
+ * <br><pr><i>data</i>: {@linkplain Dataset} used to train splitter</command>
  * 
  * <p><b><u>Print Commands</u></b>
  * 
@@ -159,6 +162,21 @@ abstract public class BaseDatasetSplitter implements
                         format == null ? "" : " in " + format + " format");
                 return null;
             }
+            case "train": {
+                // Usage: train $<data>
+                Dataset data;
+                try {
+                    if (Command.size() != 2) {
+                        throw new Exception();
+                    }
+                    data = (Dataset) Command.get(1);
+                } catch (Exception e) {
+                    throw new Exception("Usage: train $<data>");
+                }
+                train(data);
+                System.out.println("\tTrained splitter using " + data.NEntries());
+                return null;
+            } 
             default:
                 throw new Exception("Command not recognized: " + action);
         }

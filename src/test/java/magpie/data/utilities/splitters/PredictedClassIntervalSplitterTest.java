@@ -21,7 +21,7 @@ public class PredictedClassIntervalSplitterTest extends BaseDatasetSplitterTest 
 
     @Override
     protected CompositionDataset getDataset() throws Exception {
-        CompositionDataset data = super.getDataset(); 
+        CompositionDataset data = (CompositionDataset) super.getDataset(); 
         data.setTargetProperty("bandgap", true);
         return data;
     }

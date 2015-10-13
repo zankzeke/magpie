@@ -15,12 +15,18 @@ public class BaseDatasetSplitterTest {
     
     @Test
     public void testCommands() throws Exception {
-        CompositionDataset data = getDataset();
+        CompositionDataset data = (CompositionDataset) getDataset();
         
-        AllMetalsSplitter sptr = new AllMetalsSplitter();
+        BaseDatasetSplitter sptr = getSplitter();
+        
+        // Run train command
+        List<Object> cmd = new LinkedList<>();
+        cmd.add("train");
+        cmd.add(data);
+        sptr.runCommand(cmd);
         
         // Generate get command
-        List<Object> cmd = new LinkedList<>();
+        cmd.clear();
         cmd.add("get");
         cmd.add("1");
         cmd.add(data);
@@ -45,7 +51,7 @@ public class BaseDatasetSplitterTest {
         return sptr;
     }
 
-    protected CompositionDataset getDataset() throws Exception {
+    protected Dataset getDataset() throws Exception {
         // Load in dataset
         CompositionDataset data = new CompositionDataset();
         data.importText("datasets/small_set.txt", null);
@@ -59,7 +65,7 @@ public class BaseDatasetSplitterTest {
 
     @Test
     public void testDetails() throws Exception {
-        CompositionDataset data = getDataset();
+        CompositionDataset data = (CompositionDataset) getDataset();
         BaseDatasetSplitter spltr = getSplitter();
         
         // Make sure splitter is trained
