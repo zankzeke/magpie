@@ -33,6 +33,16 @@ GSbandgap.table
     Property: DFT bandgap energy of T=0K ground state
     Units: eV
     Source: OQMD
+GSestBCClatcnt.table
+    Property: Estimated BCC lattice parameter based on the DFT volume of the
+OQMD ground state for each element
+    Units: Angstrom
+    Source: OQMD
+GSestFCClatcnt.table
+    Property: Estimated FCC lattice parameter based on the DFT volume of the
+OQMD ground state for each element
+    Units: Angstrom
+    Source: OQMD
 GSenergy_pa.table
     Property: DFT energy per atom (raw VASP value) of T=0K ground state
     Units: eV/atom

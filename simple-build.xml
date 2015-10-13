@@ -30,7 +30,7 @@
 
         <target name="compile">
                 <mkdir dir="build/classes"/>
-                <javac debug="True" srcdir="src" destdir="build/classes" classpathref="classpath"/>
+                <javac debug="True" srcdir="src/main/java" destdir="build/classes" classpathref="classpath"/>
         </target>
 
         <target name="jar" depends="compile">
@@ -57,7 +57,7 @@
         </target>
 
 	<target name="javadoc">
-		<javadoc sourcepath="src" destdir="javadoc"
+        <javadoc sourcepath="src/main/java" destdir="javadoc"
 			author="false"
 			version="false"
 			/>
@@ -66,7 +66,7 @@
 	<target name="test" depends="compile">
 		<!-- Compile Tests -->
 		<mkdir dir="build/tests"/>
-		<javac debug="True" srcdir="tests" destdir="build/tests" classpathref="classpath">
+        <javac debug="True" srcdir="src/test/java" destdir="build/tests" classpathref="classpath">
 			<classpath path="build/classes"/>
 		</javac>
 

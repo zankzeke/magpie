@@ -1,6 +1,6 @@
 # Magpie #
 
-[![Build Status](https://drone.io/bitbucket.org/wolverton/magpie/status.png)](https://drone.io/bitbucket.org/wolverton/magpie/latest) [![Statistics](https://www.openhub.net/p/wolverton_magpie/widgets/project_thin_badge.gif)](https://www.openhub.net/p/wolverton_magpie)
+[![Build Status](https://drone.io/bitbucket.org/wolverton/magpie/status.png)](https://drone.io/bitbucket.org/wolverton/magpie/latest) [![Coverage Status](https://coveralls.io/repos/wolverton/magpie/badge.svg?branch=master&service=bitbucket)](https://coveralls.io/bitbucket/wolverton/magpie?branch=master) [![Statistics](https://www.openhub.net/p/wolverton_magpie/widgets/project_thin_badge.gif)](https://www.openhub.net/p/wolverton_magpie) 
 
 Magpie, the Materials-Agnostic Platform for Informatics and Exploration, is designed to simplify the use of machine learning to predict properties of materials. 
 
@@ -10,11 +10,19 @@ There are currently two options for installing Magpie
 
 ### Building from Source ###
 
-First, download or clone a copy of this repository from BitBucket. For convenience, all necessary libraries are contained within this repository. Once downloaded, compile Magpie by calling [Apache Ant](http://ant.apache.org/) using the command
+First, download or clone a copy of this repository from BitBucket. We currently include the ability to build Magpie using [Apache Ant](http://ant.apache.org/) and [Grade](http://gradle.org/). To build with Ant:
 ```
 #!shell
 
 ant -f simple-build.xml jar
+```
+
+To build with Gradle, use the included Gradle wrapper (which will install Gradle on your system):
+
+```
+#!shell
+
+./gradlew jar
 ```
 
 ### Downloading a Precompiled Version ###
