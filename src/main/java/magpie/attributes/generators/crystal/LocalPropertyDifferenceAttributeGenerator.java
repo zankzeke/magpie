@@ -10,7 +10,6 @@ import magpie.data.materials.util.LookupData;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.stat.StatUtils;
 import vassal.analysis.VoronoiCellBasedAnalysis;
-import vassal.analysis.voronoi.VoronoiFace;
 
 /**
  * Compute attributes based on the difference in elemental properties between
@@ -21,6 +20,14 @@ import vassal.analysis.voronoi.VoronoiFace;
  * <p>where \(f_n\) is the area of the face associated with neighbor n,
  * \(p_{atom}\) the the elemental property of the central atom, and 
  * \(p_n\) is the elemental property of the neighbor atom.
+ * 
+ * <p>By default, this class considers the 1st and 2nd nearest neighbor shells.
+ * For shells past the 1st nearest neighbor shell, the neighbors are identified
+ * by finding all of the unique faces on the outside of the polyhedron formed by 
+ * the previous neighbor shell. This list of faces will faces corresponding to all 
+ * of the atoms in the desired shell and the total weight for each atom is
+ * defined by the total area of the faces corresponding to that atom (there
+ * may be more than one).
  * 
  * <p>This parameter is computed for all elemental properties stored in 
  * {@linkplain CrystalStructureDataset#ElementalProperties}.
@@ -33,7 +40,7 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
     /** Elemental properties used to generate attributes */
     private List<String> ElementalProperties = null;
     /** Shells to consider. */
-    private Set<Integer> Shells = new TreeSet<>();
+    private final Set<Integer> Shells = new TreeSet<>();
 
     public LocalPropertyDifferenceAttributeGenerator() {
         Shells.add(1);
@@ -41,8 +48,45 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
     
     @Override
     public void setOptions(List<Object> Options) throws Exception {
-        if (! Options.isEmpty()) {
+        // Parse incoming ints
+        List<Integer> shells = new ArrayList<>(Options.size());
+        try {
+            for (Object opt : Options) {
+                shells.add(Integer.parseInt(opt.toString()));
+            }
+        } catch (Exception e) {
             throw new Exception(printUsage());
+        }
+        
+        // Define settings
+        addShells(shells);
+    }
+    
+    /**
+     * Clear list of shells to use when computing attributes
+     */
+    public void clearShells() {
+        Shells.clear();
+    }
+
+    /**
+     * Add shell to list of used when computing attributes
+     * @param shell Index of nearest neighbor shell
+     */
+    public void addShell(int shell) {
+        if (shell <= 0) {
+            throw new IllegalArgumentException("Shell must be > 0");
+        }
+        Shells.add(shell);
+    }
+    
+    /**
+     * Add several shells to list of used when computing attributes
+     * @param shells Indices of nearest neighbor shells
+     */
+    public void addShells(Collection<Integer> shells) {
+        for (int shell : shells) {
+            addShell(shell);
         }
     }
 
@@ -99,39 +143,38 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
             
             // Loop through each shell
             for (Integer shell : Shells) {
-            }
-            
-            // Loop through each elemental property
-            for (String prop : ElementalProperties) {
-                // Get properties for elements in this structure
-                double[] lookupTable;
-                try {
-                    lookupTable = dPtr.getPropertyLookupTable(prop);
-                } catch (Exception e) {
-                    throw new Error(e);
+                // Loop through each elemental property
+                for (String prop : ElementalProperties) {
+                    // Get properties for elements in this structure
+                    double[] lookupTable;
+                    try {
+                        lookupTable = dPtr.getPropertyLookupTable(prop);
+                    } catch (Exception e) {
+                        throw new Error(e);
+                    }
+                    for (int i=0; i<propValues.length; i++) {
+                        propValues[i] = lookupTable[elemIndex[i]];
+                    }
+
+                    // Compute the neighbor differences for each atom
+                    double[] neighDiff;
+                    try {
+                        neighDiff = voro.neighborPropertyDifferences(propValues, shell);
+                    } catch (Exception e) {
+                        throw new Error(e);
+                    }
+
+                    // Compute statistics
+                    temp[pos++] = StatUtils.mean(neighDiff);
+                    double[] meanDeviation = neighDiff.clone();
+                    for (int i=0; i<meanDeviation.length; i++) {
+                        meanDeviation[i] = Math.abs(meanDeviation[i] 
+                                - temp[pos - 1]);
+                    }
+                    temp[pos++] = StatUtils.mean(meanDeviation);
+                    temp[pos++] = StatUtils.min(neighDiff);
+                    temp[pos++] = StatUtils.max(neighDiff);
                 }
-                for (int i=0; i<propValues.length; i++) {
-                    propValues[i] = lookupTable[elemIndex[i]];
-                }
-                
-                // Compute the neighbor differences for each atom
-                double[] neighDiff;
-                try {
-                    neighDiff = voro.neighborPropertyDifferences(propValues);
-                } catch (Exception e) {
-                    throw new Error(e);
-                }
-                
-                // Compute statistics
-                temp[pos++] = StatUtils.mean(neighDiff);
-                double[] meanDeviation = neighDiff.clone();
-                for (int i=0; i<meanDeviation.length; i++) {
-                    meanDeviation[i] = Math.abs(meanDeviation[i] 
-                            - temp[pos - 1]);
-                }
-                temp[pos++] = StatUtils.mean(meanDeviation);
-                temp[pos++] = StatUtils.min(neighDiff);
-                temp[pos++] = StatUtils.max(neighDiff);
             }
             
             // Add to the entry
