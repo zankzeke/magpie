@@ -15,7 +15,7 @@ import vassal.data.Cell;
  */
 public class CoordinationNumberAttributeGeneratorTest {
 
-    public BaseAttributeGenerator getGenerator() {
+    public BaseAttributeGenerator getGenerator() throws Exception {
         return new CoordinationNumberAttributeGenerator();
     }
     
