@@ -42,8 +42,22 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
     /** Shells to consider. */
     private final Set<Integer> Shells = new TreeSet<>();
 
+    /**
+     * Create Default attribute generator. Will consider 1st and 2nd shells
+     */
     public LocalPropertyDifferenceAttributeGenerator() {
         Shells.add(1);
+        Shells.add(2);
+    }
+    
+    /**
+     * Create attribute generator that considers a certain list of shells.
+     * @param shells List of shells to be considered
+     */
+    public LocalPropertyDifferenceAttributeGenerator(int... shells) {
+        for (int shell : shells) {
+            addShell(shell);
+        }
     }
     
     @Override
@@ -54,7 +68,7 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
             for (Object opt : Options) {
                 shells.add(Integer.parseInt(opt.toString()));
             }
-        } catch (Exception e) {
+        } catch (NumberFormatException e) {
             throw new Exception(printUsage());
         }
         
@@ -73,7 +87,7 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
      * Add shell to list of used when computing attributes
      * @param shell Index of nearest neighbor shell
      */
-    public void addShell(int shell) {
+    public final void addShell(int shell) {
         if (shell <= 0) {
             throw new IllegalArgumentException("Shell must be > 0");
         }
