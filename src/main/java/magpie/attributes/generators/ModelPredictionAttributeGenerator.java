@@ -114,6 +114,7 @@ public class ModelPredictionAttributeGenerator extends BaseAttributeGenerator {
             for (BaseEntry entry : sublist) {
                 BaseEntry clone = entry.clone();
                 clone.clearAttributes();
+                clone.deleteMeasuredClass();
                 ModelData.addEntry(clone);
             }
             
