@@ -1,5 +1,6 @@
 package magpie.attributes.generators;
 
+import java.util.*;
 import magpie.data.BaseEntry;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.utilities.modifiers.NonZeroClassModifier;
@@ -92,6 +93,37 @@ public class ModelPredictionAttributeGeneratorTest {
         // Print settings
         System.out.println(gen.printDescription(true));
     }
-    
-    
+
+    @Test
+    public void testOptions() throws Exception {
+        // Create a classification model and the dataset to compute attributes
+        WekaClassifier model = new WekaClassifier();
+        
+        CompositionDataset data = new CompositionDataset();
+        data.addElementalProperty("Electronegativity");
+
+        // Make this a metal/nonmetal problem
+        data.importText("datasets/small_set.txt", null);
+        data.generateAttributes();
+        data.setTargetProperty("bandgap", false);
+        
+        NonZeroClassModifier mdfr = new NonZeroClassModifier();
+        mdfr.transform(data);
+        
+        // Train this model
+        model.train(data);
+
+        // Assemble into options list
+        List<Object> options = new ArrayList<>();
+        options.add("test");
+        options.add(model);
+        options.add(data);
+
+        // Set options
+        ModelPredictionAttributeGenerator gen = new ModelPredictionAttributeGenerator();
+        gen.setOptions(options);
+
+        // Test usage
+        assertEquals("Usage: <name> $<model> $<data>", gen.printUsage());
+    }
 }
