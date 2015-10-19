@@ -1203,7 +1203,9 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
             }// Do nothing 
             else if (useDiscreteClass) {
                 if (entry.hasMeasurement()) {
-                    inst.setValue(j, getClassName((int) entry.getMeasuredClass()));
+                    double cls = Math.min(entry.getMeasuredClass(), NClasses() - 1);
+                    cls = Math.max(0, cls);
+                    inst.setValue(j, getClassName((int) cls));
                 } else {
                     inst.setValue(j, getClassName(0));
                 }
