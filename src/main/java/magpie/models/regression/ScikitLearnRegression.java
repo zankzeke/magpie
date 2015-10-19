@@ -10,7 +10,6 @@ import java.util.LinkedList;
 import java.util.List;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
-import sun.java2d.loops.GraphicsPrimitive;
 
 /**
  * Uses Scikit-learn to train a regression model. User must provide the path to
@@ -31,7 +30,7 @@ import sun.java2d.loops.GraphicsPrimitive;
  * <br><pr><i>model</i>: Path to a file containing a Scikit-Learn regression
  * object
  * <br><pr><i>compression</i>: Degree to which model is compressed before 
- * storing in Magpie. 1: fastest, 9: lowest memory footprint (default: 5)
+ * storing in Magpie. 0: fastest, 9: lowest memory footprint (default: 5)
  * <br>See
  * <a href="http://scikit-learn.org/dev/tutorial/basic/tutorial.html#model-persistence">
  * this tutorial</a> for how to save Scikit-Learn objects.
@@ -114,8 +113,8 @@ public class ScikitLearnRegression extends BaseRegression {
      * @see #ScikitModel
      */
     public void setCompressionLevel(int level) throws Exception {
-        if (level < 1 || level > 9) {
-            throw new Exception("Compression level must be 1-9");
+        if (level < 0 || level > 9) {
+            throw new Exception("Compression level must be 0-9");
         }
         this.CompressionLevel = level;
     }
@@ -172,22 +171,20 @@ public class ScikitLearnRegression extends BaseRegression {
                 + "from sys import argv\n"
                 + "import socket\n"
                 + "import array\n"
-                + "import bz2\n"
+                + "import gzip\n"
                 + "import binascii\n"
                 + "from sys import stdout\n"
                 + "\n" 
                 + "startPort = 5482; # First port to check\n"
                 + "endPort = 5582; # Last port to check\n"
-                + "fp = open(argv[1], 'r')\n"
-                + "model_string = fp.read()\n"
-                + "fp.close()\n"
                 + "try:\n"
-                + " model = pickle.loads(model_string)\n"
+                + " fp = gzip.open(argv[1], 'rb')\n"
+                + " model = pickle.load(fp)\n"
+                + " fp.close()\n"
                 + "except:\n"
-                + " model_data = bz2.decompress(model_string)\n"
-                + " model = pickle.loads(model_data)\n"
-                + " model_data = None\n"
-                + "model_string = None\n"
+                + " fp = open(argv[1], 'rb')\n"
+                + " model = pickle.load(fp)\n"
+                + " fp.close()\n"
                 + "\n"
                 + "port = startPort;\n"
                 + "ss = socket.socket(socket.AF_INET, socket.SOCK_STREAM)\n"
@@ -215,9 +212,8 @@ public class ScikitLearnRegression extends BaseRegression {
                 + "		y.append(temp[0])\n"
                 + "	model.fit(X,y)\n"
                 + "	\n"
-                + "\tmc = bz2.compress(pickle.dumps(model), " + CompressionLevel + ")\n"
-                + "\tprint >>fi, mc\n"
-                + "\tmc = None\n"
+				+ "	gzo = gzip.GzipFile(fileobj = fo, mode='wb', compresslevel=" + CompressionLevel + " )\n"
+                + "	pickle.dump(model, gzo)\n"
                 + "\n"
                 + "def runModel(fi, fo):\n"
                 + "	\n"
@@ -349,10 +345,16 @@ public class ScikitLearnRegression extends BaseRegression {
             
             // Recieve the model
             readModel(socket.getInputStream());
+
+            // Check if server is still running
+            if (! serverIsRunning()) {
+                throw new Exception();
+            }
             
             socket.close();
         } catch (Exception ex) {
             // Read python error out
+                // Do nothing
             try {
                 BufferedReader er = new BufferedReader(
                         new InputStreamReader(ScikitServer.getErrorStream()));
@@ -362,7 +364,6 @@ public class ScikitLearnRegression extends BaseRegression {
                     line = er.readLine();
                 }
             } catch (Exception e) {
-                // Do nothing
             }
             throw new Error(ex);
         } 
@@ -412,6 +413,16 @@ public class ScikitLearnRegression extends BaseRegression {
             // Done!
             socket.close();
         } catch (Exception ex) {
+            try {
+                BufferedReader er = new BufferedReader(
+                        new InputStreamReader(ScikitServer.getErrorStream()));
+                String line = er.readLine();
+                while (line != null) {
+                    System.err.println(line);
+                    line = er.readLine();
+                }
+            } catch (Exception e) {
+            }
             throw new Error(ex);
         } finally {
             fo.close();

@@ -1,0 +1,33 @@
+// This example script trains a Weka-based model on the 
+//  formation energies of a small set of compounds
+
+// Create dataset
+data = new data.materials.CrystalStructureDataset
+
+// Define where to find elemental property data
+data attributes properties directory ./Lookup Data/
+
+// Load in data
+data import ../../../Datasets/icsd-all/
+// data = data subset 100
+
+// Select which set of elemental properties to use for attributes
+data attributes properties add set general
+
+// Generate new attributes
+data attributes generate
+
+// Set formation energy as property to be modeled
+data target delta_e
+
+// Create a simple model using Weka, then test it
+model = new models.regression.SplitRegression
+model splitter AllMetalsSplitter
+submodel = new models.regression.WekaRegression trees.REPTree
+model submodel set generic $submodel
+model train $data
+model crossvalidate $data 10
+
+// Print out training statistics
+print model validation stats
+exit

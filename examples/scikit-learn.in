@@ -23,7 +23,7 @@ data target delta_e
 //     clf = RandomForestClassifier(n_estimators=10, max_depth=None)
 //     from sklearn.externals import joblib
 //     joblib.dump(clf, 'sklearn-randomforest.pkl')
-model = new models.regression.ScikitLearnRegression ./test-files/sklearn-randomforest.pkl
+model = new models.regression.ScikitLearnRegression ./test-files/sklearn-randomforest.pkl 0
 // model = new models.regression.WekaRegression functions.LinearRegression
 model train $data
 model crossvalidate $data 10

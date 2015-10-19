@@ -196,7 +196,8 @@ public class BaseModelTest {
         // Make sure that training the model normally does
         model.train(data);
         assertTrue(data.getEntry(0).hasPrediction());
-        assertTrue(model.TrainingStats.NumberTested > 0);
+		assertTrue(model.TrainingStats.NumberTested > 0);
+
         
         // Check to make sure train + run doesn't change attributes / class
         attrAfter = data.getEntryArray();
@@ -204,6 +205,5 @@ public class BaseModelTest {
         for (int e=0; e<attrAfter.length; e++) {
             assertArrayEquals(attrBefore[e], attrAfter[e], 1e-6);
         }
-
     }
 }
