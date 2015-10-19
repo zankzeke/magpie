@@ -126,6 +126,7 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
                 newAttr.add("var_NeighDiff_shell" + shell + "_" + prop);
                 newAttr.add("min_NeighDiff_shell" + shell + "_" + prop);
                 newAttr.add("max_NeighDiff_shell" + shell + "_" + prop);
+                newAttr.add("range_NeighDiff_shell" + shell + "_" + prop);
             }
         }
         data.addAttributes(newAttr);
@@ -188,6 +189,7 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
                     temp[pos++] = StatUtils.mean(meanDeviation);
                     temp[pos++] = StatUtils.min(neighDiff);
                     temp[pos++] = StatUtils.max(neighDiff);
+                    temp[pos++] = StatUtils.max(neighDiff) - StatUtils.min(neighDiff);
                 }
             }
             

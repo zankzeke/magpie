@@ -32,7 +32,7 @@ public class LocalPropertyDifferenceAttributeGeneratorTest
 
     @Override
     public int expectedCount() {
-        return 4;
+        return 10;
     }
     
     @Test
@@ -66,7 +66,7 @@ public class LocalPropertyDifferenceAttributeGeneratorTest
         gen.addAttributes(data);
         
         // Test out the results
-        assertEquals(8, data.NAttributes());
+        assertEquals(10, data.NAttributes());
         BaseEntry entry = data.getEntry(0);
         assertEquals(data.getAttributeName(0), 1, entry.getAttribute(0), 1e-6);
         assertEquals(data.getAttributeName(1), 0, entry.getAttribute(1), 1e-6);
@@ -76,5 +76,7 @@ public class LocalPropertyDifferenceAttributeGeneratorTest
         assertEquals(data.getAttributeName(5), 0, entry.getAttribute(5), 1e-6);
         assertEquals(data.getAttributeName(6), 0, entry.getAttribute(6), 1e-6);
         assertEquals(data.getAttributeName(7), 0, entry.getAttribute(7), 1e-6);
+        assertEquals(data.getAttributeName(8), 0, entry.getAttribute(8), 1e-6);
+        assertEquals(data.getAttributeName(9), 0, entry.getAttribute(9), 1e-6);
     }
 }
