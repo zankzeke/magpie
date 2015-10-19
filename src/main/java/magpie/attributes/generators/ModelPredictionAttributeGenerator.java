@@ -92,6 +92,10 @@ public class ModelPredictionAttributeGenerator extends BaseAttributeGenerator {
             }
         }
         data.addAttributes(newNames);
+
+        // Make a local copy of the model and dataset (to prevent threading problems)
+        Dataset localData = ModelData.emptyClone();
+        BaseModel localModel = Model.clone();
         
         // Iterate through entries in batches of 1000 to reduce memeory requirements
         //  for evaluating model
@@ -99,7 +103,7 @@ public class ModelPredictionAttributeGenerator extends BaseAttributeGenerator {
         double[] attrs = new double[nAttr]; // To avoid re-making this every loop
         while (iter.hasNext()) {
             // Clear out old results
-            ModelData.clearData();
+            localData.clearData();
             
             // Get a sublist of entries
             List<BaseEntry> sublist = new ArrayList(1000);
@@ -115,17 +119,17 @@ public class ModelPredictionAttributeGenerator extends BaseAttributeGenerator {
                 BaseEntry clone = entry.clone();
                 clone.clearAttributes();
                 clone.deleteMeasuredClass();
-                ModelData.addEntry(clone);
+                localData.addEntry(clone);
             }
             
             // Generate attributes and run model
-            ModelData.generateAttributes();
-            Model.run(ModelData);
+            localData.generateAttributes();
+            localModel.run(localData);
             
             // Store results
             for (int e=0; e<sublist.size(); e++) {
                 BaseEntry original = sublist.get(e);
-                BaseEntry clone = ModelData.getEntry(e);
+                BaseEntry clone = localData.getEntry(e);
                 
                 // Get predicted class variable
                 attrs[0] = clone.getPredictedClass();
