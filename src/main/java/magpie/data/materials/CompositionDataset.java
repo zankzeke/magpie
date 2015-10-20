@@ -108,7 +108,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
     /**
      * Map of elemental property names to values
      */
-    public Map<String, double[]> PropertyData = LookupData.ElementalProperties;
+    public SortedMap<String, double[]> PropertyData = LookupData.ElementalProperties;
 	/** Oxidation states of every element */
 	protected double[][] OxidationStates = LookupData.OxidationStates;
 
