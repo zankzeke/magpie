@@ -25,18 +25,26 @@ model splitter AllMetalsSplitter
 // Set each sub-model to be a REPTree
 submodel = new models.classification.WekaClassifier trees.REPTree
 model submodel set generic $submodel
-
-// Evaluate predictive ability and run times
 timer elapsed
+
+// Evaluate predictive ability and speed of single model 
+echo "Running single model"
+timer start train
+submodel train $train_data
+timer elapsed train
+timer start run
+submodel validate $run_data
+timer elapsed run
+print submodel validation stats
+
+// Evaluate predictive ability and speed of split model
+echo "Running single model"
 timer start train
 model train $train_data
 timer elapsed train
-timer start
+timer start run
 model validate $run_data
-timer elapsed
+timer elapsed run
 print model validation stats
-
-// Print out the ROC curve
-print model validation roc
 	
 exit
