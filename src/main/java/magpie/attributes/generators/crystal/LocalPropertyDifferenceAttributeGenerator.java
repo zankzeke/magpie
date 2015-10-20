@@ -41,6 +41,10 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
     private List<String> ElementalProperties = null;
     /** Shells to consider. */
     private final Set<Integer> Shells = new TreeSet<>();
+    /** Property name */
+    protected String AttrName = "NeighDiff";
+    /** Property description (used in description output) */
+    protected String AttrDescription = "difference between the elemental properties between an atom and neighbors";
 
     /**
      * Create Default attribute generator. Will consider 1st and 2nd shells
@@ -73,6 +77,7 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
         }
         
         // Define settings
+        clearShells();
         addShells(shells);
     }
     
@@ -119,15 +124,7 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
         
         // Create attribute names
         ElementalProperties = dPtr.getElementalProperties();
-        List<String> newAttr = new ArrayList<>();
-        for (Integer shell : Shells) {
-            for (String prop : ElementalProperties) {
-                newAttr.add("mean_NeighDiff_shell" + shell + "_" + prop);
-                newAttr.add("var_NeighDiff_shell" + shell + "_" + prop);
-                newAttr.add("min_NeighDiff_shell" + shell + "_" + prop);
-                newAttr.add("max_NeighDiff_shell" + shell + "_" + prop);
-            }
-        }
+        List<String> newAttr = createNames();
         data.addAttributes(newAttr);
         
         // Compute attributes
@@ -170,13 +167,8 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
                         propValues[i] = lookupTable[elemIndex[i]];
                     }
 
-                    // Compute the neighbor differences for each atom
-                    double[] neighDiff;
-                    try {
-                        neighDiff = voro.neighborPropertyDifferences(propValues, shell);
-                    } catch (Exception e) {
-                        throw new Error(e);
-                    }
+                    // Compute neighbor differences
+                    double[] neighDiff = getAtomProperties(voro, propValues, shell);
 
                     // Compute statistics
                     temp[pos++] = StatUtils.mean(neighDiff);
@@ -188,12 +180,56 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
                     temp[pos++] = StatUtils.mean(meanDeviation);
                     temp[pos++] = StatUtils.min(neighDiff);
                     temp[pos++] = StatUtils.max(neighDiff);
+                    temp[pos++] = StatUtils.max(neighDiff) - StatUtils.min(neighDiff);
                 }
             }
             
             // Add to the entry
             entry.addAttributes(temp);
         }
+    }
+
+    /**
+     * Provided the Voronoi tessellation and properties of each atom type, 
+     * compute the properties of a certain neighbor cell for each atom.
+     * 
+     * <p>For {@linkplain LocalPropertyDifferenceAttributeGenerator}, this 
+     * produces the local property difference for each atom.
+     * @param voro Voronoi tessellation
+     * @param propValues Properties of each atom type
+     * @param shell Desired shell
+     * @return Properties of each atom
+     */
+    protected double[] getAtomProperties(VoronoiCellBasedAnalysis voro,
+            double[] propValues,
+            Integer shell) {
+        // Compute the neighbor differences for each atom
+        double[] neighDiff;
+        try {
+            neighDiff = voro.neighborPropertyDifferences(propValues, shell);
+        } catch (Exception e) {
+            throw new Error(e);
+        }
+        return neighDiff;
+    }
+
+    /**
+     * Create names for the attributes
+     * @return 
+     */
+    protected List<String> createNames() {
+        List<String> newAttr;
+        newAttr = new ArrayList<>();
+        for (Integer shell : Shells) {
+            for (String prop : ElementalProperties) {
+                newAttr.add("mean_" + AttrName + "_shell" + shell + "_" + prop);
+                newAttr.add("var_" + AttrName + "_shell" + shell + "_" + prop);
+                newAttr.add("min_" + AttrName + "_shell" + shell + "_" + prop);
+                newAttr.add("max_" + AttrName + "_shell" + shell + "_" + prop);
+                newAttr.add("range_" + AttrName + "_shell" + shell + "_" + prop);
+            }
+        }
+        return newAttr;
     }
     
     
@@ -203,13 +239,32 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
             String output = getClass().getName() + (htmlFormat ? " " : ": ");
         
         // Print out number of attributes
-        output += " (" + (ElementalProperties.size() * 4) + ") ";
+        output += " (" + (ElementalProperties.size() * Shells.size() * 4) + ") ";
+        
+        // Get the shell counts
+        String shellList = "";
+        if (Shells.size() == 1) {
+            shellList = Shells.iterator().next() + " nearset neighbor shell";
+        } else {
+            Iterator<Integer> iter = Shells.iterator();
+            shellList = iter.next().toString();
+            do {
+                Integer num = iter.next();
+                if (iter.hasNext()) {
+                    shellList += ", ";
+                } else {
+                    shellList += " and ";
+                }
+                shellList += num.toString();
+            } while (iter.hasNext());
+            shellList += " nearest neighbor shells";
+        }
         
         // Print out description
-        output += "Mean, maximum, minium, and mean absolute deviation in the "
-                + "difference between the elemental properties between an atom "
-                + "and its nearest neighbors "
-                + "for " + ElementalProperties.size() + " elemental properties:\n";
+        output += "Mean, maximum, minium, range, and mean absolute deviation in the "
+                + AttrDescription 
+                + " in the " + shellList
+                + " for " + ElementalProperties.size() + " elemental properties:\n";
         
         // Print out elemental properties
         if (htmlFormat) {

@@ -15,8 +15,7 @@ import vassal.data.Cell;
  *
  * @author Logan Ward
  */
-public class LocalPropertyDifferenceAttributeGeneratorTest 
-        extends CoordinationNumberAttributeGeneratorTest {
+public class LocalPropertyVarianceAttributeGeneratorTest extends CoordinationNumberAttributeGeneratorTest {
 
     @Override
     public BaseAttributeGenerator getGenerator() throws Exception {
@@ -42,42 +41,36 @@ public class LocalPropertyDifferenceAttributeGeneratorTest
         CrystalStructureDataset data = new CrystalStructureDataset();
         data.addElementalProperty("Number");
         
-        // Create a B1-HHe structure
+        // Create a L12-H3He structure
+        // Structure of  L12
         Cell strc = new Cell();
-        double[][] basis = new double[3][];
-        basis[0] = new double[]{0.0,0.5,0.5};
-        basis[1] = new double[]{0.5,0.0,0.5};
-        basis[2] = new double[]{0.5,0.5,0.0};
-        strc.setBasis(basis);
-		Atom atom = new Atom(new double[]{0,0,0}, 0);
+		Atom atom = new Atom(new double[]{0,0,0}, 1);
         strc.addAtom(atom);
-		atom = new Atom(new double[]{0.5,0.5,0.5}, 1);
-        strc.addAtom(atom);
+		atom = new Atom(new double[]{0.5,0.5,0.}, 0);
+		strc.addAtom(atom);
+        atom = new Atom(new double[]{0.5,0.,0.5}, 0);
+		strc.addAtom(atom);
+        atom = new Atom(new double[]{0.,0.5,0.5}, 0);
+		strc.addAtom(atom);
         strc.setTypeName(0, "H");
         strc.setTypeName(1, "He");
         
         // Add it to dataset
-        data.addEntry(new AtomicStructureEntry(strc, "B1-HHe", null));
+        data.addEntry(new AtomicStructureEntry(strc, "L12-HHe", null));
         
         // Run the attribute generator
         LocalPropertyDifferenceAttributeGenerator gen = new LocalPropertyDifferenceAttributeGenerator();
         gen.clearShells();
         gen.addShell(1);
-        gen.addShell(2);
         gen.addAttributes(data);
         
         // Test out the results
-        assertEquals(10, data.NAttributes());
+        assertEquals(5, data.NAttributes());
         BaseEntry entry = data.getEntry(0);
-        assertEquals(data.getAttributeName(0), 1, entry.getAttribute(0), 1e-6);
-        assertEquals(data.getAttributeName(1), 0, entry.getAttribute(1), 1e-6);
-        assertEquals(data.getAttributeName(2), 1, entry.getAttribute(2), 1e-6);
+        assertEquals(data.getAttributeName(0), 0.5, entry.getAttribute(0), 1e-6);
+        assertEquals(data.getAttributeName(1), 0.25, entry.getAttribute(1), 1e-6);
+        assertEquals(data.getAttributeName(2), 1f/3, entry.getAttribute(2), 1e-6);
         assertEquals(data.getAttributeName(3), 1, entry.getAttribute(3), 1e-6);
-        assertEquals(data.getAttributeName(4), 0, entry.getAttribute(4), 1e-6);
-        assertEquals(data.getAttributeName(5), 0, entry.getAttribute(5), 1e-6);
-        assertEquals(data.getAttributeName(6), 0, entry.getAttribute(6), 1e-6);
-        assertEquals(data.getAttributeName(7), 0, entry.getAttribute(7), 1e-6);
-        assertEquals(data.getAttributeName(8), 0, entry.getAttribute(8), 1e-6);
-        assertEquals(data.getAttributeName(9), 0, entry.getAttribute(9), 1e-6);
+        assertEquals(data.getAttributeName(4), 2f/3, entry.getAttribute(4), 1e-6);
     }
 }
