@@ -119,16 +119,7 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
         
         // Create attribute names
         ElementalProperties = dPtr.getElementalProperties();
-        List<String> newAttr = new ArrayList<>();
-        for (Integer shell : Shells) {
-            for (String prop : ElementalProperties) {
-                newAttr.add("mean_NeighDiff_shell" + shell + "_" + prop);
-                newAttr.add("var_NeighDiff_shell" + shell + "_" + prop);
-                newAttr.add("min_NeighDiff_shell" + shell + "_" + prop);
-                newAttr.add("max_NeighDiff_shell" + shell + "_" + prop);
-                newAttr.add("range_NeighDiff_shell" + shell + "_" + prop);
-            }
-        }
+        List<String> newAttr = createNames();
         data.addAttributes(newAttr);
         
         // Compute attributes
@@ -171,13 +162,8 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
                         propValues[i] = lookupTable[elemIndex[i]];
                     }
 
-                    // Compute the neighbor differences for each atom
-                    double[] neighDiff;
-                    try {
-                        neighDiff = voro.neighborPropertyDifferences(propValues, shell);
-                    } catch (Exception e) {
-                        throw new Error(e);
-                    }
+                    // Compute neighbor differences
+                    double[] neighDiff = getAtomProperties(voro, propValues, shell);
 
                     // Compute statistics
                     temp[pos++] = StatUtils.mean(neighDiff);
@@ -196,6 +182,49 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
             // Add to the entry
             entry.addAttributes(temp);
         }
+    }
+
+    /**
+     * Provided the Voronoi tessellation and properties of each atom type, 
+     * compute the properties of a certain neighbor cell for each atom.
+     * 
+     * <p>For {@linkplain LocalPropertyDifferenceAttributeGenerator}, this 
+     * produces the local property difference for each atom.
+     * @param voro Voronoi tessellation
+     * @param propValues Properties of each atom type
+     * @param shell Desired shell
+     * @return Properties of each atom
+     */
+    protected double[] getAtomProperties(VoronoiCellBasedAnalysis voro,
+            double[] propValues,
+            Integer shell) {
+        // Compute the neighbor differences for each atom
+        double[] neighDiff;
+        try {
+            neighDiff = voro.neighborPropertyDifferences(propValues, shell);
+        } catch (Exception e) {
+            throw new Error(e);
+        }
+        return neighDiff;
+    }
+
+    /**
+     * Create 
+     * @return 
+     */
+    protected List<String> createNames() {
+        List<String> newAttr;
+        newAttr = new ArrayList<>();
+        for (Integer shell : Shells) {
+            for (String prop : ElementalProperties) {
+                newAttr.add("mean_NeighDiff_shell" + shell + "_" + prop);
+                newAttr.add("var_NeighDiff_shell" + shell + "_" + prop);
+                newAttr.add("min_NeighDiff_shell" + shell + "_" + prop);
+                newAttr.add("max_NeighDiff_shell" + shell + "_" + prop);
+                newAttr.add("range_NeighDiff_shell" + shell + "_" + prop);
+            }
+        }
+        return newAttr;
     }
     
     
