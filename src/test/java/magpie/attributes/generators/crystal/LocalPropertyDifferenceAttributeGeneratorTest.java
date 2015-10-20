@@ -25,6 +25,7 @@ public class LocalPropertyDifferenceAttributeGeneratorTest
         // Set options
         List options = new ArrayList();
         options.add(1);
+        options.add(2);
         gen.setOptions(options);
         
         return gen;

@@ -41,6 +41,10 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
     private List<String> ElementalProperties = null;
     /** Shells to consider. */
     private final Set<Integer> Shells = new TreeSet<>();
+    /** Property name */
+    protected String AttrName = "NeighDiff";
+    /** Property description (used in description output) */
+    protected String AttrDescription = "difference between the elemental properties between an atom and neighbors";
 
     /**
      * Create Default attribute generator. Will consider 1st and 2nd shells
@@ -73,6 +77,7 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
         }
         
         // Define settings
+        clearShells();
         addShells(shells);
     }
     
@@ -209,7 +214,7 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
     }
 
     /**
-     * Create 
+     * Create names for the attributes
      * @return 
      */
     protected List<String> createNames() {
@@ -217,11 +222,11 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
         newAttr = new ArrayList<>();
         for (Integer shell : Shells) {
             for (String prop : ElementalProperties) {
-                newAttr.add("mean_NeighDiff_shell" + shell + "_" + prop);
-                newAttr.add("var_NeighDiff_shell" + shell + "_" + prop);
-                newAttr.add("min_NeighDiff_shell" + shell + "_" + prop);
-                newAttr.add("max_NeighDiff_shell" + shell + "_" + prop);
-                newAttr.add("range_NeighDiff_shell" + shell + "_" + prop);
+                newAttr.add("mean_" + AttrName + "_shell" + shell + "_" + prop);
+                newAttr.add("var_" + AttrName + "_shell" + shell + "_" + prop);
+                newAttr.add("min_" + AttrName + "_shell" + shell + "_" + prop);
+                newAttr.add("max_" + AttrName + "_shell" + shell + "_" + prop);
+                newAttr.add("range_" + AttrName + "_shell" + shell + "_" + prop);
             }
         }
         return newAttr;
@@ -234,13 +239,32 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
             String output = getClass().getName() + (htmlFormat ? " " : ": ");
         
         // Print out number of attributes
-        output += " (" + (ElementalProperties.size() * 4) + ") ";
+        output += " (" + (ElementalProperties.size() * Shells.size() * 4) + ") ";
+        
+        // Get the shell counts
+        String shellList = "";
+        if (Shells.size() == 1) {
+            shellList = Shells.iterator().next() + " nearset neighbor shell";
+        } else {
+            Iterator<Integer> iter = Shells.iterator();
+            shellList = iter.next().toString();
+            do {
+                Integer num = iter.next();
+                if (iter.hasNext()) {
+                    shellList += ", ";
+                } else {
+                    shellList += " and ";
+                }
+                shellList += num.toString();
+            } while (iter.hasNext());
+            shellList += " nearest neighbor shells";
+        }
         
         // Print out description
-        output += "Mean, maximum, minium, and mean absolute deviation in the "
-                + "difference between the elemental properties between an atom "
-                + "and its nearest neighbors "
-                + "for " + ElementalProperties.size() + " elemental properties:\n";
+        output += "Mean, maximum, minium, range, and mean absolute deviation in the "
+                + AttrDescription 
+                + " in the " + shellList
+                + " for " + ElementalProperties.size() + " elemental properties:\n";
         
         // Print out elemental properties
         if (htmlFormat) {
