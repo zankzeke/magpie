@@ -198,7 +198,6 @@ abstract public class SplitModel extends BaseModel implements MultiModel {
     
     @Override public void run_protected(Dataset Data) {
 		// Get the desired labels
-        Partitioner.train(Data);
         int[] label = Partitioner.label(Data);
         
         // Determine the number of splits
