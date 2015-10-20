@@ -292,18 +292,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         if (!isTrained())
             throw new Error("Model not yet trained");
         
-        // Perform normalization, if needed
-        if (Normalizer != null) {
-            Normalizer.normalize(testData);
-        }
-        
-        // Perform any attribute filtering 
-        Dataset data = testData;
-        if (AttributeSelector != null) {
-            data = testData.clone();
-            AttributeSelector.run(data);
-        }
-        
+        // Test if run will be parallel
         if (Magpie.NThreads > 1 && testData.NEntries() > Magpie.NThreads) {
             // Original thread count
             int originalNThreads = Magpie.NThreads;
@@ -322,7 +311,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                 Runnable thread = new Runnable() {
                     @Override
                     public void run() {
-                        model.run_protected(part);
+                        model.run(part);
                     }
                 };
                 service.submit(thread);
@@ -339,21 +328,33 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
             // Restore parallelism
             Magpie.NThreads = originalNThreads;
         } else {
+            // Perform normalization, if needed
+            if (Normalizer != null) {
+                Normalizer.normalize(testData);
+            }
+
+            // Perform any attribute filtering 
+            Dataset data = testData;
+            if (AttributeSelector != null) {
+                data = testData.clone();
+                AttributeSelector.run(data);
+            }
+            
             // Run it serially 
             run_protected(data);
-        }
-        
-        // Copy results to original array, if attribute selection was used
-        if (AttributeSelector != null) {
-            if (data.NClasses() == 1)
-                testData.setPredictedClasses(data.getPredictedClassArray());
-            else 
-                testData.setClassProbabilities(data.getClassProbabilityArray());
-        }
-        
-        // Restore data to original ranges
-        if (Normalizer != null) {
-            Normalizer.restore(testData);
+            
+            // Copy results to original array, if attribute selection was used
+            if (AttributeSelector != null) {
+                if (data.NClasses() == 1)
+                    testData.setPredictedClasses(data.getPredictedClassArray());
+                else 
+                    testData.setClassProbabilities(data.getClassProbabilityArray());
+            }
+
+            // Restore data to original ranges
+            if (Normalizer != null) {
+                Normalizer.restore(testData);
+            }
         }
     }
     
