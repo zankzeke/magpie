@@ -71,6 +71,15 @@ import weka.core.converters.ArffLoader;
  * will be merged
  * </command>
  * 
+ * <command><p><b>add $&lt;dataset&gt; [-force]</b> - Add entries from another dataset
+ * <br><pr><i>dataset</i>: Dataset to be merged with this one
+ * <br><pr><i>-force</i>: Optional: Whether to force merge if attributes / classes /
+ * properties are different
+ * <br>If attributes, classes, or properties are different, attributes and class values 
+ * in new entries (i.e., those from the other dataset) will be deleted and properties
+ * will be merged
+ * </command>
+ * 
  * <command><p>
  * <b>&lt;output> = clone [-empty]</b> - Create a copy of this dataset
  * <br><pr><i>-empty</i>: Do not copy entries from dataset into clone
