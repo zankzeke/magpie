@@ -34,7 +34,7 @@ public class MultiPropertyEntry extends BaseEntry {
     private int TargetProperty = -1;
 
     @Override
-    public BaseEntry clone() {
+    public MultiPropertyEntry clone() {
         MultiPropertyEntry x = (MultiPropertyEntry) super.clone(); 
         if (MeasuredProperty != null)
             x.MeasuredProperty = MeasuredProperty.clone();
