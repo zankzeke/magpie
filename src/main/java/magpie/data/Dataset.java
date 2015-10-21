@@ -57,7 +57,10 @@ import weka.core.converters.ArffLoader;
  * <b><u>Implemented Commands:</u></b>
  * 
  * <command><p><b>add &lt;entries...&gt;</b> - Add entries to a dataset
- * <br><i>entries...</i>: Strings describing entries to be added</command>
+ * <br><pr><i>entries...</i>: Strings describing entries to be added</command>
+ *
+ * <command><p><b>combine $&lt;dataset&gt;</b> - Add entries from another dataset
+ * <br><pr><i>dataset</i>: Dataset to combine with this dataset</command>
  * 
  * <command><p>
  * <b>&lt;output> = clone [-empty]</b> - Create a copy of this dataset

@@ -35,7 +35,7 @@ import org.apache.commons.math3.util.Combinations;
  * 
  * <p><b><u>Implemented Commands</u></b>
  * 
- * <command><p><b>results = evaluate $&lt;model&gt; $&gt;test data&gt; - Evaluate
+ * <command><p><b>results = evaluate $&lt;model&gt; $&gt;test data&gt;</b> - Evaluate
  * the performance of a model by iteratively using entries from different
  * phase diagrams as the test test.
  * <br><pr><i>model</i>: Model to be tested
