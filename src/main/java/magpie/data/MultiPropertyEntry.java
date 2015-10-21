@@ -335,8 +335,8 @@ public class MultiPropertyEntry extends BaseEntry {
      * @param index Index of property to use
      */
     public void setTargetProperty(int index) {
-        if (TargetProperty >= NProperties())
-            throw new Error("Entry only has " + NProperties() + " defined. Target property cannot be " + index);
+        if (index >= NProperties())
+            throw new RuntimeException("Entry only has " + NProperties() + " defined. Target property cannot be " + index);
         TargetProperty = index;
     }
 
