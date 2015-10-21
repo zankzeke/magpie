@@ -121,8 +121,8 @@ public class BatchModelEvaluator implements Commandable, Options {
             // Start threads
             List<Future<List<BaseEntry>>> results = new ArrayList<>(nThreads);
             for (int i=0; i<nThreads; i++) {
+                final int tID = i;
                 Callable<List<BaseEntry>> thread = new Callable<List<BaseEntry>>() {
-
                     @Override
                     public List<BaseEntry> call() {
                         // Make a clone of the model
@@ -134,7 +134,9 @@ public class BatchModelEvaluator implements Commandable, Options {
                         // Run serially
                         try {
                             return runAndFilter(localModel, localData, filterPtr);
-                        } catch (Exception e) {
+                        } catch (Exception | Error e) {
+                            System.err.println("Thread " + tID + " failed: "
+                                + e.getLocalizedMessage());
                             throw new Error(e);
                         }
                     }
@@ -199,6 +201,7 @@ public class BatchModelEvaluator implements Commandable, Options {
             
             // Start threads
             for (int i=0; i<nThreads; i++) {
+                final int tID = i;
                 Runnable thread = new Runnable() {
 
                     @Override
@@ -212,7 +215,9 @@ public class BatchModelEvaluator implements Commandable, Options {
                         // Run serially
                         try {
                             simpleRun(localModel, localData);
-                        } catch (Exception e) {
+                        } catch (Exception | Error e) {
+                            System.err.println("Thread " + tID + " failed: "
+                                + e.getLocalizedMessage());
                             throw new Error(e);
                         }
                     }
