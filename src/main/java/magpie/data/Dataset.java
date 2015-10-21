@@ -1782,7 +1782,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                         } else {
                             throw new Exception("Available options: -force");
                         }
-                    } else {
+                    } else if (Command.size() > 3) {
                         throw new Exception("Usage: add $<dataset> [-force]");
                     }
                     addEntries(data, force);
