@@ -3,6 +3,7 @@ package magpie.utility.tools;
 import java.util.*;
 import magpie.Magpie;
 import magpie.analytics.RegressionStatistics;
+import magpie.data.BaseEntry;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.utilities.filters.AllMetalsFilter;
 import magpie.data.utilities.generators.PhaseDiagramCompositionEntryGenerator;
@@ -55,6 +56,9 @@ public class BatchModelEvaluatorTest {
         // Make sure it gives the same results
         trainStats = (RegressionStatistics) weka.TrainingStats;
         runStats = new RegressionStatistics();
+        for (BaseEntry entry : data.getEntries()) {
+            entry.deletePredictedClass();
+        }
         runStats.evaluate(data);
         assertEquals(trainStats.MAE, runStats.MAE, 1e-6);
         
