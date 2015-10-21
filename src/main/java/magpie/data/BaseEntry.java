@@ -180,6 +180,13 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
         measured = false;
     }
     
+    /**
+     * Delete predicted class variable.
+     */
+    public void deletePredictedClass() {
+        predicted = false;
+    }
+    
     /** 
      * Set number of attributes that describe this entry
      * @param number Number of attributes

@@ -60,6 +60,130 @@ public class MultiPropertyDataset extends Dataset {
         }
     }
 
+    /** 
+     * Add entries from another dataset. If other dataset has different attributes
+     * or properties, you can force a merge between these datasets
+     * by deleting the attributes and merging the properties.
+     * 
+     * <p>Entries will be cloned before adding them to this dataset.
+     * 
+     * <p>For datasets with different properties, the final dataset will contain
+     * properties from both datasets. Entries from this datasets that lack 
+     * properties from the other dataset will have no measured or predicted values
+     * for those properties. And, for entries from the other dataset that lack entries
+     * from this dataset they will have no measured or predicted values for those
+     * properties.
+     * 
+     * @param otherDataset Dataset to be added to this one
+     * @param forceMerge Whether to force merge if attributes / class / properties are different.
+     * @throws java.lang.Exception If datasets have different classes or attributes,
+     * and forceMerge is false.
+     */
+    @Override
+    public void addEntries(Dataset otherDataset, boolean forceMerge) throws Exception {
+        // Make a MultiPropertyDataset pointer for otherDataset
+        MultiPropertyDataset otherPtr = (MultiPropertyDataset) otherDataset;
+        
+        // Set target class to be base property
+        int thisTarget = getTargetPropertyIndex();
+        int otherTarget = otherPtr.getTargetPropertyIndex();
+        setTargetProperty(-1, true);
+        otherPtr.setTargetProperty(-1, true);
+        
+        // Check whether attributes / class are the same
+        boolean attrSame = otherDataset.AttributeName.equals(AttributeName);
+        boolean classSame = Arrays.equals(otherDataset.getClassNames(), getClassNames());
+        boolean propSame = PNames.equals(otherPtr.PNames);
+        
+        // If they are, and force is not true: Fail
+        if (! ((attrSame && classSame && propSame) || forceMerge)) {
+            throw new Exception("Datasets are not identical and merge not forced");
+        }
+        
+        // Merge property names
+        for (String otherProp : otherPtr.PNames) {
+            // Check if this dataset contains that property
+            int thisIndex = PNames.indexOf(otherProp);
+            
+            // If it doesn't exist, add it to this dataset and every entry in this set
+            if (thisIndex == -1) {
+                // Add property name to dataset
+                if (otherPtr.getPropertyClasses(otherProp).length == 1) {
+                    addProperty(otherProp);
+                } else {
+                    addProperty(otherProp, otherPtr.getPropertyClasses(otherProp));
+                }
+                
+                // Add property to entries
+                for (BaseEntry ePtr : Entries) {
+                    MultiPropertyEntry entry = (MultiPropertyEntry) ePtr;
+                    entry.addProperty();
+                }
+            } else {
+                // If it does, make sure that the class names are the same
+                String[] thisNames = PClassNames.get(thisIndex);
+                String[] otherNames = otherPtr.PClassNames.get(
+                        otherPtr.PNames.indexOf(otherProp));
+                if (! Arrays.equals(thisNames, otherNames)) {
+                    throw new RuntimeException("Unhandled case: Same property names, different class names for that property");
+                }
+            }
+        }
+        
+        // Match up property names in other dataset
+        int[] otherPropMatches = new int[otherPtr.NProperties()];
+        for (int i=0; i<otherPropMatches.length; i++) {
+            otherPropMatches[i] = PNames.indexOf(otherPtr.getPropertyName(i));
+        }
+        
+        // Add in the entries
+        for (BaseEntry otherEntry : otherDataset.Entries) {
+            // Make the clone
+            MultiPropertyEntry oldEntry = (MultiPropertyEntry) otherEntry;
+            MultiPropertyEntry newEntry = oldEntry.clone();
+            
+            // Set new entry to have correct number of properties, but with
+            //   no measured or predicted
+            newEntry.clearPropertyData();
+            newEntry.setNProperties(NProperties());
+            
+            // If needed, delete attributes or class
+            if (! attrSame) {
+                newEntry.clearAttributes();
+            }
+            if (! classSame) {
+                newEntry.deleteMeasuredClass();
+                newEntry.deletePredictedClass();
+            }
+            
+            // Merge properties
+            for (int p=0; p<otherPropMatches.length; p++) {
+                if (oldEntry.hasMeasuredProperty(p)) {
+                    newEntry.setMeasuredProperty(otherPropMatches[p], 
+                            oldEntry.getMeasuredProperty(p));
+                }
+                if (oldEntry.hasPredictedProperty(p)) {
+                    if (otherPtr.getPropertyClasses(p).length > 1) {
+                        newEntry.setPredictedProperty(otherPropMatches[p], 
+                                oldEntry.getPropertyClassProbabilties(p));
+                    } else {
+                        newEntry.setPredictedProperty(otherPropMatches[p],
+                                oldEntry.getPredictedProperty(p));
+                    }
+                }
+            }
+            
+            // Add it to this dataset
+            addEntry(newEntry);
+        }
+        
+        // Reset target property
+        setTargetProperty(thisTarget, true);
+        otherPtr.setTargetProperty(otherTarget, true);
+    }
+    
+    
+
     /**
      * Combine the dataset with another. Will change the target property of the 
      * other dataset to be the same as this one

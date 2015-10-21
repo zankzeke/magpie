@@ -33,7 +33,7 @@ import magpie.utility.interfaces.Printable;
  * each split.
  * <br><pr><i>format</i>: Optional: Format in which to write data (default=serialized)</command>
  * 
- * <command><p><b>train $&lt;data&gt; - Train splitter
+ * <command><p><b>train $&lt;data&gt;</b> - Train splitter
  * <br><pr><i>data</i>: {@linkplain Dataset} used to train splitter</command>
  * 
  * <p><b><u>Print Commands</u></b>
