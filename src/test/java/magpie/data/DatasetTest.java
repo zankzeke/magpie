@@ -2,9 +2,9 @@
 package magpie.data;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import magpie.models.SplitModel;
 import magpie.models.regression.WekaRegression;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -35,6 +35,82 @@ public class DatasetTest {
         Dataset data = getEasyDataset();
         assertEquals("Attribute count wrong.", 2, data.NAttributes());
         assertEquals("Entry count wrong", 1, data.NEntries());
+    }
+    
+    @Test
+    public void testDatasetAddition() throws Exception {
+        // Create datasets with the same attributes, class
+        Dataset data1 = new Dataset();
+        Dataset data2 = new Dataset();
+        data1.addEntry(new BaseEntry());
+        data2.addEntry(new BaseEntry());
+        
+        data1.addAttribute("x", new double[]{1});
+        data2.addAttribute("x", new double[]{2});
+        
+        // Test addition
+        data1.addEntries(data2, false);
+        
+        assertEquals(2, data1.NEntries());
+        assertEquals(1, data2.NEntries());
+        assertEquals(1, data1.NAttributes());
+        assertEquals(1, data1.getEntry(0).getAttribute(0), 1e-6);
+        assertEquals(2, data1.getEntry(1).getAttribute(0), 1e-6);
+        assertNotSame(data1.getEntry(1), data2.getEntry(0)); // Entry was cloned
+        
+        // Add another attribute to dataset 2, make sure merge fails
+        boolean except = false;
+        
+        data2.addAttribute("y", new double[]{0});
+        data2.getEntry(0).setMeasuredClass(-1);
+        
+        try {
+            data1.addEntries(data2, false);
+        } catch (Exception e) {
+            except = true;
+        }
+        
+        assertTrue(except);
+        assertEquals(2, data1.NEntries());
+        
+        //    Via command-line interface
+        except = false;
+        List<Object> command = new ArrayList<>();
+        command.add("add");
+        command.add(data2);
+        try {
+            data1.runCommand(command);
+        } catch (Exception e) {
+            except = true;
+        }
+        
+        assertTrue(except);
+        assertEquals(2, data1.NEntries());
+        
+        // Try again with force turned on
+        data1.addEntries(data2, true);
+        
+        assertEquals(3, data1.NEntries());
+        assertEquals(0, data1.getEntry(2).NAttributes()); // Attribute were deleted
+        assertEquals(-1, data1.getEntry(2).getMeasuredClass(), 1e-6); // Class unaffected
+        
+        //    Via command-line interface
+        command.add("-force");
+        data1.runCommand(command);
+        
+        assertEquals(4, data1.NEntries());
+        assertEquals(0, data1.getEntry(3).NAttributes()); // Attribute were deleted
+        assertEquals(-1, data1.getEntry(3).getMeasuredClass(), 1e-6); // Class unaffected
+        
+        // Make data2 have two classes
+        data2.setClassNames(new String[]{"Yes", "No"});
+        
+        data1.addEntries(data2, true);
+        
+        assertEquals(5, data1.NEntries());
+        assertEquals(1, data1.NClasses());
+        assertEquals(0, data1.getEntry(4).NAttributes()); // Attribute were deleted
+        assertFalse(data1.getEntry(4).hasMeasurement()); // Class was deleted
     }
     
     @Test
