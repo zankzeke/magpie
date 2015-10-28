@@ -20,7 +20,7 @@ CovalentRadius.table
     Source: Mathematica
 Density.table
     Property: Density of element at STP
-    Units: g/cm^3
+    Units: g/L
     Source: Mathematica
 Electronegativity.table
     Property: Pauling electronegativity (right?)
