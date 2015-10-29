@@ -61,9 +61,9 @@ public class ClassRangeFilter extends BaseDatasetFilter {
     @Override
     protected boolean[] label(Dataset D) {
         if (useMeasured && (! D.getEntry(0).hasMeasurement()))
-            throw new Error("Missing measured class.");
+            throw new RuntimeException("Missing measured class.");
         if (!useMeasured && (! D.getEntry(0).hasPrediction()))
-            throw new Error("Missing predicted class.");
+            throw new RuntimeException("Missing predicted class.");
         
         boolean[] output = new boolean[D.NEntries()];
         for (int i=0; i<D.NEntries(); i++) {

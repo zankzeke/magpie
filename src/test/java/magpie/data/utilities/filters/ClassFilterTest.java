@@ -47,6 +47,57 @@ public class ClassFilterTest {
         assertFalse(res[1]);
         assertFalse(res[2]);
         assertFalse(res[3]);
+        
+        // Test not equals
+        options.set(1, "<>");
+        fltr.setOptions(options);
+        
+        res = fltr.label(data);
+        assertFalse(res[0]);
+        assertTrue(res[1]);
+        assertTrue(res[2]);
+        assertTrue(res[3]);
+        
+        // Test greater than
+        options.set(1, ">");
+        options.set(2, "2");
+        fltr.setOptions(options);
+        
+        res = fltr.label(data);
+        assertTrue(res[0]);
+        assertFalse(res[1]);
+        assertFalse(res[2]);
+        assertFalse(res[3]);
+
+        // Test greater than or equals
+        options.set(1, ">=");
+        fltr.setOptions(options);
+        
+        res = fltr.label(data);
+        assertTrue(res[0]);
+        assertTrue(res[1]);
+        assertFalse(res[2]);
+        assertFalse(res[3]);
+        
+        // Test less than or equals
+        options.set(1, "<=");
+        fltr.setOptions(options);
+        
+        res = fltr.label(data);
+        assertFalse(res[0]);
+        assertTrue(res[1]);
+        assertTrue(res[2]);
+        assertTrue(res[3]);
+        
+        // Test less than or equals
+        options.set(1, "<");
+        fltr.setOptions(options);
+        
+        res = fltr.label(data);
+        assertFalse(res[0]);
+        assertFalse(res[1]);
+        assertTrue(res[2]);
+        assertTrue(res[3]);
     }
     
 }
