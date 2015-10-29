@@ -1,5 +1,7 @@
 package magpie.data.utilities.filters;
 
+import java.util.ArrayList;
+import java.util.List;
 import magpie.data.materials.CompositionDataset;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -22,7 +24,13 @@ public class PhaseDiagramExclusionFilterTest {
         
         // Create filter
         PhaseDiagramExclusionFilter filter = new PhaseDiagramExclusionFilter();
-        filter.setElementList(new String[]{"Al", "Ni"});
+        
+        List<Object> options = new ArrayList<>();
+        options.add("Al");
+        options.add("Ni");
+        
+        filter.setOptions(options);
+        
         filter.setExclude(true);
         
         // Test results

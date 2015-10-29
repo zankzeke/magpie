@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.List;
 import magpie.data.Dataset;
 import magpie.optimization.rankers.BaseEntryRanker;
-import magpie.optimization.rankers.MultiObjectiveEntryRanker;
 import magpie.user.CommandHandler;
 
 /**

@@ -62,10 +62,18 @@ public class CompositionSetDistanceFilterTest {
         assertEquals(Math.sqrt(0.02), CompositionSetDistanceFilter.computeDistance(entrySet,
                 new CompositionEntry("Fe2O3"), 2), 1e-6);
         
+        CompositionDataset toMeasureFrom = new CompositionDataset();
+        toMeasureFrom.addEntries(entrySet);
+        
         // Create filter
         CompositionSetDistanceFilter filter = new CompositionSetDistanceFilter();
-        filter.addCompositions(entrySet);
-        filter.setP(2);
+        
+        List<Object> options = new ArrayList<>();
+        options.add(toMeasureFrom);
+        options.add(2);
+        options.add(0.2);
+        
+        filter.setOptions(options);
         
         // Create test dataset
         CompositionDataset data = new CompositionDataset();

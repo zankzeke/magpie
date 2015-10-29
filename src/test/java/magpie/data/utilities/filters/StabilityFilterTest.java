@@ -1,5 +1,7 @@
 package magpie.data.utilities.filters;
 
+import java.util.LinkedList;
+import java.util.List;
 import magpie.Magpie;
 import magpie.data.materials.CompositionDataset;
 import org.junit.Test;
@@ -20,9 +22,13 @@ public class StabilityFilterTest {
         
         // Make the filter
         StabilityFilter filter = new StabilityFilter();
-        filter.setCompounds(hullData);
-        filter.setThreshold(0.025);
-        filter.setUsePredicted(true);
+        
+        List<Object> options = new LinkedList<>();
+        options.add(hullData);
+        options.add("predicted");
+        options.add(0.025);
+        
+        filter.setOptions(options);
         
         // Make the set to be filtered
         CompositionDataset data = new CompositionDataset();
