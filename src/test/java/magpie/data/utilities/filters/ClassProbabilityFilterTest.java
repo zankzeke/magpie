@@ -1,5 +1,7 @@
 package magpie.data.utilities.filters;
 
+import java.util.ArrayList;
+import java.util.List;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.utilities.modifiers.NonZeroClassModifier;
 import magpie.models.classification.WekaClassifier;
@@ -30,6 +32,9 @@ public class ClassProbabilityFilterTest {
         clfr.train(data);
         clfr.run(data);
         
+        // Store a backup copy
+        CompositionDataset backup = (CompositionDataset) data.clone();
+        
         // Test out the filtering: Goal, leave only predicted metals
         ClassProbabilityFilter fltr = new ClassProbabilityFilter();
         fltr.setClassName("Metal");
@@ -42,6 +47,24 @@ public class ClassProbabilityFilterTest {
         for (int e=0; e<data.NEntries(); e++) {
             assertTrue(data.getEntry(e).getClassProbilities()[0] > 0.8);
         }
+        
+        // Test out the filtering: Exclude high prob nonmetals
+        List<Object> options = new ArrayList<>();
+        options.add("NonMetal");
+        options.add("0.8");
+        fltr.setOptions(options);
+        
+        data = (CompositionDataset) backup.clone();
+        
+        fltr.setExclude(true);
+        fltr.filter(data);
+        
+        // Test results
+        assertEquals(0, data.getEntry(0).getPredictedClass(), 1e-6);
+        for (int e=0; e<data.NEntries(); e++) {
+            assertTrue(data.getEntry(e).getClassProbilities()[1] < 0.8);
+        }
+
     }
     
 }

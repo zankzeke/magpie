@@ -12,7 +12,7 @@ import magpie.data.materials.CompositionEntry;
  * 
  * <usage><p><b>Usage</b>: &lt;composition&gt; &lt;distance&gt;
  * <br><pr><i>composition</i>: Target composition
- * <br><pr><i>distance</i>: Maximum change an the fraction of any element.</usage>
+ * <br><pr><i>distance</i>: Maximum change an the fraction of any element in %.</usage>
  * 
  * @author Logan Ward
  */
