@@ -11,6 +11,10 @@ BulkModulus.table
     Property: Bulk modulus
     Units: GPa
     Source: Mathematica
+BoilingT.table
+    Property: Boiling temperature
+    Units: K
+    Source: Mathematica
 Column.table
     Property: Column on periodic table
     Notes: Column of all RE elements is listed as 3
@@ -29,15 +33,31 @@ Electronegativity.table
         Yb electronegativity to 1.26 (average of neighbors)
         Tb electronegativity set to 1.21 (average of neighbors)
         Pm electronegativity set to 1.155 (average of neighbors)
+FirstIonizationEnergy.table
+    Property: Energy to remove the first electron from an element
+    Units: eV
+    Source: CRC Handbook
 GSbandgap.table
     Property: DFT bandgap energy of T=0K ground state
     Units: eV
     Source: OQMD
 GSestBCClatcnt.table
-    Property: Estimated BCC lattice parameter based on the DFT volume of the
-OQMD ground state for each element
+    Property: Estimated BCC lattice parameter based on the DFT volume of the OQMD ground state for each element
+HeatCapacityMass.table
+    Property: Specific heat capacity at STP
+    Units: J/g-K
+    Source: CRC Handbook
+HeatCapacityMolar.table
+    Property: Molar heat capacity at STP
+    Units: J/mol-K
+    Source: CRC Handbook
     Units: Angstrom
     Source: OQMD
+HeatFusion.table
+    Property: Enthalpy of fusion for elements at their melting temperatures
+    Units: kJ/mol
+    Source: CRC Handbook
+    Notes: Heat of fusion are listed per diatomic molecule for appropriate elements, we computed per mole of atoms (i.e., divided listed value by 2)
 GSestFCClatcnt.table
     Property: Estimated FCC lattice parameter based on the DFT volume of the
 OQMD ground state for each element
@@ -129,6 +149,10 @@ NValance.table
 OxidationStates.table
     Property: Observed oxidation states for each element
     Source: Wikipedia
+Polarizability.table
+    Property: Static average electric dipole polarizability
+    Units: 10^-24 cm^3
+    Source: CRC Handbook
 phi.table
     Property: Adjusted work function (used in the Miedema's model)
     Units: eV
