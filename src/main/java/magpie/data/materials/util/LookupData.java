@@ -9,8 +9,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
+import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.Collections;
 import magpie.data.materials.CompositionDataset;
 
 /**
@@ -47,16 +48,17 @@ abstract public class LookupData {
 	/**
 	 * Holds elemental property data. 
 	 */
-	static public Map<String,double[]> ElementalProperties = new TreeMap<>();
+	static public SortedMap<String,double[]> ElementalProperties = Collections.synchronizedSortedMap(new TreeMap<String,double[]>());
 	
 	/**
 	 * Holds oxidation states of individual elements
 	 */
 	static public double[][] OxidationStates = null;
-    /**
-     * Ionization energies of each element
-     */
-    static public double[][] IonizationEnergies = null;
+
+	/**
+	 * Ionization energies of each element
+	 */
+	static public double[][] IonizationEnergies = null;
 
     /**
      * Load in an elemental property lookup table
