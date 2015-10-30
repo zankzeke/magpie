@@ -8,6 +8,7 @@ import magpie.data.materials.AtomicStructureEntry;
 import magpie.data.materials.CrystalStructureDataset;
 import magpie.data.materials.util.LookupData;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.math3.stat.StatUtils;
 import vassal.analysis.VoronoiCellBasedAnalysis;
 
@@ -154,6 +155,10 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
             
             // Loop through each shell
             for (Integer shell : Shells) {
+                // Get face information for each shell
+                Pair<int[][], double[][]> faceInfo = 
+                        voro.getExtendedFaceInformation(shell - 1);
+                
                 // Loop through each elemental property
                 for (String prop : ElementalProperties) {
                     // Get properties for elements in this structure
@@ -168,7 +173,7 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
                     }
 
                     // Compute neighbor differences
-                    double[] neighDiff = getAtomProperties(voro, propValues, shell);
+                    double[] neighDiff = getAtomProperties(voro, faceInfo, propValues);
 
                     // Compute statistics
                     temp[pos++] = StatUtils.mean(neighDiff);
@@ -196,20 +201,18 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
      * <p>For {@linkplain LocalPropertyDifferenceAttributeGenerator}, this 
      * produces the local property difference for each atom.
      * @param voro Voronoi tessellation
+     * @param faceInfo Areas and types on outside of each face for desired shell. Computed
+     * using {@linkplain VoronoiCellBasedAnalysis#getExtendedFaceInformation(int)}
      * @param propValues Properties of each atom type
-     * @param shell Desired shell
      * @return Properties of each atom
      */
     protected double[] getAtomProperties(VoronoiCellBasedAnalysis voro,
-            double[] propValues,
-            Integer shell) {
+            Pair<int[][],double[][]> faceInfo,
+            double[] propValues) {
         // Compute the neighbor differences for each atom
         double[] neighDiff;
-        try {
-            neighDiff = voro.neighborPropertyDifferences(propValues, shell);
-        } catch (Exception e) {
-            throw new Error(e);
-        }
+        neighDiff = voro.neighborPropertyDifferences(propValues,
+                faceInfo.getRight(), faceInfo.getLeft());
         return neighDiff;
     }
 
