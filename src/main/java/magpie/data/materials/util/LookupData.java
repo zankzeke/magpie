@@ -9,6 +9,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.SortedMap;
+import java.util.Collections;
 import magpie.data.materials.CompositionDataset;
 
 /**
@@ -45,7 +47,7 @@ abstract public class LookupData {
 	/**
 	 * Holds elemental property data. 
 	 */
-	static public Map<String,double[]> ElementalProperties = new TreeMap<>();
+	static public SortedMap<String,double[]> ElementalProperties = Collections.synchronizedSortedMap(new TreeMap<String,double[]>());
 	
 	/**
 	 * Holds oxidation states of individual elements

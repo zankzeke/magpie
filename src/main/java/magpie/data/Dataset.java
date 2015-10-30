@@ -57,7 +57,28 @@ import weka.core.converters.ArffLoader;
  * <b><u>Implemented Commands:</u></b>
  * 
  * <command><p><b>add &lt;entries...&gt;</b> - Add entries to a dataset
- * <br><i>entries...</i>: Strings describing entries to be added</command>
+ * <br><pr><i>entries...</i>: Strings describing entries to be added</command>
+ *
+ * <command><p><b>combine $&lt;dataset&gt;</b> - Add entries from another dataset
+ * <br><pr><i>dataset</i>: Dataset to combine with this dataset</command>
+ * 
+ * <command><p><b>add $&lt;dataset&gt; [-force]</b> - Add entries from another dataset
+ * <br><pr><i>dataset</i>: Dataset to be merged with this one
+ * <br><pr><i>-force</i>: Optional: Whether to force merge if attributes / classes /
+ * properties are different
+ * <br>If attributes, classes, or properties are different, attributes and class values 
+ * in new entries (i.e., those from the other dataset) will be deleted and properties
+ * will be merged
+ * </command>
+ * 
+ * <command><p><b>add $&lt;dataset&gt; [-force]</b> - Add entries from another dataset
+ * <br><pr><i>dataset</i>: Dataset to be merged with this one
+ * <br><pr><i>-force</i>: Optional: Whether to force merge if attributes / classes /
+ * properties are different
+ * <br>If attributes, classes, or properties are different, attributes and class values 
+ * in new entries (i.e., those from the other dataset) will be deleted and properties
+ * will be merged
+ * </command>
  * 
  * <command><p>
  * <b>&lt;output> = clone [-empty]</b> - Create a copy of this dataset
@@ -822,6 +843,47 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     public void addEntries(Collection<? extends BaseEntry> entries) {
         Entries.addAll(entries);
     }
+    
+    /** 
+     * Add entries from another dataset. If other dataset has different attributes
+     * or class attributes, you can force a merge between these datasets
+     * by deleting the attributes and classes from the other dataset.
+     * 
+     * <p>Entries will be cloned before adding them to this dataset.
+     * 
+     * @param otherDataset Dataset to be added to this one
+     * @param forceMerge Whether to force merge if attributes / class are different.
+     * @throws java.lang.Exception If datasets have different classes or attributes,
+     * and forceMerge is false.
+     */
+    public void addEntries(Dataset otherDataset, boolean forceMerge) throws Exception {
+        // Check whether attributes / class are the same
+        boolean attrSame = otherDataset.AttributeName.equals(AttributeName);
+        boolean classSame = Arrays.equals(otherDataset.ClassName, ClassName);
+        
+        // If they are, and force is not true: Fail
+        if (! ((attrSame && classSame) || forceMerge)) {
+            throw new Exception("Datasets are not identical and merge not forced");
+        }
+        
+        // Add in the entries
+        for (BaseEntry otherEntry : otherDataset.Entries) {
+            // Make the clone
+            BaseEntry entry = otherEntry.clone();
+            
+            // If needed, delete attributes or class
+            if (! attrSame) {
+                entry.clearAttributes();
+            }
+            if (! classSame) {
+                entry.deleteMeasuredClass();
+                entry.deletePredictedClass();
+            }
+            
+            // Add it to this dataset
+            addEntry(entry);
+        }
+    }
 
     /**
      * Remove all duplicate entries
@@ -843,8 +905,13 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     }
 
     /**
-     * Combine the data structure with another. Does not alter the other entry
+     * Combine the data structure with another. Does not alter the other dataset.
+     * Assumes that the two dataset have the same attributes, and classes.
      *
+     * <p>Entries are not cloned when during combination.
+     * 
+     * <p>If you are looking to add entries from another dataset, also consider
+     * using {@linkplain #addEntries(magpie.data.Dataset, boolean) }.
      * @param d Dataset to be added
      */
     public void combine(Dataset d) {
@@ -1164,76 +1231,6 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     }
 
     /**
-     * Convert the Dataset to a Weka Instances object. Treats the class variable
-     * as continuous
-     *
-     * @return Object in the Weka Instances format with DenseInstance entries
-     * @throws java.lang.Exception
-     */
-    public Instances convertToWeka() throws Exception {
-        return convertToWeka(true, false); // Generate object with continuous class data
-    }
-
-    /**
-     * Convert the Dataset to a Weka Instances object for classifier data.
-     *
-     * @param discrete_class Whether the class is treated as a discrete variable
-     * @return Object in the Weka Instances format with DenseInstance entries
-     * @throws java.lang.Exception
-     */
-    public Instances convertToWeka(boolean discrete_class) throws Exception {
-        return convertToWeka(true, discrete_class);
-    }
-
-    /**
-     * Convert to Weka Instances object. User can decided whether to output
-     * class variable in the Instances object or, if so, whether to treat it as
-     * discrete.
-     *
-     * @param useClass Whether to output class data
-     * @param useDiscreteClass Whether to treat class variable as discrete
-     * @return Dataset in Weka format
-     */
-    public Instances convertToWeka(boolean useClass, boolean useDiscreteClass) {
-        // Create an array of attribute names
-        ArrayList<Attribute> Attributes = new ArrayList<>();
-        for (int i = 0; i < NAttributes(); i++) {
-            Attribute att = new Attribute(AttributeName.get(i));
-            Attributes.add(att);
-        }
-        if (!useClass) {
-            // Do nothing  
-        } else if (useDiscreteClass) {
-            Attributes.add(new Attribute("Class", Arrays.asList(getClassNames())));
-        } else {
-            Attributes.add(new Attribute("Class"));
-        }
-
-        Instances weka_out = new Instances("Output", Attributes, NEntries());
-        int j;
-        for (int i = 0; i < NEntries(); i++) {
-            BaseEntry entry = Entries.get(i);
-            DenseInstance inst = new DenseInstance(Attributes.size());
-            inst.setDataset(weka_out);
-            for (j = 0; j < NAttributes(); j++) {
-                inst.setValue(j, entry.getAttribute(j));
-            }
-            if (!useClass) {
-            }// Do nothing 
-            else if (useDiscreteClass) {
-                inst.setValue(j, getClassNames()[(int) entry.getMeasuredClass()]);
-            } else {
-                inst.setValue(j, entry.getMeasuredClass());
-            }
-            weka_out.add(inst);
-        }
-        if (useClass) {
-            weka_out.setClassIndex(NAttributes());
-        }
-        return weka_out;
-    }
-
-    /**
      * Convert to Weka Instances object, delete attribute information in each
      * entry. This can be used to conserve memory when using Weka.
      *
@@ -1273,7 +1270,9 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
             }// Do nothing 
             else if (useDiscreteClass) {
                 if (entry.hasMeasurement()) {
-                    inst.setValue(j, getClassName((int) entry.getMeasuredClass()));
+                    double cls = Math.min(entry.getMeasuredClass(), NClasses() - 1);
+                    cls = Math.max(0, cls);
+                    inst.setValue(j, getClassName((int) cls));
                 } else {
                     inst.setValue(j, getClassName(0));
                 }
@@ -1770,18 +1769,40 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         String Action = Command.get(0).toString();
         switch (Action.toLowerCase()) {
             case "add": {
-                int nAdded = 0;
-                for (Object entry : Command.subList(1, Command.size())) {
-                    try {
-                        addEntry(entry.toString());
-                        nAdded++;
-                    } catch (Exception ex) {
-                        System.err.println(entry.toString() +
-                                " failed to parse: " + ex.getMessage());
-                    }
+                if (Command.size() == 1) {
+                    throw new Exception("Usage: \"add $<dataset> [-force]\" "
+                            + "or \"add <entries...>\"");
                 }
-                System.out.println("\tAdded " + nAdded + " entries.");
-                return null;
+                if (Command.get(1) instanceof Dataset) {
+                    Dataset data = (Dataset) Command.get(1);
+                    boolean force = false;
+                    if (Command.size() == 3) {
+                        if (Command.get(2).toString().equalsIgnoreCase("-force")) {
+                            force = true;
+                        } else {
+                            throw new Exception("Available options: -force");
+                        }
+                    } else if (Command.size() > 3) {
+                        throw new Exception("Usage: add $<dataset> [-force]");
+                    }
+                    addEntries(data, force);
+                    System.out.println("\tAdded " + data.NEntries() +
+                            " entries from another dataset.");
+                    return null;
+                } else {
+                    int nAdded = 0;
+                    for (Object entry : Command.subList(1, Command.size())) {
+                        try {
+                            addEntry(entry.toString());
+                            nAdded++;
+                        } catch (Exception ex) {
+                            System.err.println(entry.toString() +
+                                    " failed to parse: " + ex.getMessage());
+                        }
+                    }
+                    System.out.println("\tAdded " + nAdded + " entries.");
+                    return null;
+                }
             }
             case "attributes": case "attr":
                 return runAttributeCommand(Command.subList(1, Command.size()));

@@ -34,7 +34,7 @@ public class MultiPropertyEntry extends BaseEntry {
     private int TargetProperty = -1;
 
     @Override
-    public BaseEntry clone() {
+    public MultiPropertyEntry clone() {
         MultiPropertyEntry x = (MultiPropertyEntry) super.clone(); 
         if (MeasuredProperty != null)
             x.MeasuredProperty = MeasuredProperty.clone();
@@ -252,6 +252,15 @@ public class MultiPropertyEntry extends BaseEntry {
     }
 
     @Override
+    public void deleteMeasuredClass() {
+        if (usingPropertyAsClass()) {
+            setMeasuredProperty(TargetProperty, Double.NaN);
+        } else {
+            super.deleteMeasuredClass(); 
+        }
+    }
+
+    @Override
     public void setClassProbabilities(double[] probabilites) {
         if (usingPropertyAsClass()) {
             PredictedProperty[TargetProperty] = probabilites.clone();
@@ -326,8 +335,8 @@ public class MultiPropertyEntry extends BaseEntry {
      * @param index Index of property to use
      */
     public void setTargetProperty(int index) {
-        if (TargetProperty >= NProperties())
-            throw new Error("Entry only has " + NProperties() + " defined. Target property cannot be " + index);
+        if (index >= NProperties())
+            throw new RuntimeException("Entry only has " + NProperties() + " defined. Target property cannot be " + index);
         TargetProperty = index;
     }
 

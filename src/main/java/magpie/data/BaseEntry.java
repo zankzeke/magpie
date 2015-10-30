@@ -173,6 +173,20 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
     /** @return Whether a predicted class has been set for this entry */
     public boolean hasPrediction() { return predicted; }
     
+    /**
+     * Delete measured class variable.
+     */
+    public void deleteMeasuredClass() {
+        measured = false;
+    }
+    
+    /**
+     * Delete predicted class variable.
+     */
+    public void deletePredictedClass() {
+        predicted = false;
+    }
+    
     /** 
      * Set number of attributes that describe this entry
      * @param number Number of attributes
