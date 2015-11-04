@@ -19,7 +19,7 @@ data target sln_energy
 data attributes generate
 
 // Define clusterer to use k-means++ based on a subset of attributes
-clusterer = new cluster.WekaClusterer SimpleKMeans -N 4 -I 500 -P
+clusterer = new cluster.WekaClusterer SimpleKMeans -N 4 -I 500
 
 // Build a model that splits data using the clusterer
 model = new models.regression.SplitRegression
