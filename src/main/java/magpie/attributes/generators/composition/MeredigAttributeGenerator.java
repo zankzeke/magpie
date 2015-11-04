@@ -1,12 +1,17 @@
 package magpie.attributes.generators.composition;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import magpie.attributes.generators.BaseAttributeGenerator;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.CompositionEntry;
+import magpie.utility.interfaces.Citable;
+import magpie.utility.interfaces.Citation;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * Generates several attributes first demonstrated by <a href="http://journals.aps.org/prb/abstract/10.1103/PhysRevB.89.094104">
@@ -26,7 +31,9 @@ import magpie.data.materials.CompositionEntry;
  * 
  * @author Logan Ward
  */
-public class MeredigAttributeGenerator extends BaseAttributeGenerator {
+public class MeredigAttributeGenerator extends BaseAttributeGenerator 
+        implements Citable {
+    
     @Override
     public void setOptions(List<Object> Options) throws Exception {
         if (! Options.isEmpty()) {
@@ -121,6 +128,21 @@ public class MeredigAttributeGenerator extends BaseAttributeGenerator {
                 + " electrons. Range in atomic number,"
                 + " radius, and electronegativity";
         
+        return output;
+    }
+
+    @Override
+    public List<Pair<String, Citation>> getCitations() {
+        List<Pair<String,Citation>> output = new LinkedList<>();
+        Citation citation = new Citation(this.getClass(),
+                "Article",
+                new String[]{"B. Meredig", "A. Agrawal", "et al."},
+                "Combinatorial screening for new materials in unconstrained composition space with machine learning",
+                "http://link.aps.org/doi/10.1103/PhysRevB.89.094104",
+                null
+            );
+        output.add(new ImmutablePair<>("Used these attributes to predict the "
+                + "formation enthalpy of tenary crystalline compounds.", citation));
         return output;
     }
 }
