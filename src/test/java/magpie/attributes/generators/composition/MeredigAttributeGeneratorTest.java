@@ -1,7 +1,10 @@
 package magpie.attributes.generators.composition;
 
+import java.util.List;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.CompositionEntry;
+import magpie.utility.interfaces.Citation;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -50,7 +53,21 @@ public class MeredigAttributeGeneratorTest {
         assertEquals(data.getAttributeName(127), 3.0 / 7.0, entry.getAttribute(127), 1e-2); // Fe only has 2 s valence
         assertEquals(data.getAttributeName(128), 0., entry.getAttribute(128), 1e-2);
         
+    }
+    
+    @Test
+    public void testCitation() {
+        // Make an instance of this class
+        MeredigAttributeGenerator o = new MeredigAttributeGenerator();
         
+        // Get the citation and print to make sure it looks right
+        List<Pair<String,Citation>> cite = o.getCitations();
+        
+        // Print out it to screen
+        for (Pair<String,Citation> c : cite) {
+            System.out.println(c.getKey());
+            System.out.println(c.getValue().printInformation());
+        }
     }
     
 }
