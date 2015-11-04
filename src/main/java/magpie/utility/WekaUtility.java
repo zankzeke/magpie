@@ -4,6 +4,8 @@ package magpie.utility;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -15,6 +17,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.reflections.Reflections;
 import weka.classifiers.AbstractClassifier;
+import weka.core.OptionHandler;
 import weka.core.TechnicalInformation;
 import weka.core.TechnicalInformationHandler;
 
@@ -45,7 +48,10 @@ abstract public class WekaUtility {
             model_type = "weka.classifiers." + model_type;
         }
         AbstractClassifier Model;
-        Model = (AbstractClassifier) AbstractClassifier.forName(model_type, options);
+        Model = (AbstractClassifier) Class.forName(model_type).newInstance();
+        if (Model instanceof OptionHandler) {
+            Model.setOptions(options);
+        }
         return Model;
     }
     
