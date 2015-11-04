@@ -22,18 +22,21 @@ import vassal.analysis.VoronoiCellBasedAnalysis;
  * \(p_{atom}\) the the elemental property of the central atom, and 
  * \(p_n\) is the elemental property of the neighbor atom.
  * 
- * <p>By default, this class considers the 1st and 2nd nearest neighbor shells.
- * For shells past the 1st nearest neighbor shell, the neighbors are identified
+ * <p>For shells past the 1st nearest neighbor shell, the neighbors are identified
  * by finding all of the unique faces on the outside of the polyhedron formed by 
  * the previous neighbor shell. This list of faces will faces corresponding to all 
  * of the atoms in the desired shell and the total weight for each atom is
  * defined by the total area of the faces corresponding to that atom (there
  * may be more than one).
+ *
+ * <p>By default, this class considers the only the 1st nearest neighbor shell.
  * 
  * <p>This parameter is computed for all elemental properties stored in 
  * {@linkplain CrystalStructureDataset#ElementalProperties}.
  * 
- * <usage><p><b>Usage</b>: *No options*</usage>
+ * <usage><p><b>Usage</b>: &lt;shells...&gt;
+ * <br><pr><i>shells</i>: Which nearest neighbor shells to consider
+ * </usage>
  * 
  * @author Logan Ward
  */
@@ -52,7 +55,6 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
      */
     public LocalPropertyDifferenceAttributeGenerator() {
         Shells.add(1);
-        Shells.add(2);
     }
     
     /**
