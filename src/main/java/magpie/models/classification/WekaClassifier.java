@@ -1,11 +1,13 @@
 package magpie.models.classification;
 
-import java.util.LinkedList;
 import java.util.List;
 import magpie.models.interfaces.WekaModel;
 import magpie.data.Dataset;
 import magpie.user.CommandHandler;
 import magpie.utility.WekaUtility;
+import magpie.utility.interfaces.Citable;
+import magpie.utility.interfaces.Citation;
+import org.apache.commons.lang3.tuple.Pair;
 import weka.classifiers.AbstractClassifier;
 import weka.core.Instances;
 
@@ -23,7 +25,7 @@ import weka.core.Instances;
  * @author Logan Ward
  * @version 0.1
  */
-public class WekaClassifier extends BaseClassifier implements WekaModel  {
+public class WekaClassifier extends BaseClassifier implements WekaModel, Citable  {
     /** Link to Weka-based model */
     public AbstractClassifier Model;
     /** Whether model type has been defined */
@@ -165,4 +167,17 @@ public class WekaClassifier extends BaseClassifier implements WekaModel  {
         return output;
     }
     
+    @Override
+    public List<Pair<String, Citation>> getCitations() {
+        // Initialize output
+        List<Pair<String, Citation>> output = super.getCitations(); 
+        
+        // Get citations from Weka Model
+        List<Pair<String, Citation>> wekaCitations = WekaUtility.getWekaObjectCitations(Model, getClass());
+        
+        // Add in citations from Weka model
+        output.addAll(wekaCitations);
+        
+        return output;
+    }
 }

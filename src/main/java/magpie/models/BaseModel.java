@@ -17,6 +17,7 @@ import magpie.models.regression.AbstractRegressionModel;
 import magpie.user.CommandHandler;
 import magpie.utility.UtilityOperations;
 import magpie.utility.interfaces.*;
+import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * Base class for any model. 
@@ -87,7 +88,7 @@ import magpie.utility.interfaces.*;
  * @version 1.0
  */
 abstract public class BaseModel implements java.io.Serializable, java.lang.Cloneable, 
-        Options, Printable, Commandable, Savable {
+        Options, Printable, Commandable, Savable, Citable {
     /** Records whether model has been trained */
     protected boolean trained=false;
     /** Records whether model has been validated */
@@ -644,5 +645,24 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                 throw new Exception("Format not recognized: " + Format);
         }
     }
+
+    @Override
+    public List<Pair<String, Citation>> getCitations() {
+        // Initialize output
+        List<Pair<String, Citation>> output = new ArrayList<>();
         
+        // Add attributes dealing with attribute selector
+        if (AttributeSelector instanceof Citable) {
+            Citable intf = (Citable) AttributeSelector;
+            output.addAll(intf.getCitations());
+        }
+        
+        // Add attributes dealing with normalizer
+        if (Normalizer instanceof Citable) {
+            Citable intf = (Citable) Normalizer;
+            output.addAll(intf.getCitations());
+        }
+        
+        return output;
+    }
 }

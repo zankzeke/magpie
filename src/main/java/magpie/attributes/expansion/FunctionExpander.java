@@ -1,9 +1,14 @@
 package magpie.attributes.expansion;
 
+import java.net.URL;
 import java.util.*;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.utility.ParsedFunction;
+import magpie.utility.interfaces.Citable;
+import magpie.utility.interfaces.Citation;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.math3.util.Combinations;
 import org.apache.commons.math3.util.CombinatoricsUtils;
 
@@ -25,7 +30,7 @@ import org.apache.commons.math3.util.CombinatoricsUtils;
  * @author Logan Ward
  * @see ParsedFunction
  */
-public class FunctionExpander extends BaseAttributeExpander {
+public class FunctionExpander extends BaseAttributeExpander implements Citable {
     /** List of functions */
     final private List<ParsedFunction> Functions = new LinkedList<>();
 
@@ -121,5 +126,19 @@ public class FunctionExpander extends BaseAttributeExpander {
             e.reduceMemoryFootprint();
         }
     }
-    
+
+    @Override
+    public List<Pair<String, Citation>> getCitations() {
+        List<Pair<String,Citation>> output = new LinkedList<>();
+        Citation citation = new Citation(this.getClass(),
+                "Article",
+                new String[]{"L. Ghiringhelli", "et al."},
+                "Big Data of Materials Science: Critical Role of the Descriptor",
+                "http://link.aps.org/doi/10.1103/PhysRevLett.114.105503",
+                null
+            );
+        output.add(new ImmutablePair<>("Introduced idea of combining attributes with"
+                + " simple functions.", citation));
+        return output;
+    }
 }

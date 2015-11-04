@@ -23,11 +23,14 @@ import magpie.optimization.rankers.BaseEntryRanker;
 import static magpie.user.CommandHandler.instantiateClass;
 import static magpie.user.CommandHandler.printImplmentingClasses;
 import magpie.utility.UtilityOperations;
+import magpie.utility.interfaces.Citable;
+import magpie.utility.interfaces.Citation;
 import magpie.utility.interfaces.Commandable;
 import magpie.utility.interfaces.Options;
 import magpie.utility.interfaces.Printable;
 import magpie.utility.interfaces.Savable;
 import org.apache.commons.collections.Predicate;
+import org.apache.commons.lang3.tuple.Pair;
 import weka.core.converters.ArffLoader;
 
 /**
@@ -223,7 +226,7 @@ import weka.core.converters.ArffLoader;
  * @version 0.1
  */
 public class Dataset extends java.lang.Object implements java.io.Serializable,
-        java.lang.Cloneable, Printable, Savable, Options, Commandable {
+        java.lang.Cloneable, Printable, Savable, Options, Commandable, Citable {
 
     /**
      * Names of attributes that describe each entry
@@ -1588,6 +1591,30 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         }
         
         // Print out attribute expanders
+        return output;
+    }
+
+    @Override
+    public List<Pair<String, Citation>> getCitations() {
+        // Initialize output
+        List<Pair<String, Citation>> output = new ArrayList<>();
+        
+        // Get citations from attribute generators
+        for (BaseAttributeGenerator gen : Generators) {
+            if (gen instanceof Citable) {
+                Citable itf = (Citable) gen;
+                output.addAll(itf.getCitations());
+            }
+        }
+        
+        // Get citations from attribute expanders
+        for (BaseAttributeExpander exp : Expanders) {
+            if (exp instanceof Citable) {
+                Citable itf = (Citable) exp;
+                output.addAll(itf.getCitations());
+            }
+        }
+        
         return output;
     }
     

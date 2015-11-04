@@ -21,8 +21,7 @@ import org.apache.commons.lang3.tuple.Pair;
  * <p>Some objects may require several distinct citations or composed of several
  * other objects (ex: a {@linkplain Dataset} may have several {@linkplain BaseAttributeGenerator}).
  * For that reason, the {@linkplain #getCitations() } commands returns a list
- * of citations. Those from a subcomponent should be listed last, and have 
- * the name of that class listed before the reason. 
+ * of citations. Those from a subcomponent should be listed last. 
  * 
  * <p>For example, a {@linkplain CompositionDataset} that uses {@linkplain ValenceShellAttributeGenerator}
  * should cite the paper by <a href="http://journals.aps.org/prb/abstract/10.1103/PhysRevB.89.094104">
