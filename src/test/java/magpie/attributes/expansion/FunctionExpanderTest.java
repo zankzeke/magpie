@@ -2,7 +2,9 @@ package magpie.attributes.expansion;
 
 import java.util.*;
 import magpie.data.Dataset;
+import magpie.utility.interfaces.Citation;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -66,4 +68,18 @@ public class FunctionExpanderTest {
         expdr.setOptions(options);
     }
     
+    @Test
+    public void citableTest() {
+        // Make a copy of this object
+        FunctionExpander o = new FunctionExpander();
+        
+        // Get the citation and print to make sure it looks right
+        List<Pair<String,Citation>> cite = o.getCitations();
+        
+        // Print out it to screen
+        for (Pair<String,Citation> c : cite) {
+            System.out.println(c.getKey());
+            System.out.println(c.getValue().printInformation());
+        }
+    }
 }

@@ -50,8 +50,14 @@ public class DatasetTest {
         
         // Test addition
         data1.addEntries(data2, false);
+
+        //   Via command-line interface
+        List<Object> command = new ArrayList<>();
+        command.add("add");
+        command.add(data2);
+        data1.runCommand(command);
         
-        assertEquals(2, data1.NEntries());
+        assertEquals(3, data1.NEntries());
         assertEquals(1, data2.NEntries());
         assertEquals(1, data1.NAttributes());
         assertEquals(1, data1.getEntry(0).getAttribute(0), 1e-6);
@@ -71,13 +77,10 @@ public class DatasetTest {
         }
         
         assertTrue(except);
-        assertEquals(2, data1.NEntries());
+        assertEquals(3, data1.NEntries());
         
         //    Via command-line interface
         except = false;
-        List<Object> command = new ArrayList<>();
-        command.add("add");
-        command.add(data2);
         try {
             data1.runCommand(command);
         } catch (Exception e) {
@@ -85,32 +88,32 @@ public class DatasetTest {
         }
         
         assertTrue(except);
-        assertEquals(2, data1.NEntries());
+        assertEquals(3, data1.NEntries());
         
         // Try again with force turned on
         data1.addEntries(data2, true);
         
-        assertEquals(3, data1.NEntries());
-        assertEquals(0, data1.getEntry(2).NAttributes()); // Attribute were deleted
-        assertEquals(-1, data1.getEntry(2).getMeasuredClass(), 1e-6); // Class unaffected
+        assertEquals(4, data1.NEntries());
+        assertEquals(0, data1.getEntry(3).NAttributes()); // Attribute were deleted
+        assertEquals(-1, data1.getEntry(3).getMeasuredClass(), 1e-6); // Class unaffected
         
         //    Via command-line interface
         command.add("-force");
         data1.runCommand(command);
         
-        assertEquals(4, data1.NEntries());
-        assertEquals(0, data1.getEntry(3).NAttributes()); // Attribute were deleted
-        assertEquals(-1, data1.getEntry(3).getMeasuredClass(), 1e-6); // Class unaffected
+        assertEquals(5, data1.NEntries());
+        assertEquals(0, data1.getEntry(4).NAttributes()); // Attribute were deleted
+        assertEquals(-1, data1.getEntry(4).getMeasuredClass(), 1e-6); // Class unaffected
         
         // Make data2 have two classes
         data2.setClassNames(new String[]{"Yes", "No"});
         
         data1.addEntries(data2, true);
         
-        assertEquals(5, data1.NEntries());
+        assertEquals(6, data1.NEntries());
         assertEquals(1, data1.NClasses());
-        assertEquals(0, data1.getEntry(4).NAttributes()); // Attribute were deleted
-        assertFalse(data1.getEntry(4).hasMeasurement()); // Class was deleted
+        assertEquals(0, data1.getEntry(5).NAttributes()); // Attribute were deleted
+        assertFalse(data1.getEntry(5).hasMeasurement()); // Class was deleted
     }
     
     @Test

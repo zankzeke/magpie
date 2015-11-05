@@ -23,10 +23,13 @@ import magpie.optimization.rankers.BaseEntryRanker;
 import magpie.optimization.rankers.SimpleEntryRanker;
 import magpie.utility.UtilityOperations;
 import magpie.utility.WekaUtility;
+import magpie.utility.interfaces.Citable;
+import magpie.utility.interfaces.Citation;
 import magpie.utility.interfaces.Commandable;
 import magpie.utility.interfaces.Options;
 import magpie.utility.interfaces.Printable;
 import magpie.utility.interfaces.Savable;
+import org.apache.commons.lang3.tuple.Pair;
 
 import org.reflections.Reflections;
 
@@ -85,6 +88,8 @@ public class CommandHandler {
                 System.exit(0);
             } else if (TextCommand.get(0).equalsIgnoreCase("list")) {
                 System.out.println(Workspace.printWorkspace());
+            } else if (TextCommand.get(0).equalsIgnoreCase("citations")) {
+                printCitations(TextCommand);
             } else if (TextCommand.get(0).equalsIgnoreCase("delete")) {
                 // Delete variables from the Workspace
                 for (int i=1; i<TextCommand.size(); i++)
@@ -579,6 +584,11 @@ public class CommandHandler {
         }
     }
     
+    /**
+     * Run a command to print out variable types
+     * @param Command Commands to print types
+     * @throws Exception 
+     */
     protected void printTypes(List<String> Command) throws Exception {
         if (Command.size() != 2) 
             throw new Exception("Usage: types <object type>");
@@ -630,6 +640,77 @@ public class CommandHandler {
                 throw new Exception("Object type "+Command.get(1)+" not recognized.");
         }
         System.out.println(toPrint);
+    }
+
+    /**
+     * Run command to print out citations. First word should be "citations".
+     * If there are additional words in the command, they should be names of variables
+     * 
+     * <p><b>Usage</b>: citations [&lt;variable names...&gt;]
+     * <br><pr><i>variable names</i>: Optional: Names of variables to be printed
+     * 
+     * @param command Command to be run
+     * @throws Exception If variables are not found in workspace
+     */
+    public void printCitations(List<String> command) throws Exception {
+        // If command is only one word, print out citations for all variables
+        List<String> varToPrint;
+        if (command.size() == 1) {
+            varToPrint = new ArrayList<>(Workspace.getVariableNames());
+        } else {
+            varToPrint = command.subList(1, command.size());
+        }
+        
+        // Print out all of the variables
+        for (String varName : varToPrint) {
+            // Print out title
+            System.out.println("Suggested citations for " + varName + ":");
+            System.out.println();
+            
+            // Print out citation data
+            for (String line : getCitationDescriptions(varName)) {
+                System.out.println("\t" + line);
+            }
+            
+            // Print out an extra newline
+            System.out.println();
+        }
+    }
+    
+    /**
+     * Print out citation information associated with a single variable
+     * @param variableName Variable to be assessed
+     * @return Lines of output for 
+     */
+    public List<String> getCitationDescriptions(String variableName) throws Exception {
+        // Get the variable
+        Object var = Workspace.getObject(variableName);
+        
+        // Initialize output
+        List<String> output = new ArrayList<>();
+        
+        // Get citation information
+        if (var instanceof Citable) {
+            // Get the citations
+            Citable intf = (Citable) var;
+            List<Pair<String, Citation>> citations = intf.getCitations();
+            
+            // Format the output
+            for (Pair<String,Citation> citation : citations) {
+                // Add in reason for citation
+                output.add("Reason: " + citation.getLeft());
+                
+                // Add in the citation information
+                output.addAll(Arrays.asList(citation.getRight().printInformation().split("\n")));
+                output.add(""); // Newline
+            }
+            
+        } else {
+            // If not citable, say so
+            output.add("No citation necessary.");
+        }
+        
+        return output;
     }
     
     /**

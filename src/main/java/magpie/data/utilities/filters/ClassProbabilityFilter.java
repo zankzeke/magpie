@@ -12,8 +12,8 @@ import org.apache.commons.lang3.ArrayUtils;
  * 
  * <usage><p><b>Usage</b>: &lt;class&gt; &lt;min probability&gt;
  * <br><pr><i>class</i>: Name of class used for filtering
- * <br><pr><i>min probability</i>: Probability threshold. Any entry with a 
- * predicted probability below this threshold is filted.</usage>
+ * <br><pr><i>min probability</i>: Probability threshold. Any entry with a predicted
+ * probability of being "class" greater than this threshold is filtered </usage>
  * 
  * @author Logan Ward
  */
@@ -78,7 +78,7 @@ public class ClassProbabilityFilter extends BaseDatasetFilter {
         // Get ID of this class
         int classIndex = ArrayUtils.indexOf(D.getClassNames(), ClassName);
         if (classIndex == ArrayUtils.INDEX_NOT_FOUND) {
-            throw new Error("Data does not contain class: " + ClassName);
+            throw new RuntimeException("Data does not contain class: " + ClassName);
         }
         
         // Perform labelling

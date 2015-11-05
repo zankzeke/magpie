@@ -9,6 +9,7 @@ import magpie.utility.WekaUtility;
 import weka.attributeSelection.ASEvaluation;
 import weka.attributeSelection.ASSearch;
 import weka.core.Instances;
+import weka.core.OptionHandler;
 
 /**
  * Encapsulates Weka's ASSearch routines for attribute selection.
@@ -133,7 +134,11 @@ public class WekaAttributeSelector extends BaseAttributeSelector {
         if (! Name.startsWith("weka.attributeSelection."))
             Name = "weka.attributeSelection." + Name;
         try {
-            newObj = ASSearch.forName(Name, Options);
+            newObj = (ASSearch) Class.forName(Name).newInstance();
+            if (newObj instanceof OptionHandler) {
+                OptionHandler opt = (OptionHandler) newObj;
+                opt.setOptions(Options);
+            }
         } catch (Exception e) {
             throw new Error(e);
         }
@@ -151,7 +156,11 @@ public class WekaAttributeSelector extends BaseAttributeSelector {
         if (! Name.startsWith("weka.attributeSelection."))
             Name = "weka.attributeSelection." + Name;
         try {
-            newObj = ASEvaluation.forName(Name, Options);
+            newObj = (ASEvaluation) Class.forName(Name).newInstance();
+            if (newObj instanceof OptionHandler) {
+                OptionHandler opt = (OptionHandler) newObj;
+                opt.setOptions(Options);
+            }
         } catch (Exception e) {
             throw new Error(e);
         }

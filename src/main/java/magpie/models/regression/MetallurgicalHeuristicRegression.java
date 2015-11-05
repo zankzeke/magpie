@@ -140,6 +140,13 @@ public class MetallurgicalHeuristicRegression extends BaseRegression {
             if (FitCorrection) {
                 h = FitSlope * h + FitIntercept;
             }
+
+            // NaN occurs if an element is missing from the training dataset,
+            //   and the entry is that element
+            if (Double.isNaN(h)) {
+                h = 0.0;
+            }
+
             Ptr.getEntry(i).setPredictedClass(h);
 		}
 	}

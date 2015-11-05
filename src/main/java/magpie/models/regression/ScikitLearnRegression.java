@@ -354,13 +354,13 @@ public class ScikitLearnRegression extends BaseRegression {
             socket.close();
         } catch (Exception ex) {
             // Read python error out
-                // Do nothing
             try {
+                System.err.println("Python Error Output:");
                 BufferedReader er = new BufferedReader(
                         new InputStreamReader(ScikitServer.getErrorStream()));
                 String line = er.readLine();
                 while (line != null) {
-                    System.err.println(line);
+                    System.err.println("\t" + line);
                     line = er.readLine();
                 }
             } catch (Exception e) {
@@ -414,11 +414,12 @@ public class ScikitLearnRegression extends BaseRegression {
             socket.close();
         } catch (Exception ex) {
             try {
+                System.err.println("Python Error Output:");
                 BufferedReader er = new BufferedReader(
                         new InputStreamReader(ScikitServer.getErrorStream()));
                 String line = er.readLine();
                 while (line != null) {
-                    System.err.println(line);
+                    System.err.println("\t" + line);
                     line = er.readLine();
                 }
             } catch (Exception e) {

@@ -51,7 +51,7 @@ public class AttributeFilter extends BaseDatasetFilter {
     public void setOptions(String TargetFeature, String Criteria, String Threshold) {
         this.TargetAttribute = TargetFeature;
         try { this.Threshold = Double.parseDouble(Threshold); }
-        catch (NumberFormatException e) { throw new Error("Error parsing Threshold: " + e); }
+        catch (NumberFormatException e) { throw new RuntimeException("Error parsing Threshold: " + e); }
         switch(Criteria.toLowerCase()) {
             case "eq": case "=": case "==":
                 Equal = true; GreaterThan = false; LessThan = false; break;
