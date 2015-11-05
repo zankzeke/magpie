@@ -71,3 +71,8 @@ jar {
     // Package it with dependencies
     from configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
 }
+
+// Javadoc instructions
+javadoc {
+    destinationDir = new File('javadoc')
+}
