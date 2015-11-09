@@ -1,5 +1,7 @@
 package magpie.models.regression;
 
+import java.util.ArrayList;
+import java.util.List;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
@@ -29,11 +31,20 @@ public class MultiObjectiveRegressionTest extends BaseModelTest {
         MultiObjectiveRegression model = new MultiObjectiveRegression();
        
         try {
-            model.setObjectiveFunction(obj);
+            // Create options
+            List options = new ArrayList();
+            options.add("?");
+            
+            model.setOptions(options);
+            
+            options.set(0, "PropertyFormulaRanker");
+            options.add("#{delta_e} / #{volume_pa}");
+            
+            model.setOptions(options);
        
             // Set models
-            model.setModel("delta_e", new WekaRegression("trees.REPTree", null));
-            model.setModel("volume_pa", new WekaRegression());
+            model.setModel("delta_e", new GuessMeanRegression());
+            model.setModel("volume_pa", new GuessMeanRegression());
         } catch (Exception e) {
             throw new Error(e);
         }

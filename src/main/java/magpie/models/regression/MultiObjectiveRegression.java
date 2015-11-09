@@ -95,6 +95,10 @@ public class MultiObjectiveRegression extends BaseRegression {
             x.Models.put(prop, model.clone());
         }
         x.ObjFunction = ObjFunction.clone();
+        
+        if (GenericModel != null) {
+            x.GenericModel = GenericModel.clone();
+        }
         return x;
     }
 	
