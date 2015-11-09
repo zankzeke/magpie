@@ -341,12 +341,25 @@ public class MultiPropertyDataset extends Dataset {
 	public int getPropertyClassCount(int index) {
 		return PClassNames.get(index).length;
 	}
+    
+    /**
+     * Check whether dataset contains a certain property
+     * @param name Name of property
+     * @return Whether that property is known
+     */
+    public boolean hasProperty(String name) {
+        return PNames.contains(name);
+    }
 
     /**
      * Define all known properties for a dataset. Removes duplicates
+     * 
      * <p>Note: This does <b>not</b> mean that the entries will recognize all of these properties. 
      * You must run either {@link MultiPropertyEntry#addProperty(double)} or
      * {@link MultiPropertyEntry#setMeasuredProperties(double[])}.
+     * 
+     * <p>Note: Order of properties may be changed
+     * 
      * @param names Names of properties
      */
     public void definePropertyNames(String[] names) {
@@ -366,7 +379,7 @@ public class MultiPropertyDataset extends Dataset {
         if (Index != -1) {
             setTargetProperty(Index, keepUnmeasured);
         } else {
-            throw new Error("Property " + Property + " not found");
+            throw new RuntimeException("Property " + Property + " not found");
         }
     }
 
@@ -419,6 +432,7 @@ public class MultiPropertyDataset extends Dataset {
         // Clear property entries
         for (BaseEntry e : Entries) {
             MultiPropertyEntry ptr = (MultiPropertyEntry) e;
+            ptr.clearPropertyData();
         }
         
         // Set target property to default class variable
