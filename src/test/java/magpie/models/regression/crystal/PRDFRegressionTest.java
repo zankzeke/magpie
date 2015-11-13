@@ -1,5 +1,7 @@
 package magpie.models.regression.crystal;
 
+import java.util.ArrayList;
+import java.util.List;
 import magpie.data.materials.AtomicStructureEntry;
 import magpie.data.materials.CrystalStructureDataset;
 import org.junit.Test;
@@ -67,6 +69,63 @@ public class PRDFRegressionTest {
         // Train a model
         PRDFRegression r = new PRDFRegression();
         r.train(dataset);
+    }
+    
+    @Test
+    public void testSimilarityMatcher() throws Exception {
+        // Make a dataset with B2 AlNi, FeNi, and FeZr
+        CrystalStructureDataset data = new CrystalStructureDataset();
+        
+        Cell strc = new Cell();
+        strc.addAtom(new Atom(new double[]{0,0,0}, 0));
+        strc.addAtom(new Atom(new double[]{0.5,0.5,0.5}, 1));
+        strc.setTypeName(0, "Al");
+        strc.setTypeName(1, "Ni");
+        AtomicStructureEntry entry = new AtomicStructureEntry(strc, "AlNi", null);
+        data.addEntry(entry);
+        
+        strc = strc.clone();
+        strc.setTypeName(0, "Fe");
+        entry = new AtomicStructureEntry(strc, "FeNi", null);
+        data.addEntry(entry);
+        
+        strc = strc.clone();
+        strc.setTypeName(1, "Zr");
+        entry = new AtomicStructureEntry(strc, "FeZr", null);
+        data.addEntry(entry);
+        
+        // Assign fake class values
+        data.setMeasuredClasses(new double[]{-1,1,2});
+        
+        // Train PRDF model
+        PRDFRegression prdf = new PRDFRegression();
+        prdf.setCutoff(2.0);
+        prdf.train(data);
+        
+        // Find the closest entries to FeZr
+        List<String> matches = prdf.findClosestEntries(entry, 2);
+        
+        // Test results
+        assertEquals(2, matches.size());
+        assertEquals("FeZr", matches.get(0));
+        assertEquals("FeNi", matches.get(1));
+        
+        // Find the closest entries to AlNi
+        System.out.println(data.getEntry(0).toString());
+        matches = prdf.findClosestEntries(data.getEntry(0), 2);
+        
+        // Test results
+        assertEquals(2, matches.size());
+        assertEquals("AlNi", matches.get(0));
+        assertEquals("FeNi", matches.get(1));
+        
+        // Run through the command line interface
+        List<Object> command = new ArrayList<>();
+        command.add("match");
+        command.add(data);
+        command.add(2);
+        
+        prdf.runCommand(command);
     }
     
 }
