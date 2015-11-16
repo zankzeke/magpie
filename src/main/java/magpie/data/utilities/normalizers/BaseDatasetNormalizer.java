@@ -27,11 +27,10 @@ import magpie.utility.interfaces.*;
  * 
  * <p><b><u>Implemented Commands:</u></b>
  * 
- * <command><p><b>normalize [attributes] [class] $&lt;dataset&gt;</b> - Normalize attributes of a dataset
- * <pr><br><i>attributes</i>: Normalize attributes
- * <pr><br><i>class</i>: Normalize class variable
+ * <command><p><b>normalize $&lt;dataset&gt;</b> - Normalize attributes and/or class variable of a dataset
  * <pr><br><i>dataset</i>: Dataset to be normalized
- * <br>Will train normalizer if needed.</command>
+ * <br>Must be trained first
+ * </command>
  * 
  * <command><p><b>restore $&lt;dataset&gt;</b> - Restore attributes from normalized
  *  to original ranges
@@ -143,15 +142,14 @@ abstract public class BaseDatasetNormalizer
     abstract protected void trainOnMeasuredClass(Dataset Data);
     
     /**
-     * Transform attributes from original to standardized range. If the normalize has
-     *  not been trained, it will train the normalizer on the provided dataset.
+     * Transform attributes from original to standardized range. 
      * 
      * @param Data Dataset to be transformed
      */
     public void normalize(Dataset Data) {
         // Check if it is trained
         if (!isTrained()) {
-            train(Data);
+            throw new RuntimeException("Normalizer not trained");
         }
         
         // Check if attributes are different
@@ -190,7 +188,7 @@ abstract public class BaseDatasetNormalizer
     public void restore(Dataset Data) {
         // If it isn't trained, throw an error
         if (!isTrained()) {
-            throw new Error("Normalizer has not been trained.");
+            throw new RuntimeException("Normalizer has not been trained.");
         }
         
         // Check if attributes are different
@@ -229,6 +227,7 @@ abstract public class BaseDatasetNormalizer
         double[][] before = Data.getEntryArray();
         setToNormalizeAttributes(true);
         setToNormalizeClass(true);
+        train(Data);
         normalize(Data);
         restore(Data);
         double[][] after = Data.getEntryArray();
@@ -274,24 +273,11 @@ abstract public class BaseDatasetNormalizer
         switch (Action.toLowerCase()) {
             case "normalize": {
                 Dataset Data;
-                boolean doAttributes = false, doClass = false;
                 try {
-                    for (int i=1; i<Command.size()-1; i++) {
-                        String word = Command.get(i).toString().toLowerCase();
-                        if (word.startsWith("attr")) {
-                            doAttributes = true;
-                        } else if (word.startsWith("clas")) {
-                            doClass = true;
-                        } else {
-                            throw new Exception();
-                        }
-                    }
-                    Data = (Dataset) Command.get(Command.size() - 1);
+                    Data = (Dataset) Command.get(1);
                 } catch (Exception e) {
-                    throw new Exception("Usage: normalize [attributes] [class] $<dataset>");
+                    throw new Exception("Usage: normalize $<dataset>");
                 }
-                setToNormalizeAttributes(doAttributes);
-                setToNormalizeClass(doClass);
                 normalize(Data);
             } break;
             case "restore": {
@@ -321,9 +307,26 @@ abstract public class BaseDatasetNormalizer
                 } catch (Exception e) {
                     throw new Exception("Usage: train [attributes] [class] $<dataset>");
                 }
+                
+                // Define settings
+                if (! (doAttributes || doClass)) {
+                    throw new Exception("Must train attributes or class.");
+                }
                 setToNormalizeAttributes(doAttributes);
                 setToNormalizeClass(doClass);
+                
+                // Run training
                 train(Data);
+                
+                // Print out status
+                String wasTrained;
+                if (doAttributes && doClass) {
+                    wasTrained = "attributes and class";
+                } else {
+                    wasTrained = doAttributes ? "attributes" : "class";
+                }
+                System.out.println("\tTrained to normalize " + wasTrained 
+                        + " using " + Data.NEntries() + " entries");
             } break;
             case "test": {
                 Dataset Data;
