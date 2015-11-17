@@ -35,4 +35,20 @@ public class AtomicStructureEntryTest {
         assertEquals(0.5, NiZr.getElementFraction("Ni"), 1e-6);
     }
     
+    @Test
+    public void testToString() throws Exception {
+        // Make B2-CuZr
+        Cell cell = new Cell();
+        cell.addAtom(new Atom(new double[]{0,0,0}, 0));
+        cell.addAtom(new Atom(new double[]{0.5,0.5,0.5}, 1));
+        cell.setTypeName(0, "Cu");
+        cell.setTypeName(1, "Zr");
+        AtomicStructureEntry CuZr = new AtomicStructureEntry(cell, "B2", null);
+        
+        // Get name
+        String name = CuZr.toString();
+        System.out.println(name);
+        assertTrue(name.contains("ZrCu"));
+        assertTrue(name.contains("B2"));
+    }
 }
