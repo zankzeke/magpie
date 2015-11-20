@@ -1,4 +1,4 @@
-package magpie.attributes.expansion;
+package magpie.attributes.expanders;
 
 import java.util.ArrayList;
 import java.util.Arrays;
