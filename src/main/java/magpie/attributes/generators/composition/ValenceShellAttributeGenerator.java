@@ -100,8 +100,8 @@ public class ValenceShellAttributeGenerator extends BaseAttributeGenerator
                 "http://link.aps.org/doi/10.1103/PhysRevB.89.094104",
                 null
             );
-        output.add(new ImmutablePair<>("Using valence shell fraction originally "
-                + "demonstrated in this work.", citation));
+        output.add(new ImmutablePair<>("Introduced using fraction of electrion in "
+                + "each valence shell as an attribute", citation));
         return output;
 
     }
