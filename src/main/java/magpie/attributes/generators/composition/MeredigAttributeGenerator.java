@@ -141,8 +141,8 @@ public class MeredigAttributeGenerator extends BaseAttributeGenerator
                 "http://link.aps.org/doi/10.1103/PhysRevB.89.094104",
                 null
             );
-        output.add(new ImmutablePair<>("Used these attributes to predict the "
-                + "formation enthalpy of tenary crystalline compounds.", citation));
+        output.add(new ImmutablePair<>("Using attributes developed by these authors to predict the "
+                + "formation enthalpy of ternary crystalline compounds.", citation));
         return output;
     }
 }
