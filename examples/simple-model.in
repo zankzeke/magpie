@@ -24,6 +24,7 @@ model crossvalidate $data 10
 // Print out training statistics
 print model validation stats
 
-// Print out citations
+// Print out suggested citations
 citations
+
 exit

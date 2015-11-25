@@ -22,7 +22,7 @@ public class CommandHandlerTest {
                 new String[]{"x", "=", "new", "models.regression.WekaRegression", "trees.M5P"}
         ));
         handler.runCommand(Arrays.asList(
-                new String[]{"y", "=", "new", "attributes.expansion.CrossExpander"}
+                new String[]{"y", "=", "new", "attributes.expanders.CrossExpander"}
         ));
         
         // Check that we indeed have two variables

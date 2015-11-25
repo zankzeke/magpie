@@ -13,7 +13,7 @@ import java.util.concurrent.Future;
 import javax.naming.OperationNotSupportedException;
 import magpie.Magpie;
 import magpie.attributes.evaluators.BaseAttributeEvaluator;
-import magpie.attributes.expansion.BaseAttributeExpander;
+import magpie.attributes.expanders.BaseAttributeExpander;
 import magpie.attributes.generators.BaseAttributeGenerator;
 import magpie.data.utilities.DatasetOutput;
 import magpie.data.utilities.filters.BaseDatasetFilter;
@@ -408,7 +408,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      *
      * @return List of attribute expanders
      * @see
-     * #addAttribueExpander(magpie.attributes.expansion.BaseAttributeExpander)
+     * #addAttribueExpander(magpie.attributes.expanders.BaseAttributeExpander)
      */
     public List<BaseAttributeExpander> getAttributeExpanders() {
         return new LinkedList<>(Expanders);
@@ -2187,7 +2187,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 } catch (Exception e) {
                     throw new Exception("Usage: <dataset> expand <method> <options...>");
                 }
-                BaseAttributeExpander expander = (BaseAttributeExpander) instantiateClass("attributes.expansion." + Method, Options);
+                BaseAttributeExpander expander = (BaseAttributeExpander) instantiateClass("attributes.expanders." + Method, Options);
                 addAttribueExpander(expander);
                 System.out.println("\tAdded a " + Method + " to list of attribute expanders");
                 break;

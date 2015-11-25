@@ -1,7 +1,10 @@
 package magpie.attributes.generators.composition;
 
+import java.util.List;
 import magpie.attributes.generators.composition.ValenceShellAttributeGenerator;
 import magpie.data.materials.CompositionDataset;
+import magpie.utility.interfaces.Citation;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -43,6 +46,15 @@ public class ValenceShellAttributeGeneratorTest {
         
         // Test description
         System.out.println(gen.printDescription(true));
+        
+        // Get the citation and print to make sure it looks right
+        List<Pair<String,Citation>> cite = gen.getCitations();
+        
+        // Print out it to screen
+        for (Pair<String,Citation> c : cite) {
+            System.out.println(c.getKey());
+            System.out.println(c.getValue().printInformation());
+        }
     }
     
 }

@@ -1,4 +1,4 @@
-package magpie.attributes.expansion;
+package magpie.attributes.expanders;
 
 import java.io.Serializable;
 import magpie.data.Dataset;
