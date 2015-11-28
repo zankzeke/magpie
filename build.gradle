@@ -35,6 +35,7 @@ dependencies {
     compile name: 'commons-collections-3.2.1'
     compile name: 'commons-lang3-3.1'
     compile name: 'commons-math3-3.3'
+    compile name: 'commons-io-2.4'
     compile name: 'expr'
     compile name: 'guava-16.0.1'
     compile name: 'javassist'
@@ -52,6 +53,7 @@ dependencies {
     compile name: 'slf4j-api-1.7.6'
     compile name: 'slf4j-nop-1.7.6'
     compile name: 'weka'
+    compile name: 'Vassal'
 }
 
 // Distribution instructions
