@@ -8,6 +8,7 @@ import magpie.data.materials.AtomicStructureEntry;
 import magpie.data.materials.CrystalStructureDataset;
 import magpie.data.materials.util.LookupData;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.math3.stat.StatUtils;
 import vassal.analysis.VoronoiCellBasedAnalysis;
 
@@ -21,18 +22,21 @@ import vassal.analysis.VoronoiCellBasedAnalysis;
  * \(p_{atom}\) the the elemental property of the central atom, and 
  * \(p_n\) is the elemental property of the neighbor atom.
  * 
- * <p>By default, this class considers the 1st and 2nd nearest neighbor shells.
- * For shells past the 1st nearest neighbor shell, the neighbors are identified
+ * <p>For shells past the 1st nearest neighbor shell, the neighbors are identified
  * by finding all of the unique faces on the outside of the polyhedron formed by 
  * the previous neighbor shell. This list of faces will faces corresponding to all 
  * of the atoms in the desired shell and the total weight for each atom is
  * defined by the total area of the faces corresponding to that atom (there
  * may be more than one).
+ *
+ * <p>By default, this class considers the only the 1st nearest neighbor shell.
  * 
  * <p>This parameter is computed for all elemental properties stored in 
  * {@linkplain CrystalStructureDataset#ElementalProperties}.
  * 
- * <usage><p><b>Usage</b>: *No options*</usage>
+ * <usage><p><b>Usage</b>: &lt;shells...&gt;
+ * <br><pr><i>shells</i>: Which nearest neighbor shells to consider
+ * </usage>
  * 
  * @author Logan Ward
  */
@@ -51,7 +55,6 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
      */
     public LocalPropertyDifferenceAttributeGenerator() {
         Shells.add(1);
-        Shells.add(2);
     }
     
     /**
@@ -154,6 +157,10 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
             
             // Loop through each shell
             for (Integer shell : Shells) {
+                // Get face information for each shell
+                Pair<int[][], double[][]> faceInfo = 
+                        voro.getExtendedFaceInformation(shell - 1);
+                
                 // Loop through each elemental property
                 for (String prop : ElementalProperties) {
                     // Get properties for elements in this structure
@@ -168,7 +175,7 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
                     }
 
                     // Compute neighbor differences
-                    double[] neighDiff = getAtomProperties(voro, propValues, shell);
+                    double[] neighDiff = getAtomProperties(voro, faceInfo, propValues);
 
                     // Compute statistics
                     temp[pos++] = StatUtils.mean(neighDiff);
@@ -196,20 +203,18 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
      * <p>For {@linkplain LocalPropertyDifferenceAttributeGenerator}, this 
      * produces the local property difference for each atom.
      * @param voro Voronoi tessellation
+     * @param faceInfo Areas and types on outside of each face for desired shell. Computed
+     * using {@linkplain VoronoiCellBasedAnalysis#getExtendedFaceInformation(int)}
      * @param propValues Properties of each atom type
-     * @param shell Desired shell
      * @return Properties of each atom
      */
     protected double[] getAtomProperties(VoronoiCellBasedAnalysis voro,
-            double[] propValues,
-            Integer shell) {
+            Pair<int[][],double[][]> faceInfo,
+            double[] propValues) {
         // Compute the neighbor differences for each atom
         double[] neighDiff;
-        try {
-            neighDiff = voro.neighborPropertyDifferences(propValues, shell);
-        } catch (Exception e) {
-            throw new Error(e);
-        }
+        neighDiff = voro.neighborPropertyDifferences(propValues,
+                faceInfo.getRight(), faceInfo.getLeft());
         return neighDiff;
     }
 

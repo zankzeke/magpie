@@ -1,5 +1,6 @@
 package magpie.attributes.generators.crystal;
 
+import org.apache.commons.lang3.tuple.Pair;
 import vassal.analysis.VoronoiCellBasedAnalysis;
 
 /**
@@ -29,7 +30,10 @@ public class LocalPropertyVarianceAttributeGenerator
     }    
 
     @Override
-    protected double[] getAtomProperties(VoronoiCellBasedAnalysis voro, double[] propValues, Integer shell) {
-        return voro.neighborPropertyVariances(propValues, shell);
+    protected double[] getAtomProperties(VoronoiCellBasedAnalysis voro, Pair<int[][], double[][]> faceInfo, double[] propValues) {
+        return voro.neighborPropertyVariances(propValues, faceInfo.getRight(),
+                faceInfo.getLeft());
     }
+
+    
 }

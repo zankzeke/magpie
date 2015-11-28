@@ -190,5 +190,10 @@ public class AtomicStructureEntry extends CompositionEntry {
         clearRepresentations();
         super.reduceMemoryFootprint(); 
     }
-    
+
+    @Override
+    public String toString() {
+        String comp = super.toString();
+        return Name + ":" + comp;
+    }
 }
