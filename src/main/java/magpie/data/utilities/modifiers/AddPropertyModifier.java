@@ -10,7 +10,7 @@ import magpie.data.MultiPropertyEntry;
 /**
  * Adds properties to a {@linkplain MultiPropertyDataset}.
  * 
- * <usage><p><b>Usage</b>: &lt;properties to add&gt;
+ * <usage><p><b>Usage</b>: &lt;properties to add...&gt;
  * <br><pr><i>properties</i>: List of properties to add to dataset</usage>
  * @author Logan Ward
  */
@@ -32,8 +32,6 @@ public class AddPropertyModifier extends BaseDatasetModifier {
 		return "Usage: <property names..>";
 	}
 	
-	
-
 	/**
 	 * Define list of properties to add to a dataset.
 	 * @param ToAdd List of property names
@@ -53,7 +51,7 @@ public class AddPropertyModifier extends BaseDatasetModifier {
 	@Override
 	protected void modifyDataset(Dataset Data) {
 		if (! (Data instanceof MultiPropertyDataset)) {
-			throw new Error("Data must implement MultiPropertyDataset");
+			throw new RuntimeException("Data must implement MultiPropertyDataset");
 		}
 		
 		MultiPropertyDataset ptr = (MultiPropertyDataset) Data;

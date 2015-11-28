@@ -1,5 +1,6 @@
-package magpie.attributes.expansion;
+package magpie.attributes.expanders;
 
+import magpie.attributes.expanders.FunctionExpander;
 import java.util.*;
 import magpie.data.Dataset;
 import magpie.utility.interfaces.Citation;

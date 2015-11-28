@@ -237,6 +237,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         
         // Perform normalization, if desired
         if (Normalizer != null) {
+            Normalizer.train(data);
             Normalizer.normalize(trainingData);
         }
         

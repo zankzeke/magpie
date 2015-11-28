@@ -1,11 +1,9 @@
-
 package magpie.data.utilities.modifiers;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -18,24 +16,32 @@ import magpie.data.utilities.filters.CompositionSetDistanceFilter;
 
 /**
  * Compute the distance of composition from those in a user-supplied dataset,
- *  store as a property. Distance is defined as the minimum distance of a composition
- *  from the composition of any entry in another dataset.
- * 
- * <p>Name of the new property is compdistance
- * 
- * <usage><p><b>Usage</b>: $&lt;dataset&gt; &lt;p norm&gt;
- * <br><pr><i>dataset</i>: {@linkplain CompositionDataset} from which to measure distance
+ * store as a property. Distance is defined as the minimum distance of a
+ * composition from the composition of any entry in another dataset.
+ *
+ * <p>
+ * Name of the new property is compdistance
+ *
+ * <usage><p>
+ * <b>Usage</b>: $&lt;dataset&gt; &lt;p norm&gt;
+ * <br><pr><i>dataset</i>: {@linkplain CompositionDataset} from which to measure
+ * distance
  * <br><pr><i>p norm</i>: P norm to use when computing distance</usage>
- * 
+ *
  * @author Logan Ward
  * @see CompositionSetDistanceFilter
  */
 public class CompositionSetDistanceModifier extends BaseDatasetModifier {
-    /** Set of compositions to consider */
-    private final Set<CompositionEntry> Compositions = new TreeSet<>();
-    /** P-norm to use when computing distance (default: 2) */
+
+    /**
+     * Set of compositions to consider
+     */
+    protected final Set<CompositionEntry> Compositions = new TreeSet<>();
+    /**
+     * P-norm to use when computing distance (default: 2)
+     */
     private int P = 2;
-    
+
     @Override
     public void setOptions(List<Object> Options) throws Exception {
         CompositionDataset data;
@@ -46,7 +52,7 @@ public class CompositionSetDistanceModifier extends BaseDatasetModifier {
         } catch (Exception e) {
             throw new Exception(printUsage());
         }
-        
+
         // Set options
         setCompositions(data);
         setP(norm);
@@ -56,16 +62,17 @@ public class CompositionSetDistanceModifier extends BaseDatasetModifier {
     public String printUsage() {
         return "Usage: $<compositions> <p norm>";
     }
-    
+
     /**
      * Clear the list of compositions in set
      */
     public void clearCompositions() {
         Compositions.clear();
     }
-    
+
     /**
      * Add a new composition to the dataset.
+     *
      * @param entry Entry to be added
      */
     public void addComposition(CompositionEntry entry) {
@@ -77,9 +84,10 @@ public class CompositionSetDistanceModifier extends BaseDatasetModifier {
             throw new Error(e);
         }
     }
-    
+
     /**
      * Add a list of compositions to the set
+     *
      * @param comps Collection of compositions to be added
      */
     public void addCompositions(Collection<CompositionEntry> comps) {
@@ -87,9 +95,10 @@ public class CompositionSetDistanceModifier extends BaseDatasetModifier {
             addComposition(comp);
         }
     }
-    
+
     /**
      * Set the list of compositions to be considered
+     *
      * @param data Dataset containing compositions to use as dataset
      */
     public void setCompositions(CompositionDataset data) {
@@ -102,6 +111,7 @@ public class CompositionSetDistanceModifier extends BaseDatasetModifier {
 
     /**
      * Set the p-norm to use when computing distance between compositions.
+     *
      * @param P Desired p norm. Use -1 for <i>L<sub>inf</sub></i> norm.
      * @throws Exception If p &lt; 0 && p != -1.
      */
@@ -111,19 +121,22 @@ public class CompositionSetDistanceModifier extends BaseDatasetModifier {
         }
         this.P = P;
     }
-	
-	@Override
-	protected void modifyDataset(Dataset Data) {
-		if (! (Data instanceof CompositionDataset)) {
-			throw new Error("Data must extend CompositionDataset");
-		}
-		CompositionDataset p = (CompositionDataset) Data;
-		
-		// Add property to dataset
-		p.addProperty("compdistance");
-        
+
+    @Override
+    protected void modifyDataset(Dataset Data) {
+        if (!(Data instanceof CompositionDataset)) {
+            throw new RuntimeException("Data must extend CompositionDataset");
+        }
+        CompositionDataset p = (CompositionDataset) Data;
+
+        // Add property to dataset, if needed
+        final int propID = p.getPropertyIndex("compdistance");
+        if (propID == -1) {
+            p.addProperty("compdistance");
+        }
+
         // Check if large enough to consider parallelization
-        if (p.NEntries() > 2000) {
+        if (p.NEntries() > 2000 && Magpie.NThreads > 1) {
             // Split the dataset for threading
             Dataset[] threads = Data.splitForThreading(Magpie.NThreads);
 
@@ -136,13 +149,18 @@ public class CompositionSetDistanceModifier extends BaseDatasetModifier {
                         for (BaseEntry ptr : part.getEntries()) {
                             CompositionEntry e = (CompositionEntry) ptr;
                             double x = CompositionSetDistanceFilter.computeDistance(Compositions, e, P);
-                            e.addProperty(x, x);
+                            if (propID == -1) {
+                                e.addProperty(x, x);
+                            } else {
+                                e.setMeasuredProperty(propID, x);
+                                e.setPredictedProperty(propID, x);
+                            }
                         }
                     }
                 };
                 service.submit(thread);
             }
-            
+
             // Wait for results
             service.shutdown();
             try {
@@ -155,9 +173,14 @@ public class CompositionSetDistanceModifier extends BaseDatasetModifier {
             for (BaseEntry ptr : p.getEntries()) {
                 CompositionEntry e = (CompositionEntry) ptr;
                 double x = CompositionSetDistanceFilter.computeDistance(Compositions, e, P);
-                e.addProperty(x, x);
+                if (propID == -1) {
+                    e.addProperty(x, x);
+                } else {
+                    e.setMeasuredProperty(propID, x);
+                    e.setPredictedProperty(propID, x);
+                }
             }
         }
-	}
-	
+    }
+
 }

@@ -13,7 +13,7 @@ import java.util.concurrent.Future;
 import javax.naming.OperationNotSupportedException;
 import magpie.Magpie;
 import magpie.attributes.evaluators.BaseAttributeEvaluator;
-import magpie.attributes.expansion.BaseAttributeExpander;
+import magpie.attributes.expanders.BaseAttributeExpander;
 import magpie.attributes.generators.BaseAttributeGenerator;
 import magpie.data.utilities.DatasetOutput;
 import magpie.data.utilities.filters.BaseDatasetFilter;
@@ -30,7 +30,9 @@ import magpie.utility.interfaces.Options;
 import magpie.utility.interfaces.Printable;
 import magpie.utility.interfaces.Savable;
 import org.apache.commons.collections.Predicate;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.math3.ml.distance.DistanceMeasure;
 import weka.core.converters.ArffLoader;
 
 /**
@@ -106,6 +108,13 @@ import weka.core.converters.ArffLoader;
  * <br><pr><i>method</i>: Name of a {@linkplain BaseEntryGenerator}. ("?" for
  * options)
  * <br><pr><i>options</i>: Any options for the entry generator</command>
+ * 
+ * <command><p>
+ * <b>match $&lt;dataset&gt; &lt;num&gt; - Find most similar entries in this dataset
+ * <br><pr><i>dataset</i>: Dataset containing entries to be matched
+ * <br><pr><i>num</i>: Number of closest entries to print
+ * <br>Prints the most similar entries in this dataset to those in the dataset
+ * passed as the argument.</command>
  *
  * <command><p>
  * <b>modify &lt;method> [&lt;options>]</b> - Modify the dataset
@@ -399,7 +408,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      *
      * @return List of attribute expanders
      * @see
-     * #addAttribueExpander(magpie.attributes.expansion.BaseAttributeExpander)
+     * #addAttribueExpander(magpie.attributes.expanders.BaseAttributeExpander)
      */
     public List<BaseAttributeExpander> getAttributeExpanders() {
         return new LinkedList<>(Expanders);
@@ -905,6 +914,58 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      */
     public boolean containsEntry(BaseEntry Entry) {
         return Entries.contains(Entry);
+    }
+    
+    /**
+     * Find entries in this dataset with attributes closest to a user-provided
+     * entry. Measures distance using the L2 norm.
+     * @param entry Entry to be matched
+     * @param n Number of top entries to list
+     * @return List of top entries
+     */
+    public List<BaseEntry> matchEntries(BaseEntry entry, int n) {
+        // Make sure the entry has the same number of attriutes
+        if (entry.NAttributes() != NAttributes()) {
+            throw new RuntimeException("Entry has wrong number of attributes: " 
+                    + entry.NAttributes() + " != " + NAttributes());
+                    
+        }
+        
+        // Make the priority queue to be sorted
+        PriorityQueue<Pair<BaseEntry, Double>> queue = new PriorityQueue<>(n, 
+                new Comparator<Pair<BaseEntry, Double>>() {
+
+            @Override
+            public int compare(Pair<BaseEntry, Double> o1, Pair<BaseEntry, Double> o2) {
+                return o2.getValue().compareTo(o1.getValue());
+            }
+        });
+        
+        // Loop through all entries in the dataset
+        DistanceMeasure meas = new org.apache.commons.math3.ml.distance.EuclideanDistance();
+        double[] myAtt = entry.getAttributes();
+        
+        for (BaseEntry e : Entries) {
+            // Get the distance
+            double dist = meas.compute(myAtt, e.getAttributes());
+            
+            // Add to queue
+            queue.add(new ImmutablePair<>(e, dist));
+            
+            // Pop off the current worst
+            if (queue.size() > n) {
+                queue.poll();
+            }
+        }
+        
+        // Transfer to a list
+        List<BaseEntry> output = new ArrayList<>(n);
+        
+        for (Pair<BaseEntry, Double> pair : queue) {
+            output.add(0, pair.getKey());
+        }
+        
+        return output;
     }
 
     /**
@@ -1788,28 +1849,29 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     }
 
     @Override
-    public Object runCommand(List<Object> Command) throws Exception {
-        if (Command.isEmpty()) {
+    public Object runCommand(List<Object> command) throws Exception {
+        if (command.isEmpty()) {
             System.out.println(about());
             return null;
         }
-        String Action = Command.get(0).toString();
+        
+        String Action = command.get(0).toString();
         switch (Action.toLowerCase()) {
             case "add": {
-                if (Command.size() == 1) {
+                if (command.size() == 1) {
                     throw new Exception("Usage: \"add $<dataset> [-force]\" "
                             + "or \"add <entries...>\"");
                 }
-                if (Command.get(1) instanceof Dataset) {
-                    Dataset data = (Dataset) Command.get(1);
+                if (command.get(1) instanceof Dataset) {
+                    Dataset data = (Dataset) command.get(1);
                     boolean force = false;
-                    if (Command.size() == 3) {
-                        if (Command.get(2).toString().equalsIgnoreCase("-force")) {
+                    if (command.size() == 3) {
+                        if (command.get(2).toString().equalsIgnoreCase("-force")) {
                             force = true;
                         } else {
                             throw new Exception("Available options: -force");
                         }
-                    } else if (Command.size() > 3) {
+                    } else if (command.size() > 3) {
                         throw new Exception("Usage: add $<dataset> [-force]");
                     }
                     addEntries(data, force);
@@ -1818,7 +1880,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                     return null;
                 } else {
                     int nAdded = 0;
-                    for (Object entry : Command.subList(1, Command.size())) {
+                    for (Object entry : command.subList(1, command.size())) {
                         try {
                             addEntry(entry.toString());
                             nAdded++;
@@ -1832,22 +1894,22 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 }
             }
             case "attributes": case "attr":
-                return runAttributeCommand(Command.subList(1, Command.size()));
+                return runAttributeCommand(command.subList(1, command.size()));
             case "clone":
                 // Usage: <output> = clone [-emptyy]
-                if (Command.size() == 1) {
+                if (command.size() == 1) {
                     return clone();
-                } else if (Command.get(1).toString().equalsIgnoreCase("-empty")) {
+                } else if (command.get(1).toString().equalsIgnoreCase("-empty")) {
                     return emptyClone();
                 } else {
                     throw new Exception("Usage: clone [-empty]");
                 }
             case "combine": {
                 try {
-                    if (Command.size() != 2) {
+                    if (command.size() != 2) {
                         throw new Exception();
                     }
-                    Dataset other = (Dataset) Command.get(1);
+                    Dataset other = (Dataset) command.get(1);
                     combine(other);
                     System.out.format("\tAdded %d entries. New size: %d\n", 
                             other.NEntries(), NEntries());
@@ -1861,19 +1923,19 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 List<Object> Options;
                 boolean Exclude;
                 try {
-                    if (Command.get(1).toString().toLowerCase().startsWith("ex")) {
+                    if (command.get(1).toString().toLowerCase().startsWith("ex")) {
                         Exclude = true;
-                    } else if (Command.get(1).toString().toLowerCase().startsWith("in")) {
+                    } else if (command.get(1).toString().toLowerCase().startsWith("in")) {
                         Exclude = false;
                     } else {
                         throw new Exception();
                     }
-                    Method = Command.get(2).toString();
+                    Method = command.get(2).toString();
                     if (Method.equals("?")) {
                         System.out.println(printImplmentingClasses(BaseDatasetFilter.class, false));
                         return null;
                     }
-                    Options = Command.subList(3, Command.size());
+                    Options = command.subList(3, command.size());
                 } catch (Exception e) {
                     throw new Exception("Usage: <dataset> filter <exclude|include> <method> <options...>");
                 }
@@ -1888,13 +1950,13 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 String Method = "";
                 List<Object> MethodOptions;
                 try {
-                    Method = Command.get(1).toString();
+                    Method = command.get(1).toString();
                     if (Method.equalsIgnoreCase("?")) {
                         System.out.println("Available Entry Generators");
                         System.out.println(printImplmentingClasses(BaseEntryGenerator.class, false));
                         return null;
                     }
-                    MethodOptions = Command.subList(2, Command.size());
+                    MethodOptions = command.subList(2, command.size());
                 } catch (Exception e) {
                     throw new Exception("Usage: generate <method> [<options...>]");
                 }
@@ -1907,24 +1969,53 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
             break;
             case "import": {
                 // Usage: import <filename> [<options...>]
-                String filename = Command.get(1).toString();
-                Object[] options = Command.subList(2, Command.size()).toArray();
+                String filename = command.get(1).toString();
+                Object[] options = command.subList(2, command.size()).toArray();
                 importText(filename, options);
                 System.out.println("\tImported " + NEntries() + " entries");
             }
             break;
+            case "match": {
+                // Usage: match $<dataset> <number to print>
+                Dataset toMatch;
+                int numToPrint;
+                
+                // Parse input
+                try {
+                    toMatch = (Dataset) command.get(1);
+                    numToPrint = Integer.parseInt(command.get(2).toString());
+                    if (command.size() != 3) {
+                        throw new Exception();
+                    }
+                } catch (Exception e) {
+                    throw new Exception("Usage: $<dataset> <num to print>");
+                }
+                
+                // Run matching
+                for (BaseEntry entry : toMatch.getEntries()) {
+                    // Find matches
+                    List<BaseEntry> matches = matchEntries(entry, numToPrint);
+                    
+                    // Print results
+                    System.out.println("Matches for " + entry.toString() + ":");
+                    for (BaseEntry match : matches) {
+                        System.out.println("\t" + match.toString());
+                    }
+                    System.out.println();
+                }
+            } break;
             case "modify": {
-                if (Command.size() < 2) {
+                if (command.size() < 2) {
                     throw new Exception("Usage: <dataset> modify <method> <options>");
                 }
                 // Get command
-                String Method = Command.get(1).toString();
+                String Method = command.get(1).toString();
                 if (Method.equals("?")) {
                     System.out.println(printImplmentingClasses(BaseDatasetModifier.class, false));
                     return null;
                 }
                 // Get options
-                List<Object> Options = Command.subList(2, Command.size());
+                List<Object> Options = command.subList(2, command.size());
                 // Modify the Dataset
                 BaseDatasetModifier Mdfr = (BaseDatasetModifier) instantiateClass("data.utilities.modifiers." + Method, Options);
                 Mdfr.transform(this);
@@ -1939,30 +2030,30 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 String Method;
                 List<Object> Options;
                 try {
-                    numberToPrint = Integer.parseInt(Command.get(1).toString());
-                    if (Command.get(2).toString().toLowerCase().startsWith("max")) {
+                    numberToPrint = Integer.parseInt(command.get(1).toString());
+                    if (command.get(2).toString().toLowerCase().startsWith("max")) {
                         maximize = true;
-                    } else if (Command.get(2).toString().toLowerCase().contains("min")) {
+                    } else if (command.get(2).toString().toLowerCase().contains("min")) {
                         maximize = false;
                     } else {
                         throw new Exception();
                     }
-                    if (Command.get(3).toString().toLowerCase().startsWith("mea")) {
+                    if (command.get(3).toString().toLowerCase().startsWith("mea")) {
                         measured = true;
-                    } else if (Command.get(3).toString().toLowerCase().startsWith("pre")) {
+                    } else if (command.get(3).toString().toLowerCase().startsWith("pre")) {
                         measured = false;
                     } else {
                         throw new Exception();
                     }
                     // Get Method and its options
-                    Method = Command.get(4).toString();
+                    Method = command.get(4).toString();
                     if (Method.equalsIgnoreCase("?")) {
                         System.out.println("Available EntryRankers:");
                         System.out.println(printImplmentingClasses(
                                 BaseEntryRanker.class, false));
                         return null;
                     }
-                    Options = Command.subList(5, Command.size());
+                    Options = command.subList(5, command.size());
                 } catch (Exception e) {
                     throw new Exception("Usage: <dataset> rank <number> <maximum|minimum> <measured|predicted> <method> [<options>]");
                 }
@@ -1979,7 +2070,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 // Usage: split|subset <fraction|number> = <output>
                 double size;
                 try {
-                    size = Double.parseDouble(Command.get(1).toString());
+                    size = Double.parseDouble(command.get(1).toString());
                 } catch (Exception e) {
                     throw new Exception("Usage: " + Action + " <fraction|number> = <output>");
                 }
@@ -2096,7 +2187,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 } catch (Exception e) {
                     throw new Exception("Usage: <dataset> expand <method> <options...>");
                 }
-                BaseAttributeExpander expander = (BaseAttributeExpander) instantiateClass("attributes.expansion." + Method, Options);
+                BaseAttributeExpander expander = (BaseAttributeExpander) instantiateClass("attributes.expanders." + Method, Options);
                 addAttribueExpander(expander);
                 System.out.println("\tAdded a " + Method + " to list of attribute expanders");
                 break;

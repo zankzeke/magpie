@@ -213,4 +213,39 @@ public class DatasetTest {
             assertEquals(0, entry.NAttributes());
         }
     }
+    
+    @Test
+    public void testMatch() throws Exception {
+        // Create fake dataset
+        Dataset data = new Dataset();
+        data.addEntry(new BaseEntry());
+        data.addEntry(new BaseEntry());
+        data.addEntry(new BaseEntry());
+        
+        data.addAttribute("x", new double[]{0,1,2});
+        
+        // Create entry to be matched
+        BaseEntry entry = new BaseEntry("0.9");
+        
+        // Test the matching
+        List<BaseEntry> match = data.matchEntries(entry, 2);
+        
+        // Test results
+        assertEquals(2, match.size());
+        assertEquals(1, match.get(0).getAttribute(0), 1e-6);
+        assertEquals(0, match.get(1).getAttribute(0), 1e-6);
+        
+        // Test through the command-line interface
+        Dataset toMatch = data.clone();
+        toMatch.addEntry(entry);
+        
+        //    Assemble command
+        List<Object> cmd = new ArrayList<>();
+        cmd.add("match");
+        cmd.add(toMatch);
+        cmd.add(2);
+        
+        //    Run command
+        data.runCommand(cmd);
+    }
 }

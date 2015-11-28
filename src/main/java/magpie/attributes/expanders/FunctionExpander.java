@@ -1,4 +1,4 @@
-package magpie.attributes.expansion;
+package magpie.attributes.expanders;
 
 import java.net.URL;
 import java.util.*;

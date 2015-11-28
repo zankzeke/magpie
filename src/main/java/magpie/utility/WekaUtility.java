@@ -4,13 +4,10 @@ package magpie.utility;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import magpie.models.regression.WekaRegression;
 import magpie.user.CommandHandler;
 import magpie.utility.interfaces.Citation;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -128,6 +125,14 @@ abstract public class WekaUtility {
     public static List<Pair<String, Citation>> getWekaObjectCitations(Object wekaClass, Class component) {
         // Intiailize output
         List<Pair<String, Citation>> wekaCitations = new ArrayList<>();
+        
+        // Citation for using Weka
+        wekaCitations.add(new ImmutablePair<>("Using Weka",
+                new Citation(component, "Article", 
+                new String[]{"M. Hall", "et al."},
+                "The WEKA data mining software",
+                "http://portal.acm.org/citation.cfm?doid=1656274.1656278",
+                null)));
         
         // Check if it has technical info
         if (wekaClass instanceof TechnicalInformationHandler) {
