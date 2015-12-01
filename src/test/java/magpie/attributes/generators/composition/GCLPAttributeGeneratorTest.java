@@ -1,5 +1,7 @@
 package magpie.attributes.generators.composition;
 
+import java.util.ArrayList;
+import java.util.List;
 import magpie.attributes.generators.composition.GCLPAttributeGenerator;
 import magpie.data.materials.CompositionDataset;
 import org.junit.Test;
@@ -39,6 +41,25 @@ public class GCLPAttributeGeneratorTest {
         
         // Print description
         System.out.println(gen.printDescription(true));
+        
+        // Set "no-count"
+        List<Object> options = new ArrayList<>();
+        options.add(hullData);
+        options.add("-noCount");
+        
+        gen.setOptions(options);
+        
+        // Test results
+        data.clearAttributes();
+        gen.addAttributes(data);
+        
+        // Test results
+        assertArrayEquals(new double[]{0,0,0,0},
+                data.getEntry(0).getAttributes(), 1e-6);
+        assertArrayEquals(new double[]{-0.5,Math.sqrt(0.125),
+            Math.sqrt(0.125),Math.log(0.5)}, data.getEntry(1).getAttributes(), 1e-6);
+        assertArrayEquals(new double[]{-1,0,0,0},
+                data.getEntry(2).getAttributes(), 1e-6);
     }
     
 }

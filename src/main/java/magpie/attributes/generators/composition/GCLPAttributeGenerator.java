@@ -23,20 +23,32 @@ import org.apache.commons.math3.stat.StatUtils;
  * <li>Quasi-entropy (sum x<sub>i</sub> * ln(x<sub>i</sub>), where x<sub>i</sub> is fraction of phase)
  * </ul>
  * 
- * <usage><p><b>Usage</b>: $&lt;phases&gt;
- * <br><pr><i>phases</i>: Phases to consider when computing ground states</usage>
+ * <usage><p><b>Usage</b>: $&lt;phases&gt; [-noCount]
+ * <br><pr><i>phases</i>: Phases to consider when computing ground states
+ * <br><pr><i>noCount</i>: Do not count the number of phases at equilibrium. Useful
+ * if you do not want to consider the number of components in an alloy, which
+ * often is equivalent to the number of phases in equilibrium due to Gibb's
+ * phase rule.
+ * </usage>
  * @author Logan Ward
  */
 public class GCLPAttributeGenerator extends BaseAttributeGenerator {
     /** Tool used to compute ground states */
     private GCLPCalculator Calculator;
+    /** Whether to include the number of phases at equilibrium */
+    private boolean CountPhases = true;
 
     @Override
     public void setOptions(List<Object> Options) throws Exception {
         try {
             CompositionDataset data = (CompositionDataset) Options.get(0);
             setPhases(data);
-            if (Options.size() != 1) {
+            if (Options.size() > 1) {
+                // Check for -nocount flag
+                if (Options.get(1).toString().equalsIgnoreCase("-nocount")) {
+                    setCountPhases(false);
+                }
+            } else if (Options.size() > 2) {
                 throw new Exception();
             }
         } catch (Exception e) {
@@ -46,7 +58,7 @@ public class GCLPAttributeGenerator extends BaseAttributeGenerator {
 
     @Override
     public String printUsage() {
-        return "Usage: $<phases>";
+        return "Usage: $<phases> [-noCount]";
     }
 
     /**
@@ -57,6 +69,20 @@ public class GCLPAttributeGenerator extends BaseAttributeGenerator {
         Calculator = new GCLPCalculator();
         Calculator.addPhases(phases);
     }
+
+    /** 
+     * Set whether to count number of phases at equilibrium.
+     * 
+     * In some cases, you may want to exclude this as an attribute because 
+     * it is tied to the number of components in the compound.
+     * 
+     * @param countPhases Desired setting
+     */
+    public void setCountPhases(boolean countPhases) {
+        this.CountPhases = countPhases;
+    }
+    
+    
 
     @Override
     public void addAttributes(Dataset data) {
@@ -74,7 +100,9 @@ public class GCLPAttributeGenerator extends BaseAttributeGenerator {
         // Generate attribute names
         List<String> newAttributeNames = new LinkedList<>();
         newAttributeNames.add("T0K:Enthalpy");
-        newAttributeNames.add("T0K:NPhasesEquilibirum");
+        if (CountPhases) {
+            newAttributeNames.add("T0K:NPhasesEquilibirum");
+        }
         newAttributeNames.add("T0K:ClosestPhaseDistance");
         newAttributeNames.add("T0K:MeanPhaseDistance");
         newAttributeNames.add("T0K:QuasiEntropy");
@@ -90,10 +118,14 @@ public class GCLPAttributeGenerator extends BaseAttributeGenerator {
                 Pair<Double,Map<CompositionEntry,Double>> result = 
                         Calculator.runGCLP(entry);
                 
-                // Compute simple
+                // Compute formation energy
                 newAttributes[a++][e] = result.getLeft();
+                
+                // Compute number of phases
                 Map<CompositionEntry, Double> phases = result.getRight();
-                newAttributes[a++][e] = phases.size();
+                if (CountPhases) {
+                    newAttributes[a++][e] = phases.size();
+                }
                 
                 // Compute distances
                 double[] phaseDist = new double[phases.size()];
@@ -134,7 +166,8 @@ public class GCLPAttributeGenerator extends BaseAttributeGenerator {
         String output = getClass().getName() + (htmlFormat ? " " : ": ");
         
         // Add information about these attributes
-        output += "(5) Attributes based on the T=0K phase stability"
+        output += (CountPhases ? "(5)" : "(4)")
+                + " Attributes based on the T=0K phase stability"
                 + " computed using Grand Canonical Linear Programming: "
                 + (htmlFormat ? "&Delta;" : "d") + "H, number of phases at"
                 + " equilibrium, distance from composition to closest phase in equilibirum, "
