@@ -1,5 +1,7 @@
 // This example script trains a Weka-based model on the 
 //  formation energies of a small set of compounds
+//  using a representation based on the Voronoi-tessllation 
+//  of the crystal structure of the material
 
 // Create dataset
 data = new data.materials.CrystalStructureDataset
@@ -8,8 +10,7 @@ data = new data.materials.CrystalStructureDataset
 data attributes properties directory ./Lookup Data/
 
 // Load in data
-data import ../../../Datasets/icsd-all/
-// data = data subset 100
+data import ./datasets/icsd-sample
 
 // Select which set of elemental properties to use for attributes
 data attributes properties add set general
@@ -21,13 +22,11 @@ data attributes generate
 data target delta_e
 
 // Create a simple model using Weka, then test it
-model = new models.regression.SplitRegression
-model splitter AllMetalsSplitter
-submodel = new models.regression.WekaRegression trees.REPTree
-model submodel set generic $submodel
+model = new models.regression.WekaRegression trees.REPTree
 model train $data
 model crossvalidate $data 10
 
 // Print out training statistics
 print model validation stats
+
 exit
