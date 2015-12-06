@@ -59,6 +59,30 @@ public class CompositionEntryTest {
         assertEquals(2.0 / 9, entry.getElementFraction("N"), 1e-6);
         assertEquals(6.0 / 9, entry.getElementFraction("O"), 1e-6);
         
+        entry = new CompositionEntry("Ca{N{O1.5}2}2");
+        assertEquals(3, entry.Element.length);
+        assertEquals(1.0 / 9, entry.getElementFraction("Ca"), 1e-6);
+        assertEquals(2.0 / 9, entry.getElementFraction("N"), 1e-6);
+        assertEquals(6.0 / 9, entry.getElementFraction("O"), 1e-6);
+        
+        entry = new CompositionEntry("CaO-0.01Ni");
+        assertEquals(3, entry.Element.length);
+        assertEquals(1.0 / 2.01, entry.getElementFraction("Ca"), 1e-6);
+        assertEquals(0.01 / 2.01, entry.getElementFraction("Ni"), 1e-6);
+        assertEquals(1.0 / 2.01, entry.getElementFraction("O"), 1e-6);
+        
+        entry = new CompositionEntry("CaO" + Character.toString((char) 183) + "0.01Ni");
+        assertEquals(3, entry.Element.length);
+        assertEquals(1.0 / 2.01, entry.getElementFraction("Ca"), 1e-6);
+        assertEquals(0.01 / 2.01, entry.getElementFraction("Ni"), 1e-6);
+        assertEquals(1.0 / 2.01, entry.getElementFraction("O"), 1e-6);
+        
+        entry = new CompositionEntry("Ca[N[O1.5]2]2");
+        assertEquals(3, entry.Element.length);
+        assertEquals(1.0 / 9, entry.getElementFraction("Ca"), 1e-6);
+        assertEquals(2.0 / 9, entry.getElementFraction("N"), 1e-6);
+        assertEquals(6.0 / 9, entry.getElementFraction("O"), 1e-6);
+        
         entry = new CompositionEntry("Ca(N(O1.5)2)2-2H2O");
         assertEquals(4, entry.Element.length);
         assertEquals(1.0 / 15, entry.getElementFraction("Ca"), 1e-6);
@@ -86,11 +110,62 @@ public class CompositionEntryTest {
     
     @Test 
     public void testSetComposition() throws Exception {
-        int[] elem = new int[]{0,1};
-        double[] frac = new double[]{1,0};
+        // One element
+        int[] elem = new int[]{0};
+        double[] frac = new double[]{1};
         CompositionEntry entry = new CompositionEntry(elem, frac);
         assertEquals(1, entry.Element.length);
         assertEquals(1, entry.getElementFraction("H"), 1e-6);
+        
+        // One element, with duplicates
+        elem = new int[]{0,0};
+        frac = new double[]{0.5,0.5};
+        entry = new CompositionEntry(elem, frac);
+        assertEquals(1, entry.Element.length);
+        assertEquals(1, entry.getElementFraction("H"), 1e-6);
+        
+        // One element, with zero
+        elem = new int[]{0,1};
+        frac = new double[]{1,0};
+        entry = new CompositionEntry(elem, frac);
+        assertEquals(1, entry.Element.length);
+        assertEquals(1, entry.getElementFraction("H"), 1e-6);
+        
+        // Two elements
+        elem = new int[]{16,10};
+        frac = new double[]{1,1};
+        entry = new CompositionEntry(elem, frac);
+        assertEquals(2, entry.Element.length);
+        assertEquals(0.5, entry.getElementFraction("Na"), 1e-6);
+        assertEquals(0.5, entry.getElementFraction("Cl"), 1e-6);
+        assertArrayEquals(new int[]{10,16}, entry.Element);
+        assertArrayEquals(new double[]{0.5,0.5}, entry.Fraction, 1e-6);
+        assertEquals(2, entry.NumberInCell, 1e-6);
+        
+        // Two elements, with duplicates
+        elem = new int[]{11,16,16};
+        frac = new double[]{1,1,1};
+        entry = new CompositionEntry(elem, frac);
+        assertEquals(2, entry.Element.length);
+        assertEquals(1f/3, entry.getElementFraction("Mg"), 1e-6);
+        assertEquals(2f/3, entry.getElementFraction("Cl"), 1e-6);
+        assertArrayEquals(new int[]{11,16}, entry.Element);
+        assertArrayEquals(new double[]{1f/3,2f/3}, entry.Fraction, 1e-6);
+        assertEquals(3, entry.NumberInCell, 1e-6);
+        
+        // Two elements, with zero
+        elem = new int[]{11,16,16};
+        frac = new double[]{1,2,0};
+        entry = new CompositionEntry(elem, frac);
+        assertEquals(2, entry.Element.length);
+        assertEquals(1f/3, entry.getElementFraction("Mg"), 1e-6);
+        assertEquals(2f/3, entry.getElementFraction("Cl"), 1e-6);
+        assertEquals(0, entry.getElementFraction("Na"), 1e-6);
+        assertArrayEquals(new int[]{11,16}, entry.Element);
+        assertArrayEquals(new double[]{1f/3,2f/3}, entry.Fraction, 1e-6);
+        assertEquals(3, entry.NumberInCell, 1e-6);
+        assertEquals("MgCl<sub>2</sub>", entry.toHTMLString());
+        
     }
     
 }
