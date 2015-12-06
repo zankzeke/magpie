@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.*;
 import magpie.data.materials.util.LookupData;
@@ -20,9 +21,9 @@ import org.apache.commons.math3.stat.StatUtils;
  */
 public class CompositionEntry extends MultiPropertyEntry {
     /** Names of each element */
-    protected String[] ElementNames=null;
+    protected String[] ElementNames = LookupData.ElementNames;
     /** Rank of each element (used in display order) */
-    protected int[] SortingOrder=null;
+    protected int[] SortingOrder = LookupData.SortingOrder;
     /** Elements present in composition */
     protected int[] Element;
     /** Fraction of each element */
@@ -88,7 +89,7 @@ public class CompositionEntry extends MultiPropertyEntry {
         // Check for a guest structure (ex: Al2O3-2H20)
         int startGuest = composition.indexOf("-");
         int pos = composition.indexOf(183); 
-        if (pos != -1 && pos < startGuest) {
+        if (pos != -1 && (pos < startGuest || startGuest == -1)) {
             startGuest = pos;
         }
 
@@ -97,11 +98,11 @@ public class CompositionEntry extends MultiPropertyEntry {
             // Check for ({['s
             int startParen = composition.indexOf('(');
             pos = composition.indexOf('{');
-            if (pos != -1 && pos < startParen) {
+            if (pos != -1 && (pos < startParen || startParen == -1)) {
                 startParen = pos;
             }
             pos = composition.indexOf('[');
-            if (pos != -1 && pos < startParen) {
+            if (pos != -1 && (pos < startParen || startParen == -1)) {
                 startParen = pos;
             }
 
@@ -308,37 +309,32 @@ public class CompositionEntry extends MultiPropertyEntry {
 	 */
 	final protected void setComposition(int[] elements, double[] amount, 
             boolean toSort) throws Exception {
-        // Check that all entries are valid and nonzero
-        boolean[] isNonZero = new boolean[elements.length];
-        int nNonZero = 0;
-        for (int i=0; i<amount.length; i++) {
-            if (amount[i] > 0) {
-                nNonZero++;
-                isNonZero[i] = true;
-            } else if (amount[i] == 0) {
-                isNonZero[i] = false;
+        // Get a full list of the non-zero elements
+        Map<Integer, Double> comp = new TreeMap<>();
+        for (int e=0; e<elements.length; e++) {
+            if (amount[e] <= 0) {
+                continue;
+            }
+            
+            // Add to comp map
+            if (comp.containsKey(elements[e])) {
+                comp.put(elements[e], comp.get(elements[e]) + amount[e]);
             } else {
-                throw new Exception("Negative amount for " + 
-                        LookupData.ElementNames[elements[i]]);
+                comp.put(elements[e], amount[e]);
             }
         }
         
         // Set the information
-		this.Element = new int[nNonZero];
-		this.Fraction = new double[nNonZero];
+		this.Element = new int[comp.size()];
+		this.Fraction = new double[comp.size()];
         int pos = 0;
-        nNonZero--; // Using it as a counter
-        while (pos < elements.length) {
-            if (isNonZero[pos]) {
-                Element[nNonZero] = elements[pos];
-                Fraction[nNonZero] = amount[pos];
-                nNonZero--;
-            }
+        for (Map.Entry<Integer, Double> elem : comp.entrySet()) {
+            Element[pos] = elem.getKey();
+            Fraction[pos] = elem.getValue();
             pos++;
         }
             
-		this.ElementNames = LookupData.ElementNames;
-		this.SortingOrder = LookupData.SortingOrder;
+        // Call for composition to be normalized
 		rectifyEntry(toSort);
 	}
     
@@ -450,12 +446,6 @@ public class CompositionEntry extends MultiPropertyEntry {
      * @param toSort Whether to sort elements in "Sorting order"
      */
     final public void rectifyEntry(boolean toSort) {
-        // Makes sure we have a sorting order
-        if (SortingOrder == null) {
-            SortingOrder = new int[ElementNames.length];
-            for (int i=0; i<SortingOrder.length; i++) SortingOrder[i] = i;
-        }
-        
         // Simple bubble sort (we are dealing with small lists)
         if (toSort) {
             int n=Element.length, i, new_n, i_temp; 
