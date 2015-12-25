@@ -54,12 +54,13 @@ public class GCLPAttributeGeneratorTest {
         gen.addAttributes(data);
         
         // Test results
-        assertArrayEquals(new double[]{0,0,0,0},
+        assertArrayEquals(new double[]{0,0,0},
                 data.getEntry(0).getAttributes(), 1e-6);
         assertArrayEquals(new double[]{-0.5,Math.sqrt(0.125),
-            Math.sqrt(0.125),Math.log(0.5)}, data.getEntry(1).getAttributes(), 1e-6);
-        assertArrayEquals(new double[]{-1,0,0,0},
+            Math.sqrt(0.125)}, data.getEntry(1).getAttributes(), 1e-6);
+        assertArrayEquals(new double[]{-1,0,0},
                 data.getEntry(2).getAttributes(), 1e-6);
+        System.out.println(gen.printDescription(false));
     }
     
 }

@@ -25,10 +25,11 @@ import org.apache.commons.math3.stat.StatUtils;
  * 
  * <usage><p><b>Usage</b>: $&lt;phases&gt; [-noCount]
  * <br><pr><i>phases</i>: Phases to consider when computing ground states
- * <br><pr><i>noCount</i>: Do not count the number of phases at equilibrium. Useful
- * if you do not want to consider the number of components in an alloy, which
- * often is equivalent to the number of phases in equilibrium due to Gibb's
- * phase rule.
+ * <br><pr><i>noCount</i>: Do not use attributes that depend on number of components.
+ * Certain values of the number of phases in equilibrium and "quasi-entropy" are
+ * only accessible to systems with larger number of elements. Useful
+ * if you do not want to consider the number of components in an alloy as a predictive
+ * variable.
  * </usage>
  * @author Logan Ward
  */
@@ -81,8 +82,6 @@ public class GCLPAttributeGenerator extends BaseAttributeGenerator {
     public void setCountPhases(boolean countPhases) {
         this.CountPhases = countPhases;
     }
-    
-    
 
     @Override
     public void addAttributes(Dataset data) {
@@ -105,7 +104,9 @@ public class GCLPAttributeGenerator extends BaseAttributeGenerator {
         }
         newAttributeNames.add("T0K:ClosestPhaseDistance");
         newAttributeNames.add("T0K:MeanPhaseDistance");
-        newAttributeNames.add("T0K:QuasiEntropy");
+        if (CountPhases) {
+            newAttributeNames.add("T0K:QuasiEntropy");
+        }
         
         // Compute attributes for each entry
         double[][] newAttributes = new double[newAttributeNames.size()][data.NEntries()];
@@ -144,11 +145,13 @@ public class GCLPAttributeGenerator extends BaseAttributeGenerator {
                 newAttributes[a++][e] = StatUtils.mean(phaseDist);
                 
                 // Compute quasi-entropy
-                double entropy = 0;
-                for (Double frac : phases.values()) {
-                    entropy += frac * Math.log(frac);
+                if (CountPhases) {
+                    double entropy = 0;
+                    for (Double frac : phases.values()) {
+                        entropy += frac * Math.log(frac);
+                    }
+                    newAttributes[a++][e] = entropy;
                 }
-                newAttributes[a++][e] = entropy;
                 
             } catch (Exception ex) {
                 throw new Error(ex);
@@ -166,13 +169,19 @@ public class GCLPAttributeGenerator extends BaseAttributeGenerator {
         String output = getClass().getName() + (htmlFormat ? " " : ": ");
         
         // Add information about these attributes
-        output += (CountPhases ? "(5)" : "(4)")
+        output += (CountPhases ? "(5)" : "(3)")
                 + " Attributes based on the T=0K phase stability"
-                + " computed using Grand Canonical Linear Programming: "
-                + (htmlFormat ? "&Delta;" : "d") + "H, number of phases at"
+                + " computed using Grand Canonical Linear Programming: ";
+        if (CountPhases) {
+            output += (htmlFormat ? "&Delta;" : "d") + "H, number of phases at"
                 + " equilibrium, distance from composition to closest phase in equilibirum, "
                 + " mean distance from all phases in equilibirum at composition,"
-                + " and quasi-entropy computed from the fractions of phases in equilibirum.";
+                + " and quasi-entropy computed from the fractions of phases in equilibirum."; 
+        } else {
+            output += (htmlFormat ? "&Delta;" : "d") + "H,"
+                    + " distance from composition to closest phase in equilibirum, and "
+                    + " mean distance from all phases in equilibirum at composition.";
+        }
         
         return output;
     }
