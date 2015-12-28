@@ -17,7 +17,7 @@ data attributes generate
 data target delta_e
 
 // Create a simple model using Weka, then test it
-model = new models.regression.WekaRegression trees.REPTree
+model = new models.regression.WekaRegression trees.RandomForest
 model train $data
 model crossvalidate $data 10
 
