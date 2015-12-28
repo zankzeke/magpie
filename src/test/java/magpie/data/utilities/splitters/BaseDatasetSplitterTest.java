@@ -40,7 +40,7 @@ public class BaseDatasetSplitterTest {
         cmd.add("stats");
         sptr.runCommand(cmd);
         assertTrue(new File("splittest0.csv").isFile());
-        for (int i : new int[]{0,1}) {
+        for (int i=0; i<sptr.getSplitNames().size(); i++) {
             new File("splittest" + i + ".csv").delete();
         }
     }
