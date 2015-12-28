@@ -3,6 +3,7 @@ package magpie.attributes.generators.composition;
 import java.util.*;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.CompositionEntry;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -120,9 +121,14 @@ public class APEAttributeGeneratorTest {
         
         // Make generator
         APEAttributeGenerator gen = new APEAttributeGenerator();
-        gen.setNNearestToEval(Arrays.asList(new Integer[]{1,3}));
-        gen.setPackingThreshold(0.01);
-        gen.setRadiusProperty("MiracleRadius");
+        
+        // Make options
+        List<Object> options = new LinkedList<>();
+        options.add(0.01);
+        options.add("-neighbors");
+        options.add(1);
+        options.add(3);
+        gen.setOptions(options);
         
         // Compute attributes
         gen.addAttributes(data);
@@ -137,5 +143,57 @@ public class APEAttributeGeneratorTest {
         
         // Print description
         System.out.println(gen.printDescription(false));
+    }
+    
+    @Test
+    public void testRangeFinder() throws Exception {
+        // Equal sized spheres
+        Pair<Integer, Integer> res = APEAttributeGenerator.getClusterRange(
+                new double[]{1,1}, 0.03);
+        assertEquals(13,(int) res.getLeft());
+        assertEquals(13,(int) res.getRight());
+        
+        res = APEAttributeGenerator.getClusterRange(
+                new double[]{1,1}, 0.05);
+        assertEquals(13,(int) res.getLeft());
+        assertEquals(14,(int) res.getRight());
+        
+        res = APEAttributeGenerator.getClusterRange(
+                new double[]{1,1}, 0.1);
+        assertEquals(12,(int) res.getLeft());
+        assertEquals(14,(int) res.getRight());
+        
+        // Unequal spheres
+        res = APEAttributeGenerator.getClusterRange(
+                new double[]{1,1.2}, 0.03);
+        assertEquals(11,(int) res.getLeft());
+        assertEquals(16,(int) res.getRight());
+        
+        res = APEAttributeGenerator.getClusterRange(
+                new double[]{1,1.2}, 0.05);
+        assertEquals(10,(int) res.getLeft());
+        assertEquals(17,(int) res.getRight());
+        
+        res = APEAttributeGenerator.getClusterRange(
+                new double[]{1,1.2}, 0.1);
+        assertEquals(10,(int) res.getLeft());
+        assertEquals(18,(int) res.getRight());
+        
+        // Unequal spheres, extra and order reverse
+        res = APEAttributeGenerator.getClusterRange(
+                new double[]{1.4,1,1.2}, 0.03);
+        assertEquals(9,(int) res.getLeft());
+        assertEquals(20,(int) res.getRight());
+        
+        res = APEAttributeGenerator.getClusterRange(
+                new double[]{1.4,1,1.2}, 0.05);
+        assertEquals(9,(int) res.getLeft());
+        assertEquals(20,(int) res.getRight());
+        
+        res = APEAttributeGenerator.getClusterRange(
+                new double[]{1.4,1,1.2}, 0.1);
+        assertEquals(9,(int) res.getLeft());
+        assertEquals(21,(int) res.getRight());
+
     }
 }

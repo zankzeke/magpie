@@ -7,7 +7,10 @@ import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.CompositionEntry;
 import magpie.data.utilities.filters.CompositionSetDistanceFilter;
+import magpie.optimization.algorithms.OptimizationHelper;
 import magpie.utility.EqualSumCombinations;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.math3.stat.StatUtils;
 
 /**
@@ -384,15 +387,18 @@ public class APEAttributeGenerator extends BaseAttributeGenerator {
             return output;
         }
         
+        // Determine minimum and maximum cluster sizes
+        Pair<Integer, Integer> extremeSizes = getClusterRange(radii, packingThreshold);
+        
         // Loop through each atom as the central type
         for (int centralType = 0; centralType < radii.length; centralType++) {
             // Make storage array
             List<int[]> clusters = new ArrayList<>();
             
-            // Loop through cluster sizes from 3 - 24
-            //  These are the ranges over which it is possible to achieve 
-            //  feasible radius ratios with known elements
-            for (int clusterSize=3; clusterSize<24; clusterSize++) {
+            // Loop over possible ranges of cluster sizes (determined from
+            //   radii)
+            for (int clusterSize=extremeSizes.getLeft(); 
+                    clusterSize<extremeSizes.getRight(); clusterSize++) {
                 
                 // Loop through all combinations of atom types in the first shell
                 for (int[] shell : new EqualSumCombinations(clusterSize, radii.length)) {
@@ -447,7 +453,7 @@ public class APEAttributeGenerator extends BaseAttributeGenerator {
      * <a href="http://www.nature.com/ncomms/2015/150915/ncomms9123/full/ncomms9123.html">
      * Laws <i>et al.</i></a>, where:
      * 
-     * <br>APE = &lt;ideal radius ratio&gt; / (&lt;radius of central atom&gtl /
+     * <br>APE = &lt;ideal radius ratio&gt; / (&lt;radius of central atom&gt; /
      * &lt;effective radius of nearest neighbors&gt;)
      * 
      * <p>The ideal ratio is computed using {@linkplain #getIdealRadiusRatio(int) }
@@ -524,5 +530,54 @@ public class APEAttributeGenerator extends BaseAttributeGenerator {
         } else {
             return 1.65915;
         }
+    }
+    
+    /**
+     * Determine the maximum and minimum possible cluster sizes, provided a list of radii.
+     * 
+     * <p>The smallest possible cluster has the smallest atom in the center and the largest
+     * in the outside. The largest possible has the largest in the inside and smallest 
+     * in the outside
+     * 
+     * @param radii List of radii of elements in system
+     * @param packingThreshold APE defining the maximum packing threshold
+     * @return Pair. Left: minimum cluster size (defined by number of atoms in shell)
+     * . Right: maximum cluster size
+     */
+    static public Pair<Integer, Integer> getClusterRange(double[] radii, 
+            double packingThreshold) {
+        // Get minimum and maximum radius
+        int[] rank = OptimizationHelper.sortAndGetRanks(radii.clone(), true);
+        int biggestRadius = rank[0];
+        int smallestRadius = rank[radii.length - 1];
+        
+        // Compute the smallest possible cluster
+        int[] cluster = new int[radii.length];
+        int centerType = smallestRadius;
+        cluster[biggestRadius] = 3;
+        
+        while (computeAPE(radii, centerType, cluster) < (1 - packingThreshold)) {
+            cluster[biggestRadius]++;
+            if (cluster[biggestRadius] > 24) {
+                throw new RuntimeException("smallest cluster > 24 atoms: packingThreshold must be too large");
+            }
+        }
+        int smallestCluster = cluster[biggestRadius];
+        
+        // Compute the largest possible cluster
+        cluster[biggestRadius] = 0;
+        cluster[smallestRadius] = 24;
+        centerType = biggestRadius;
+        
+        while (computeAPE(radii, centerType, cluster) > (1 + packingThreshold)) {
+            cluster[smallestRadius]--;
+            if (cluster[smallestRadius] < 3) {
+                throw new RuntimeException("largest cluster < 3 atoms: packingThreshold must be too large");
+            }
+        }
+        int biggestCluster = cluster[smallestRadius];
+        
+        // Return result
+        return new ImmutablePair<>(smallestCluster, biggestCluster);
     }
 }
