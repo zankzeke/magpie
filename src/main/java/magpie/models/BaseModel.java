@@ -105,6 +105,8 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
     private String ValidationMethod = "Unvalidated";
     /** Date model was trained */
     private Date TrainTime = null;
+    /** Names of attributes used to train model */
+    private String[] AttributeNames;
        
     /**
      * @return Whether this model has been trained
@@ -230,10 +232,14 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
      * @param recordStats Whether to record training statistics
      */
     public void train(Dataset data, boolean recordStats) {
+        // Store information about this model
         TrainTime = new Date();
+        AttributeNames = data.getAttributeNames();
+        
+        // Gather only the entries that have measured glasses
 		Dataset trainingData = data.getTrainingExamples();
         if (trainingData.NEntries() == 0)
-            throw new Error("Data does not contain any training entries");
+            throw new RuntimeException("Data does not contain any training entries");
         
         // Perform normalization, if desired
         if (Normalizer != null) {
@@ -288,14 +294,20 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
      * Run a model on provided data. Results will be stored as the predicted
      *  class variable.
 	 * 
-     * @param testData Dataset to evaluate. 
+     * @param runData Dataset to evaluate. 
      */
-    public void run(Dataset testData) {
+    public void run(Dataset runData) {
+        // Check that the model has been trained
         if (!isTrained())
-            throw new Error("Model not yet trained");
+            throw new RuntimeException("Model not yet trained");
+        
+        // Check that the attributes are the same
+        if (! Arrays.equals(AttributeNames, runData.getAttributeNames())) {
+            throw new RuntimeException("Attribute names are different.");
+        }
         
         // Test if run will be parallel
-        if (Magpie.NThreads > 1 && testData.NEntries() > Magpie.NThreads) {
+        if (Magpie.NThreads > 1 && runData.NEntries() > Magpie.NThreads) {
             // Original thread count
             int originalNThreads = Magpie.NThreads;
             
@@ -303,7 +315,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
             Magpie.NThreads = 1; 
             
             // Split data for threads
-            Dataset[] threadData = testData.splitForThreading(originalNThreads);
+            Dataset[] threadData = runData.splitForThreading(originalNThreads);
             
             // Launch threads
             ExecutorService service = Executors.newFixedThreadPool(originalNThreads);
@@ -332,13 +344,13 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         } else {
             // Perform normalization, if needed
             if (Normalizer != null) {
-                Normalizer.normalize(testData);
+                Normalizer.normalize(runData);
             }
 
             // Perform any attribute filtering 
-            Dataset data = testData;
+            Dataset data = runData;
             if (AttributeSelector != null) {
-                data = testData.clone();
+                data = runData.clone();
                 AttributeSelector.run(data);
             }
             
@@ -348,14 +360,14 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
             // Copy results to original array, if attribute selection was used
             if (AttributeSelector != null) {
                 if (data.NClasses() == 1)
-                    testData.setPredictedClasses(data.getPredictedClassArray());
+                    runData.setPredictedClasses(data.getPredictedClassArray());
                 else 
-                    testData.setClassProbabilities(data.getClassProbabilityArray());
+                    runData.setClassProbabilities(data.getClassProbabilityArray());
             }
 
             // Restore data to original ranges
             if (Normalizer != null) {
-                Normalizer.restore(testData);
+                Normalizer.restore(runData);
             }
         }
     }
