@@ -47,7 +47,7 @@ public class MetallurgicalHeuristicRegressionTest extends BaseModelTest {
         m.train(trainData);
         
         // Make the test point (Al1.5BeC)
-        CompositionDataset testData = new CompositionDataset();
+        CompositionDataset testData = trainData.emptyClone();
         testData.addEntry("Al1.5BeC");
         
         // Compute the hueristic by hand
