@@ -110,7 +110,7 @@ import weka.core.converters.ArffLoader;
  * <br><pr><i>options</i>: Any options for the entry generator</command>
  * 
  * <command><p>
- * <b>match $&lt;dataset&gt; &lt;num&gt; - Find most similar entries in this dataset
+ * <b>match $&lt;dataset&gt; &lt;num&gt;</b> - Find most similar entries in this dataset
  * <br><pr><i>dataset</i>: Dataset containing entries to be matched
  * <br><pr><i>num</i>: Number of closest entries to print
  * <br>Prints the most similar entries in this dataset to those in the dataset
