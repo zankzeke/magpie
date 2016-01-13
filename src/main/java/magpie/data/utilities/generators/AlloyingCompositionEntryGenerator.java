@@ -16,7 +16,7 @@ import org.apache.commons.lang3.ArrayUtils;
  * <usage><p><b>Usage</b>: &lt;base composition&gt; &lt;max addition&gt; &lt;step size&gt; &lt;elements...&gt;
  * <pr><br><i>base composition</i>: Base composition to be alloyed into
  * <pr><br><i>max addition</i>: Maximum fraction of element to add
- * <pr><br><i>step size<i>: Step size between alloying elements
+ * <pr><br><i>step size</i>: Step size between alloying elements
  * <pr><br><i>elements</i>: Elements to add in</usage>
  * 
  * @author Logan Ward

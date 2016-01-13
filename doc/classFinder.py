@@ -172,12 +172,12 @@ class ClassInfo:
 		while ind < len(contents) and not "<div class=\"description\">" in contents[ind]: ind = ind + 1
 		if ind == len(contents):
 			print "ERROR: missing <div class=\"description\"> in " + self.package + self.name
-			sys.exit()
+			sys.exit(1)
 		## Loop until we found the first <pre> block (contains class name)
 		while not "<pre>" in contents[ind] and ind < len(contents): ind += 1
 		if ind == len(contents):
 			print "ERROR: Did not find <pre> block when parsing javadoc file"
-			sys.exit()
+			sys.exit(1)
 		# Determine whether class is abstract
 		self.abstract = "abstract" in contents[ind]
 		# Get the superclass
@@ -213,7 +213,7 @@ class ClassInfo:
 		while ind < len(contents) and not "<div class=\"description\">" in contents[ind]: ind = ind + 1
 		if ind == len(contents):
 			print "ERROR: missing <div class=\"description\"> in " + self.name
-			sys.exit()
+			sys.exit(1)
 		## Get the usage
 		temp = self._getOperations("usage", contents, ind)
 		if len(temp) > 0:
@@ -267,7 +267,7 @@ class ClassInfo:
 				while True:
 					if ind == len(contents):
 						print "ERROR: End of file reached while parsing " + self.name
-						sys.exit()
+						sys.exit(1)
 					# If a line break is found. Append anything before the line break to currentLine,
 					#  add currentLine to command, and start a new lines
 					if "<br>" in contents[ind]:
@@ -316,7 +316,7 @@ class ClassInfo:
 			if not r:
 				print "ERROR: Ill-formed command usage in " + self.name + " : " + command[0]
 				print command[0]
-				sys.exit()
+				sys.exit(1)
 			usage = self._removeHTML(r.group(1))
 			if len(r.groups()) > 1: desc = self._removeHTML(r.group(2))
 			newCmd = ClassCommand(usage,desc)
@@ -327,7 +327,7 @@ class ClassInfo:
 					if not r:
 						print "ERROR: Ill-formed parameter in " + self.name + " : " + usage
 						print line
-						sys.exit()
+						sys.exit(1)
 					name = self._removeHTML(r.group(1))
 					desc = self._removeHTML(r.group(2))
 					prm = ClassCommandParameter(name, desc)
