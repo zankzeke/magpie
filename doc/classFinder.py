@@ -309,7 +309,7 @@ class ClassInfo:
 		"""
 		output = []
 		usageRegex = re.compile("^.*<b>(.*)<\/b>[\s]*[-:][\s]*(\S.*)$", re.IGNORECASE)
-		prRegex = re.compile("^[^:]*<i>(.*)</i>:?\s*(.*)?$", re.IGNORECASE)
+		prRegex = re.compile("^[^:]*<i>(.*)</i>:?\s*(.*)$", re.IGNORECASE)
 		for command in commandText:
 			# Get the command usage/description
 			r = usageRegex.search(command[0])
