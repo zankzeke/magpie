@@ -38,7 +38,7 @@ public class PolynomialRegression extends BaseRegression {
 
     @Override
     @SuppressWarnings("CloneDeclaresCloneNotSupported")
-    public BaseRegression clone() {
+    public PolynomialRegression clone() {
         PolynomialRegression x = (PolynomialRegression) super.clone(); 
 		if (coefficients != null) {
 			x.coefficients = coefficients.clone();

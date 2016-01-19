@@ -399,6 +399,9 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
             x.ValidationStats = (BaseStatistics) this.ValidationStats.clone();
             if (AttributeSelector != null)
                 x.AttributeSelector = this.AttributeSelector.clone();
+            if (Normalizer != null) {
+                x.Normalizer = Normalizer.clone();
+            }
         } catch (Exception e) { throw new Error(e); }
         return x;
     } 

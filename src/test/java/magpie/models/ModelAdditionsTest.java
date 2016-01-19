@@ -102,6 +102,33 @@ public class ModelAdditionsTest {
         
         assertArrayEquals(goldResults, data.getPredictedClassArray(), 1e-6);
         assertArrayEquals(goldClass, data.getMeasuredClassArray(), 1e-6);
+        
+        // Print out model details
+        String description = model.printDescription(false);
+        assertTrue(description.contains("RescalingNormalizer"));
+        System.out.println(description);
+        
+        // Save original model predictions
+        double[] originalResults = data.getPredictedClassArray();
+        
+        // Make sure clone works
+        PolynomialRegression modelClone = model.clone();
+        modelClone.run(data);
+        assertArrayEquals(originalResults, data.getMeasuredClassArray(), 1e-6);
+        
+        Dataset dataClone = data.clone();
+        
+        //   Increase measured class variable by one
+        for (BaseEntry e : dataClone.getEntries()) {
+            e.setMeasuredClass(e.getMeasuredClass() + 1);
+        }
+        
+        // Train clone model
+        modelClone.train(dataClone);
+        
+        // Make sure original predictions are unaffected
+        model.run(data);
+        assertArrayEquals(originalResults, data.getPredictedClassArray(), 1e-6);
     }
     
     @Test
@@ -162,9 +189,35 @@ public class ModelAdditionsTest {
         assertArrayEquals(results.getParameterEstimates(), 
             model.getCoefficients(), 1e-6);
         
+        // Print out model details
+        String description = model.printDescription(false);
+        assertTrue(description.contains("UserSpecifiedAttributeSelector"));
+        System.out.println(description);
+        
         // Run model
         model.run(data);
         checkAttributes(data, goldAttributes);
+        
+        double[] originalResults = data.getPredictedClassArray();
+        
+        // Make sure clone works
+        PolynomialRegression modelClone = model.clone();
+        modelClone.run(data);
+        assertArrayEquals(originalResults, data.getPredictedClassArray(), 1e-6);
+        
+        Dataset dataClone = data.clone();
+        
+        //   Increase measured class variable by one
+        for (BaseEntry e : dataClone.getEntries()) {
+            e.setMeasuredClass(e.getMeasuredClass() + 1);
+        }
+        
+        // Train clone model
+        modelClone.train(dataClone);
+        
+        // Make sure original predictions are unaffected
+        model.run(data);
+        assertArrayEquals(originalResults, data.getPredictedClassArray(), 1e-6);
     }
 
     /**

@@ -49,7 +49,7 @@ import magpie.utility.interfaces.*;
  * @author Logan Ward
  */
 abstract public class BaseDatasetNormalizer 
-    implements Options, Commandable, Printable, Serializable {
+    implements Options, Commandable, Printable, Serializable, Cloneable {
     /** Whether this normalizer has been trained */
     private boolean Trained = false;
     /** Whether to normalize attributes */
@@ -58,6 +58,17 @@ abstract public class BaseDatasetNormalizer
     private boolean NormalizeClass = false;
     /** Names of attributes (to make sure the dataset is not different) */
     private String[]  AttributeNames = null;
+
+    @Override
+    public BaseDatasetNormalizer clone() {
+        try {
+            BaseDatasetNormalizer x = (BaseDatasetNormalizer) super.clone();
+            x.AttributeNames = AttributeNames.clone();
+            return x;
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * @return Whether this normalizer has been trained
