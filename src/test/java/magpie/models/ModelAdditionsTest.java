@@ -218,6 +218,10 @@ public class ModelAdditionsTest {
         // Make sure original predictions are unaffected
         model.run(data);
         assertArrayEquals(originalResults, data.getPredictedClassArray(), 1e-6);
+        
+        // Run model
+        model.run(data);
+        checkAttributes(data, goldAttributes);
     }
 
     /**
