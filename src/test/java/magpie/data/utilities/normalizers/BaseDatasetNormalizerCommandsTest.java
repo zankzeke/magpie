@@ -8,10 +8,10 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 /**
- *
+ * Test the command line functions for {@linkplain BaseDatasetNormalizer}.
  * @author Logan Ward
  */
-public class BaseDatasetNormalizerTest {
+public class BaseDatasetNormalizerCommandsTest {
 
     @Test
     public void testCommands() throws Exception {
