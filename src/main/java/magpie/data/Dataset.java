@@ -1034,12 +1034,12 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     }
 
     /**
-     * Retrieve the internal collection of entries
+     * Return copy of list of entries
      *
-     * @return Collection of entries (probably an ArrayList)
+     * @return Collection of entries
      */
     public List<BaseEntry> getEntries() {
-        return this.Entries;
+        return new ArrayList<>(Entries);
     }
 
     /**
