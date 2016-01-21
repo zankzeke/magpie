@@ -29,7 +29,7 @@ public class RescalingNormalizer extends IndependentVariableNormalizer {
     public RescalingNormalizer clone() {
         RescalingNormalizer x = (RescalingNormalizer) super.clone();
         x.AttributeMinimum = AttributeMinimum.clone();
-        x.AttributeMinimum = AttributeRange.clone();
+        x.AttributeRange = AttributeRange.clone();
         return x;
     }
 
