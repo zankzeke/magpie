@@ -6,7 +6,7 @@ import magpie.analytics.BaseStatistics;
 import magpie.models.BaseModel;
 import magpie.analytics.RegressionStatistics;
 import magpie.data.Dataset;
-import magpie.data.utilities.filters.IsOutlierFilter;
+import magpie.data.utilities.filters.PredictionOutlierFilter;
 
 /**
  * Base class for all regression models.
@@ -46,7 +46,7 @@ abstract public class BaseRegression extends BaseModel implements AbstractRegres
              */
             Dataset WithoutOutliers = TrainData.clone();
             run_protected(WithoutOutliers);
-            IsOutlierFilter Filter = new IsOutlierFilter();
+            PredictionOutlierFilter Filter = new PredictionOutlierFilter();
             Filter.setExclude(true);
             Filter.setQ(getRobustRegressionQ());
             Filter.setK(getNFittingParameters());
