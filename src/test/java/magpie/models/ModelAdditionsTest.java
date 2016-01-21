@@ -6,6 +6,7 @@ import java.util.List;
 import magpie.attributes.selectors.UserSpecifiedAttributeSelector;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
+import magpie.data.utilities.filters.ZScoreOutlierFilter;
 import magpie.models.regression.PolynomialRegression;
 import org.apache.commons.math3.stat.regression.MillerUpdatingRegression;
 import org.apache.commons.math3.stat.regression.RegressionResults;
@@ -114,7 +115,7 @@ public class ModelAdditionsTest {
         // Make sure clone works
         PolynomialRegression modelClone = model.clone();
         modelClone.run(data);
-        assertArrayEquals(originalResults, data.getMeasuredClassArray(), 1e-6);
+        assertArrayEquals(originalResults, data.getPredictedClassArray(), 1e-6);
         
         Dataset dataClone = data.clone();
         
@@ -222,6 +223,96 @@ public class ModelAdditionsTest {
         // Run model
         model.run(data);
         checkAttributes(data, goldAttributes);
+    }
+    
+    @Test
+    public void testFilter() throws Exception {
+        // Create a test dataset
+        Dataset data = new Dataset();
+        for (int i=0; i<11; i++) {
+            data.addEntry(new BaseEntry());
+        }
+        data.addAttribute("x", new double[]{0,0.1,0.2,-0.1,0.05,-0.05,0.3,0.4,1,0,0.15});
+        data.addAttribute("y", new double[]{1,0.1,0.3,-0.2,0.05,-0.05,0.3,0.4,0,0,0.15});
+        data.addAttribute("z", new double[]{1,1,1,1,1,1,1,1,1,1,1});
+        
+        data.setMeasuredClasses(new double[]{-0.5,2,0.2,-0.1,0.05,-0.05,0.3,0.4,0,0,0.15});
+        
+        // Store initial attributes
+        double[][] goldAttributes = data.getAttributeArray();
+        
+        // Train a model without any normalization
+        PolynomialRegression model = new PolynomialRegression();
+        model.setOrder(1);
+        
+        model.train(data);
+        
+        // Check that model fits data
+        assertArrayEquals(new double[]{0.281,0.068,-0.384,0}, model.getCoefficients(), 1e-2);
+        
+        // Get initial predictions from model
+        model.run(data);
+        
+        // Add a normalizer
+        List<Object> command = new LinkedList<>();
+        command.add("filter");
+        command.add("include");
+        command.add("ZScoreOutlierFilter");
+        command.add(1.0);
+        command.add("-class");
+        command.add("-attributes");
+        
+        model.runCommand(command);
+        
+        // Check whether filter is inclusive
+        assertFalse(model.getFilter().toExclude());
+        
+        // Now, set it to exclude
+        command.set(1, "exclude");
+        
+        model.runCommand(command);
+        
+        assertTrue(model.getFilter().toExclude());
+        
+        // Re-train model, check that coefficients are correct
+        model.train(data);
+        
+        assertArrayEquals(new double[]{0,1,0,0}, model.getCoefficients(), 1e-6);
+        
+        // Make sure attributes unchanged
+        checkAttributes(data, goldAttributes);
+        
+        // Print out model details
+        String description = model.printDescription(false);
+        assertTrue(description.contains("ZScoreOutlierFilter"));
+        System.out.println(description);
+        
+        // Save original model predictions
+        model.run(data);
+        double[] originalResults = data.getPredictedClassArray();
+        
+        // Make sure clone works. For the filter, this shouldn't be a problem.
+        //  Filter are only used at train time, so they shouldn't interfere with
+        //  each other (unless models are being trained concurrently)
+        PolynomialRegression modelClone = model.clone();
+        assertArrayEquals(modelClone.getCoefficients(), model.getCoefficients(), 1e-6);
+        modelClone.run(data);
+        assertArrayEquals(originalResults, data.getPredictedClassArray(), 1e-6);
+        
+        Dataset dataClone = data.clone();
+        
+        //   Remove outlier from attribute array #1
+        double[] newX = new double[]{0,0.1,0.2,-0.1,0.05,-0.05,0.3,0.4,0.2,0,0.15};
+        for (int e=0; e<dataClone.NEntries(); e++) {
+            dataClone.getEntry(e).setAttribute(0, newX[e]);
+        }
+        
+        // Train clone model
+        modelClone.train(dataClone);
+        
+        // Make sure original predictions are unaffected
+        model.run(data);
+        assertArrayEquals(originalResults, data.getPredictedClassArray(), 1e-6);
     }
 
     /**

@@ -12,6 +12,7 @@ import magpie.analytics.BaseStatistics;
 import magpie.attributes.selectors.BaseAttributeSelector;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
+import magpie.data.utilities.filters.BaseDatasetFilter;
 import magpie.data.utilities.normalizers.BaseDatasetNormalizer;
 import magpie.models.regression.AbstractRegressionModel;
 import magpie.user.CommandHandler;
@@ -20,7 +21,10 @@ import magpie.utility.interfaces.*;
 import org.apache.commons.lang3.tuple.Pair;
 
 /**
- * Base class for any model. 
+ * Base class for any model, regression or classification.
+ * 
+ * <p>All models support the ability to filter training data,
+ * normalize attributes, and select attributes before model training (in that order).
  * 
  * <p><b>Implementation Guide</b>
  * 
@@ -54,8 +58,12 @@ import org.apache.commons.lang3.tuple.Pair;
  * <command><p><b>validate $&lt;dataset></b> - Validate model against external dataset
  * <br><pr><i>dataset</i> - Dataset to use for validate</command>
  * 
- * <command><p><b>set selector $&lt;selector></b> - Define the {@link BaseAttributeSelector} used to screen attributes before training
+ * <command><p><b>set selector $&lt;selector&gt;</b> - Define the {@link BaseAttributeSelector} used to screen attributes before training
  * <br><pr><i>selector</i>: Attribute selector to use</command>
+ * 
+ * <command><p><b>set selector $&lt;filter&gt;</b> - Define the {@link BaseDatasetFilter} used to filter data
+ * before attribute normalization, attribute selection, and model training.
+ * <br><pr><i>filter</i>: Filter to use</command>
  * 
  * <command><p><b>normalize [attributes] [class] &lt;method&gt; [&lt;options...&gt;]</b> 
  *  - Define how to normalize data (data is not normalized by default)
@@ -101,6 +109,8 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
     protected BaseAttributeSelector AttributeSelector = null;
     /** Used to normalize attributes before training / running model */
     private BaseDatasetNormalizer Normalizer = null;
+    /** Filter used to clean data before training model */
+    private BaseDatasetFilter Filter = null;
     /** Stores description how this model validated. */
     private String ValidationMethod = "Unvalidated";
     /** Date model was trained */
@@ -146,6 +156,22 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
      */
     public void setAttributeSelector(BaseAttributeSelector AttributeSelector) {
         this.AttributeSelector = AttributeSelector;
+    }
+    
+    /**
+     * Set filter used to clean data before training
+     * @param filter Desired filter
+     */
+    public void setFilter(BaseDatasetFilter filter) {
+        Filter = filter;
+    }
+    
+    /**
+     * Get filter used before training
+     * @return Link to internal filter object
+     */
+    public BaseDatasetFilter getFilter() {
+        return Filter;
     }
     
     /** 
@@ -236,10 +262,18 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         TrainTime = new Date();
         AttributeNames = data.getAttributeNames();
         
-        // Gather only the entries that have measured glasses
+        // Gather only the entries that have measured classes
 		Dataset trainingData = data.getTrainingExamples();
         if (trainingData.NEntries() == 0)
             throw new RuntimeException("Data does not contain any training entries");
+        
+        // Filter dataset
+        List<BaseEntry> beforeFilter = null;
+        if (Filter != null) {
+            beforeFilter = trainingData.getEntries();
+            Filter.train(trainingData);
+            Filter.filter(trainingData);
+        }
         
         // Perform normalization, if desired
         if (Normalizer != null) {
@@ -282,6 +316,12 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         // De-normalize data
         if (Normalizer != null) {
             Normalizer.restore(trainingData);
+        }
+        
+        // Return filtered entries
+        if (Filter != null) {
+            trainingData.clearData();
+            trainingData.addEntries(beforeFilter);
         }
         
         if (recordStats) {
@@ -496,6 +536,9 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
      */
     protected List<String> printModelDescriptionDetails(boolean htmlFormat) {
         List<String> output = new LinkedList<>();
+        if (Filter != null) {
+            output.add("Filter: " + Filter.getClass().getName());
+        }
         if (Normalizer != null) {
             output.add("Normalizer: " + Normalizer.getClass().getName());
         }
@@ -542,6 +585,45 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         }
         String Action = Command.get(0).toString().toLowerCase();
         switch (Action) {
+            case "filter": {
+                // Usage: filter [exclude|include] <filter name> <filter options...>
+                boolean exclude;
+                String filterName;
+                List<Object> filterOptions;
+                try {
+                    // Determine whether filter is inclusive or exclusive
+                    if (Command.get(1).toString().equalsIgnoreCase("include")) {
+                        exclude = false;
+                    } else if (Command.get(1).toString().equalsIgnoreCase("exclude")) {
+                        exclude = true;
+                    } else {
+                        throw new Exception();
+                    }
+                    
+                    // Get filter name / options
+                    filterName = Command.get(2).toString();
+                    filterOptions = Command.subList(3, Command.size());
+                    
+                } catch (Exception e) {
+                    throw new Exception("Usage: filter [exclude|include] <filter name> <options...>");
+                }
+                
+                // Create filter
+                BaseDatasetFilter filter = (BaseDatasetFilter) CommandHandler.instantiateClass(
+                        "data.utilities.filters." + filterName, filterOptions);
+                
+                // Set whether to exclude | include
+                filter.setExclude(exclude);
+                
+                // Set filter
+                setFilter(filter);
+                
+                // Print status data
+                System.out.format("Set model to %s entries based on a %s before training",
+                        exclude ? "exclude" : "include",
+                        filterName);
+                return null;
+            }
             case "train": {
                 // Usage: train ${dataset}
                 if (Command.size() < 2 || ! (Command.get(1) instanceof Dataset)) {
