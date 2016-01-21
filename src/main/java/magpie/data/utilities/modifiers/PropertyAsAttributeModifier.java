@@ -62,7 +62,7 @@ public class PropertyAsAttributeModifier extends BaseDatasetModifier {
             
             // Step 2: Remove entries without measured property (value == NaN)
             ind = Ptr.NAttributes() - 1; // Knowing it is the last one
-            Iterator<BaseEntry> iter = Data.getEntries().iterator();
+            Iterator<BaseEntry> iter = Data.getEntriesWriteAccess().iterator();
             while (iter.hasNext()) {
                 BaseEntry E = iter.next();
                 if (Double.isNaN(E.getAttribute(ind)))

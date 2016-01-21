@@ -94,10 +94,13 @@ abstract public class BaseDatasetSplitter implements
             BaseEntry E = iter.next();
             output.get(labels[i]).addEntry(E);
             i++; 
-            if (!toRetain) {
-                iter.remove();
-            }
         }
+        
+        // If not to retain, clear input data
+        if (! toRetain) {
+            data.clearData();
+        }
+        
         return output;
     }
     

@@ -21,7 +21,7 @@ abstract public class DatasetHelper extends Dataset {
     static public Dataset split(Dataset D, Predicate P) {
         Dataset other = D.clone();
         other.clearData();
-        Iterator iter = D.getEntries().iterator();
+        Iterator iter = D.getEntriesWriteAccess().iterator();
         while (iter.hasNext()) {
             BaseEntry E = (BaseEntry) iter.next();
             if (P.evaluate(E)) {

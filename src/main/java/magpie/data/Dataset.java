@@ -1034,12 +1034,22 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     }
 
     /**
-     * Return copy of list of entries
+     * Return copy of list of entries. Does not allow user to delete entries 
+     * from the dataset.
      *
      * @return Collection of entries
      */
     public List<BaseEntry> getEntries() {
         return new ArrayList<>(Entries);
+    }
+    
+    /**
+     * Get the internal list of entries from this dataset. User can modify
+     * anything about the internal dataset (ex: sort, delete entries)
+     * @return Internal list of entries
+     */
+    public List<BaseEntry> getEntriesWriteAccess() {
+        return Entries;
     }
 
     /**
@@ -1268,6 +1278,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         } else {
             for (int i = 0; i < NClasses(); i++) {
                 final int cls = i;
+                
                 // Get the entries that are in class # cls
                 Predicate splitter = new Predicate() {
                     @Override
