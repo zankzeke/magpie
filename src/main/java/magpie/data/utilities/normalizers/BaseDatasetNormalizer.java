@@ -49,7 +49,7 @@ import magpie.utility.interfaces.*;
  * @author Logan Ward
  */
 abstract public class BaseDatasetNormalizer 
-    implements Options, Commandable, Printable, Serializable {
+    implements Options, Commandable, Printable, Serializable, Cloneable {
     /** Whether this normalizer has been trained */
     private boolean Trained = false;
     /** Whether to normalize attributes */
@@ -58,6 +58,17 @@ abstract public class BaseDatasetNormalizer
     private boolean NormalizeClass = false;
     /** Names of attributes (to make sure the dataset is not different) */
     private String[]  AttributeNames = null;
+
+    @Override
+    public BaseDatasetNormalizer clone() {
+        try {
+            BaseDatasetNormalizer x = (BaseDatasetNormalizer) super.clone();
+            x.AttributeNames = AttributeNames.clone();
+            return x;
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * @return Whether this normalizer has been trained
@@ -107,7 +118,7 @@ abstract public class BaseDatasetNormalizer
         if (willNormalizeClass()) {
             // Check if data has discrete classes
             if (Data.NClasses() != 1) {
-                throw new Error("Discrete class variables cannot be normalized");
+                throw new RuntimeException("Discrete class variables cannot be normalized");
             }
             // Check if the data has a measured class variable
             if (! Data.getEntry(0).hasMeasurement()) {
@@ -154,7 +165,7 @@ abstract public class BaseDatasetNormalizer
         
         // Check if attributes are different
         if (! Arrays.equals(AttributeNames, Data.getAttributeNames())) {
-            throw new Error("Attribute names different: Different type of data?");
+            throw new RuntimeException("Attribute names different: Different type of data?");
         }
         
         // Run the normalization
@@ -193,7 +204,7 @@ abstract public class BaseDatasetNormalizer
         
         // Check if attributes are different
         if (! Arrays.equals(AttributeNames, Data.getAttributeNames())) {
-            throw new Error("Attribute names different: Different type of data?");
+            throw new RuntimeException("Attribute names different: Different type of data?");
         }
         
         if (willNormalizeAttributes()) {
@@ -220,17 +231,22 @@ abstract public class BaseDatasetNormalizer
     /**
      * Check whether the normalize/restore operations are reversible. Tests both
      *  the attribute and class variables.
-     * @param Data Dataset to use for testings
+     * @param data Dataset to use for testings
      * @return Whether the model passes
      */
-    public boolean test(Dataset Data) {
-        double[][] before = Data.getEntryArray();
+    public boolean test(Dataset data) {
+        // Store original result
+        double[][] before = data.getEntryArray();
+        
+        // Train, normalize, restore
         setToNormalizeAttributes(true);
         setToNormalizeClass(true);
-        train(Data);
-        normalize(Data);
-        restore(Data);
-        double[][] after = Data.getEntryArray();
+        train(data);
+        normalize(data);
+        restore(data);
+        
+        // Make sure the results haven't changed
+        double[][] after = data.getEntryArray();
         for (int row=0; row<before.length; row++) {
             for (int col=0; col<before[row].length; col++) {
                 if (Math.abs(after[row][col] - before[row][col]) > 1e-6) {
@@ -248,7 +264,7 @@ abstract public class BaseDatasetNormalizer
 
     @Override
     public String printDescription(boolean htmlFormat) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); 
     }
 
     @Override

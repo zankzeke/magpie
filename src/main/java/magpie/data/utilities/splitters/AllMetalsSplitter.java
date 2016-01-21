@@ -19,7 +19,7 @@ import magpie.data.materials.CompositionEntry;
  */
 public class AllMetalsSplitter extends BaseDatasetSplitter {
     /** List indicating which elements are metals */
-    protected boolean[] isMetal = new boolean[] { false,false,true,true,false,
+    final protected boolean[] isMetal = new boolean[] { false,false,true,true,false,
         false,false,false,false,false,true,true,true,false,false,false,false,
         false,true,true,true,true,true,true,true,true,true,true,true,true,true,
         false,true,false,false,false,true,true,true,true,true,true,true,true,

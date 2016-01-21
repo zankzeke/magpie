@@ -110,7 +110,7 @@ import weka.core.converters.ArffLoader;
  * <br><pr><i>options</i>: Any options for the entry generator</command>
  * 
  * <command><p>
- * <b>match $&lt;dataset&gt; &lt;num&gt; - Find most similar entries in this dataset
+ * <b>match $&lt;dataset&gt; &lt;num&gt;</b> - Find most similar entries in this dataset
  * <br><pr><i>dataset</i>: Dataset containing entries to be matched
  * <br><pr><i>num</i>: Number of closest entries to print
  * <br>Prints the most similar entries in this dataset to those in the dataset
@@ -1034,12 +1034,12 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     }
 
     /**
-     * Retrieve the internal collection of entries
+     * Return copy of list of entries
      *
-     * @return Collection of entries (probably an ArrayList)
+     * @return Collection of entries
      */
     public List<BaseEntry> getEntries() {
-        return this.Entries;
+        return new ArrayList<>(Entries);
     }
 
     /**
@@ -1506,6 +1506,15 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
             id++;
         }
         return output;
+    }
+    
+    /**
+     * Delete all measured classes from entry from entries
+     */
+    public void deleteMeasuredClasses() {
+        for (BaseEntry entry : Entries) {
+            entry.deleteMeasuredClass();
+        }
     }
 
     /**

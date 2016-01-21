@@ -3,7 +3,7 @@ package magpie.models.regression;
 import java.util.List;
 import magpie.analytics.RegressionStatistics;
 import magpie.data.Dataset;
-import magpie.data.utilities.filters.IsOutlierFilter;
+import magpie.data.utilities.filters.PredictionOutlierFilter;
 import magpie.models.BaseModel;
 import magpie.models.SplitModel;
 
@@ -65,7 +65,7 @@ public class SplitRegression extends SplitModel implements AbstractRegressionMod
              */
             Dataset WithoutOutliers = TrainData.clone();
             run_protected(WithoutOutliers);
-            IsOutlierFilter Filter = new IsOutlierFilter();
+            PredictionOutlierFilter Filter = new PredictionOutlierFilter();
             Filter.setExclude(true);
             Filter.setQ(getRobustRegressionQ());
             Filter.setK(getNFittingParameters());

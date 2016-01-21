@@ -18,7 +18,7 @@ import magpie.user.CommandHandler;
  * @author Logan Ward
  * @version 0.1
  */
-public class IsOutlierFilter extends BaseDatasetFilter {
+public class PredictionOutlierFilter extends BaseDatasetFilter {
     /** Class used to calculate outliers */
     private final RobustRegressionUtility RobustUtility = new RobustRegressionUtility();
     /** Number of fitting parameters in a model */
