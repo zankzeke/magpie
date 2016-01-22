@@ -62,7 +62,7 @@ public class ZScoreNormalizer extends IndependentVariableNormalizer {
     @Override
     protected void computeClassStatistics(double[] values) {
         ClassMean = StatUtils.mean(values);
-        ClassStdDev = StatUtils.variance(values, ClassMean);
+        ClassStdDev = Math.sqrt(StatUtils.variance(values, ClassMean));
         if (ClassStdDev == 0) { 
             ClassStdDev = 1; 
         }

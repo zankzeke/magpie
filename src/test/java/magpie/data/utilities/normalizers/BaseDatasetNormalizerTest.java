@@ -27,8 +27,20 @@ public class BaseDatasetNormalizerTest {
      * and test the {@linkplain BaseDatasetNormalizer#printDescription(boolean) }
      */
     @Test
-    public void testSetOptions() {
+    public void testSetOptions() throws Exception {
         // To be overloaded
+        assertTrue(getClass().getSimpleName().equals("BaseDatasetNormalizerTest"));
+    }
+    
+    /**
+     * Test whether the normalizer is working as expected. Must be overload.
+     * 
+     * <p>This test should make sure that the attributes and class are normalized
+     * as expected.
+     * 
+     */
+    @Test
+    public void testAccuracy() {
         assertTrue(getClass().getSimpleName().equals("BaseDatasetNormalizerTest"));
     }
     

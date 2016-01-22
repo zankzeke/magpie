@@ -34,7 +34,7 @@ public class InverseNormalizer extends BaseDatasetNormalizer {
 
     @Override
     public String printUsage() {
-        return "Usage: *No options*";
+        return "Usage: <scale factor>";
     }
 
     /**
@@ -43,6 +43,14 @@ public class InverseNormalizer extends BaseDatasetNormalizer {
      */
     public void setScale(double s) {
         this.Scale = s;
+    }
+    
+    /**
+     * Get scale factor used when inverting data
+     * @return Scale factor
+     */
+    public double getScale() {
+        return Scale;
     }
     
     @Override
