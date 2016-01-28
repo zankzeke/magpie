@@ -3,6 +3,7 @@ package magpie.data;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import magpie.models.regression.WekaRegression;
@@ -16,7 +17,81 @@ import weka.core.Instances;
  */
 public class DatasetTest {
     
-    public DatasetTest() {
+    @Test
+    public void testClone() throws Exception {
+        // Create a dataset with 1 attribute and 1 entry
+        Dataset data = new Dataset();
+        data.addEntry(new BaseEntry());
+        data.addAttribute("x", new double[]{1});
+        
+        // Make sure it has the correct number of attributes
+        assertEquals(1, data.NEntries());
+        assertEquals(1, data.NAttributes());
+        
+        // Make a clone
+        Dataset clone = data.clone();
+        
+        // Make sure it has the same number of entries, etc
+        assertEquals(1, data.NEntries());
+        assertEquals(1, data.NAttributes());
+        assertEquals(1, clone.NEntries());
+        assertEquals(1, clone.NAttributes());
+        
+        // Add entry to original, make sure it doesn't affect clone
+        data.addEntry(new BaseEntry());
+        assertEquals(2, data.NEntries());
+        assertEquals(1, data.NAttributes());
+        assertEquals(1, clone.NEntries());
+        assertEquals(1, clone.NAttributes());
+        
+        // Change attributes of the shared entry, make sure it doesn't affect clone
+        data.getEntry(0).setAttribute(0, 10);
+        assertEquals(1, clone.getEntry(0).getAttribute(0), 1e-6);
+        
+        // Make sure adding an attribute to clone doesn't affect base dataset
+        clone.addAttribute("y", new double[]{2});
+        assertEquals(2, data.NEntries());
+        assertEquals(1, data.NAttributes());
+        assertEquals(1, clone.NEntries());
+        assertEquals(2, clone.NAttributes());
+        
+        // Make sure that a empty clone has no entries
+        clone = data.emptyClone();
+        assertEquals(2, data.NEntries());
+        assertEquals(1, data.NAttributes());
+        assertEquals(0, clone.NEntries());
+        assertEquals(1, clone.NAttributes());
+        
+        // Add entry to clone, make sure original unaffected
+        clone.addEntry(new BaseEntry());
+        assertEquals(2, data.NEntries());
+        assertEquals(1, data.NAttributes());
+        assertEquals(1, clone.NEntries());
+        assertEquals(1, clone.NAttributes());
+        
+        // Add attributes to original, make sure clone unaffected
+        data.addAttributes(Arrays.asList(new String[]{"y","z"}));
+        assertEquals(2, data.NEntries());
+        assertEquals(3, data.NAttributes());
+        assertEquals(1, clone.NEntries());
+        assertEquals(1, clone.NAttributes());
+    }
+    
+    @Test
+    public void testGetTrainingSet() {
+        // Make a fake dataset, 1 entry with measurement and 1 without
+        Dataset data = new Dataset();
+        data.addEntry(new BaseEntry());
+        data.addEntry(new BaseEntry());
+        
+        data.getEntry(0).setMeasuredClass(-1);
+        
+        // Get the trainset set
+        Dataset trainData = data.getTrainingExamples();
+        
+        assertEquals(1, trainData.NEntries());
+        assertTrue(trainData.getEntry(0).hasMeasurement());
+        assertEquals(2, data.NEntries());
     }
 
     @Test
@@ -114,23 +189,6 @@ public class DatasetTest {
         assertEquals(1, data1.NClasses());
         assertEquals(0, data1.getEntry(5).NAttributes()); // Attribute were deleted
         assertFalse(data1.getEntry(5).hasMeasurement()); // Class was deleted
-    }
-    
-    @Test
-    public void testClone() throws Exception {
-        Dataset data = getEasyDataset();
-        Dataset clone = data.clone();
-        
-        assertTrue("Attribute count different", data.NAttributes() == clone.NAttributes());
-        assertTrue("Entry count different", data.NEntries() == clone.NEntries());
-        
-        clone.clearData();
-        assertFalse("Entry list not cloned properly", data.NEntries() == 0);
-        
-        List<String> newNames = new LinkedList<>();
-        newNames.add("F");
-        clone.setAttributeNames(newNames);
-        assertFalse("Attribute name list not cloned properly", data.NAttributes() == 1);
     }
 
     /**
