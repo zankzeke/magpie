@@ -278,32 +278,6 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         this.Entries = new ArrayList<>();
     }
 
-    ;
-    
-    /** Create a Dataset that containing the same entries as another
-     * @param AttributeName Attribute names to use
-     * @param ClassName Name(s) of class variable
-     * @param Entries Entries to be stored
-     */
-    public Dataset(ArrayList<String> AttributeName,
-            String[] ClassName, ArrayList<BaseEntry> Entries) {
-        this.AttributeName = AttributeName;
-        this.ClassName = ClassName.clone();
-        this.Entries = new ArrayList<>(Entries);
-    }
-
-    /**
-     * Create an empty dataset with the same attributes names as another
-     *
-     * @param AttributeName Attribute names
-     * @param ClassName Name(s) of class variable
-     */
-    public Dataset(ArrayList<String> AttributeName, String[] ClassName) {
-        this.AttributeName = AttributeName;
-        this.ClassName = ClassName;
-        this.Entries = new ArrayList<>();
-    }
-
     @Override
     public void setOptions(List<Object> Options) throws Exception {
         /* Nothing to do */
