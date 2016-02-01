@@ -177,8 +177,8 @@ import weka.core.converters.ArffLoader;
  * expanders</command>
  *
  * <command><p>
- * <b>attributes generators add &lt;method> [&lt;options...>]</b> - Add an
- * attribute generators to create additional attributes
+ * <b>attributes generators add &lt;method> [&lt;options...>]</b> - Add a new
+ * attribute generator to list of generators
  * <br><pr><i>method</i>: New generation method. Name of a
  * {@linkplain BaseAttributeGenerator} ("?" to print available methods)
  * <br><pr><i>options...</i>: Any options for the generator method These
@@ -521,8 +521,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     }
 
     /**
-     * Perform attribute calculation. Should also store names in
-     * {@linkplain #AttributeName}.
+     * Compute attributes that are specific to this class.
      *
      * @throws Exception
      */
@@ -708,12 +707,12 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * @return Names of possible classes for class variable
      */
     public String[] getClassNames() {
-        return ClassName;
+        return ClassName.clone();
     }
 
     /**
      * Get the name of a certain class (for data with multiple possible
-     * classficiations)
+     * classes)
      *
      * @param value Value of class variable
      * @return Name of that class
@@ -749,30 +748,10 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     public void addAttributes(List<String> names) {
         for (String name : names) {
             if (AttributeName.contains(name)) {
-                throw new Error("Dataset already contains attribute: " + name);
+                throw new RuntimeException("Dataset already contains attribute: " + name);
             }
         }
         AttributeName.addAll(names);
-    }
-
-    /**
-     * Remove an attribute
-     *
-     * @param index Index of attribute to be removed
-     */
-    public void removeAttribute(int index) {
-        System.err.println("WARNING: This does not currently remove attribute from entries. LW 4Apr14");
-        AttributeName.remove(index);
-    }
-
-    /**
-     * Remove an attribute
-     *
-     * @param name Name of attribute to be removed
-     */
-    public void removeAttribute(String name) {
-        System.err.println("WARNING: This does not currently remove attribute from entries. LW 4Apr14");
-        AttributeName.remove(name);
     }
 
     /**
@@ -963,10 +942,10 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     }
 
     /**
-     * Combine the data structure with an array of other Datasets. Leaves all of
-     * the others all unaltered.
+     * Combine the data structure with an array of other Datasets. Does not
+     * alter input Datasets.
      *
-     * @param d Array of DataStructures
+     * @param d Array of Datasets
      */
     public void combine(Dataset[] d) {
         for (Dataset data : d) {
@@ -976,7 +955,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
 
     /**
      * Combine the data structure with a collection of other data structures.
-     * Leaves other datasets unaltered
+     * Does not alter input arrays
      *
      * @param d Collection of Datasets
      */
@@ -989,11 +968,11 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     /**
      * Remove all entries that are in another dataset from this dataset
      *
-     * @param Data Second dataset
+     * @param data Second dataset
      */
-    public void subtract(Dataset Data) {
+    public void subtract(Dataset data) {
         TreeSet<BaseEntry> TempSet = new TreeSet<>(Entries);
-        TempSet.removeAll(Data.Entries);
+        TempSet.removeAll(data.Entries);
         Entries = new ArrayList(TempSet);
     }
 
@@ -1095,7 +1074,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      */
     public Dataset randomSplit(int number) {
         if (number < 0 || number > NEntries()) {
-            throw new Error("Number must be positive, and less than the size of the set");
+            throw new RuntimeException("Number must be positive, and less than the size of the set");
         }
 
         // Create a list of which entries to move over
@@ -1130,7 +1109,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      */
     public Dataset randomSplit(double fraction) {
         if (fraction > 1 || fraction < 0) {
-            throw new Error("Fraction must be between 0 and 1");
+            throw new RuntimeException("Fraction must be between 0 and 1");
         }
         int to_new = (int) Math.floor((double) NEntries() * fraction);
         return randomSplit(to_new);
@@ -1143,11 +1122,8 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * @return Dataset containing a subset of entries
      */
     public Dataset getRandomSubset(int number) {
-        /**
-         * Grab a random subset from the original data, leave this intact
-         */
         if (number < 0 || number > NEntries()) {
-            throw new Error("Number must be positive, and less than the size of the set");
+            throw new RuntimeException("Number must be positive, and less than the size of the set");
         }
 
         // Create a list of which entries to move over
@@ -1180,7 +1156,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      */
     public Dataset getRandomSubset(double fraction) {
         if (fraction > 1 || fraction < 0) {
-            throw new Error("Fraction must be between 0 and 1");
+            throw new RuntimeException("Fraction must be between 0 and 1");
         }
         int to_new = (int) Math.floor((double) NEntries() * fraction);
         return getRandomSubset(to_new);
