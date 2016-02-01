@@ -88,7 +88,7 @@ public class AtomicStructureEntry extends CompositionEntry {
         
         // If Voronoi tessellation has already been computed, create a tool
         //  for the new entry w/o recomputing the tessellation
-        if (Voronoi != null) {
+        if (Voronoi != null && (Structure.nTypes() != newEntry.Structure.nTypes())) {
             newEntry.Voronoi = new VoronoiCellBasedAnalysis(Voronoi, newEntry.Structure);
         }
         return newEntry;
