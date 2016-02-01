@@ -1,8 +1,6 @@
 package magpie.data.utilities.filters;
 
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -110,8 +108,8 @@ abstract public class BaseDatasetFilter implements java.io.Serializable, Options
     }
     
     /** 
-     * Filters entries in a Dataset depending
-     * @param D Dataset to be split. Returns empty from this operation
+     * Filters entries out of dataset
+     * @param D Dataset to filter
      */
     public void filter(Dataset D) {
         boolean[] labels;

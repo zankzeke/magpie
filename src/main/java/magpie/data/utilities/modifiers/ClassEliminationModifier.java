@@ -81,7 +81,7 @@ public class ClassEliminationModifier extends BaseDatasetModifier {
         }
         
         // Modify all entries
-        Iterator<BaseEntry> iter = Data.getEntries().iterator();
+        Iterator<BaseEntry> iter = Data.getEntriesWriteAccess().iterator();
         while (iter.hasNext()) {
             BaseEntry e = iter.next();
             // Only operate on entries with a measured class

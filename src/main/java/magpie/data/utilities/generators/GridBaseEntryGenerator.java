@@ -58,7 +58,7 @@ public class GridBaseEntryGenerator extends BaseEntryGenerator {
 
     /**
      * Define maximum value in all directions
-     * @param maxValue 
+     * @param maxValue Desired maximum value
      */
     public void setMaxValue(double maxValue) {
         this.maxValue = maxValue;
@@ -67,6 +67,9 @@ public class GridBaseEntryGenerator extends BaseEntryGenerator {
     @Override
     public void setOptions(List<Object> Options) throws Exception {
         try {
+            if (Options.size() != 4) {
+                throw new Exception();
+            }
             setDimension(Integer.parseInt(Options.get(0).toString()));
             setMinValue(Double.parseDouble((Options.get(1).toString())));
             setGridSpacing(Double.parseDouble(Options.get(2).toString()));

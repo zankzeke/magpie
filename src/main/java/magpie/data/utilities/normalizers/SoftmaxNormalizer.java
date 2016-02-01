@@ -7,7 +7,7 @@ import java.util.List;
  * Normalization using the "softmax" method. First computes the mean and standard
  *  deviation of a variable, then computes a normalized value using the relationship
  * 
- * <center>y = x - mean(X) / r / stddev(x)</center>
+ * <center>y = (x - mean(X)) / r / stddev(x)</center>
  * <center>x&rsquo; = 1 / (1 + exp(-y))</center>
  * 
  * where x is the value of an attribute, X is the set of all values of that variable
@@ -38,9 +38,6 @@ public class SoftmaxNormalizer extends ZScoreNormalizer {
         }
     }
 
-    public SoftmaxNormalizer() {
-    }
-
     @Override
     public String printUsage() {
         return "Usage: <r>";
@@ -51,9 +48,12 @@ public class SoftmaxNormalizer extends ZScoreNormalizer {
      * @param R Scaling constant (should be positive, default is 1)
      */
     public void setR(double R) {
+        if (R <= 0) {
+            throw new RuntimeException("R must be positive");
+        }
         this.R = R;
     }
-
+   
     /**
      * Get the scaling constant
      * @return Scaling constant

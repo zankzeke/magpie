@@ -31,7 +31,7 @@ A complete version of Magpie that has already been compiled is available for **[
 
 ## How do I learn to use Magpie? ##
 
-Documentation for Magpie is available on [oqmd.org](http://oqmd.org/static/analytics/magpie/doc/). You may want to start with the [tutorial](oqmd.org/static/analytics/magpie/doc/tutorial.html).
+Documentation for Magpie is available on [oqmd.org](http://oqmd.org/static/analytics/magpie/doc/). You may want to start with the [tutorial](http://oqmd.org/static/analytics/magpie/doc/tutorial.html).
 
 
 ## Who can answer my questions? ##
