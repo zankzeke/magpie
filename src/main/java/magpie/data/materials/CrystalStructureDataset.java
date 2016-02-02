@@ -295,7 +295,7 @@ public class CrystalStructureDataset extends CompositionDataset {
             File file = new File(outputDir, filename);
             
             // Write out the POSCAR
-            io.writeStructureToFile(entry.getStructure(), file.getCanonicalPath());
+            io.writeStructureToFile(entry.getStructure(), file.getPath());
             
             // Write path to output file
             fp.print(filename);
@@ -325,6 +325,8 @@ public class CrystalStructureDataset extends CompositionDataset {
                     fp.print(" None");
                 }
             }
+            
+            fp.println();
         }
         
         // Close up

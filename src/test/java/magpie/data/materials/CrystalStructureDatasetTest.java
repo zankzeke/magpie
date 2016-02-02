@@ -1,6 +1,10 @@
 package magpie.data.materials;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -153,11 +157,25 @@ public class CrystalStructureDatasetTest {
         
         // Save the properties
         File output = new File("test-csd-output");
-        data.writePOSCARs(output.getCanonicalPath());
+        
+        // Call the save command
+        data.saveCommand("test-csd-output", "poscar");
         
         // Tests
         assertTrue(output.isDirectory());
         assertTrue(new File(output, "properties.txt").isFile());
+        
+        // Make sure properties.txt has 2 lines
+        BufferedReader fp = new BufferedReader(new FileReader(new File(output, "properties.txt")));
+        String temp = fp.readLine();
+        int nLines = 0;
+        while (temp != null) {
+            temp = fp.readLine();
+            nLines++;
+        }
+        assertEquals(2, nLines);
+        fp.close();
+        
         FileUtils.deleteDirectory(output);
     }
 }

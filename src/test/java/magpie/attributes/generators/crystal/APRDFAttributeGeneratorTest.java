@@ -3,7 +3,6 @@ package magpie.attributes.generators.crystal;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import magpie.data.materials.AtomicStructureDataset;
 import magpie.data.materials.AtomicStructureEntry;
 import magpie.data.materials.CrystalStructureDataset;
 import org.junit.Test;
@@ -20,7 +19,7 @@ public class APRDFAttributeGeneratorTest {
     @Test
     public void test() throws Exception {
         // Create dataset
-        CrystalStructureDataset data = new AtomicStructureDataset();
+        CrystalStructureDataset data = new CrystalStructureDataset();
         
         Cell strc = new Cell();
         strc.setBasis(new double[]{3.2,3.2,3.2}, new double[]{90,90,90});
