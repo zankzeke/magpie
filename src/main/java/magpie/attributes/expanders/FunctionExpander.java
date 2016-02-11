@@ -120,11 +120,6 @@ public class FunctionExpander extends BaseAttributeExpander implements Citable {
             }
 
         }
-
-        // Call garbage collection
-        for (BaseEntry e : Data.getEntries()) {
-            e.reduceMemoryFootprint();
-        }
     }
 
     @Override

@@ -689,7 +689,6 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
             BaseEntry E = new BaseEntry();
             E.setAttributes(attributes);
             E.setMeasuredClass(cValue);
-            E.reduceMemoryFootprint();
             addEntry(E);
         }
     }
@@ -735,7 +734,6 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         for (int i = 0; i < NEntries(); i++) {
             BaseEntry E = getEntry(i);
             E.addAttribute(values[i]);
-            E.reduceMemoryFootprint();
         }
     }
     
@@ -2224,9 +2222,6 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * amount of memory used.
      */
     protected void finalizeGeneration() {
-        for (int i = 0; i < NEntries(); i++) {
-            getEntry(i).reduceMemoryFootprint();
-        }
         System.gc();
     }
 }
