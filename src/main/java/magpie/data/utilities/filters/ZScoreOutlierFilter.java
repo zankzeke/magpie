@@ -127,13 +127,13 @@ public class ZScoreOutlierFilter extends BaseDatasetFilter {
                 // Get values 
                 double[] values = trainData.getSingleAttributeArray(a);
                 
-                // Determine if number of unique values greater than or equal to 10
+                // Determine if number of unique values greater than or equal to 4
                 Set<Double> uniqueValues = new TreeSet<>();
-                boolean isDiscrete = false;
+                boolean isDiscrete = true;
                 for (double val : values) {
                     uniqueValues.add(val);
-                    if (uniqueValues.size() > 10) {
-                        isDiscrete = true;
+                    if (uniqueValues.size() > 4) {
+                        isDiscrete = false;
                         break;
                     }
                 }
@@ -159,7 +159,7 @@ public class ZScoreOutlierFilter extends BaseDatasetFilter {
                 // Compute mean and std dev
                 double[] measurements = subset.getMeasuredClassArray();
                 ClassMean = StatUtils.mean(measurements);
-                ClassStdDev = StatUtils.variance(measurements, ClassMean);
+                ClassStdDev = Math.sqrt(StatUtils.variance(measurements, ClassMean));
                 if (ClassStdDev == 0) {
                     ClassStdDev = 1;
                 }

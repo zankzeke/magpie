@@ -54,7 +54,7 @@ public class ZScoreOutlierFilterTest {
         assertFalse(labels[10]);
         
         // Change tolerance to 2.9
-        command.set(0, 2.9);
+        command.set(0, 2.7);
         filter.setOptions(command);
         
         // Test results
