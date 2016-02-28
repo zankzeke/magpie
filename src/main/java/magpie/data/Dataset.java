@@ -1909,6 +1909,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 }
                 BaseDatasetFilter Filter = (BaseDatasetFilter) instantiateClass("data.utilities.filters." + Method, Options);
                 Filter.setExclude(Exclude);
+                Filter.train(this);
                 Filter.filter(this);
                 System.out.println("\tFiltered using a " + Method + ". New size: " + NEntries());
             }
