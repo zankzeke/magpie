@@ -55,6 +55,7 @@ public class ZScoreOutlierFilterTest {
         
         // Change tolerance to 2.9
         command.set(0, 2.7);
+        filter = new ZScoreOutlierFilter();
         filter.setOptions(command);
         
         // Test results
@@ -94,6 +95,7 @@ public class ZScoreOutlierFilterTest {
         // Test only class
         command.remove("-attributes");
         command.add("-class");
+        filter = new ZScoreOutlierFilter();
         filter.setOptions(command);
         
         // Test results

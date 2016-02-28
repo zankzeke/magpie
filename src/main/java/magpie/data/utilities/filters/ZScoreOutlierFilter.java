@@ -150,19 +150,19 @@ public class ZScoreOutlierFilter extends BaseDatasetFilter {
                     }
                 }
             }
-            
-            // For class variable
-            if (ScreenClass) {
-                // Get entries with a measurement
-                Dataset subset = trainData.getTrainingExamples();
-                
-                // Compute mean and std dev
-                double[] measurements = subset.getMeasuredClassArray();
-                ClassMean = StatUtils.mean(measurements);
-                ClassStdDev = Math.sqrt(StatUtils.variance(measurements, ClassMean));
-                if (ClassStdDev == 0) {
-                    ClassStdDev = 1;
-                }
+        }
+        
+        // For class variable
+        if (ScreenClass) {
+            // Get entries with a measurement
+            Dataset subset = trainData.getTrainingExamples();
+
+            // Compute mean and std dev
+            double[] measurements = subset.getMeasuredClassArray();
+            ClassMean = StatUtils.mean(measurements);
+            ClassStdDev = Math.sqrt(StatUtils.variance(measurements, ClassMean));
+            if (ClassStdDev == 0) {
+                ClassStdDev = 1;
             }
         }
     }
