@@ -481,7 +481,7 @@ public class MultiPropertyDataset extends Dataset {
     public double[] getMeasuredPropertyArray(String PropertyName) {
         int ind = getPropertyIndex(PropertyName);
         if (ind == -1) {
-            throw new Error("Dataset does not contain property: " + PropertyName);
+            throw new RuntimeException("Dataset does not contain property: " + PropertyName);
         }
         return getMeasuredPropertyArray(ind);
     }
@@ -495,7 +495,7 @@ public class MultiPropertyDataset extends Dataset {
     public double[] getPredictedPropertyArray(String PropertyName) {
         int ind = getPropertyIndex(PropertyName);
         if (ind == -1) {
-            throw new Error("Dataset does not contain property: " + PropertyName);
+            throw new RuntimeException("Dataset does not contain property: " + PropertyName);
         }
         return getPredictedPropertyArray(ind);
     }
@@ -507,15 +507,18 @@ public class MultiPropertyDataset extends Dataset {
      * @return Array containing measured property for each entry.
      */
     public double[] getMeasuredPropertyArray(int index) {
-        if (index < 0) throw new Error("Invalid property index: " + index);
+        // Check that input is sane
+        if (index < 0) throw new RuntimeException("Invalid property index: " + index);
         if (index >= NProperties()) 
-            throw new Error("Requested property " + index + " only " + NProperties() + " properties in dataset");
+            throw new RuntimeException("Requested property " + index + " only " + NProperties() + " properties in dataset");
+        
+        // Get output
         double[] output = new double[NEntries()];
         for (int e=0; e<NEntries(); e++) {
 			if (getEntry(e).hasMeasuredProperty(index)) {
 				output[e] = getEntry(e).getMeasuredProperty(index);
 			} else {
-				throw new Error("Entry " + e + " does not have measurement for property " + index);
+				output[e] = Double.NaN;
 			}
         }
         return output;
@@ -528,15 +531,18 @@ public class MultiPropertyDataset extends Dataset {
      * @return Array containing predicted property for each entry.
      */
     public double[] getPredictedPropertyArray(int index) {
-        if (index < 0) throw new Error("Invalid property index: " + index);
+        // Check that input is sane
+        if (index < 0) throw new RuntimeException("Invalid property index: " + index);
         if (index >= NProperties()) 
-            throw new Error("Requested property " + index + " only " + NProperties() + " properties in dataset");
+            throw new RuntimeException("Requested property " + index + " only " + NProperties() + " properties in dataset");
+        
+        // Gather data
         double[] output = new double[NEntries()];
         for (int e=0; e<NEntries(); e++) {
 			if (getEntry(e).hasPredictedProperty(index)) {
 				output[e] = getEntry(e).getPredictedProperty(index);
 			} else {
-				throw new Error("Entry " + e + " does not have prediction for property " + index);
+				output[e] = Double.NaN;
 			}
         }
         return output;

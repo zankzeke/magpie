@@ -1,7 +1,5 @@
 package magpie.data.utilities.normalizers;
 
-import java.util.ArrayList;
-import java.util.List;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import org.junit.Test;
@@ -12,85 +10,122 @@ import static org.junit.Assert.*;
  * @author Logan Ward
  */
 public class BaseDatasetNormalizerTest {
-
+    
+    /**
+     * Get a fresh instantiation of the normalizer, set to default settings
+     * @return 
+     */
+    public BaseDatasetNormalizer getNormalizer() {
+        return new RescalingNormalizer();
+    }
+    
+    /**
+     * Test setting the options of the normalizer. Must be overloaded.
+     * 
+     * <p>Should test all of the {@linkplain BaseDatasetNormalizer#setOptions(java.util.List) }
+     * possibilities, run {@linkplain BaseDatasetNormalizer#printUsage() },
+     * and test the {@linkplain BaseDatasetNormalizer#printDescription(boolean) }
+     */
     @Test
-    public void testCommands() throws Exception {
-        // Make a simple normalizer
-        RescalingNormalizer norm = new RescalingNormalizer();
-        
-        // Create a dataset
+    public void testSetOptions() throws Exception {
+        // To be overloaded
+        assertTrue(getClass().getSimpleName().equals("BaseDatasetNormalizerTest"));
+    }
+    
+    /**
+     * Test whether the normalizer is working as expected. Must be overload.
+     * 
+     * <p>This test should make sure that the attributes and class are normalized
+     * as expected.
+     * 
+     */
+    @Test
+    public void testAccuracy() {
+        assertTrue(getClass().getSimpleName().equals("BaseDatasetNormalizerTest"));
+    }
+    
+    @Test
+    public void testNormalizationRestore() {
+        // Create two example datasets with 5 entries
         Dataset data = new Dataset();
-        data.addEntry(new BaseEntry());
-        data.addEntry(new BaseEntry());
-        data.addEntry(new BaseEntry());
         
-        data.addAttribute("x", new double[]{0,1,2});
-        data.addAttribute("y", new double[]{2,1,0});
-        
-        data.setMeasuredClasses(new double[]{0,4,5});
-        data.setPredictedClasses(new double[]{-1,3,5});
-        
-        // Test training
-        List<Object> command = new ArrayList<>();
-        
-        command.add("train");
-        command.add("attributes");
-        command.add("class");
-        command.add(data);
-        
-        norm.runCommand(command);
-        
-        // Check results
-        assertTrue(norm.isTrained());
-        assertTrue(norm.willNormalizeClass());
-        assertTrue(norm.willNormalizeAttributes());
-        
-        // Make sure it throws an exception if neither attributes nor class were passed
-        boolean hitExcept = false;
-        
-        command.remove(1);
-        command.remove(1);
-        try {
-            norm.runCommand(command);
-        } catch (Exception e) {
-            hitExcept = true;
-            assertTrue(e.getMessage().contains("Must train attributes or class."));
+        for (int i=0; i<5; i++) {
+            data.addEntry(new BaseEntry());
         }
         
-        assertTrue(hitExcept);
+        // Give them different attributes
+        data.addAttribute("x", new double[]{5,4,3,2,1});
+        data.setMeasuredClasses(new double[]{1,2,3,4,5});
+        data.setPredictedClasses(new double[]{1,2,4,4,4});
         
-        // Test run
-        command.clear();
-        command.add("normalize");
-        command.add(data);
+        // Get normalizer, run internal test
+        BaseDatasetNormalizer norm = getNormalizer();
+        assertTrue(norm.test(data));
+    }
+    
+    @Test
+    public void testClone() {
+        // Create two example datasets with 5 entries
+        Dataset data1 = new Dataset();
+        Dataset data2 = new Dataset();
         
-        norm.runCommand(command);
+        for (int i=0; i<5; i++) {
+            data1.addEntry(new BaseEntry());
+            data2.addEntry(new BaseEntry());
+        }
         
-        //    Check results
-        assertArrayEquals(new double[]{-1,0,1}, data.getSingleAttributeArray(0), 1e-6);
-        assertArrayEquals(new double[]{1,0,-1}, data.getSingleAttributeArray(1), 1e-6);
-        assertArrayEquals(new double[]{-1,0.6,1}, data.getMeasuredClassArray(), 1e-6);
-        assertArrayEquals(new double[]{-1.4,0.2,1}, data.getPredictedClassArray(), 1e-6);
+        // Give them different attributes
+        data1.addAttribute("x", new double[]{5,4,3,2,1});
+        data2.addAttribute("y", new double[]{1,2,3,4,5});
         
-        // Test restore
-        command.clear();
-        command.add("restore");
-        command.add(data);
+        // Create a noramlizer, train it on data1
+        BaseDatasetNormalizer norm = getNormalizer();
+        norm.setToNormalizeAttributes(true);
+        norm.setToNormalizeClass(false);
+        norm.train(data1);
         
-        norm.runCommand(command);
+        assertTrue(norm.isTrained());
         
-        //    Check results
-        assertArrayEquals(new double[]{0,1,2}, data.getSingleAttributeArray(0), 1e-6);
-        assertArrayEquals(new double[]{2,1,0}, data.getSingleAttributeArray(1), 1e-6);
-        assertArrayEquals(new double[]{0,4,5}, data.getMeasuredClassArray(), 1e-6);
-        assertArrayEquals(new double[]{-1,3,5}, data.getPredictedClassArray(), 1e-6);
+        // Make sure it throws an exception if you pass norm2
+        boolean failed = false;
         
-        // Test test
-        command.clear();
-        command.add("test");
-        command.add(data);
+        try {
+            norm.normalize(data2);
+        } catch (Exception e) {
+            failed = true;
+        }
         
-        norm.runCommand(command);
+        assertTrue(failed);
+        
+        failed = false;
+        
+        try {
+            norm.normalize(data2);
+        } catch (Exception e) {
+            failed = true;
+        }
+        
+        assertTrue(failed);
+        
+        // Normalize data1, save result, return
+        norm.normalize(data1);
+        double[] originalResult = data1.getSingleAttributeArray(0);
+        norm.restore(data1);
+        
+        // Make a clone of the normalizer
+        BaseDatasetNormalizer normClone = norm.clone();
+        
+        // Make sure it gives same results as original
+        normClone.normalize(data1);
+        assertArrayEquals(originalResult, data1.getSingleAttributeArray(0), 1e-6);
+        normClone.restore(data1);
+        
+        // Train clone, make sure original's behavior doesn't change
+        normClone.train(data2);
+        
+        norm.normalize(data1);
+        assertArrayEquals(originalResult, data1.getSingleAttributeArray(0), 1e-6);
+        norm.restore(data1);
     }
     
 }

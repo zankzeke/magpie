@@ -5,7 +5,7 @@ import magpie.data.Dataset;
 import org.apache.commons.math3.stat.StatUtils;
 
 /**
- * Filters entries based on whether they are outliers using the interquartile range. 
+ * Filters entries based on whether the class values are outliers using the interquartile range. 
  * Any entry with a measured class variable more than a certain number of interquartile ranges
  * from the median is classified as an outlier
  * 

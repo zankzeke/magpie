@@ -23,7 +23,7 @@ public class PolynomialRegression extends BaseRegression {
     /** Number of attributes used in model */
     private int numAttributes = 0;
     /** Coefficients of each term in the polynomial */
-    private double[] coefficients = null;
+    protected double[] coefficients = null;
     /** Names of attributes */
     private String[] attributeNames;
 
@@ -38,7 +38,7 @@ public class PolynomialRegression extends BaseRegression {
 
     @Override
     @SuppressWarnings("CloneDeclaresCloneNotSupported")
-    public BaseRegression clone() {
+    public PolynomialRegression clone() {
         PolynomialRegression x = (PolynomialRegression) super.clone(); 
 		if (coefficients != null) {
 			x.coefficients = coefficients.clone();
@@ -59,6 +59,16 @@ public class PolynomialRegression extends BaseRegression {
 	public void setOrder(int order) {
 		this.order = order;
 	}
+    
+    /**
+     * Get coefficients of model. 
+     * 
+     * Arranged: Intercept, x, x<sup>2</sup>, ..., x<sup>N</sup>,  y, ..., y<sup>N</sup>, z, ...
+     * @return 
+     */
+    public double[] getCoefficients() {
+        return coefficients.clone();
+    }
 
     @Override
     protected void train_protected(Dataset TrainData) {
