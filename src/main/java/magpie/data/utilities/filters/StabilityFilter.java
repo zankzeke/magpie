@@ -114,7 +114,7 @@ public class StabilityFilter extends BaseDatasetFilter {
             try {
                  res = GCLPCalculator.runGCLP(entry);
             } catch (Exception ex) {
-                throw new Error(ex);
+                throw new Error(ex.getMessage() + " - entry: " + entry.toString());
             }
             double stab = (UsePredicted ? entry.getPredictedClass() : 
                     entry.getMeasuredClass()) - res.getKey();
