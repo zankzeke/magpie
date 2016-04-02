@@ -18,7 +18,7 @@ public class StructuralHeterogeneityAttributeGeneratorTest
 
     @Override
     public int expectedCount() {
-        return 9;
+        return 8;
     }
     
 }

@@ -119,7 +119,6 @@ public class StructuralHeterogeneityAttributeGenerator extends BaseAttributeGene
             // Cell volume / shape attributes
             temp[pos++] = voro.volumeVariance() * 
                     entry.getStructure().nAtoms() / entry.getStructure().volume();
-			temp[pos++] = (double) voro.getUniquePolyhedronShapes().size();
             
             // Add to the entry
             entry.addAttributes(temp);
