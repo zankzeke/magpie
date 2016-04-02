@@ -31,7 +31,6 @@ import vassal.analysis.VoronoiCellBasedAnalysis;
  * <li>Minimum bond length variance
  * <li>Maximum bond length variance
  * <li>Mean absolute deviation in atomic volume, normalized by mean atomic volume
- * <li>Number of unique coordination polyhedron shapes
  * </ol>
  * 
  * <p>Here, bond length variation for a single atom is defined as:
@@ -75,7 +74,6 @@ public class StructuralHeterogeneityAttributeGenerator extends BaseAttributeGene
         newAttrs.add("min_BondLengthVariation");
         newAttrs.add("max_BondLengthVariation");
         newAttrs.add("var_CellVolume");
-        newAttrs.add("UniquePolyhedronShapes");
         data.addAttributes(newAttrs);
         
         // Compute attributes
@@ -132,10 +130,9 @@ public class StructuralHeterogeneityAttributeGenerator extends BaseAttributeGene
     public String printDescription(boolean htmlFormat) {
         String output = getClass().getName() + (htmlFormat ? " " : ": ");
         
-        output += "(9) Measures of structural heterogeneity: Variation in "
+        output += "(8) Measures of structural heterogeneity: Variation in "
                 + "average bond length for atoms, variation in bond distance "
-                + "between neighbors of an atom, varatioin in atomic volume, "
-                + "and number of unique coordination polyhedron shapes.";
+                + "between neighbors of an atom, variation in atomic volume.";
         
         return output;
     }
