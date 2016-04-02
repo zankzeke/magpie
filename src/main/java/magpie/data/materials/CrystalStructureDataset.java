@@ -45,14 +45,14 @@ import vassal.io.VASP5IO;
  * <li>Attributes based on the crystal structure. 
  * </ol>
  * 
- * <p>The crystal-structure-based attributes are design to be similar (if not
+ * <p>The crystal-structure-based attributes are designed to be similar (if not
  * equal) for all crystals based on the same prototype (e.g. coordination number 
  * statistics). The intention for these attributes is that they can be used 
  * before determining the equilibrium lattice parameter or atom positions in a 
  * crystal using a tool like DFT. For example, this would be useful if you wanted 
  * to predict the formation energy of a hypothetical structure without have to first
  * find the equilibrium lattice parameter. The attributes are also design to be
- * insensitive to unit cell selection.
+ * insensitive to unit cell selection and stable against small changes in atomic positions.
  * 
  * <p><b><u>Implemented Save Formats</u></b>
  * 
@@ -78,10 +78,9 @@ public class CrystalStructureDataset extends CompositionDataset {
      * 
      * <p>Default attribute generators are:
      * <ol>
-     * <li>{@linkplain CoordinationNumberAttributeGenerator}
+     * <li>{@linkplain EffectiveCoordinationNumberAttributeGenerator}
      * <li>{@linkplain StructuralHeterogeneityAttributeGenerator}
      * <li>{@linkplain ChemicalOrderingAttributeGenerator}
-     * <li>{@linkplain LatticeSimilarityAttributeGenerator}
      * <li>{@linkplain PackingEfficiencyAttributeGenerator}
      * <li>{@linkplain LocalPropertyDifferenceAttributeGenerator}
      * <li>Default generators from {@linkplain CompositionDataset#CompositionDataset(boolean) }
@@ -96,10 +95,9 @@ public class CrystalStructureDataset extends CompositionDataset {
         if (useDefaultGenerators) {
             Generators.add(0, new LocalPropertyDifferenceAttributeGenerator());
             Generators.add(0, new PackingEfficiencyAttributeGenerator());
-            Generators.add(0, new LatticeSimilarityAttributeGenerator());
             Generators.add(0, new ChemicalOrderingAttributeGenerator());
             Generators.add(0, new StructuralHeterogeneityAttributeGenerator());
-            Generators.add(0, new CoordinationNumberAttributeGenerator());
+            Generators.add(0, new EffectiveCoordinationNumberAttributeGenerator());
         }
     }
     
