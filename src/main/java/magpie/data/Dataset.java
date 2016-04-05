@@ -2223,6 +2223,9 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * amount of memory used.
      */
     protected void finalizeGeneration() {
+        for (BaseEntry entry : Entries) {
+            entry.reduceMemoryFootprint();
+        }
         System.gc();
     }
 }

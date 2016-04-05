@@ -55,6 +55,13 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
         
 		this.Probability = null;
 	}
+    
+    /**
+     * Delete any cached information stored within this entry.
+     */
+    public void reduceMemoryFootprint() {
+        // Nothing to do
+    }
 
     /**
      * Get number of attributes currently set
