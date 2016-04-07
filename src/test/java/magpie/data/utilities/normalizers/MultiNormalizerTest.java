@@ -13,7 +13,7 @@ public class MultiNormalizerTest {
     @Test
     public void test() throws Exception {
         Dataset data = new Dataset();
-        data.importText("datasets/simple-data.csv", null);
+        data.importText("datasets/simple-data.txt", null);
         
         MultiNormalizer multi = new MultiNormalizer();
         multi.addNormalizer(new RescalingNormalizer());
