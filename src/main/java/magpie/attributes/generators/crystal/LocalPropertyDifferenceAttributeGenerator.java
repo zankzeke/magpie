@@ -159,7 +159,7 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
             for (Integer shell : Shells) {
                 // Get face information for each shell
                 Pair<int[][], double[][]> faceInfo = 
-                        voro.getExtendedFaceInformation(shell - 1);
+                        voro.getNeighborShellWeights(shell);
                 
                 // Loop through each elemental property
                 for (String prop : ElementalProperties) {
@@ -204,7 +204,7 @@ public class LocalPropertyDifferenceAttributeGenerator extends BaseAttributeGene
      * produces the local property difference for each atom.
      * @param voro Voronoi tessellation
      * @param faceInfo Areas and types on outside of each face for desired shell. Computed
-     * using {@linkplain VoronoiCellBasedAnalysis#getExtendedFaceInformation(int)}
+     * using {@link VoronoiCellBasedAnalysis#getNeighborShellWeights(int)}
      * @param propValues Properties of each atom type
      * @return Properties of each atom
      */

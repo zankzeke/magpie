@@ -105,7 +105,7 @@ public class ChemicalOrderingAttributeGenerator extends BaseAttributeGenerator {
             // Compute the attributes
             int pos = 0;
             for (Integer shell : Shells) {
-                temp[pos++] = voro.warrenCowleyOrderingMagnituide(shell);
+                temp[pos++] = voro.warrenCowleyOrderingMagnituide(shell, false);
             }
             
             // Add to the entry

@@ -19,7 +19,7 @@ public class LocalPropertyVarianceAttributeGeneratorTest extends CoordinationNum
 
     @Override
     public BaseAttributeGenerator getGenerator() throws Exception {
-        LocalPropertyDifferenceAttributeGenerator gen = new LocalPropertyDifferenceAttributeGenerator();
+        LocalPropertyVarianceAttributeGenerator gen = new LocalPropertyVarianceAttributeGenerator();
         
         // Set options
         List options = new ArrayList();
@@ -59,7 +59,7 @@ public class LocalPropertyVarianceAttributeGeneratorTest extends CoordinationNum
         data.addEntry(new AtomicStructureEntry(strc, "L12-HHe", null));
         
         // Run the attribute generator
-        LocalPropertyDifferenceAttributeGenerator gen = new LocalPropertyDifferenceAttributeGenerator();
+        LocalPropertyVarianceAttributeGenerator gen = new LocalPropertyVarianceAttributeGenerator();
         gen.clearShells();
         gen.addShell(1);
         gen.addAttributes(data);
@@ -67,10 +67,10 @@ public class LocalPropertyVarianceAttributeGeneratorTest extends CoordinationNum
         // Test out the results
         assertEquals(5, data.NAttributes());
         BaseEntry entry = data.getEntry(0);
-        assertEquals(data.getAttributeName(0), 0.5, entry.getAttribute(0), 1e-6);
-        assertEquals(data.getAttributeName(1), 0.25, entry.getAttribute(1), 1e-6);
-        assertEquals(data.getAttributeName(2), 1f/3, entry.getAttribute(2), 1e-6);
-        assertEquals(data.getAttributeName(3), 1, entry.getAttribute(3), 1e-6);
-        assertEquals(data.getAttributeName(4), 2f/3, entry.getAttribute(4), 1e-6);
+        assertEquals(data.getAttributeName(0), 0.166666667, entry.getAttribute(0), 1e-6);
+        assertEquals(data.getAttributeName(1), 0.083333333, entry.getAttribute(1), 1e-6);
+        assertEquals(data.getAttributeName(2), 0, entry.getAttribute(2), 1e-6);
+        assertEquals(data.getAttributeName(3), 2f/9, entry.getAttribute(3), 1e-6);
+        assertEquals(data.getAttributeName(4), 2f/9, entry.getAttribute(4), 1e-6);
     }
 }
