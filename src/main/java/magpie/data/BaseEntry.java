@@ -16,7 +16,7 @@ import org.apache.commons.lang3.ArrayUtils;
 public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
         java.util.Comparator, java.lang.Comparable {
     /** Values of attributes */
-    private List<Double> AttributeList;
+    private double[] AttributeList = new double[0];
     /** Measured value of class variable */
     private double Class;
     /** Probably of entry existing in each possible class (for classification) */
@@ -30,7 +30,6 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
     
     /** Create a blank entry */
     public BaseEntry() {
-        this.AttributeList = new ArrayList<>();
         this.Probability = null;
     }
 	
@@ -42,27 +41,41 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
 	public BaseEntry(String input) throws Exception {
 		// Find anything in the input that matches a number
 		Matcher numMatcher = Pattern.compile("[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?").matcher(input);
-		AttributeList = new LinkedList<>();
+		List<Double> attributes = new LinkedList<>();
 		while (numMatcher.find()) {
 			String number = numMatcher.group();
-			AttributeList.add(Double.valueOf(number));
+			attributes.add(Double.valueOf(number));
 		}
+        
+        // Transfer it to internal storage
+        AttributeList = new double[attributes.size()];
+        for (int i=0; i<attributes.size(); i++) {
+            AttributeList[i] = attributes.get(i);
+        }
+        
 		this.Probability = null;
 	}
+    
+    /**
+     * Delete any cached information stored within this entry.
+     */
+    public void reduceMemoryFootprint() {
+        // Nothing to do
+    }
 
     /**
      * Get number of attributes currently set
      * @return Number of attributes
      */
     public int NAttributes() {
-        return AttributeList.size();
+        return AttributeList.length;
     }
 	
 	/**
 	 * Clear all currently-set attributes.
 	 */
 	public void clearAttributes() {
-		AttributeList.clear();
+		AttributeList = new double[0];
 	}
     
     /** 
@@ -70,7 +83,7 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
      * @return List of attributes (same order as {@linkplain Dataset#AttributeName})
      */
     public double[] getAttributes() {
-        return ArrayUtils.toPrimitive(AttributeList.toArray(new Double[0]));
+        return AttributeList.clone();
     }
     
     /**
@@ -79,7 +92,7 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
      * @return Value of specified attribute
      */
     public double getAttribute(int index) {
-        return AttributeList.get(index);
+        return AttributeList[index];
     }
     
     /**
@@ -88,7 +101,7 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
      * @param value Desired value of specified attribute
      */
     public void setAttribute(int index, double value) {
-        AttributeList.set(index, value);
+        AttributeList[index] = value;
     }
 
     /**
@@ -96,8 +109,7 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
      * @param attributes List of attributes (same order as {@linkplain Dataset#AttributeName})
      */
     public void setAttributes(double[] attributes) {
-        this.AttributeList.clear();
-        addAttributes(attributes);
+        AttributeList = attributes.clone();
     }
     
     /** 
@@ -105,18 +117,18 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
      * @param attribute Value of attribute to add
      */
     public void addAttribute(double attribute) {
-        AttributeList.add(attribute);
+        AttributeList = ArrayUtils.add(AttributeList, attribute);
     }
     
     /**
-     * Adds several attributes to the end of the attribute list
+     * Adds several attributes to the end of the attribute list.
+     * 
+     * <p>Dev Note: This is faster than adding the individually.
+     * 
      * @param attributes List of attribute values to be added
      */
     public void addAttributes(double[] attributes) {
-        Double[] toAdd = new Double[attributes.length];
-        for (int i=0; i<attributes.length; i++)
-            toAdd[i] = attributes[i];
-        AttributeList.addAll(Arrays.asList(toAdd));
+        AttributeList = ArrayUtils.addAll(AttributeList, attributes);
     }
     
     /** 
@@ -130,7 +142,7 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
         BaseEntry copy;
         try { copy = (BaseEntry) super.clone(); }
         catch (CloneNotSupportedException c) { throw new Error(c); }
-        copy.AttributeList = new ArrayList<>(AttributeList); 
+        copy.AttributeList = AttributeList.clone();
         copy.Class = this.Class;
         copy.PredictedClass = this.PredictedClass;
         copy.measured = this.measured;
@@ -142,10 +154,10 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
         if (A_obj instanceof BaseEntry && B_obj instanceof BaseEntry) {
             BaseEntry A = (BaseEntry) A_obj, B = (BaseEntry) B_obj;
             // If A has more features, it is greater. 
-            if (A.AttributeList.size() != B.AttributeList.size())
-                return (A.AttributeList.size() > B.AttributeList.size()) ? 1 : -1;
+            if (A.AttributeList.length != B.AttributeList.length)
+                return (A.AttributeList.length > B.AttributeList.length) ? 1 : -1;
             // Check which has greater features
-            for (int i=0; i<A.AttributeList.size(); i++)
+            for (int i=0; i<A.AttributeList.length; i++)
                 if (A.getAttribute(i) != B.getAttribute(i))
                     return (A.getAttribute(i) > B.getAttribute(i)) ? 1 : -1;
             // We have concluded they are equal
@@ -156,15 +168,19 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
     @Override public int compareTo(Object B) { return compare(this, B); }
     
     @Override public int hashCode() {
-        if (AttributeList.size() > 0)  return (int) AttributeList.hashCode();
-        else return 1;
+        if (AttributeList.length > 0) {
+            return (int) Arrays.hashCode(AttributeList);
+        } else {
+            return 1;
+        }
     }
     
-    @Override public boolean equals(java.lang.Object other) {
+    @Override 
+    public boolean equals(java.lang.Object other) {
         // Check if any of the 
         if (other instanceof BaseEntry) {
             BaseEntry obj = (BaseEntry) other;
-            return AttributeList.equals(obj.AttributeList);
+            return Arrays.equals(obj.AttributeList, AttributeList);
         } else return false;
     }
     
@@ -185,17 +201,6 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
      */
     public void deletePredictedClass() {
         predicted = false;
-    }
-    
-    /** 
-     * Set number of attributes that describe this entry
-     * @param number Number of attributes
-     */
-    public void setAttributeCount(int number){
-        if (AttributeList instanceof ArrayList) {
-            ArrayList Ptr = (ArrayList) AttributeList;
-            Ptr.ensureCapacity(number);
-        }
     }
 
     /** 
@@ -249,9 +254,9 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
     @Override 
     public String toString() {
         if (NAttributes() > 0) {
-            String output = String.format("(%.3f", AttributeList.get(0));
+            String output = String.format("(%.3f", AttributeList[0]);
             for(int i=1; i<NAttributes(); i++)
-                output += String.format(",%.3f", AttributeList.get(i));
+                output += String.format(",%.3f", AttributeList[i]);
             output+=")";
             return output;
         } else 
@@ -266,15 +271,4 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
         return toString();
     }
     
-    /**
-     * Call this after generating attributes to ensure the array storing attributes
-     *  is as small as possible.
-     */
-    public void reduceMemoryFootprint() {
-        if (AttributeList instanceof ArrayList) {
-            ArrayList Ptr = (ArrayList) AttributeList;
-            Ptr.trimToSize();
-        }
-            
-    }
 }
