@@ -72,6 +72,12 @@ jar {
 
     // Package it with dependencies
     from configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+
+    // Copy the exe folder into the output
+    copy {
+        from 'exes'
+        into 'dist/exes'
+    }
 }
 
 // Javadoc instructions
