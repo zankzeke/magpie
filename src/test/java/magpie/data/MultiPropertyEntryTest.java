@@ -35,6 +35,7 @@ public class MultiPropertyEntryTest {
         assertTrue(entry.hasMeasurement());
         assertEquals(-1, entry.getMeasuredClass(), 1e-6);
         assertTrue(entry.hasPrediction());
+        assertTrue(entry.hasClassProbabilities());
         assertEquals(2, entry.getPredictedClass(), 1e-6);
         assertEquals(-1, entry.getTargetProperty());
         
@@ -76,6 +77,7 @@ public class MultiPropertyEntryTest {
         assertTrue(entry.hasMeasurement());
         assertEquals(-2, entry.getMeasuredClass(), 1e-6);
         assertTrue(entry.hasPrediction());
+        assertTrue(entry.hasClassProbabilities());
         assertEquals(1, entry.getPredictedClass(), 1e-6);
         assertEquals(0, entry.getTargetProperty());
         

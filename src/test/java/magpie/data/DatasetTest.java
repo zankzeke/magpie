@@ -1,7 +1,9 @@
 
 package magpie.data;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -10,6 +12,7 @@ import magpie.Magpie;
 import magpie.attributes.expanders.CrossExpander;
 import magpie.attributes.generators.BaseAttributeGenerator;
 import magpie.data.materials.CompositionDataset;
+import magpie.data.utilities.output.SimpleOutput;
 import magpie.models.regression.WekaRegression;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -591,5 +594,83 @@ public class DatasetTest {
         assertFalse(data.getEntry(0).hasPrediction());
         assertTrue(data.getEntry(1).hasPrediction());
         assertFalse(data.getEntry(2).hasPrediction());
+    }
+    
+    @Test
+    public void testOutput() throws Exception {
+        // Make a simple dataset
+        Dataset data = getEasyDataset();
+        
+        // Write a CSV file to disk
+        File file = new File(data.saveCommand("test", "csv"));
+        assertEquals("test.csv", file.getName());
+        file.deleteOnExit();
+        
+        BufferedReader fp = new BufferedReader(new FileReader(file));
+        assertEquals("X,Y,Class", fp.readLine());
+        fp.close();
+        
+        // Write an ARFF file to disk
+        file = new File(data.saveCommand("test", "arff"));
+        assertEquals("test.arff", file.getName());
+        file.deleteOnExit();
+        
+        fp = new BufferedReader(new FileReader(file));
+        assertTrue(fp.readLine().startsWith("@RELATION"));
+        fp.close();
+        
+        // Write class values to disk
+        file = new File(data.saveCommand("test", "stats"));
+        assertEquals("test.csv", file.getName());
+        file.deleteOnExit();
+        
+        fp = new BufferedReader(new FileReader(file));
+        assertTrue(fp.readLine().startsWith("Entry,Measured,Predicted"));
+        fp.close();
+    }
+    
+    @Test
+    public void testPrintRank() throws Exception {
+        // Make a simple dataset
+        Dataset data = new Dataset();
+        data.addEntry(new BaseEntry());
+        data.addEntry(new BaseEntry());
+        data.addEntry(new BaseEntry());
+        
+        data.addAttribute("x,1", new double[]{0,1,2});
+        data.addAttribute("x,2", new double[]{1,0,2});
+        
+        data.setMeasuredClasses(new double[]{1,2,1.5});
+        data.setPredictedClasses(new double[]{2,1,1.5});
+        
+        // Print with ranking on measured class, maximizing
+        List<Object> command = new LinkedList<>();
+        command.add("rank");
+        command.add(1);
+        command.add("minimize");
+        command.add("measured");
+        command.add("TargetEntryRanker");
+        command.add(1);
+        
+        System.out.println("\tRanked based on minimizing measured distance from 1");
+        data.runCommand(command);
+        
+        // Print with ranking on measured class, maximizing
+        command.set(2, "maximize");
+        
+        System.out.println("\tRanked based on maximizing measured distance from 1");
+        data.runCommand(command);
+        
+        // Print with ranking on predicted class, maximizing
+        command.set(3, "predicted");
+        
+        System.out.println("\tRanked based on maximizing predicted distance from 1");
+        data.runCommand(command);
+        
+        // Print with ranking on measured class, maximizing. Print all
+        command.set(1, 2);
+        
+        System.out.println("\tRanked based on maximizing predicted distance from 1");
+        data.runCommand(command);
     }
 }
