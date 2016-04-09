@@ -71,7 +71,7 @@ public class ChemicalOrderingAttributeGeneratorTest
         
         // Test results
         assertEquals(0.551982, data.getEntry(0).getAttribute(0), 1e-6);
-        assertEquals(0.134263899, data.getEntry(0).getAttribute(1), 1e-6);
+        assertEquals(0.253856, data.getEntry(0).getAttribute(1), 1e-6);
     }
     
 }
