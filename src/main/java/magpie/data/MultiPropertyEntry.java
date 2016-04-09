@@ -252,6 +252,18 @@ public class MultiPropertyEntry extends BaseEntry {
     }
 
     @Override
+    public boolean hasClassProbabilities() {
+        if (usingPropertyAsClass()) {
+            return PredictedProperty[TargetProperty] != null ? 
+                    PredictedProperty[TargetProperty].length > 1 : false;
+        } else {
+            return super.hasClassProbabilities(); 
+        }
+    }
+    
+    
+
+    @Override
     public void deleteMeasuredClass() {
         if (usingPropertyAsClass()) {
             setMeasuredProperty(TargetProperty, Double.NaN);

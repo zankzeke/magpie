@@ -20,7 +20,7 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
     /** Measured value of class variable */
     private double Class;
     /** Probably of entry existing in each possible class (for classification) */
-    private double[] Probability;
+    private double[] ClassProbabilites;
     /** Class variable predicted by a model */
     private double PredictedClass;
     /** Whether this entry has a measured class variable */
@@ -30,7 +30,7 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
     
     /** Create a blank entry */
     public BaseEntry() {
-        this.Probability = null;
+        this.ClassProbabilites = null;
     }
 	
 	/**
@@ -53,7 +53,7 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
             AttributeList[i] = attributes.get(i);
         }
         
-		this.Probability = null;
+		this.ClassProbabilites = null;
 	}
     
     /**
@@ -188,6 +188,13 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
     public boolean hasMeasurement() { return measured; }
     /** @return Whether a predicted class has been set for this entry */
     public boolean hasPrediction() { return predicted; }
+    /**
+     * Whether this entry has predicted probabilities
+     * @return Whether it has probabilities
+     */
+    public boolean hasClassProbabilities() {
+        return ClassProbabilites != null;
+    }
     
     /**
      * Delete measured class variable.
@@ -221,7 +228,7 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
      */
     public void setPredictedClass(double x) {
         PredictedClass = x; predicted=true;
-        Probability=null;
+        ClassProbabilites=null;
     }
     
     /**
@@ -235,10 +242,10 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
      * @param probabilites Probability of entry being in each class
      */
     public void setClassProbabilities(double[] probabilites) {
-        Probability = probabilites.clone(); predicted=true;
+        ClassProbabilites = probabilites.clone(); predicted=true;
         PredictedClass = 0;
-        for (int i=1; i<Probability.length; i++)
-            if (Probability[i]>Probability[(int)PredictedClass])
+        for (int i=1; i<ClassProbabilites.length; i++)
+            if (ClassProbabilites[i]>ClassProbabilites[(int)PredictedClass])
                 PredictedClass=i;
     }
     
@@ -248,7 +255,7 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
      * @return Class probabilities
      */
     public double[] getClassProbilities() { 
-        return Probability.clone(); 
+        return ClassProbabilites.clone(); 
     }
     
     @Override 

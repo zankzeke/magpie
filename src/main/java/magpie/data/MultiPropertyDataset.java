@@ -3,7 +3,7 @@ package magpie.data;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import magpie.data.utilities.DatasetOutput;
+import magpie.data.utilities.output.PropertiesOutput;
 import org.apache.commons.lang3.ArrayUtils;
 
 /**
@@ -607,7 +607,7 @@ public class MultiPropertyDataset extends Dataset {
     public String saveCommand(String Basename, String Format) throws Exception {
         switch (Format.toLowerCase()) {
             case "prop": {
-                DatasetOutput.saveProperties(this, Basename + ".prop");
+                new PropertiesOutput().writeDataset(this, Basename + ".prop");
                 return Basename + ".prop";
             }
             default:

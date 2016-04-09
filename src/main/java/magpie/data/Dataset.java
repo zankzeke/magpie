@@ -15,10 +15,13 @@ import magpie.Magpie;
 import magpie.attributes.evaluators.BaseAttributeEvaluator;
 import magpie.attributes.expanders.BaseAttributeExpander;
 import magpie.attributes.generators.BaseAttributeGenerator;
-import magpie.data.utilities.DatasetOutput;
 import magpie.data.utilities.filters.BaseDatasetFilter;
 import magpie.data.utilities.generators.BaseEntryGenerator;
 import magpie.data.utilities.modifiers.BaseDatasetModifier;
+import magpie.data.utilities.output.ARFFOutput;
+import magpie.data.utilities.output.DelimitedClassOutput;
+import magpie.data.utilities.output.DelimitedOutput;
+import magpie.data.utilities.output.SimpleOutput;
 import magpie.optimization.rankers.BaseEntryRanker;
 import static magpie.user.CommandHandler.instantiateClass;
 import static magpie.user.CommandHandler.printImplmentingClasses;
@@ -645,7 +648,9 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
 
                 // Set class variable
                 try {
-                    entry.setMeasuredClass(inst.classValue());
+                    if (! Double.isNaN(inst.classValue())) {
+                        entry.setMeasuredClass(inst.classValue());
+                    }
                 } catch (Exception e) {
                     // do nothing
                 }
@@ -1802,13 +1807,13 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     public String saveCommand(String Basename, String Command) throws Exception {
         switch (Command) {
             case "csv": // Save as CSV file
-                DatasetOutput.saveDelimited(this, Basename + ".csv", ",");
+                new DelimitedOutput(",").writeDataset(this, Basename + ".csv");
                 return Basename + ".csv";
             case "arff": // Save as an ARFF
-                DatasetOutput.saveARFF(this, Basename + ".arff");
+                new ARFFOutput().writeDataset(this, Basename + ".arff");
                 return Basename + ".arff";
             case "stats": // Save for statistics (only: name, predicted, measured)
-                DatasetOutput.printForStatistics(this, Basename + ".csv");
+                new DelimitedClassOutput(",").writeDataset(this, Basename + ".csv");
                 return Basename + ".csv";
             default:
                 throw new Exception("ERROR: Save command \"" + Command
@@ -2031,7 +2036,12 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 ranker.setMaximizeFunction(maximize);
                 ranker.setUseMeasured(measured);
                 ranker.train(this);
-                System.out.println(DatasetOutput.printTopEntries(this, ranker, numberToPrint));
+                
+                // Make outputter
+                SimpleOutput output = new SimpleOutput();
+                output.setRanker(ranker);
+                output.setNToPrint(numberToPrint);
+                output.printHeader(this, System.out);
             }
             break;
             case "subset":
