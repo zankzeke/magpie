@@ -4,23 +4,22 @@ package magpie.data.materials;
 import magpie.data.materials.util.PrototypeSiteInformation;
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.IOException;
 import java.io.LineNumberReader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeMap;
+import magpie.attributes.generators.prototype.SingleSiteAttributeGenerator;
 import magpie.data.BaseEntry;
-import magpie.utility.UtilityOperations;
 
 /**
- * Dataset designed to store composition data about compounds based on a single crystal structure
- *  prototype. Statistics are only based on composition (i.e. nothing based on the
- *  actual structure). User must specify the sites in the crystal, and provide the 
- *  identity of the species listed on each site.
+ * Store data about compounds based on a single crystal structure prototype. User 
+ * must specify the sites in the crystal, the number of atoms on each site, 
+ * and which sites are equivalent. For example, this class could be used to represent a
+ * dataset composed of Heusler compounds, where there are 3 sites and two are
+ * equivalent.
  * 
  * <p>Information about each site must be specified with a file in the following format:
  * 
@@ -28,11 +27,10 @@ import magpie.utility.UtilityOperations;
  * &lt;# of atoms on Site2> [-omit] [-equiv &lt;site #s...>]
  * 
  * <p>Here sites (aka sublattices) can be occupied by a single kind of atom, and are treated as symmetrically
- * distinct unless otherwise specified. Information about each site is used to calculate statistics unless otherwise
+ * distinct unless otherwise specified. Information about each site is used to calculate attributes unless otherwise
  * indicated by an "-omit" flag. It is possible to mark equivalent sites using the "-equiv" flag.
  * 
- * <p>Data is read into this object using the {@linkplain #importText(java.lang.String)} command. 
- * The required format of data files is very similar to that of a {@linkplain  CompositionDataset}:
+ * <p>The required format of data files is very similar to that of a {@linkplain  CompositionDataset}:
  * 
  * <p>Identity [&lt;property1 Name>] [&lt;property2 Name>] [...]<br>
  * &lt;A site Element>&lt;B site Element>&lt;...> &lt;property1 value> [...]<br>
@@ -56,6 +54,32 @@ import magpie.utility.UtilityOperations;
 public class PrototypeDataset extends CompositionDataset {
     /** Stores information about each site */
     protected PrototypeSiteInformation SiteInfo = new PrototypeSiteInformation();
+
+    /**
+     * Create a prototype dataset with default attribute
+     */
+    public PrototypeDataset() {
+        this(true);
+    }
+    
+    /**
+     * Create a prototype dataset. Gives user options of whether to use
+     * the "default" attribute generators for this class:
+     * 
+     * <ol>
+     * <li>{@linkplain SingleSiteAttributeGenerator}: Statistics about the properties
+     * of elements on each site.
+     * </ol>
+     * @param useDefaultGenerators Whether 
+     */
+    public PrototypeDataset(boolean useDefaultGenerators) {
+        super(useDefaultGenerators);
+        
+        if (useDefaultGenerators) {
+            Generators.add(0, new SingleSiteAttributeGenerator());
+        }
+    }
+    
 
     @Override
     public void setOptions(List<Object> Options) throws Exception {
@@ -130,7 +154,7 @@ public class PrototypeDataset extends CompositionDataset {
             Line = is.readLine();
             if (Line == null) 
                 break;
-            Words=Line.trim().split("[ \t]");
+            Words=Line.trim().split("\\s+");
             if (Words.length == 1) // For blank lines
                 continue;
             
@@ -155,98 +179,6 @@ public class PrototypeDataset extends CompositionDataset {
      */
     public int NSites() {
         return SiteInfo.NSites();
-    }
-
-    @Override
-    public void calculateAttributes() {
-        // Generate attritubutes based on elemental properties for each site
-        generateSingleSiteAttributes();
-        
-        // Generate attributes based on differences between properities of two sites
-        generatePairSiteAttributes();
-        
-        // Generate attibutes based on composition only
-        super.calculateAttributes();
-    }
-    
-    /**
-     * Generate attributes based on the mean elemental property for each site group.
-     *  (i.e. the average electronegativity of elements for sites in group 1)
-     */
-    protected void generateSingleSiteAttributes() {
-        // Determine number of sites that can be used for generating attributes
-        int nGroups = 0; 
-        for (int i=0; i < SiteInfo.NGroups(); i++)  
-            if (SiteInfo.groupIsIncludedInAttributes(i)) nGroups++;
-        
-        // Add attribute names
-        for (String p : ElementalProperties)
-            for (int g = 0; g<SiteInfo.NGroups(); g++)
-                if (SiteInfo.groupIsIncludedInAttributes(g))
-                    AttributeName.add(SiteInfo.getGroupLabel(g) + ":mean_" + p);
-            
-        // Calculate attributes for each entry
-        int nAttr = nGroups * ElementalProperties.size();
-        for (int e=0; e<NEntries(); e++) {
-            PrototypeEntry E = getEntry(e);
-            int pos = 0;
-            double[] newAttr = new double[nAttr];
-            for (String p : ElementalProperties) {
-				double[] lookup;
-				try {
-					lookup = getPropertyLookupTable(p);
-				} catch (Exception ex) {
-					throw new Error("Failed to load property data:" + p);
-				}
-                for (int g=0; g<SiteInfo.NGroups(); g++)
-                    if (SiteInfo.groupIsIncludedInAttributes(g))
-                        newAttr[pos++] = E.getSiteGroupMean(g, lookup);
-            }
-            E.addAttributes(newAttr);
-        }
-    }
-    
-    /**
-     * Generate attributes related to the differences between a pair of sites
-     */
-    protected void generatePairSiteAttributes() {
-        // Determine number of sites that can be used for generating attributes
-        int nGroups = 0; 
-        for (int i=0; i < SiteInfo.NGroups(); i++) 
-            if (SiteInfo.groupIsIncludedInAttributes(i)) nGroups++;
-        int nPairs = nGroups * (nGroups - 1) / 2;
-        
-        // Add attribute names
-        for (String p : ElementalProperties)
-            for (int g1 = 0; g1<SiteInfo.NGroups(); g1++)
-                for (int g2 = g1 + 1; g2<SiteInfo.NGroups(); g2++)
-                    if (SiteInfo.groupIsIncludedInAttributes(g1) && 
-                            SiteInfo.groupIsIncludedInAttributes(g2))
-                        AttributeName.add(SiteInfo.getGroupLabel(g1) +
-                                "-" + SiteInfo.getGroupLabel(g2) + ":mean_" + p);
-            
-        // Calculate attributes for each entry
-        int nAttr = nPairs * ElementalProperties.size();
-        for (int e=0; e<NEntries(); e++) {
-            PrototypeEntry E = getEntry(e);
-            int pos = 0;
-            double[] newAttr = new double[nAttr];
-            for (String p : ElementalProperties) {
-				double[] lookup;
-				try {
-					lookup = getPropertyLookupTable(p);
-				} catch (Exception ex) {
-					throw new Error("Failed to load data for property: " + p);
-				}
-                for (int g1=0; g1<SiteInfo.NGroups(); g1++)
-                    for (int g2=g1+1; g2<SiteInfo.NGroups(); g2++)
-                        if (SiteInfo.groupIsIncludedInAttributes(g1) && 
-                                SiteInfo.groupIsIncludedInAttributes(g2))
-                            newAttr[pos++] = E.getSiteGroupMean(g1, lookup) 
-                                    - E.getSiteGroupMean(g2, lookup);
-            }
-            E.addAttributes(newAttr);
-        }
     }
 
     @Override
