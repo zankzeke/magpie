@@ -325,6 +325,7 @@ public class PrototypeSiteInformation implements java.io.Serializable, Cloneable
             if (alreadyAdded) {
                 group.add(thisSite);
                 group.addAll(equivalentSites);
+                break;
             }
         }
         if (!alreadyAdded) {
