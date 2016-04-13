@@ -31,19 +31,28 @@ public class SingleSiteAttributeGeneratorTest {
         data.addEntry("He2LiHO3");
         
         data.addElementalProperty("Number");
+        data.addElementalProperty("Row");
         
         // Generate attributes
         SingleSiteAttributeGenerator gen = new SingleSiteAttributeGenerator();
         gen.addAttributes(data);
         
         // Check out the attributes
-        assertEquals(6, data.NAttributes());
-        assertEquals(data.getAttributeName(0), 1, data.getEntry(0).getAttribute(0), 1e-6);
-        assertEquals(data.getAttributeName(1), 2, data.getEntry(0).getAttribute(1), 1e-6);
-        assertEquals(data.getAttributeName(2), 2.5, data.getEntry(0).getAttribute(2), 1e-6);
-        assertEquals(data.getAttributeName(3), 3, data.getEntry(0).getAttribute(3), 1e-6);
-        assertEquals(data.getAttributeName(4), 0.5, data.getEntry(0).getAttribute(4), 1e-6);
-        assertEquals(data.getAttributeName(5), 1, data.getEntry(0).getAttribute(5), 1e-6);
+        assertEquals(12, data.NAttributes());
+        assertEquals(data.getAttributeName(0), 1, data.getEntry(0).getAttribute(0), 1e-6); // A site
+        assertEquals(data.getAttributeName(1), 1, data.getEntry(0).getAttribute(1), 1e-6);
+        
+        assertEquals(data.getAttributeName(2), 2, data.getEntry(0).getAttribute(2), 1e-6); // BC sites
+        assertEquals(data.getAttributeName(3), 2.5, data.getEntry(0).getAttribute(3), 1e-6);
+        assertEquals(data.getAttributeName(4), 3, data.getEntry(0).getAttribute(4), 1e-6);
+        assertEquals(data.getAttributeName(5), 0.5, data.getEntry(0).getAttribute(5), 1e-6);
+        assertEquals(data.getAttributeName(6), 1, data.getEntry(0).getAttribute(6), 1e-6);
+        
+        assertEquals(data.getAttributeName(7), 1, data.getEntry(0).getAttribute(7), 1e-6);
+        assertEquals(data.getAttributeName(8), 1.5, data.getEntry(0).getAttribute(8), 1e-6);
+        assertEquals(data.getAttributeName(9), 2, data.getEntry(0).getAttribute(9), 1e-6);
+        assertEquals(data.getAttributeName(10), 0.5, data.getEntry(0).getAttribute(10), 1e-6);
+        assertEquals(data.getAttributeName(11), 1, data.getEntry(0).getAttribute(11), 1e-6);
         
         for (int a=0; a<data.NAttributes(); a++) {
             assertEquals(data.getAttributeName(a),
@@ -54,10 +63,18 @@ public class SingleSiteAttributeGeneratorTest {
         
         assertEquals(data.getAttributeName(0), 2, data.getEntry(2).getAttribute(0), 1e-6);
         assertEquals(data.getAttributeName(1), 1, data.getEntry(2).getAttribute(1), 1e-6);
-        assertEquals(data.getAttributeName(2), 2, data.getEntry(2).getAttribute(2), 1e-6);
-        assertEquals(data.getAttributeName(3), 3, data.getEntry(2).getAttribute(3), 1e-6);
-        assertEquals(data.getAttributeName(4), 1, data.getEntry(2).getAttribute(4), 1e-6);
-        assertEquals(data.getAttributeName(5), 2, data.getEntry(2).getAttribute(5), 1e-6);
+
+        assertEquals(data.getAttributeName(2), 1, data.getEntry(2).getAttribute(2), 1e-6);
+        assertEquals(data.getAttributeName(3), 2, data.getEntry(2).getAttribute(3), 1e-6);
+        assertEquals(data.getAttributeName(4), 3, data.getEntry(2).getAttribute(4), 1e-6);
+        assertEquals(data.getAttributeName(5), 1, data.getEntry(2).getAttribute(5), 1e-6);
+        assertEquals(data.getAttributeName(6), 2, data.getEntry(2).getAttribute(6), 1e-6);
+        
+        assertEquals(data.getAttributeName(7), 1, data.getEntry(2).getAttribute(7), 1e-6);
+        assertEquals(data.getAttributeName(8), 1.5, data.getEntry(2).getAttribute(8), 1e-6);
+        assertEquals(data.getAttributeName(9), 2, data.getEntry(2).getAttribute(9), 1e-6);
+        assertEquals(data.getAttributeName(10), 0.5, data.getEntry(2).getAttribute(10), 1e-6);
+        assertEquals(data.getAttributeName(11), 1, data.getEntry(2).getAttribute(11), 1e-6);
         
         // Print description
         System.out.println(gen.printDescription(true));
@@ -73,6 +90,7 @@ public class SingleSiteAttributeGeneratorTest {
         PrototypeDataset data = new PrototypeDataset();
         data.setSiteInfo(siteInfo);
         data.addElementalProperty("Number");
+        data.addElementalProperty("Row");
         
         // Create generator
         SingleSiteAttributeGenerator gen = new SingleSiteAttributeGenerator();

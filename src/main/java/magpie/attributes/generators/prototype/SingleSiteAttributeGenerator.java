@@ -85,8 +85,8 @@ public class SingleSiteAttributeGenerator extends BaseAttributeGenerator {
             }
             
             // Add in labes for each property
-            for (String stat : statNames) {
-                for (String prop : data.getElementalProperties()) {
+            for (String prop : data.getElementalProperties()) {
+                for (String stat : statNames) {
                     attrNames.add(String.format("%s_%s_%s", siteLabel,
                             stat, prop));
                 }
