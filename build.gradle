@@ -78,6 +78,12 @@ jar {
         from 'exes'
         into 'dist/exes'
     }
+
+    // Copy python scripts into the output
+    copy {
+        from 'py'
+        into 'dist/py'
+    }
 }
 
 // Javadoc instructions
