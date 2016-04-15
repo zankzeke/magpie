@@ -212,7 +212,7 @@ public class APRDFAttributeGenerator extends BaseAttributeGenerator
                         "Article", 
                         new String[]{"M. Fernandez", "et al."},
                         "Atomic Property Weighted Radial Distribution Functions "
-                                + "Descriptors of Metal–Organic Frameworks for "
+                                + "Descriptors of Metal Organic Frameworks for "
                                 + "the Prediction of Gas Uptake Capacity",
                         "http://pubs.acs.org/doi/abs/10.1021/jp404287t",
                         null)
