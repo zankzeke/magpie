@@ -79,11 +79,15 @@ public class GCLPCalculatorTest {
         if (Files.isReadable(Paths.get("big-datasets/oqmd-hull.energies"))) {
             calc = new GCLPCalculator();
             CompositionDataset hullData = new CompositionDataset();
+            
+            // Load in hull data
             hullData.importText("big-datasets/oqmd-hull.energies", null);
-            hullData.setTargetProperty("delta_e", false);
+            hullData.setTargetProperty("energy_pa", false);
             calc.addPhases(hullData);
+            
             equil = calc.runGCLP(new CompositionEntry("AlNiFeZrTiSiBrFOSeKHHe"));
-            assertEquals(10, equil.getRight().size());
+            // equil = calc.runGCLP(new CompositionEntry("AlNiFeZr"));
+            assertEquals(11, equil.getRight().size());
             assertEquals(-1.553, equil.getLeft(), 1e-2);
         }
     }

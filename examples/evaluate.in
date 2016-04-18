@@ -8,6 +8,9 @@ data import datasets/small_set.txt
 data attributes properties add set general
 data attributes generate
 
+// Get only the ground-state instances of each compound
+data duplicates RankingDuplicateResolver minmize PropertyRanker energy_pa SimpleEntryRanker
+
 // Create model for formation energy
 data target delta_e
 model = new models.regression.WekaRegression trees.REPTree
