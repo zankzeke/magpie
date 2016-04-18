@@ -6,6 +6,9 @@
 data = new data.materials.CompositionDataset
 data import ./datasets/small_set.txt
 
+// Get only the ground-state instances of each compound
+data duplicates RankingDuplicateResolver minmize PropertyRanker energy_pa SimpleEntryRanker
+
 // Define where to find elemental property data
 data attributes properties directory ./Lookup Data/
 // Select which set of elemental properties to use for attributes

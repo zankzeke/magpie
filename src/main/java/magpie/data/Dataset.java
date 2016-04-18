@@ -18,6 +18,7 @@ import magpie.attributes.generators.BaseAttributeGenerator;
 import magpie.data.utilities.filters.BaseDatasetFilter;
 import magpie.data.utilities.generators.BaseEntryGenerator;
 import magpie.data.utilities.modifiers.BaseDatasetModifier;
+import magpie.data.utilities.modifiers.duplicates.BaseDuplicateResolver;
 import magpie.data.utilities.output.ARFFOutput;
 import magpie.data.utilities.output.DelimitedClassOutput;
 import magpie.data.utilities.output.DelimitedOutput;
@@ -854,12 +855,63 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     }
 
     /**
-     * Remove all duplicate entries
+     * Remove all duplicate entries without any selection strategy
      */
     public void removeDuplicates() {
         Set Filter = new HashSet<>(Entries);
         Entries.clear();
         Entries.addAll(Filter);
+    }
+    
+    /**
+     * Resolve duplicates according to some strategy
+     * @param resolver Duplicate resolution strategy
+     */
+    public void resolveDuplicates(BaseDuplicateResolver resolver) {
+        resolver.transform(this);
+    }
+    
+    /**
+     * Get a map of all unique entries, and their duplicates.
+     * @return Map of entry to all duplicate entries
+     */
+    public Map<BaseEntry,List<BaseEntry>> getUniqueEntries() {
+        // Loop through entries, creating a map of entry to all duplicates
+        Map<BaseEntry, List<BaseEntry>> unique = new TreeMap<>();
+        for (BaseEntry entry : Entries) {
+            List<BaseEntry> dups = unique.get(entry);
+            
+            // Make a new list if needed, or add to existing
+            if (dups == null) {
+                dups = new ArrayList<>();
+                dups.add(entry);
+                unique.put(entry, dups);
+            } else {
+                dups.add(entry);
+            }
+        }
+        
+        return unique;
+    }
+    
+    /**
+     * Get a map of an example of a duplicate entry to all duplicates.
+     * @return Map of duplicates
+     */
+    public Map<BaseEntry,List<BaseEntry>> getDuplicates() {
+        // Get the collapsed map of entries
+        Map<BaseEntry,List<BaseEntry>> allEntries = getUniqueEntries();
+        
+        // Remove entries where the size is only 1
+        Map<BaseEntry,List<BaseEntry>> output = new TreeMap<>();
+        for (Map.Entry<BaseEntry,List<BaseEntry>> entry : allEntries.entrySet()) {
+            if (entry.getValue().size() > 1) {
+                output.put(entry.getKey(), entry.getValue());
+            }
+        }
+        
+        return output;
+        
     }
 
     /**
@@ -1890,6 +1942,35 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                     throw new Exception("Usage: combine $<other dataset>");
                 }
             } break;
+            case "duplicates": {
+                // Usage: <method> <options...>
+                if (command.size() < 2) {
+                    throw new Exception("Usage: duplicates <method> <options...>");
+                }
+                // Get command
+                String method = command.get(1).toString();
+                if (method.equals("?")) {
+                    System.out.println(printImplmentingClasses(BaseDatasetModifier.class, false));
+                    return null;
+                }
+                // Get options
+                List<Object> options = command.subList(2, command.size());
+                
+                // Remove duplicates
+                int originalCount = NEntries();
+                BaseDuplicateResolver Mdfr = (BaseDuplicateResolver) instantiateClass(
+                        "data.utilities.modifiers.duplicates." + method, options);
+                Mdfr.transform(this);
+                
+                System.out.format("\tRemoved %d duplicates using a %s strategy.", 
+                        originalCount - NEntries(), method);
+                Map<BaseEntry,List<BaseEntry>> dups = getDuplicates();
+                if (! dups.isEmpty()) {
+                    System.out.format("%d duplciates remain.", dups.size());
+                }
+                System.out.println();
+            } break;
+                
             case "filter": {
                 // Usage: <include|exclude> <method> [<options...>]
                 String Method;

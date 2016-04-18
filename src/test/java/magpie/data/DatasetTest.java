@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import magpie.Magpie;
 import magpie.attributes.expanders.CrossExpander;
 import magpie.attributes.generators.BaseAttributeGenerator;
@@ -247,17 +249,44 @@ public class DatasetTest {
     }
     
     @Test 
-    public void testRemoveDuplicates() {
+    public void testRemoveDuplicates() throws Exception {
         Dataset data = new Dataset();
         
+        // Make a dataset with a duplicate
         data.addEntry(new BaseEntry());
         data.addEntry(new BaseEntry());
-        data.addAttribute("x", new double[]{2,2});
+        data.addEntry(new BaseEntry());
+        data.addAttribute("x", new double[]{2,2,1});
+        data.setMeasuredClasses(new double[]{0,1,2});
         
+        // Get collapsed list of all entries
+        Map<BaseEntry,List<BaseEntry>> unique = data.getUniqueEntries();
+        assertEquals(2, unique.size());
+        assertEquals(2, unique.get(data.getEntry(0)).size());
+        assertEquals(1, unique.get(data.getEntry(2)).size());
+        
+        // Get collapsed list of duplicates
+        Map<BaseEntry,List<BaseEntry>> dups = data.getDuplicates();
+        assertEquals(1, dups.size());
+        assertEquals(2, dups.get(data.getEntry(0)).size());
+        assertFalse(dups.containsKey(data.getEntry(2)));
+        
+        // Remove duplicates
+        Dataset originalData = data.clone();
         data.removeDuplicates();
         
-        assertEquals(1, data.NEntries());
+        assertEquals(2, data.NEntries());
         assertEquals(2, data.getEntry(0).getAttribute(0), 1e-6);
+        assertEquals(1, data.getEntry(1).getAttribute(0), 1e-6);
+        
+        // Resolve duplicates via averagings
+        List<Object> cmd = new ArrayList<>();
+        cmd.add("duplicates");
+        cmd.add("AveragingDuplicateResolver");
+        
+        data = originalData;
+        data.runCommand(cmd);
+        assertEquals(2, data.NEntries());
     }
     
     @Test

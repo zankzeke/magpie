@@ -1,5 +1,7 @@
 package magpie.data.materials;
 
+import java.util.LinkedList;
+import java.util.List;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -46,10 +48,33 @@ public class CompositionDatasetTest {
         data.importText("datasets/small_set.txt", null);
         
         // Make sure everything looks fine
-        assertEquals(612, data.NEntries());
+        assertEquals(630, data.NEntries());
         assertEquals(7, data.NProperties());
         assertArrayEquals(("bandgap energy_pa volume_pa magmom_pa"
                 + " fermi hull_distance delta_e").split(" "),
                 data.getPropertyNames());
+        
+        // Get only the ground states
+        
+        //  Make sure our test case has duplicates
+        CompositionEntry testEntry = new CompositionEntry("Na4Nb4O12");
+        assertTrue(data.getEntriesWriteAccess().lastIndexOf(testEntry)
+                != data.getEntriesWriteAccess().indexOf(testEntry));
+        
+        //  Run the duplicate screen
+        List<Object> cmd = new LinkedList<>();
+        cmd.add("duplicates");
+        cmd.add("RankingDuplicateResolver");
+        cmd.add("minimize");
+        cmd.add("PropertyRanker");
+        cmd.add("energy_pa");
+        cmd.add("SimpleEntryRanker");
+        data.runCommand(cmd);
+        
+        // Make sure the duplicate is gone, and we have the groundstate
+        assertTrue(data.getEntriesWriteAccess().lastIndexOf(testEntry)
+                == data.getEntriesWriteAccess().indexOf(testEntry));
+        int entryID = data.getEntriesWriteAccess().indexOf(testEntry);
+        assertEquals(2.328, data.getEntry(entryID).getMeasuredProperty(0), 1e-3);
     }
 }
