@@ -18,11 +18,11 @@ public class AveragingDuplicateResolverTest {
     public void testDatasetContinuous() {
         // Make a dataset
         Dataset data = new Dataset();
-        for (int i=0; i<6; i++) {
+        for (int i=0; i<7; i++) {
             data.addEntry(new BaseEntry());
         }
         
-        data.addAttribute("x", new double[]{0,1,1,2,2,3});
+        data.addAttribute("x", new double[]{0,1,1,2,2,3,3});
         
         data.getEntry(0).setMeasuredClass(0);
         data.getEntry(1).setMeasuredClass(1);
@@ -33,6 +33,7 @@ public class AveragingDuplicateResolverTest {
         // Resolve it
         AveragingDuplicateResolver res = new AveragingDuplicateResolver();
         res.modifyDataset(data);
+        System.out.println(res.printUsage());
         
         assertEquals(4, data.NEntries());
         int entryID = data.getEntriesWriteAccess().indexOf(originalData.getEntry(0));
@@ -50,11 +51,11 @@ public class AveragingDuplicateResolverTest {
     public void testDatasetDiscrete() {
         // Make a dataset
         Dataset data = new Dataset();
-        for (int i=0; i<7; i++) {
+        for (int i=0; i<8; i++) {
             data.addEntry(new BaseEntry());
         }
         
-        data.addAttribute("x", new double[]{0,1,1,2,2,2,3});
+        data.addAttribute("x", new double[]{0,1,1,2,2,2,3,3});
         data.setClassNames(new String[]{"Yes", "No"});
         
         data.getEntry(0).setMeasuredClass(0);
