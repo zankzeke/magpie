@@ -6,7 +6,6 @@ import magpie.data.materials.AtomicStructureEntry;
 import magpie.data.materials.CrystalStructureDataset;
 import magpie.data.materials.util.LookupData;
 import magpie.utility.CartesianSumGenerator;
-import magpie.utility.NDGridIterator;
 import org.apache.commons.lang3.ArrayUtils;
 import vassal.data.Cell;
 
@@ -14,17 +13,21 @@ import vassal.data.Cell;
  * Generate new crystalline compound by substituting elements onto all sites 
  * of a known prototype. 
  * 
- * <usage><p><b>Usage</b>: [-voro] $&lt;prototypes&gt; &lt;elements...&gt;
+ * <usage><p><b>Usage</b>: [-voro] [-ignore &lt;elems to ignore&gt;] $&lt;prototypes&gt; &lt;elements...&gt;
  * <br><pr><i>-voro</i>: Compute Voronoi tessellation of the prototype before
  * creating derivatives.
+ * <br><pr><i>elems to ignore</i>: List of elements that should not be replaced in 
+ * the prototype (e.g., use this to generate all ABO<sub>3</sub> compounds)
  * <br><pr><i>prototypes</i>: {@linkplain CrystalStructureDataset} containing
  * prototype structures (as entries).
  * <br><pr><i>elements</i>: List of elements to substitute</usage>
  * @author Logan Ward
  */
 public class CombinatorialSubstitutionGenerator extends BaseEntryGenerator {
-    /** List of elements to use (id is Z-1) */
-    final protected Set<Integer> Elements = new TreeSet<>();
+    /** List of elements to substitute */
+    final protected Set<String> Elements = new TreeSet<>();
+    /** List of elements ignore during substitution */
+    final protected Set<String> ElementsToIgnore = new TreeSet<>();
     /** List of prototype structures */
     final protected List<AtomicStructureEntry> Prototypes = new ArrayList<>();
     /** Whether to compute the Voronoi tessellation before generation */
@@ -34,6 +37,7 @@ public class CombinatorialSubstitutionGenerator extends BaseEntryGenerator {
     public void setOptions(List<Object> Options) throws Exception {
         boolean voro = false;
         Set<String> elems = new TreeSet<>();
+        Set<String> elemsIgnore = new TreeSet<>();
         int pos = 0;
         
         try {
@@ -41,6 +45,14 @@ public class CombinatorialSubstitutionGenerator extends BaseEntryGenerator {
             if (Options.get(pos).toString().toLowerCase().startsWith("-voro")) {
                 voro = true;
                 pos++;
+            } 
+            
+            // See if the user wants to exclude anything
+            if (Options.get(pos).toString().toLowerCase().startsWith("-ignore")) {
+                pos++;
+                while (Options.get(pos) instanceof String) {
+                    elemsIgnore.add(Options.get(pos++).toString());
+                }
             }
 
             // Get the list of prototypes
@@ -57,40 +69,48 @@ public class CombinatorialSubstitutionGenerator extends BaseEntryGenerator {
         
         // Set settings
         setComputeVoronoi(voro);
-        setElementsByAbbreviation(elems);
+        setElementsToSubstitute(elems);
+        setElementsToIgnore(elemsIgnore);
     }
 
     @Override
     public String printUsage() {
-        return "Usage: [-voro] $<prototypes> <elements...>";
+        return "Usage: [-voro] [-ignore <elements to ignore...>] $<prototypes> <elements...>";
     }
 
     /**
      * Set list of elements to use for substitutions.
-     * @param elements List of element IDs (Z-1)
+     * @param elements List of element abbreviations
      */
-    public void setElements(Collection<Integer> elements) {
+    public void setElementsToSubstitute(Collection<String> elements) {
+        checkElements(elements);
         Elements.clear();
         Elements.addAll(elements);
     }
-    
+
     /**
-     * Set list of elements to use for substitutions
-     * @param elements List of elements by abbreviations
-     * @throws java.lang.Exception If element not found
+     * Given list of element abbreviations, make sure all are known elements
+     * @param elements List of element abbreviation
+     * @throws IllegalArgumentException If an element is not of a known type
      */
-    public void setElementsByAbbreviation(Collection<String> elements) throws Exception {
-        // Lookup IDs
-        Set<Integer> elemIDs = new TreeSet<>();
+    protected void checkElements(Collection<String> elements) throws 
+            IllegalArgumentException {
         for (String abbr : elements) {
             int elem = ArrayUtils.indexOf(LookupData.ElementNames, abbr);
             if (elem == ArrayUtils.INDEX_NOT_FOUND) {
-                throw new Exception("No such element: " + abbr);
+                throw new IllegalArgumentException("No such element: " + abbr);
             }
-            elemIDs.add(elem);
         }
-        
-        setElements(elemIDs);
+    }
+    
+    /**
+     * Set list of elements that, if present, will not be replaced
+     * @param elements Collection of element abbreviations
+     */
+    public void setElementsToIgnore(Collection<String> elements) {
+        checkElements(elements);
+        ElementsToIgnore.clear();
+        ElementsToIgnore.addAll(elements);
     }
     
     /**
@@ -141,11 +161,11 @@ public class CombinatorialSubstitutionGenerator extends BaseEntryGenerator {
         final Iterator<AtomicStructureEntry> protIter = Prototypes.iterator();
         
         // Initialize iterator element combinations(use entry 0 in Prototypes list)
-        final Iterator<List<Integer>> elemIterInitial =
+        final Iterator<List<String>> elemIterInitial =
                 getReplacementIterator(Prototypes.get(0));
         
         return new Iterator<BaseEntry>() {
-            Iterator<List<Integer>> elemIter = elemIterInitial;
+            Iterator<List<String>> elemIter = elemIterInitial;
             AtomicStructureEntry curProt = protIter.next();
 
             @Override
@@ -155,7 +175,7 @@ public class CombinatorialSubstitutionGenerator extends BaseEntryGenerator {
 
             @Override
             public BaseEntry next() {
-                List<Integer> newElems;
+                List<String> newElems;
                 // If there is another set of elements available
                 if (elemIter.hasNext()) {
                     // Get the new element identities
@@ -176,9 +196,12 @@ public class CombinatorialSubstitutionGenerator extends BaseEntryGenerator {
                 // Get the map of swaps to make
                 Map<String, String> changes = new HashMap<>();
                 Cell curStrc = curProt.getStructure();
-                for (int i = 0; i < curStrc.nTypes(); i++) {
-                    changes.put(curStrc.getTypeName(i),
-                            LookupData.ElementNames[newElems.get(i)]);
+                int pos=0;
+                for (int type = 0; type < curStrc.nTypes(); type++) {
+                    if (! ElementsToIgnore.contains(curStrc.getTypeName(type))) {
+                        changes.put(curStrc.getTypeName(type),
+                                newElems.get(pos++));
+                    }
                 }
 
                 // Make the new entry
@@ -205,17 +228,19 @@ public class CombinatorialSubstitutionGenerator extends BaseEntryGenerator {
      * @param entry Entry to make the iterator for
      * @return Iterator over all combinations
      */
-    protected Iterator<List<Integer>> getReplacementIterator(
+    protected Iterator<List<String>> getReplacementIterator(
             AtomicStructureEntry entry) {
         // Get stacked list of all possible elements for each site
         Cell strc = entry.getStructure();
-        List<Collection<Integer>> stack = new ArrayList<>(strc.nTypes());
+        List<Collection<String>> stack = new ArrayList<>(strc.nTypes());
         for (int i=0; i<strc.nTypes(); i++) {
-            stack.add(Elements);
+            if (! ElementsToIgnore.contains(strc.getTypeName(i))) {
+                stack.add(Elements);
+            }
         }
         
         // Make the sum generator
-        CartesianSumGenerator<Integer> gen = new CartesianSumGenerator<>(stack);
+        CartesianSumGenerator<String> gen = new CartesianSumGenerator<>(stack);
         return gen.iterator();
     }
     
