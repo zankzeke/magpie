@@ -187,7 +187,12 @@ public class CrystalStructureDataset extends CompositionDataset {
     @Override
     public AtomicStructureEntry addEntry(String input) throws Exception {
         // Look up radii 
-        double[] radii = getPropertyLookupTable("CovalentRadius");
+        double[] radii;
+        try {
+			radii = getPropertyLookupTable("CovalentRadius");
+		} catch (Exception e) {
+			radii = null;
+		}
         
         Cell strc;
         String name;
@@ -199,7 +204,7 @@ public class CrystalStructureDataset extends CompositionDataset {
         } else {
             // Assume it is a filename
             strc = new VASP5IO().parseFile(input);
-            name = input;
+            name = new File(input).getName();
         }
         
         // Create the entry
