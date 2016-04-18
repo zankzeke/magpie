@@ -82,11 +82,10 @@ public class GCLPCalculatorTest {
             
             // Load in hull data
             hullData.importText("big-datasets/oqmd-hull.energies", null);
-            hullData.setTargetProperty("energy_pa", false);
+            hullData.setTargetProperty("delta_e", false);
             calc.addPhases(hullData);
             
             equil = calc.runGCLP(new CompositionEntry("AlNiFeZrTiSiBrFOSeKHHe"));
-            // equil = calc.runGCLP(new CompositionEntry("AlNiFeZr"));
             assertEquals(11, equil.getRight().size());
             assertEquals(-1.553, equil.getLeft(), 1e-2);
         }
