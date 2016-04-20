@@ -43,12 +43,12 @@ public class LassoAttributeSelectorTest {
         
         // Make the selector
         LassoAttributeSelector sel = new LassoAttributeSelector();
-        sel.Debug = true;
         List <Object> options = new LinkedList<>();
         options.add("-n_lasso");
         options.add(3);
         options.add("-max_dim");
         options.add(2);
+        options.add("-debug");
         
         sel.setOptions(options);
         

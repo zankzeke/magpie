@@ -43,7 +43,7 @@ import org.apache.commons.lang3.tuple.Pair;
  * 
  * <usage><p><b>Usage</b>: -n_lasso &lt;# lasso&gt; -max_dim &lt;dim&gt; 
  * [-corr_downselect &lt;# corr&gt;] [-cv_method &lt;cv frac&gt; &lt;cv iters&gt;]
- * [-pick_best]
+ * [-pick_best] [-debug]
  * <pr><br><i># lasso</i>: Number of attributes to select with LASSO
  * <pr><br><i>max dim</i>: Maximum dimension of final set
  * <pr><br><i># corr</i>: Set size after removing strongly-correlated attributes (by default,
@@ -52,6 +52,7 @@ import org.apache.commons.lang3.tuple.Pair;
  * (by default, cross-validation is not performed)
  * <pr><br><i>cv iter</i>: Number of cross-validation tests to run
  * <pr><br><i>-pick_best</i>: Whether to pick dimension based on cross-validation results
+ * <pr><br><i>-debug</i>: Print status messages from the underlying Python script to screen
  * </usage>
  * 
  * @author Logan Ward
@@ -75,7 +76,7 @@ public class LassoAttributeSelector extends BaseAttributeSelector
     /** Whether to pick dataset size via cross-validation. */
     protected boolean SelectSizeAutomatically = false;
     /** Debug mode. Pipe output from subprocess to stdout */
-    static boolean Debug = false;
+    public boolean Debug = false;
 
     @Override
     public void setOptions(List<Object> Options) throws Exception {
@@ -83,6 +84,7 @@ public class LassoAttributeSelector extends BaseAttributeSelector
         int nDown = -1, cvIter = -1;
         double cvFrac = -1;
         boolean pickBest = false;
+        Debug = false;
         
         try {
             // Mandatory arguments
@@ -101,6 +103,9 @@ public class LassoAttributeSelector extends BaseAttributeSelector
                         break;
                     case "-pick_best":
                         pickBest = true;
+                        break;
+                    case "-debug":
+                        Debug = true;
                         break;
                     default:
                         throw new Exception();
