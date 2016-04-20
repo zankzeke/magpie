@@ -108,7 +108,7 @@ public class LassoAttributeSelectorTest {
         System.out.println("\tSimple test: Lasso = 4, dim red = 3, max dim = 3, cv test");
         attrs = sel.train_protected(data);
         System.out.println(sel.printDescription(true));
-        assertTrue(attrs.size() < 3);
+        assertTrue(attrs.size() <= 3);
     }
     
     @Test
