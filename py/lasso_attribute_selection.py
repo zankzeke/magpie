@@ -1,11 +1,12 @@
 from sklearn.linear_model import Lasso, lasso_path, LinearRegression
+from sklearn.linear_model.coordinate_descent import _alpha_grid
 from sklearn.cross_validation import cross_val_score, ShuffleSplit
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error
 from sklearn.externals.joblib import Parallel, delayed
+from scipy.optimize import brentq
 import math
 import sys
-import pandas as pd
 import itertools
 import numpy as np
 
@@ -99,41 +100,53 @@ if __name__ == '__main__':
 		print >>sys.stderr, "[Warning]     Using CV by adding a \"-cv_method\" flag is *highly* recommended"
 
 	# Get the data
-	data = pd.read_csv(sys.stdin)
-	X = data[data.columns[:-1]].as_matrix()
-	y = data[data.columns[-1]].as_matrix()
-	columns = data.columns
+	columns = sys.stdin.readline().split(",")
+	data = np.genfromtxt(sys.stdin, delimiter=",")
+	X = data[:,:-1]
+	y = data[:,-1]
 	del data # No longer needed in memory
+	print "[Status] Read in %d entries with %d attributes"%(X.shape)
+	sys.stdin.flush()
+	
+	# Convert X to fortran format
+	X = np.array(X, order='F')
 
 	# Scale the features
 	scaler = MinMaxScaler()
 	X = scaler.fit_transform(X, y)
+	print "[Status] Scaled entries to exist on same range"
+	sys.stdin.flush()
 
 	# Sanity check: Make sure n_params_lasso is less
 	#  than the total number of attributes
 	n_params_lasso = min(n_params_lasso, len(columns) - 1)
 
 	# Compute the first n_params_lasso from the lasso path
-	alphas, coefs, dual_path  = lasso_path(X, y)
-	for coef in coefs.T:
-		count = np.count_nonzero(coef)
-		if count >= n_params_lasso:
-			break
-	if count < n_params_lasso:
-		# Increase manually
-		alpha = alphas[-1]
-		alpha_step = alpha / alphas[-2]
-		while count < n_params_lasso:
-			alpha = alpha * alpha_step
-			model = Lasso(alpha=alpha)
-			model.fit(X,y)
-			coef = model.coef_
-			count = np.count_nonzero(coef)
+	alphas = _alpha_grid(X, y)
+	alpha_guess = alphas[0]
 	
+	def get_count(alpha):
+		model = Lasso(alpha=alpha)
+		model.fit(X,y)
+		return np.count_nonzero(model.coef_), model.coef_
+	
+	#   Find the left end
+	min_alpha = alpha_guess
+	while get_count(min_alpha)[0] < n_params_lasso:
+		min_alpha /= 10
+	
+	#   Find right end
+	max_alpha = min_alpha
+	while get_count(max_alpha)[0] > n_params_lasso:
+		max_alpha *= 10
+		
+	res = brentq(lambda x: get_count(x)[0] - n_params_lasso, min_alpha, max_alpha)
+	count, coef = get_count(res)
 
 	# Get the LASSO selected attributes
 	attr_ids = list(np.nonzero(coef)[0])
 	print "[Status] Selected %d attributes via LASSO: "%len(attr_ids), " ".join([ columns[x] for x in attr_ids ])
+	sys.stdin.flush()
 
 	# Optinal: Iteratively remove highly-correlated attributes
 	if not corr_downselect is None:
@@ -152,6 +165,7 @@ if __name__ == '__main__':
 			highest_attr = max(attr_corr, key=lambda x: x[1])[0]
 			attr_ids.remove(highest_attr)
 		print "[Status] Downselected to %d loosely-correlated attributes: "%len(attr_ids), " ".join([ columns[x] for x in attr_ids ])
+		sys.stdin.flush()
 
 
 	# Define method used to compute CV score
@@ -185,7 +199,9 @@ if __name__ == '__main__':
 			best_score_of_all = best_score
 	
 		print '[Status]', best_score, " ".join([columns[c] for c in best_comb])
+		sys.stdin.flush()
 
 	# If user wanted the best choice
 	print '[Answer]', " ".join([columns[c] for c in best_comb_of_all])
+	sys.stdin.flush()
 
