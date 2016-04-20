@@ -13,7 +13,7 @@ import numpy as np
 #
 # Implements the LASSO-based attribute selection procedure
 #  demonstrated by Ghiringhelli et al. (see PRL 114, 105503 (2015))
-#  and later extended by Pilania et al. (see Sci. Rprts. 6, 19375 (2016)
+#  and later extended by Pilania et al. (see Sci. Rprts. 6, 19375 (2016))
 #
 # Method:
 #
@@ -148,7 +148,7 @@ if __name__ == '__main__':
 	print "[Status] Selected %d attributes via LASSO: "%len(attr_ids), " ".join([ columns[x] for x in attr_ids ])
 	sys.stdin.flush()
 
-	# Optinal: Iteratively remove highly-correlated attributes
+	# Optional: Iteratively remove highly-correlated attributes
 	if not corr_downselect is None:
 		while len(attr_ids) > corr_downselect:
 			# Get the attributes
@@ -167,6 +167,11 @@ if __name__ == '__main__':
 		print "[Status] Downselected to %d loosely-correlated attributes: "%len(attr_ids), " ".join([ columns[x] for x in attr_ids ])
 		sys.stdin.flush()
 
+
+    # Downsize the data arrays
+	X = X[:, attr_ids]
+	columns = [ columns[x] for x in attr_ids ]
+	attr_ids = range(len(attr_ids))
 
 	# Define method used to compute CV score
 	#  A function to return MSE given a combination of attributes
