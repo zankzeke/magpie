@@ -64,7 +64,7 @@ public class FunctionExpander extends BaseAttributeExpander implements Citable {
     }
 
     @Override
-    public void expand(Dataset Data) {
+    synchronized public void expand(Dataset Data) {
         // Get list of attribute names
         String[] oldNames = Data.getAttributeNames();
         

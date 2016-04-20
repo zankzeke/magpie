@@ -2,7 +2,9 @@ package magpie.attributes.expanders;
 
 import magpie.attributes.expanders.FunctionExpander;
 import java.util.*;
+import magpie.Magpie;
 import magpie.data.Dataset;
+import magpie.data.materials.CompositionDataset;
 import magpie.utility.interfaces.Citation;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -37,6 +39,33 @@ public class FunctionExpanderTest {
         assertTrue(ArrayUtils.contains(data.getAttributeNames(), data.getAttributeName(0) + "^2"));
         assertEquals(Math.pow(data.getEntry(0).getAttribute(0), 2), 
                 data.getEntry(0).getAttribute(initialCount), 1e-6);
+    }
+    
+    @Test
+    public void threadTest() throws Exception {
+        Dataset data = new CompositionDataset();
+        data.importText("datasets/small_set.txt", null);
+        
+        // Create attributes that are the square of every attribute
+        FunctionExpander expdr = new FunctionExpander();
+        expdr.addNewFunction("#{x}^2");
+        data.addAttribueExpander(expdr);
+        Dataset originalData = data.clone();
+        
+        // Get serial result
+        data.generateAttributes();
+        double[][] serialResults = data.getAttributeArray();
+        
+        // Get threaded result
+        Magpie.NThreads = 8;
+        data = originalData.clone();
+        data.generateAttributes();
+        double[][] results = data.getAttributeArray();
+        
+        // Check equality
+        for (int e=0; e<data.NEntries(); e++) {
+            assertArrayEquals(serialResults[e], results[e], 1e-6);
+        }
     }
     
     @Test

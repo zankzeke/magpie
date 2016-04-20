@@ -15,6 +15,8 @@ import org.apache.commons.math3.exception.DimensionMismatchException;
  * that would be confused with a math operation (e.g., +) or be named after a math function 
  * (e.g., cos). Also, don't put any whitespace inside the {}'s.
  * 
+ * <p>Dev note: This class *is not* thread safe.
+ * 
  * @author Logan Ward
  * @see expr.Parser
  */
@@ -69,7 +71,7 @@ public class ParsedFunction implements MultivariateFunction, Serializable {
         // Get the function
         Function = parser.parseString(toParse);
     }
-    
+
     /**
      * Get the list of variables. Returns them in the same order expected by
      * {@linkplain #value(double[]) )
