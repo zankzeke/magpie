@@ -10,7 +10,17 @@ import magpie.data.Dataset;
 import magpie.utility.interfaces.Options;
 
 /**
- * Base class for tools that output a dataset. This class is designed around 
+ * Base class for tools that output a dataset. 
+ * 
+ * <p>To best user this class, call the appropriate {@linkplain #writeDataset} command
+ * for your desired output method (e.g., generic stream, file). This will
+ * automatically write the entire file. Alternatively, you can call the commands
+ * to print the header, entries, and end separately. This might be a be a preferred
+ * route if you are, for example, reading entries from a stream and do not want 
+ * to hold the entire dataset in memory at the same time. But, it is otherwise 
+ * recommended to use the basic interface.
+ * 
+ * <p>Developer's Notes: This class is designed around 
  * the idea that data files are composed of two segments: a header describing 
  * data format, the body containing the data, and some text marking the end of 
  * a file. Consequently, any implementation of these class must fulfill 3 operations:

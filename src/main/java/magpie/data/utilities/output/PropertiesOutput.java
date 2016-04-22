@@ -39,6 +39,27 @@ public class PropertiesOutput extends BaseDatasetOutput {
         // Get a buffered version of the output
         PrintWriter fp = new PrintWriter(output, true);
         
+        // Print out attribute names
+        printAttributeNames(data, fp);
+        
+        // Print class
+        fp.print(",class_measured,class_predicted");
+        
+        // Print properties
+        for (String name : ((MultiPropertyDataset) data).getPropertyNames()) {
+            name = name.replace(",", "-");
+            fp.print("," + name + "_measured");
+            fp.print("," + name + "_predicted");
+        }
+        fp.println();
+    }
+
+    /**
+     * Print out attribute names
+     * @param data Dataset being printed
+     * @param fp Output stream
+     */
+    protected void printAttributeNames(Dataset data, PrintWriter fp) {
         // Get the attribute names
         String[] attributeNames = data.getAttributeNames();
         boolean started = false;
@@ -54,17 +75,6 @@ public class PropertiesOutput extends BaseDatasetOutput {
                 fp.print(","+name);
             }
         }
-        
-        // Print class
-        fp.print(",class_measured,class_predicted");
-        
-        // Print properties
-        for (String name : ((MultiPropertyDataset) data).getPropertyNames()) {
-            name = name.replace(",", "-");
-            fp.print("," + name + "_measured");
-            fp.print("," + name + "_predicted");
-        }
-        fp.println();
     }
 
     @Override
@@ -77,57 +87,77 @@ public class PropertiesOutput extends BaseDatasetOutput {
         for (BaseEntry entryPtr : entries) {
             // Get MultiPropertyEntry reference
             MultiPropertyEntry entry = (MultiPropertyEntry) entryPtr;
-            started = false;
             
-            // Print each attribute
-            for (double x : entry.getAttributes()) {
-                if (started) {
-                    fp.print(",");
-                    fp.print(x);
-                } else {
-                    started = true;
-                    fp.print(x);
-                }
-            }
+            // Print out attributes
+            printEntryAttributes(entry, fp);
             
-            // Store previous target
-            int target = entry.getTargetProperty();
-            
-            // Print the measured and predicted class, if available
-            if (entry.hasMeasurement()) {
-                fp.print(",");
-                fp.print(entry.getMeasuredClass());
-            } else {
-                fp.print(",None");
-            }
-            if (entry.hasPrediction()) {
-                fp.print(",");
-                fp.print(entry.getPredictedClass());
-            } else {
-                fp.print(",None");
-            }
-            
-            // Print out each property
-            for (int p=0; p<entry.NProperties(); p++) {
-                if (entry.hasMeasuredProperty(p)) {
-                    fp.print(",");
-                    fp.print(entry.getMeasuredProperty(p));
-                } else {
-                    fp.print(",None");
-                }
-                if (entry.hasPredictedProperty(p)) {
-                    fp.print(",");
-                    fp.print(entry.getPredictedProperty(p));
-                } else {
-                    fp.print(",None");
-                }
-            }
+            // Print out properties
+            printEntryProperties(entry, fp);
             
             // Print newline
             fp.println();
-            
-            // Restore target
-            entry.setTargetProperty(target);
+        }
+    }
+
+    /**
+     * Print out measured and predicted properties of an entry
+     * @param entry Entry to be printed
+     * @param fp Output stream
+     */
+    protected void printEntryProperties(MultiPropertyEntry entry, PrintWriter fp) {
+        // Store previous target
+        int target = entry.getTargetProperty();
+        
+        // Print the measured and predicted class, if available
+        if (entry.hasMeasurement()) {
+            fp.print(",");
+            fp.print(entry.getMeasuredClass());
+        } else {
+            fp.print(",None");
+        }
+        if (entry.hasPrediction()) {
+            fp.print(",");
+            fp.print(entry.getPredictedClass());
+        } else {
+            fp.print(",None");
+        }
+        
+        // Print out each property
+        for (int p=0; p<entry.NProperties(); p++) {
+            if (entry.hasMeasuredProperty(p)) {
+                fp.print(",");
+                fp.print(entry.getMeasuredProperty(p));
+            } else {
+                fp.print(",None");
+            }
+            if (entry.hasPredictedProperty(p)) {
+                fp.print(",");
+                fp.print(entry.getPredictedProperty(p));
+            } else {
+                fp.print(",None");
+            }
+        }
+        
+        // Restore target property
+        entry.setTargetProperty(target);
+    }
+    
+
+    /**
+     * Print out attributes of an entry
+     * @param entry Entry to be printed
+     * @param fp Output stream
+     */
+    protected void printEntryAttributes(MultiPropertyEntry entry, PrintWriter fp) {
+        boolean started = false;
+        for (double x : entry.getAttributes()) {
+            if (started) {
+                fp.print(",");
+                fp.print(x);
+            } else {
+                started = true;
+                fp.print(x);
+            }
         }
     }
 

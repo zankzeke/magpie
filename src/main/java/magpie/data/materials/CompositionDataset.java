@@ -9,10 +9,9 @@ import java.nio.file.*;
 import java.util.*;
 import magpie.attributes.generators.BaseAttributeGenerator;
 import magpie.attributes.generators.composition.*;
-import magpie.data.BaseEntry;
-import magpie.data.materials.util.CompositionDatasetOutput;
 import magpie.data.materials.util.LookupData;
 import magpie.data.materials.util.PropertyLists;
+import magpie.data.utilities.output.CompositionOutput;
 import magpie.utility.tools.OxidationStateGuesser;
 
 /**
@@ -565,8 +564,9 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
         switch (Format.toLowerCase()) {
             case "comp":
                 filename = Basename + ".csv";
-                CompositionDatasetOutput.saveCompositionProperties(this,
-                        filename);
+                CompositionOutput output = new CompositionOutput();
+                output.setSelectionMethod(CompositionOutput.ElementSelectionMethod.DYNAMIC);
+                new CompositionOutput().writeDataset(this, filename);
                 return filename;
             default:
                 return super.saveCommand(Basename, Format); 

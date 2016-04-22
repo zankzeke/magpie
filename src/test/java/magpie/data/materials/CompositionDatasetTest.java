@@ -1,5 +1,8 @@
 package magpie.data.materials;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.util.LinkedList;
 import java.util.List;
 import org.junit.Test;
@@ -76,5 +79,19 @@ public class CompositionDatasetTest {
                 == data.getEntriesWriteAccess().indexOf(testEntry));
         int entryID = data.getEntriesWriteAccess().indexOf(testEntry);
         assertEquals(2.328, data.getEntry(entryID).getMeasuredProperty(0), 1e-3);
+    }
+    
+    @Test
+    public void testOutput() throws Exception {
+        CompositionDataset data = new CompositionDataset();
+        data.addEntry("NaCl");
+        
+        // Save it
+        File file = new File(data.saveCommand("temp", "comp"));
+        assertTrue(file.exists());
+        BufferedReader fp = new BufferedReader(new FileReader(file));
+        assertEquals("X_Na,X_Cl,class_measured,class_predicted", fp.readLine());
+        fp.close();
+        file.delete();
     }
 }
