@@ -168,3 +168,23 @@ SpaceGroupNumber.table
     Property: Space group of T=0K ground state structure
     Source: Only structures from the ICSD were evaluated 
         Pm used OQMD groundstate in Spacegroup 194, which is only 4 meV/atom below 166. No ICSD structure
+ZungerPP-r_s.table
+	Property: Psuedopotential radius of s orbital
+	Units: a.u.
+	Source: http://link.aps.org/doi/10.1103/PhysRevB.22.5839
+ZungerPP-r_p.table
+	Property: Psuedopotential radius of p orbital
+	Units: a.u.
+	Source: http://link.aps.org/doi/10.1103/PhysRevB.22.5839
+ZungerPP-r_d.table
+	Property: Psuedopotential radius of d orbital
+	Units: a.u.
+	Source: http://link.aps.org/doi/10.1103/PhysRevB.22.5839
+ZungerPP-r_sigma.table
+	Property: Sum of the radii of s and p orbitals
+	Units: a.u.
+	Source(s): http://link.aps.org/doi/10.1103/PhysRevB.22.5839; http://linkinghub.elsevier.com/retrieve/pii/0022508885901109
+ZungerPP-r_pi.table
+	Property: Absolute value of the different between the radii of s and p orbitals
+	Units: a.u.
+	Source: http://link.aps.org/doi/10.1103/PhysRevB.22.5839
