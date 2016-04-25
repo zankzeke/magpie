@@ -3,8 +3,10 @@ package magpie.data.materials;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import magpie.data.materials.util.PropertyLists;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -93,5 +95,20 @@ public class CompositionDatasetTest {
         assertEquals("X_Na,X_Cl,class_measured,class_predicted", fp.readLine());
         fp.close();
         file.delete();
+    }
+    
+    @Test
+    public void testProperties() throws Exception {
+        // Make a sample dataset
+        CompositionDataset data = new CompositionDataset();
+        
+        // Add a set of properties
+        data.addElementalPropertySet("general");
+        
+        // Check results
+        assertEquals(PropertyLists.getPropertySet("general").length, 
+                data.ElementalProperties.size());
+        assertTrue(data.ElementalProperties.containsAll(
+                Arrays.asList(PropertyLists.getPropertySet("general"))));
     }
 }

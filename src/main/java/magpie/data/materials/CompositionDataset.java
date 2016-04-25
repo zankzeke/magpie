@@ -314,6 +314,18 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
     }
     
     /**
+     * Add a set of elemental properties to the list of those used when computing attributes.
+     * @param setName Name of set
+     * @throws java.lang.Exception
+     * @see PropertyLists#getPropertySet(java.lang.String) 
+     */
+    public void addElementalPropertySet(String setName) throws Exception {
+        for (String name : PropertyLists.getPropertySet(setName)) {
+            addElementalProperty(name);
+        }
+    }
+    
+    /**
      * Get list of elemental properties currently being used to generate attributes.
      * @return List of elemental properties
      */
