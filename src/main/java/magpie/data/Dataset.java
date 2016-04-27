@@ -102,7 +102,7 @@ import weka.core.converters.ArffLoader;
  * Eliminate duplicates within a dataset
  * <br><pr><i>resolver</i>: Name of {@linkplain BaseDuplicateResolver} used
  * to handle duplicates
- * <br><pr><i>resolver options</i>: Any optiosn for the resolver</command>
+ * <br><pr><i>resolver options</i>: Any options for the resolver</command>
  *
  * <command><p>
  * <b>filter &lt;include|exclude> &lt;method> [&lt;options...>]</b> - Run

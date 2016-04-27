@@ -166,7 +166,7 @@ public class APEAttributeGenerator extends BaseAttributeGenerator {
         
         // Get the entries, sort so that alloys for the same system are grouped
         //  together (this happens by default for the CompositionEntry)
-        List<BaseEntry> entries = data.getEntries();
+        List<BaseEntry> entries = new ArrayList<>(data.getEntries());
         Collections.sort(entries);
         
         // Compute attributes for each entry

@@ -6,7 +6,6 @@ import java.util.List;
 import magpie.attributes.selectors.UserSpecifiedAttributeSelector;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
-import magpie.data.utilities.filters.ZScoreOutlierFilter;
 import magpie.models.regression.PolynomialRegression;
 import org.apache.commons.math3.stat.regression.MillerUpdatingRegression;
 import org.apache.commons.math3.stat.regression.RegressionResults;
