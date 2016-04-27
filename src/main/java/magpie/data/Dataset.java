@@ -97,6 +97,12 @@ import weka.core.converters.ArffLoader;
  * <command><p><b>combine $&lt;dataset&gt;</b> - Add all entries from another dataset
  * <br><pr><i>dataset</i>: Dataset to merge with this one. It will remain unchanged.
  * </command>
+ * 
+ * <command><p><b>duplicates &lt;resolver&gt; [&lt;resolver options&gt;]</b> -
+ * Eliminate duplicates within a dataset
+ * <br><pr><i>resolver</i>: Name of {@linkplain BaseDuplicateResolver} used
+ * to handle duplicates
+ * <br><pr><i>resolver options</i>: Any optiosn for the resolver</command>
  *
  * <command><p>
  * <b>filter &lt;include|exclude> &lt;method> [&lt;options...>]</b> - Run
@@ -1048,7 +1054,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * @return Collection of entries
      */
     public List<BaseEntry> getEntries() {
-        return new ArrayList<>(Entries);
+        return Collections.unmodifiableList(Entries);
     }
     
     /**
