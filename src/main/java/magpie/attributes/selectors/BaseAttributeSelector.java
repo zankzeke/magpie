@@ -165,7 +165,11 @@ abstract public class BaseAttributeSelector implements java.io.Serializable,
                     throw new Exception("Usage: train $<dataset>");
                 }
                 train(Data);
-                System.out.println(printSelections());
+                if (Attribute_Names.size() < 24) {
+                    System.out.println(printSelections());
+                } else {
+                    System.out.format("\tSelected %d attributes\n", Attribute_Names.size());
+                }
             } break;
             case "run": {
                 // Usage: run $<dataset>
