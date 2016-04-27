@@ -2,7 +2,6 @@ package magpie.attributes.selectors;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import magpie.data.Dataset;
 import magpie.utility.interfaces.Commandable;
@@ -35,9 +34,9 @@ abstract public class BaseAttributeSelector implements java.io.Serializable,
     /** Whether this BaseAttributeSelector has been trained */
     protected boolean trained = false;
     /** List of attributes that were selected */
-    private List<Integer> Attribute_ID = new LinkedList<>();
+    private List<Integer> Attribute_ID = new ArrayList<>();
     /** Names of attributes that were selected */
-    final private List<String> Attribute_Names = new LinkedList<>();
+    final private List<String> Attribute_Names = new ArrayList<>();
     
     /** 
      * Train an attribute selection algorithm on a dataset. Selects which attributes
@@ -89,8 +88,8 @@ abstract public class BaseAttributeSelector implements java.io.Serializable,
         Data.setAttributeNames(NewAttributeNames);
         
         // For each entry, redo the feature list
+        double[] newAttributes = new double[Data.NAttributes()];
         for (int i=0; i<Data.NEntries(); i++) {
-            double[] newAttributes = new double[Data.NAttributes()];
             for (int j=0; j<Data.NAttributes(); j++)
                 newAttributes[j] = Data.getEntry(i).getAttribute(Attribute_ID.get(j));
             Data.getEntry(i).setAttributes(newAttributes);
@@ -102,7 +101,7 @@ abstract public class BaseAttributeSelector implements java.io.Serializable,
         BaseAttributeSelector x;
         try { x = (BaseAttributeSelector) super.clone(); }
         catch (CloneNotSupportedException c) { throw new Error(c); }
-        x.Attribute_ID = new LinkedList<>(this.Attribute_ID);
+        x.Attribute_ID = new ArrayList<>(this.Attribute_ID);
         return x;
     }
     
