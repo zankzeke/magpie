@@ -28,7 +28,7 @@ public class RemoveNaNAttributeSelector extends BaseAttributeSelector {
 
     @Override
     protected List<Integer> train_protected(Dataset data) {
-        List<Integer> output = new ArrayList<>();
+        List<Integer> output = new ArrayList<>(data.NAttributes());
         
         for (int a=0; a<data.NAttributes(); a++) {
             // See if any entries have a NaN or infinite value

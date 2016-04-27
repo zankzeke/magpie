@@ -26,6 +26,10 @@ Density.table
     Property: Density of element at STP
     Units: g/L
     Source: Mathematica
+ElectronAffinity.table
+	Property: Electron affinitiy
+	Units: kJ/mol
+	Source: Mathematica
 Electronegativity.table
     Property: Pauling electronegativity (right?)
     Source: Mathematica
