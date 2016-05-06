@@ -3,6 +3,7 @@ package magpie.attributes.expanders;
 import magpie.attributes.expanders.FunctionExpander;
 import java.util.*;
 import magpie.Magpie;
+import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
 import magpie.utility.interfaces.Citation;
@@ -65,6 +66,45 @@ public class FunctionExpanderTest {
         // Check equality
         for (int e=0; e<data.NEntries(); e++) {
             assertArrayEquals(serialResults[e], results[e], 1e-6);
+        }
+    }
+    
+    @Test
+    public void regexTest() throws Exception {
+        Dataset data = getTestSet();
+        
+        // Compute square of only X
+        FunctionExpander func = new FunctionExpander();
+        List<Object> options = new LinkedList<>();
+        options.add("#{r:x,x}^2");
+        func.setOptions(options);
+        
+        // Run the expander
+        func.expand(data);
+        
+        // Check results
+        assertEquals(3, data.NAttributes());
+        for (BaseEntry entry : data.getEntries()) {
+            assertEquals(entry.getAttribute(0) * entry.getAttribute(0),
+                    entry.getAttribute(2), 1e-6);
+        }
+        
+        // Another regex: Multiply any variable containing x by any other attribute
+        options.set(0, "#{y} * #{r:x,^x.*}");
+        func.setOptions(options);
+        func.expand(data);
+        
+        // Check results
+        assertEquals(7, data.NAttributes());
+        for (BaseEntry entry : data.getEntries()) {
+            assertTrue(ArrayUtils.contains(entry.getAttributes(), 
+                    entry.getAttribute(0) * entry.getAttribute(1)));
+            assertTrue(ArrayUtils.contains(entry.getAttributes(), 
+                    entry.getAttribute(0) * entry.getAttribute(2)));
+            assertTrue(ArrayUtils.contains(entry.getAttributes(), 
+                    entry.getAttribute(2) * entry.getAttribute(0)));
+            assertTrue(ArrayUtils.contains(entry.getAttributes(), 
+                    entry.getAttribute(2) * entry.getAttribute(1)));
         }
     }
     
