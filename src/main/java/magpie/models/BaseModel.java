@@ -270,7 +270,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         // Filter dataset
         List<BaseEntry> beforeFilter = null;
         if (Filter != null) {
-            beforeFilter = trainingData.getEntries();
+            beforeFilter = new ArrayList<>(trainingData.getEntries());
             Filter.train(trainingData);
             Filter.filter(trainingData);
         }
