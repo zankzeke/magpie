@@ -85,7 +85,7 @@ public class ElementDataset extends MultiPropertyDataset {
     @Override
     public ElementDataset emptyClone() {
         ElementDataset x = (ElementDataset) super.emptyClone(); 
-        x.ElementalProperties = new ArrayList<>(AttributeName);
+        x.ElementalProperties = new ArrayList<>(ElementalProperties);
         return x;
     }
 
