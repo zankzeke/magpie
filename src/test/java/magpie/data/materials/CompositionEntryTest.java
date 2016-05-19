@@ -1,5 +1,8 @@
 package magpie.data.materials;
 
+import magpie.utility.DistinctPermutationGenerator;
+import magpie.utility.MathUtils;
+import org.apache.commons.math3.util.CombinatoricsUtils;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -167,5 +170,38 @@ public class CompositionEntryTest {
         assertEquals("MgCl<sub>2</sub>", entry.toHTMLString());
         
     }
-    
+
+    @Test
+    public void testRectify() throws Exception {
+        // Make an example composition
+        int[] elem = new int[]{1,2,3,4,5};
+        double[] frac = new double[]{1.0,2.0,3.0,4.0,5.0};
+        
+        // Make first composition
+        CompositionEntry goldEntry = new CompositionEntry(elem, frac);
+        int[] goldElems = goldEntry.getElements();
+        double[] goldFracs = goldEntry.getFractions();
+        for (int i=0; i<5; i++) {
+            assertEquals(goldFracs[i], (double) goldElems[i] / 15.0, 1e-6);
+        }
+        
+        // Iterate through all permutations
+        for (int[] perm : 
+                DistinctPermutationGenerator.generatePermutations(new int[]{0,1,2,3,4})) {
+            // Make a new version of elem and frac
+            int[] newElem = elem.clone();
+            double[] newFrac = frac.clone();
+            for (int i=0; i<newElem.length; i++) {
+                newElem[i] = elem[perm[i]];
+                newFrac[i] = frac[perm[i]];
+            }
+            
+            // Make sure it parses the same
+            CompositionEntry newEntry = new CompositionEntry(newElem, newFrac);
+            assertEquals(newEntry, goldEntry);
+            assertEquals(0, newEntry.compareTo(goldEntry));
+            assertArrayEquals(goldElems, newEntry.getElements());
+            assertArrayEquals(goldFracs, newEntry.getFractions(), 1e-6);
+        }
+    }
 }
