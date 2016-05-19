@@ -5,9 +5,7 @@ import java.io.FileReader;
 import java.util.*;
 import magpie.attributes.generators.element.ElementalPropertyAttributeGenerator;
 import magpie.data.BaseEntry;
-import magpie.data.Dataset;
 import magpie.data.MultiPropertyDataset;
-import magpie.data.MultiPropertyEntry;
 import magpie.data.materials.util.LookupData;
 import magpie.data.materials.util.PropertyLists;
 
