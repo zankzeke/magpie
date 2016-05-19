@@ -3,6 +3,7 @@ package magpie.utility.tools;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -46,7 +47,9 @@ public class BatchModelEvaluator implements Commandable, Options {
     /** Number of entries to evaluate at once */
     private int BatchSize = 10000;
     /** Iterator over entries to be evaluated */
-    protected Iterator<BaseEntry> EntryIterator;
+    private Iterator<BaseEntry> EntryIterator;
+    /** Dataset used to generate attributes */
+    private Dataset AttributeComputer; 
 
     @Override
     public void setOptions(List<Object> Options) throws Exception {
@@ -80,6 +83,32 @@ public class BatchModelEvaluator implements Commandable, Options {
      */
     public void setBatchSize(int size) {
         this.BatchSize = size;
+    }
+
+    /**
+     * Set dataset used to generate attributes
+     * @param dataset Dataset used to generate attributes
+     */
+    protected void setAttributeComputer(Dataset dataset) {
+        this.AttributeComputer = dataset;
+    }
+
+    /**
+     * Set iterator over entries to be acted on
+     * @param iterator Iterator over entries being acted on
+     */
+    protected void setEntryIterator(Iterator<BaseEntry> iterator) {
+        this.EntryIterator = iterator;
+    }
+    
+    /**
+     * Set dataset to be evaluated. Sets both the attribute generator and the 
+     * entry iterator
+     * @param data Dataset to be evaluated
+     */
+    protected void setDataset(Dataset data) {
+        setAttributeComputer(data.emptyClone());
+        setEntryIterator(data.getEntries().iterator());
     }
     
     /**
@@ -181,7 +210,7 @@ public class BatchModelEvaluator implements Commandable, Options {
             Dataset runData = data.emptyClone();
             
             // Evaluate in serial
-            simpleRun(Model, runData);
+            runAndFilter(Model, runData, null);
         } else {
             // Store number of threads and original batch size
             int nThreads = Magpie.NThreads;
@@ -212,9 +241,11 @@ public class BatchModelEvaluator implements Commandable, Options {
                         // Make a clone of the dataset
                         Dataset localData = dataPtr.emptyClone();
                         
+                        // Make a collection of this data
+                        
                         // Run serially
                         try {
-                            simpleRun(localModel, localData);
+                            runAndFilter(localModel, localData, null);
                         } catch (Exception | Error e) {
                             System.err.println("Thread " + tID + " failed: "
                                 + e.getLocalizedMessage());
@@ -240,35 +271,22 @@ public class BatchModelEvaluator implements Commandable, Options {
             BatchSize = origBatchSize;
         }
     }
-
+    
     /**
-     * Evaluate all entries in serial mode.
-     * @param model Model to be run
-     * @param data Empty dataset used to compute attributes
-     * @throws Exception 
+     * Operation to be performed on a batch of entries
+     * @param entries Entries to be processed
+     * @param threadData Copy of objects belonging to this thread
+     * @throws java.lang.Exception 
      */
-    protected void simpleRun(BaseModel model, Dataset data) throws Exception {
-        while (true) {
-            // Get the subset
-            List<BaseEntry> subList = getSubList();
-            
-            // If no entries left to evaluate, return
-            if (subList.isEmpty()) {
-                return;
-            }
-            
-            // Run them
-            data.addEntries(subList);
-            data.generateAttributes();
-            model.run(data);
-            
-            // Clean up
-            for (BaseEntry entry : subList) {
-                entry.clearAttributes();
-            }
-            data.clearData();
-            System.gc();
-        }
+    protected void processEntries(List<BaseEntry> entries,
+            Map<String,Object> threadData) throws Exception{
+        // Extract data
+        BaseModel model = (BaseModel) threadData.get("model");
+        Dataset data = (Dataset) threadData.get("data");
+        BaseDatasetFilter filter = (BaseDatasetFilter) threadData.get("filter");
+        
+        // Run model
+        runAndFilter(model, data, filter);
     }
     
     /**
@@ -276,7 +294,7 @@ public class BatchModelEvaluator implements Commandable, Options {
      * @param model Model to be run
      * @param data Empty dataset used to compute attributes
      * @param filter Filter to be used to select best attributes. null to not 
-     *  filter results
+     *  filter results. Can be null
      * @return Entries that passed the filter
      * @throws Exception 
      */
