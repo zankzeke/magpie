@@ -48,4 +48,21 @@ public class ParsedFunctionTest {
         assertEquals(-5, func.value(new double[]{1, -5}), 1e-6);
     }
     
+    @Test
+    public void testFunctions() throws Exception {
+        ParsedFunction func = new ParsedFunction("log(exp(#{x}))");
+        
+        // Check that it read correctly
+        assertEquals(1, func.numVariables());
+        assertArrayEquals(new String[]{"x"},
+                func.getVariableNames().toArray());
+        
+        // Check setting variables through the "set" interface
+        func.setVariable("x", 1.0);
+        assertEquals(1.0, func.evaluate(), 1e-6);
+        
+        // Check on the MultivariateFunction interface
+        assertEquals(2.0, func.value(new double[]{2}), 1e-6);
+        assertEquals(6.0, func.value(new double[]{6}), 1e-6);
+    }
 }

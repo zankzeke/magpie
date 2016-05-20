@@ -14,7 +14,7 @@ import static org.junit.Assert.*;
 
 /**
  *
- * @author Logan
+ * @author Logan Ward
  */
 public class FunctionExpanderTest {
 
@@ -115,7 +115,7 @@ public class FunctionExpanderTest {
         // Create attributes that are the square of every attribute
         FunctionExpander expdr = new FunctionExpander();
         expdr.addNewFunction("#{x}^2");
-        expdr.addNewFunction("(#{x} + #{y})^2");
+        expdr.addNewFunction("exp(#{x} + #{y})^2");
         
         // Test expansion
         int initialCount = data.NAttributes();
@@ -125,7 +125,7 @@ public class FunctionExpanderTest {
         // Test out the names
         assertTrue(ArrayUtils.contains(data.getAttributeNames(), 
                 data.getAttributeName(0) + "^2"));
-        assertTrue(ArrayUtils.contains(data.getAttributeNames(), "(" + 
+        assertTrue(ArrayUtils.contains(data.getAttributeNames(), "exp(" + 
                 data.getAttributeName(0) + " + " + data.getAttributeName(1) + ")^2"));
     }
     
