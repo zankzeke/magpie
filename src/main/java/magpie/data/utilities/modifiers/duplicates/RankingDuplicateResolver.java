@@ -56,7 +56,7 @@ public class RankingDuplicateResolver extends BaseDuplicateResolver {
 
     @Override
     public String printUsage() {
-        return "Usage: <ranker> [<ranker options...>]";
+        return "Usage: <maximum|minimum> <ranker> [<ranker options...>]";
     }
 
     /**
