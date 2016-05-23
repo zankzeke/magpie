@@ -204,4 +204,19 @@ public class CompositionEntryTest {
             assertArrayEquals(goldFracs, newEntry.getFractions(), 1e-6);
         }
     }
+    
+    @Test
+    public void testCompare() throws Exception {
+        CompositionDataset data = new CompositionDataset();
+        data.importText("datasets/small_set.txt", null);
+        
+        // Check each entry
+        for (int e1=0; e1<data.NEntries(); e1++) {
+            for (int e2=e1+1; e2<data.NEntries(); e2++) {
+                assertEquals(data.getEntry(e1).compareTo(data.getEntry(e2)),
+                        -1 * data.getEntry(e2).compareTo(data.getEntry(e1)));
+                assertEquals(0, data.getEntry(e1).compareTo(data.getEntry(e1)));
+            }
+        }
+    }
 }
