@@ -1,4 +1,4 @@
-package magpie.analytics;
+package magpie.statistics.performance;
 
 import java.util.Arrays;
 import java.util.List;

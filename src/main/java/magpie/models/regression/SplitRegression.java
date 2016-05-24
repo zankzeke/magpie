@@ -1,7 +1,7 @@
 package magpie.models.regression;
 
 import java.util.List;
-import magpie.analytics.RegressionStatistics;
+import magpie.statistics.performance.RegressionStatistics;
 import magpie.data.Dataset;
 import magpie.data.utilities.filters.PredictionOutlierFilter;
 import magpie.models.BaseModel;

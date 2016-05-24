@@ -1,7 +1,7 @@
 package magpie.data.utilities.filters;
 
 import java.util.List;
-import magpie.analytics.utility.RobustRegressionUtility;
+import magpie.statistics.utility.RobustRegressionUtility;
 import magpie.data.Dataset;
 import magpie.user.CommandHandler;
 

@@ -2,9 +2,9 @@ package magpie.models.regression;
 
 
 import java.util.List;
-import magpie.analytics.BaseStatistics;
+import magpie.statistics.performance.BaseStatistics;
 import magpie.models.BaseModel;
-import magpie.analytics.RegressionStatistics;
+import magpie.statistics.performance.RegressionStatistics;
 import magpie.data.Dataset;
 import magpie.data.utilities.filters.PredictionOutlierFilter;
 

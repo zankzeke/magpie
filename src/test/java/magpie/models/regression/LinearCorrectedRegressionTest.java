@@ -1,7 +1,7 @@
 
 package magpie.models.regression;
 
-import magpie.analytics.RegressionStatistics;
+import magpie.statistics.performance.RegressionStatistics;
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.utilities.splitters.MixedMetalsSplitter;

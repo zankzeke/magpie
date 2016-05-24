@@ -1,4 +1,4 @@
-package magpie.analytics.utility;
+package magpie.statistics.utility;
 
 import java.util.Arrays;
 import magpie.data.Dataset;
@@ -32,7 +32,7 @@ public class RobustRegressionUtility {
 
     /**
      * Define the target False Discovery Rate for outlier selection 
-     * @param Q Desired Q parameter (see <a href="http://www.jstor.org/stable/10.2307/2346101">
+     * @param q Desired Q parameter (see <a href="http://www.jstor.org/stable/10.2307/2346101">
      * Benjamini and Hochberg</a>)
      */
     public void setQ(double q) {

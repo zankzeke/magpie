@@ -7,7 +7,7 @@ import java.io.ObjectInputStream;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
-import magpie.analytics.BaseStatistics;
+import magpie.statistics.performance.BaseStatistics;
 import magpie.attributes.selectors.BaseAttributeSelector;
 import magpie.cluster.BaseClusterer;
 import magpie.csp.CSPEngine;

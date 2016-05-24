@@ -1,9 +1,9 @@
 package magpie.models;
 
 import java.util.LinkedList;
-import magpie.analytics.BaseStatistics;
-import magpie.analytics.ClassificationStatistics;
-import magpie.analytics.RegressionStatistics;
+import magpie.statistics.performance.BaseStatistics;
+import magpie.statistics.performance.ClassificationStatistics;
+import magpie.statistics.performance.RegressionStatistics;
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.CompositionEntry;

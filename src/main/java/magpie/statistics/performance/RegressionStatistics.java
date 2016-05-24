@@ -1,4 +1,4 @@
-package magpie.analytics;
+package magpie.statistics.performance;
 
 import java.util.Map;
 import java.util.TreeMap;

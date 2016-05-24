@@ -8,7 +8,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import magpie.Magpie;
-import magpie.analytics.BaseStatistics;
+import magpie.statistics.performance.BaseStatistics;
 import magpie.attributes.selectors.BaseAttributeSelector;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;

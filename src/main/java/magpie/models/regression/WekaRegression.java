@@ -3,7 +3,7 @@ package magpie.models.regression;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import magpie.analytics.RegressionStatistics;
+import magpie.statistics.performance.RegressionStatistics;
 import magpie.data.Dataset;
 import magpie.models.interfaces.WekaModel;
 import magpie.user.CommandHandler;
