@@ -106,6 +106,8 @@ public class BatchAttributeGeneratorTest {
         
         List<Object> options = new ArrayList<>();
         options.add("-voro");
+        options.add("-style");
+        options.add("all");
         options.add(prot);
         options.add("H");
         options.add("He");
