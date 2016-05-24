@@ -28,6 +28,9 @@ public class DelimitedOutput extends BaseDatasetOutput {
     /** Text used as delimeter. Default = "," */
     protected String Delimiter = ",";
 
+    /**
+     * Create a comma delimited file
+     */
     public DelimitedOutput() {
     }
 
