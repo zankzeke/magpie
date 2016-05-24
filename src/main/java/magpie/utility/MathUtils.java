@@ -1,7 +1,9 @@
 package magpie.utility;
 
 import java.math.BigInteger;
+import java.util.Iterator;
 import org.apache.commons.math3.stat.StatUtils;
+import org.apache.commons.math3.util.CombinatoricsUtils;
 
 /**
  * Math operations that are simple and useful for many operations
@@ -55,5 +57,47 @@ public class MathUtils {
      */
     public static double meanAbsoluteDeviation(double[] x) {
        return meanAbsoluteDeviation(x, StatUtils.mean(x));
+    }
+    
+    /**
+     * Iterator over all permutations of <i>k</i> choices of <i>n</i> integers.
+     * 
+     * @param n Size of subsets from which permutations are selected
+     * @param k Number of entries to select
+     * @return Iterators over all permutations, no order guaranteed
+     */
+    static public Iterator<int[]> permutationIterator(int n, int k) {
+        // Create an interator over combintations
+        final Iterator<int[]> combIterator = CombinatoricsUtils.combinationsIterator(n, k);
+        
+        // Initialize the permutation iterator
+        final Iterator<int[]> permIterator = 
+                DistinctPermutationGenerator.generatePermutations(combIterator.next()).iterator();
+        
+        // Create an iterator over permutations
+        return new Iterator<int[]>() {
+            Iterator<int[]> permIter = permIterator;
+
+            @Override
+            public boolean hasNext() {
+                return combIterator.hasNext() || permIter.hasNext();
+            }
+
+            @Override
+            public int[] next() {
+                if (permIter.hasNext()) {
+                    return permIter.next();
+                } else {
+                    // Refresh the permutation iterator
+                    permIter = DistinctPermutationGenerator.generatePermutations(combIterator.next()).iterator();
+                    return permIter.next();
+                }
+            }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+        };
     }
 }
