@@ -6,16 +6,22 @@ import magpie.data.materials.AtomicStructureEntry;
 import magpie.data.materials.CrystalStructureDataset;
 import magpie.data.materials.util.LookupData;
 import magpie.utility.CartesianSumGenerator;
+import magpie.utility.MathUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.math3.util.CombinatoricsUtils;
 import vassal.data.Cell;
 
 /**
  * Generate new crystalline compound by substituting elements onto all sites 
  * of a known prototype. 
  * 
- * <usage><p><b>Usage</b>: [-voro] [-ignore &lt;elems to ignore&gt;] $&lt;prototypes&gt; &lt;elements...&gt;
+ * <usage><p><b>Usage</b>: [-voro] -style [all|permutations|combinations]
+ * [-ignore &lt;elems to ignore&gt;] $&lt;prototypes&gt; &lt;elements...&gt;
  * <br><pr><i>-voro</i>: Compute Voronoi tessellation of the prototype before
  * creating derivatives.
+ * <br><pr><i>-style</i>: How to choose new combinations of elements. "all"
+ * all permutations with replacements, "permutations" all permutations without
+ * replacement, "combinations" all combinations without replacement
  * <br><pr><i>elems to ignore</i>: List of elements that should not be replaced in 
  * the prototype (e.g., use this to generate all ABO<sub>3</sub> compounds)
  * <br><pr><i>prototypes</i>: {@linkplain CrystalStructureDataset} containing
@@ -30,6 +36,14 @@ public class CombinatorialSubstitutionGenerator extends BaseEntryGenerator {
     final protected Set<String> ElementsToIgnore = new TreeSet<>();
     /** List of prototype structures */
     final protected List<AtomicStructureEntry> Prototypes = new ArrayList<>();
+    /** Types of enumeration */
+    public enum EnumerationType {
+        /** All permutations, with replacement */ ALL_POSSIBLE,
+        /** All permutations, without replacement */ PERMUTATIONS,
+        /** All combinations, without replacement */ COMBINATIONS
+    }
+    /** Enumeration type for generating new compounds */
+    protected EnumerationType EnumerationStyle = EnumerationType.ALL_POSSIBLE;
     /** Whether to compute the Voronoi tessellation before generation */
     protected boolean ComputeVoronoi = false;
 
@@ -38,6 +52,7 @@ public class CombinatorialSubstitutionGenerator extends BaseEntryGenerator {
         boolean voro = false;
         Set<String> elems = new TreeSet<>();
         Set<String> elemsIgnore = new TreeSet<>();
+        EnumerationType enumStyle;
         int pos = 0;
         
         try {
@@ -46,6 +61,18 @@ public class CombinatorialSubstitutionGenerator extends BaseEntryGenerator {
                 voro = true;
                 pos++;
             } 
+            
+            // Get style of permutations
+            if (! Options.get(pos).toString().equalsIgnoreCase("-style")) {
+                throw new Exception();
+            }
+            switch(Options.get(++pos).toString().toLowerCase()) {
+                case "all": enumStyle = EnumerationType.ALL_POSSIBLE; break;
+                case "permutations": enumStyle = EnumerationType.PERMUTATIONS; break;
+                case "combinations": enumStyle = EnumerationType.COMBINATIONS; break;
+                default: throw new Exception();
+            }
+            pos++;
             
             // See if the user wants to exclude anything
             if (Options.get(pos).toString().toLowerCase().startsWith("-ignore")) {
@@ -69,13 +96,14 @@ public class CombinatorialSubstitutionGenerator extends BaseEntryGenerator {
         
         // Set settings
         setComputeVoronoi(voro);
+        setEnumerationStyle(enumStyle);
         setElementsToSubstitute(elems);
         setElementsToIgnore(elemsIgnore);
     }
 
     @Override
     public String printUsage() {
-        return "Usage: [-voro] [-ignore <elements to ignore...>] $<prototypes> <elements...>";
+        return "Usage: [-voro] -style [all|permutations|combinations] [-ignore <elements to ignore...>] $<prototypes> <elements...>";
     }
 
     /**
@@ -132,6 +160,14 @@ public class CombinatorialSubstitutionGenerator extends BaseEntryGenerator {
             prot.add((AtomicStructureEntry) e);
         }
         setPrototypes(prot);
+    }
+    
+    /**
+     * Set method used to enumerate different sets of elements
+     * @param type Enumeration style
+     */
+    public void setEnumerationStyle(EnumerationType type) {
+        EnumerationStyle = type;
     }
     
     /**
@@ -239,9 +275,53 @@ public class CombinatorialSubstitutionGenerator extends BaseEntryGenerator {
             }
         }
         
-        // Make the sum generator
-        CartesianSumGenerator<String> gen = new CartesianSumGenerator<>(stack);
-        return gen.iterator();
+        // Generate all combinations
+        switch (EnumerationStyle) {
+            case ALL_POSSIBLE: {
+                // Make the sum generator
+                CartesianSumGenerator<String> gen = new CartesianSumGenerator<>(stack);
+                return gen.iterator();
+            } 
+            case PERMUTATIONS: case COMBINATIONS: {
+                // Create a list of element names
+                final List<String> elems = new ArrayList<>(Elements);
+                
+                // Generate all permutations
+                int[] comb = new int[stack.size()];
+                Arrays.fill(comb, elems.size());
+                
+                // Create iterator over combations
+                final Iterator<int[]> combIter = EnumerationStyle == EnumerationType.COMBINATIONS ?
+                        CombinatoricsUtils.combinationsIterator(elems.size(), stack.size())
+                        : MathUtils.permutationIterator(elems.size(), stack.size());
+                
+                // Wrapper that transforms int[] to List<String>
+                return new Iterator<List<String>>() {
+
+                    @Override
+                    public boolean hasNext() {
+                        return combIter.hasNext();
+                    }
+
+                    @Override
+                    public List<String> next() {
+                        int[] nextInts = combIter.next();
+                        List<String> output = new ArrayList<>(nextInts.length);
+                        for (int elem : nextInts) {
+                            output.add(elems.get(elem));
+                        }
+                        return output;
+                    }
+
+                    @Override
+                    public void remove() {
+                        throw new UnsupportedOperationException(); 
+                    }
+                };
+            }
+            default: 
+                throw new RuntimeException("Enumeration style not supported: " + EnumerationStyle.name());
+        }
     }
     
 }
