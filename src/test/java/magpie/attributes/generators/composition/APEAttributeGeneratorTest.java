@@ -199,7 +199,7 @@ public class APEAttributeGeneratorTest {
     @Test
     public void scaleTest() throws Exception {
         System.out.println("NTypes Time (ms)");
-        for (int count=1; count<=8; count++) {
+        for (int count=1; count<=APEAttributeGenerator.MaxNTypes; count++) {
             // Initialize the radii
             double[] radii = new double[count];
             for (int i=0; i<count; i++) {
