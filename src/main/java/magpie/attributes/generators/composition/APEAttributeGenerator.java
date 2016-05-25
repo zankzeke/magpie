@@ -59,6 +59,37 @@ import org.apache.commons.math3.stat.StatUtils;
  * @author Logan Ward
  */
 public class APEAttributeGenerator extends BaseAttributeGenerator {
+
+    /**
+     * Get closest compositions
+     * @param targetComposition Composition from which to measure distance
+     * @param otherCompositions Compositions that whose distance from the
+     * target composition will be ranked
+     * @param nClosest Number of closest compounds to retrieve
+     * @param pNorm P-norm to use when computing distance
+     * @return The
+     */
+    public static List getClosestCompositions(CompositionEntry targetComposition, Collection<CompositionEntry> otherCompositions, int nClosest, int pNorm) {
+        final CompositionEntry targetFinal = targetComposition;
+        final int pFinal = pNorm;
+        PriorityQueue<CompositionEntry> queue = new PriorityQueue<>(nClosest + 1, new Comparator<CompositionEntry>() {
+            @Override
+            public int compare(CompositionEntry o1, CompositionEntry o2) {
+                return Double.compare(CompositionSetDistanceFilter.computeDistance(targetFinal, o2, pFinal), CompositionSetDistanceFilter.computeDistance(targetFinal, o1, pFinal));
+            }
+        });
+        for (CompositionEntry other : otherCompositions) {
+            queue.add(other);
+            if (queue.size() > nClosest) {
+                queue.poll();
+            }
+        }
+        List<CompositionEntry> output = new ArrayList<>(queue.size());
+        while (!queue.isEmpty()) {
+            output.add(0, queue.poll());
+        }
+        return output;
+    }
     /** 
      * Threshold at which to define a cluster as efficiently packed.
      * Packing efficiency is defined by |APE - 1|. Default value for this 
@@ -194,8 +225,7 @@ public class APEAttributeGenerator extends BaseAttributeGenerator {
             }
             
             // Find the closest clusters
-            List<CompositionEntry> closestClusters = NearbyCompoundAttributeGenerator.
-                    getClosestCompositions(entry, clusters, largestN, 2);
+            List<CompositionEntry> closestClusters = getClosestCompositions(entry, clusters, largestN, 2);
             
             // Compute the distance of our cluser to each of those clusters
             double[] distances = new double[closestClusters.size()];
