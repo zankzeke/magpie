@@ -50,6 +50,21 @@ import org.apache.commons.math3.stat.StatUtils;
  * under this assumption, and the average deviation from perfect packing.
  * </ol>
  * 
+ * <p><b>Advanced Notes</b>
+ * 
+ * <p>This algorithm currently evaluates all possible clusters provided a list
+ * of elements. On a 3.5GHz processor, this can find all clusters with 
+ * up to 8 types in ~20 seconds. However, as the number of clusters scales
+ * with N!, the runtime for this algorithm scales with N!. 
+ * 
+ * <p>For now, we only search for clusters with up to 7 atoms (see {@linkplain #MaxNTypes})
+ * in order to avoid this combinatorial problem. In practice, the algorithm
+ * picks the top 7 alloys with the highest fractions. While not ideal, this
+ * might work in practice since most alloys have fewer than 7 main components. 
+ * Many alloys have >10 elements in the specification, but many are impurities
+ * that may not be present in large enough amounts to really affect the determination
+ * of efficiently packed clusters.
+ * 
  * <usage><p><b>Usage</b>: &lt;packing threshold&gt; -neighbors &lt;neighbors to evaluate&gt;
  * <pr><br><i>packing threshold</i>: Threshold at which to define a cluster
  * as "efficiently-packed" (suggestion = 0.01)
@@ -60,36 +75,6 @@ import org.apache.commons.math3.stat.StatUtils;
  */
 public class APEAttributeGenerator extends BaseAttributeGenerator {
 
-    /**
-     * Get closest compositions
-     * @param targetComposition Composition from which to measure distance
-     * @param otherCompositions Compositions that whose distance from the
-     * target composition will be ranked
-     * @param nClosest Number of closest compounds to retrieve
-     * @param pNorm P-norm to use when computing distance
-     * @return The
-     */
-    public static List getClosestCompositions(CompositionEntry targetComposition, Collection<CompositionEntry> otherCompositions, int nClosest, int pNorm) {
-        final CompositionEntry targetFinal = targetComposition;
-        final int pFinal = pNorm;
-        PriorityQueue<CompositionEntry> queue = new PriorityQueue<>(nClosest + 1, new Comparator<CompositionEntry>() {
-            @Override
-            public int compare(CompositionEntry o1, CompositionEntry o2) {
-                return Double.compare(CompositionSetDistanceFilter.computeDistance(targetFinal, o2, pFinal), CompositionSetDistanceFilter.computeDistance(targetFinal, o1, pFinal));
-            }
-        });
-        for (CompositionEntry other : otherCompositions) {
-            queue.add(other);
-            if (queue.size() > nClosest) {
-                queue.poll();
-            }
-        }
-        List<CompositionEntry> output = new ArrayList<>(queue.size());
-        while (!queue.isEmpty()) {
-            output.add(0, queue.poll());
-        }
-        return output;
-    }
     /** 
      * Threshold at which to define a cluster as efficiently packed.
      * Packing efficiency is defined by |APE - 1|. Default value for this 
@@ -108,6 +93,22 @@ public class APEAttributeGenerator extends BaseAttributeGenerator {
      * the radii from doi: 10.1179/095066010X12646898728200.
      */
     private String RadiusProperty = "MiracleRadius";
+    /**
+     * Maximum number of types over which to search for clusters. If an
+     * alloy has more than this number of elements, the code will only
+     * search for clusters with the most prevalent elements
+     */
+    public static int MaxNTypes = 7;
+
+    /**
+     * Create generator with default settings. Radii are specified using
+     * the assessment of <a href="http://www.tandfonline.com/doi/abs/10.1179/095066010X12646898728200#.V0W615ErI_0">
+     * Miracle et al.</a> and distances are measured to the first 1, 3, and 5 clusters
+     * 
+     */
+    public APEAttributeGenerator() {
+        NNearestToEval.add(1); NNearestToEval.add(3); NNearestToEval.add(5);
+    }
 
     @Override
     public void setOptions(List<Object> Options) throws Exception {
@@ -210,6 +211,16 @@ public class APEAttributeGenerator extends BaseAttributeGenerator {
             
             // Get list of elements
             int[] curElems = entry.getElements();
+            
+            // If list of elements is greater than MaxNTypes, pick only the most prevalent
+            if (curElems.length > MaxNTypes) {
+                int[] ranks = OptimizationHelper.sortAndGetRanks(entry.getFractions(), true);
+                int[] newElems = new int[MaxNTypes];
+                for (int i=0; i<MaxNTypes; i++) {
+                    newElems[i] = curElems[ranks[i]];
+                }
+                curElems = newElems;
+            }
             
             // Get radii of those elements
             double[] radii = new double[curElems.length];
@@ -609,5 +620,36 @@ public class APEAttributeGenerator extends BaseAttributeGenerator {
         
         // Return result
         return new ImmutablePair<>(smallestCluster, biggestCluster);
+    }
+    
+    /**
+     * Get closest compositions
+     * @param targetComposition Composition from which to measure distance
+     * @param otherCompositions Compositions that whose distance from the
+     * target composition will be ranked
+     * @param nClosest Number of closest compounds to retrieve
+     * @param pNorm P-norm to use when computing distance
+     * @return The
+     */
+    public static List getClosestCompositions(CompositionEntry targetComposition, Collection<CompositionEntry> otherCompositions, int nClosest, int pNorm) {
+        final CompositionEntry targetFinal = targetComposition;
+        final int pFinal = pNorm;
+        PriorityQueue<CompositionEntry> queue = new PriorityQueue<>(nClosest + 1, new Comparator<CompositionEntry>() {
+            @Override
+            public int compare(CompositionEntry o1, CompositionEntry o2) {
+                return Double.compare(CompositionSetDistanceFilter.computeDistance(targetFinal, o2, pFinal), CompositionSetDistanceFilter.computeDistance(targetFinal, o1, pFinal));
+            }
+        });
+        for (CompositionEntry other : otherCompositions) {
+            queue.add(other);
+            if (queue.size() > nClosest) {
+                queue.poll();
+            }
+        }
+        List<CompositionEntry> output = new ArrayList<>(queue.size());
+        while (!queue.isEmpty()) {
+            output.add(0, queue.poll());
+        }
+        return output;
     }
 }

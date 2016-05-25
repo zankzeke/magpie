@@ -194,6 +194,48 @@ public class APEAttributeGeneratorTest {
                 new double[]{1.4,1,1.2}, 0.1);
         assertEquals(9,(int) res.getLeft());
         assertEquals(21,(int) res.getRight());
+    }
+    
+    @Test
+    public void scaleTest() throws Exception {
+        System.out.println("NTypes Time (ms)");
+        for (int count=1; count<=8; count++) {
+            // Initialize the radii
+            double[] radii = new double[count];
+            for (int i=0; i<count; i++) {
+                radii[i] = 1.0 + (double) i / 10;
+            }
+            
+            // Compute clusters
+            long startTime = System.currentTimeMillis();
+            List<List<int[]>> clstrs = APEAttributeGenerator.findEfficientlyPackedClusters(radii, 1);
+            System.out.format("%d %d", count, System.currentTimeMillis() - startTime);
+            System.out.println();
+        }
+    }
+    
+    @Test
+    public void manyTypesTest() throws Exception {
+        // This test is based on the 7 as the max # of types
+        assertEquals(7, APEAttributeGenerator.MaxNTypes);
+        
+        // Make a 7 and 7+1 component alloy
+        CompositionDataset data = new CompositionDataset();
+        data.addEntry("ScTiHfZrCrMoTa");
+        data.addEntry("ScTiHfZrCrMoTaP0.9");
+        
+        // Run attribute generator
+        APEAttributeGenerator gen = new APEAttributeGenerator();
+        
+        
+        gen.addAttributes(data);
 
+        // Make sure that attributes are not identical
+        for (int a=0; a < data.NAttributes(); a++) {
+            assertNotEquals(data.getAttributeName(a),
+                    data.getEntry(0).getAttribute(a),
+                    data.getEntry(1).getAttribute(a),
+                    1e-6);
+        }
     }
 }
