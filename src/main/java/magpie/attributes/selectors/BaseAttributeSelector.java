@@ -143,8 +143,13 @@ abstract public class BaseAttributeSelector implements java.io.Serializable,
         // There are no print options, just print all selected attributes
         if (Command.isEmpty())
             return printSelections();
-        else 
-            throw new Exception("ERROR: Print command not recognized: " + Command.get(0));
+		
+		switch (Command.get(0).toLowerCase()) {
+			case "description":
+				return printDescription(false);
+			default:
+                throw new Exception("Print command not recognized: " + Command.get(0));
+        }
     }
 
     @Override

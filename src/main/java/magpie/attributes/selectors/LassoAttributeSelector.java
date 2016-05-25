@@ -291,7 +291,7 @@ public class LassoAttributeSelector extends BaseAttributeSelector
     @Override
     public String printDescription(boolean htmlFormat) {
         String output = "Uses compressed sensing (LASSO) and linear regression to identify a subset of "
-                + " attributes that make the best linear model. ";
+                + "attributes that make the best linear model. ";
         
         // Number of LASSO steps
         output += String.format("First, a %d attribute model is created with LASSO"
