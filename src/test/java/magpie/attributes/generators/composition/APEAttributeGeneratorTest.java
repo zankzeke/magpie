@@ -196,6 +196,7 @@ public class APEAttributeGeneratorTest {
         assertEquals(21,(int) res.getRight());
     }
     
+    @Test
     public void scaleTest() throws Exception {
         System.out.println("NTypes Time (ms)");
         for (int count=1; count<=APEAttributeGenerator.MaxNTypes + 1; count++) {
@@ -215,13 +216,13 @@ public class APEAttributeGeneratorTest {
     
     @Test
     public void manyTypesTest() throws Exception {
-        // This test is based on the 7 as the max # of types
-        assertEquals(7, APEAttributeGenerator.MaxNTypes);
+        // This test is based on the 6 as the max # of types
+        assertEquals(6, APEAttributeGenerator.MaxNTypes);
         
-        // Make a 7 and 7+1 component alloy
+        // Make a 6 and 6+1 component alloy
         CompositionDataset data = new CompositionDataset();
-        data.addEntry("ScTiHfZrCrMoTa");
-        data.addEntry("ScTiHfZrCrMoTaP0.9");
+        data.addEntry("ScTiHfZrCrMo");
+        data.addEntry("ScTiHfZrCrMoP0.9");
         
         // Run attribute generator
         APEAttributeGenerator gen = new APEAttributeGenerator();
