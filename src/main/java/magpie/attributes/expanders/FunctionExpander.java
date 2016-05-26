@@ -2,6 +2,7 @@ package magpie.attributes.expanders;
 
 import java.net.URL;
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
@@ -29,9 +30,12 @@ import org.apache.commons.math3.util.CombinatoricsUtils;
  * 
  * <p>Variables names that start with "r:" can be used to allow only certain
  * attributes. These variables are expected to be of the format "r:[name],[regex]"
- * where [name] is a unique name and [regex] is the 
- * For example, "r:1,*" would match all attributes and "r:2,a.*z$" would match
- * only attributes that start with a and end with z. The formula "#{r:x,*}*#{r:y,time}"
+ * where [name] is a unique name and [regex] is the regular expression used 
+ * to decide whether a variable will be used to decide whether an attribute
+ * will be used in the function. This classes uses the {@linkplain Matcher#find() }
+ * to test whether an attribute name contains a substring matching the regular expression.
+ * For example, "r:x,*" would match all attributes and "r:x,^a.*z$" would match
+ * only attributes that start with a and end with z. The formula "#{r:x,*}*#{r:y,^time$}"
  * would multiple all attributes with the attribute named "time". Note, this will
  * generate all permutations of attributes for each variable.
  * 
@@ -39,9 +43,10 @@ import org.apache.commons.math3.util.CombinatoricsUtils;
  * 
  * <ul>
  * <li>#{x}^2 : Square all attributes
- * <li>#{r:x,^a.*} : Square all attributes beginning with "a"
+ * <li>#{r:x,^a}^2 : Square all attributes beginning with "a"
+ * <li>#{r:x,a}^2 : Square all attributes containing an "a"
  * <li>#{x}*#{y} : Multiply each combination of attributes
- * <li>#{r:[0-9]}*#{y} : Multiply any attribute containing a number with all other attributes
+ * <li>#{r:x,[0-9]}*#{y} : Multiply any attribute containing a number with all other attributes
  * </ul>
  * 
  * <p><usage><b>Usage</b>: "&lt;function #1&gt;" ["&lt;function #2&gt;"] [&lt;...&gt;]
@@ -172,7 +177,7 @@ public class FunctionExpander extends BaseAttributeExpander implements Citable {
                     
                     // Get ones that match
                     for (int v=0; v<attributeNames.length; v++) {
-                        if (pattern.matcher(attributeNames[v]).matches()) {
+                        if (pattern.matcher(attributeNames[v]).find()) {
                             possible.add(v);
                         }
                     }

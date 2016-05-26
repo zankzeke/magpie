@@ -1,11 +1,11 @@
 package magpie.attributes.expanders;
 
-import magpie.attributes.expanders.FunctionExpander;
 import java.util.*;
 import magpie.Magpie;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
+import magpie.utility.ParsedFunction;
 import magpie.utility.interfaces.Citation;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -78,6 +78,20 @@ public class FunctionExpanderTest {
         List<Object> options = new LinkedList<>();
         options.add("#{r:x,x}^2");
         func.setOptions(options);
+        
+        // Test the expander on some simple attribute names
+        String[] testNames = new String[]{"x","ax","x2"};
+        List<int[]> results = func.generateCombinations(testNames, 
+                new ParsedFunction("#{r:x,x}"));
+        assertEquals(3, results.size());
+        results = func.generateCombinations(testNames, 
+                new ParsedFunction("#{r:x,^x}"));
+        assertEquals(2, results.size());
+        results = func.generateCombinations(testNames, 
+                new ParsedFunction("#{r:x,^x$}"));
+        assertEquals(1, results.size());
+        assertArrayEquals(new int[]{0}, results.get(0));
+        
         
         // Run the expander
         func.expand(data);
