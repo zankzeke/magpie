@@ -98,7 +98,7 @@ public class APEAttributeGenerator extends BaseAttributeGenerator {
      * alloy has more than this number of elements, the code will only
      * search for clusters with the most prevalent elements
      */
-    public static int MaxNTypes = 7;
+    public static int MaxNTypes = 6;
 
     /**
      * Create generator with default settings. Radii are specified using
@@ -221,6 +221,9 @@ public class APEAttributeGenerator extends BaseAttributeGenerator {
                 }
                 curElems = newElems;
             }
+            
+            // Sort elements by atomic number
+            Arrays.sort(curElems);
             
             // Get radii of those elements
             double[] radii = new double[curElems.length];
