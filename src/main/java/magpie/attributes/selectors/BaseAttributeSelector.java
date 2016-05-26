@@ -70,6 +70,28 @@ abstract public class BaseAttributeSelector implements java.io.Serializable,
     abstract protected List<Integer> train_protected(Dataset Data);
     
     /**
+     * Get the selected attributes
+     * @return Indices of the selected attributes
+     */
+    public List<Integer> getSelections() {
+        if (! isTrained()) {
+            throw new RuntimeException("Selector has not yet been trained");
+        }
+        return new ArrayList<>(Attribute_ID);
+    }
+    
+    /**
+     * Get the selected attributes
+     * @return Indices of the selected attributes
+     */
+    public List<String> getSelectionNames() {
+        if (! isTrained()) {
+            throw new RuntimeException("Selector has not yet been trained");
+        }
+        return new ArrayList<>(Attribute_Names);
+    }
+    
+    /**
      * Adjust the attribute list of a dataset, based on a trained selection algorithm
      * @param Data Dataset to be filtered
      */
