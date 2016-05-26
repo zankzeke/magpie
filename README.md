@@ -10,14 +10,9 @@ There are currently two options for installing Magpie
 
 ### Building from Source ###
 
-First, download or clone a copy of this repository from BitBucket. We currently include the ability to build Magpie using [Apache Ant](http://ant.apache.org/) and [Grade](http://gradle.org/). To build with Ant:
-```
-#!shell
+First, download or clone a copy of this repository from BitBucket. 
 
-ant -f simple-build.xml jar
-```
-
-To build with Gradle, use the included Gradle wrapper (which will install Gradle on your system):
+To build with Gradle, use the included Gradle wrapper (which will install Gradle on your system if needed):
 
 ```
 #!shell
