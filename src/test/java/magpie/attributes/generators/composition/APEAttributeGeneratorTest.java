@@ -196,7 +196,6 @@ public class APEAttributeGeneratorTest {
         assertEquals(21,(int) res.getRight());
     }
     
-    @Test
     public void scaleTest() throws Exception {
         System.out.println("NTypes Time (ms)");
         for (int count=1; count<=APEAttributeGenerator.MaxNTypes + 1; count++) {
