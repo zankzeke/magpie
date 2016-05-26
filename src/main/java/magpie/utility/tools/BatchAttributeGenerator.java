@@ -254,7 +254,7 @@ public class BatchAttributeGenerator implements Commandable, Options {
             try {
                 f.get();
             } catch (ExecutionException e) {
-                System.err.print("Thread failed due to: " + e);
+                System.err.println("Thread failed due to: " + e);
                 throw new RuntimeException("Attribute generation failed");
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
