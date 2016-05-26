@@ -7,8 +7,10 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import magpie.Magpie;
 import magpie.data.BaseEntry;
@@ -240,16 +242,23 @@ public class BatchAttributeGenerator implements Commandable, Options {
         
         // Launch threads
         ExecutorService executor = Executors.newFixedThreadPool(oldThreads);
+        List<Future> futures = new ArrayList<>(threads.size());
         for (Runnable thread : threads) {
-            executor.submit(thread);
+            Future f = executor.submit(thread);
+            futures.add(f);
         }
         
         // Wait until all threads have finished
         executor.shutdown();
-        try {
-            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        for (Future f : futures) {
+            try {
+                f.get();
+            } catch (ExecutionException e) {
+                System.err.print("Thread failed due to: " + e);
+                throw new RuntimeException("Attribute generation failed");
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
         
         // Reset thread count
