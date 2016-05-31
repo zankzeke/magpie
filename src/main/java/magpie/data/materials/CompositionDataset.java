@@ -108,8 +108,8 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
      * Map of elemental property names to values
      */
     public SortedMap<String, double[]> PropertyData = LookupData.ElementalProperties;
-	/** Oxidation states of every element */
-	protected double[][] OxidationStates = LookupData.OxidationStates;
+    /** Oxidation states of every element */
+    protected double[][] OxidationStates = LookupData.OxidationStates;
 
     /**
      * Create a dataset using the default set of attribute generators. 
@@ -293,13 +293,20 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
      * attributes.
      *
      * @param directory Path to the elemental property lookup directory
-     * @throws java.lang.Exception
      */
-    public void setDataDirectory(String directory) throws Exception {
+    public void setDataDirectory(String directory) {
         if (! Files.isDirectory(Paths.get(directory))) {
-            throw new Exception("No such directory: " + directory);
+            throw new IllegalArgumentException("No such directory: " + directory);
         }
         this.DataDirectory = directory;
+    }
+
+    /**
+     * Get path to directory containing elemental property lookup data
+     * @return directory Path to the lookup data directory
+     */
+    public String getDataDirectory() {
+        return DataDirectory;
     }
 
     /**
