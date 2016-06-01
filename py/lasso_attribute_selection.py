@@ -127,7 +127,10 @@ if __name__ == '__main__':
 	
 	def get_count(alpha):
 		model = Lasso(alpha=alpha)
-		model.fit(X,y)
+		for max_iter in [1e3,3e3,1e4,3e4,1e5]:
+                        model.fit(X,y)
+			if model.n_iter_ < max_iter:
+				break
 		return np.count_nonzero(model.coef_), model.coef_
 	
 	#   Find the left end
