@@ -40,8 +40,29 @@ public class BaseDatasetSplitterTest {
         cmd.add("stats");
         sptr.runCommand(cmd);
         assertTrue(new File("splittest0.csv").isFile());
-        for (int i : new int[]{0,1}) {
+        for (int i=0; i<sptr.getSplitNames().size(); i++) {
             new File("splittest" + i + ".csv").delete();
+        }
+    }
+    
+    @Test
+    public void testSplit() throws Exception {
+        // Get splitter and dataset
+        Dataset data = getDataset();
+        BaseDatasetSplitter spltr = getSplitter();
+        
+        // Compute labels
+        spltr.train(data);
+        int[] labels = spltr.label(data);
+        
+        // Store a clone of the dataset
+        Dataset clone = data.clone();
+        
+        // Split the original set, and make sure it is split according to the labels
+        List<Dataset> splits = spltr.split(data);
+        assertEquals(0, data.NEntries());
+        for (int e=0; e<clone.NEntries(); e++) {
+            assertTrue(splits.get(labels[e]).containsEntry(clone.getEntry(e)));
         }
     }
 

@@ -53,7 +53,9 @@ public class WekaClusterer extends BaseClusterer {
         }
         try {
 			WekaUtility.importWekaHome();
-            return (AbstractClusterer) AbstractClusterer.forName(Name, Options);
+            AbstractClusterer clstr = (AbstractClusterer) Class.forName(Name).newInstance();
+            clstr.setOptions(Options);
+            return clstr;
         } catch (Exception e) {
             throw new Error(e);
         }

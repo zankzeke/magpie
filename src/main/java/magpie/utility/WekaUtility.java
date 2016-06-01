@@ -4,10 +4,19 @@ package magpie.utility;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import magpie.user.CommandHandler;
+import magpie.utility.interfaces.Citation;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.reflections.Reflections;
 import weka.classifiers.AbstractClassifier;
+import weka.core.OptionHandler;
+import weka.core.TechnicalInformation;
+import weka.core.TechnicalInformationHandler;
 
 /**
  * Holds static methods useful for Weka-based models/clusterers.
@@ -36,7 +45,10 @@ abstract public class WekaUtility {
             model_type = "weka.classifiers." + model_type;
         }
         AbstractClassifier Model;
-        Model = (AbstractClassifier) AbstractClassifier.forName(model_type, options);
+        Model = (AbstractClassifier) Class.forName(model_type).newInstance();
+        if (Model instanceof OptionHandler) {
+            Model.setOptions(options);
+        }
         return Model;
     }
     
@@ -71,5 +83,76 @@ abstract public class WekaUtility {
         Reflections reflections = new Reflections("weka");
         Set<Class<? extends Object>> allClasses = reflections.getSubTypesOf(cls);
         return CommandHandler.printClassInformation(allClasses, printPackage);
+    }
+
+    /**
+     * Convert a Weka TechnicalInformation object to a Magpie Citation object.
+     * @param techInfo Technical information from Weka class
+     * @param component Component this citation is associated with
+     * @return Citation object containing information from Weka technical info
+     */
+    public static Citation convertToCitation(TechnicalInformation techInfo, 
+            Class component) {
+        // Check if the URL is known
+        String url = techInfo.getValue(TechnicalInformation.Field.URL);
+        if (url.length() <= 1) {
+            url = null;
+        }
+        
+        // Check if any note is given
+        String note = techInfo.getValue(TechnicalInformation.Field.NOTE);
+        if (note.length() <= 1) {
+            note = null;
+        }
+        
+        // Generate citation
+        Citation cite = new Citation(component,
+                techInfo.getType().getComment(),
+                new String[]{techInfo.getValue(TechnicalInformation.Field.AUTHOR)}, 
+                techInfo.getValue(TechnicalInformation.Field.TITLE),
+                url,
+                note);
+        
+        return cite;
+    }
+
+    /**
+     * Generate citations from a Weka object
+     * @param wekaClass Class to be checked
+     * @param component Magpie component which these citations are for
+     * @return List of citations
+     */
+    public static List<Pair<String, Citation>> getWekaObjectCitations(Object wekaClass, Class component) {
+        // Intiailize output
+        List<Pair<String, Citation>> wekaCitations = new ArrayList<>();
+        
+        // Citation for using Weka
+        wekaCitations.add(new ImmutablePair<>("Using Weka",
+                new Citation(component, "Article", 
+                new String[]{"M. Hall", "et al."},
+                "The WEKA data mining software",
+                "http://portal.acm.org/citation.cfm?doid=1656274.1656278",
+                null)));
+        
+        // Check if it has technical info
+        if (wekaClass instanceof TechnicalInformationHandler) {
+            // Get the interface
+            TechnicalInformationHandler intf = (TechnicalInformationHandler) wekaClass;
+            TechnicalInformation techInfo = intf.getTechnicalInformation();
+            
+            // Convert main citation
+            Citation cite = WekaUtility.convertToCitation(techInfo, component);
+            wekaCitations.add(new ImmutablePair<>("For using " + wekaClass.getClass().getCanonicalName(), cite));
+            
+            // Convert any additioanl citatations
+            if (techInfo.hasAdditional()) {
+                for (TechnicalInformation addTechInfo : Collections.list(techInfo.additional())) {
+                    cite = WekaUtility.convertToCitation(addTechInfo, component);
+                    wekaCitations.add(new ImmutablePair<>("For using " + wekaClass.getClass().getCanonicalName(), cite));
+                }
+            }
+        }
+        
+        return wekaCitations;
     }
 }

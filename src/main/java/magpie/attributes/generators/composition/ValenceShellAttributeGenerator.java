@@ -1,10 +1,15 @@
 package magpie.attributes.generators.composition;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import magpie.attributes.generators.BaseAttributeGenerator;
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
+import magpie.utility.interfaces.Citable;
+import magpie.utility.interfaces.Citation;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * Generate attributes based on fraction of electrons in valence shell of 
@@ -20,7 +25,8 @@ import magpie.data.materials.CompositionDataset;
  * <usage><p><b>Usage</b>: *No options*</usage> 
  * @author Logan Ward
  */
-public class ValenceShellAttributeGenerator extends BaseAttributeGenerator {
+public class ValenceShellAttributeGenerator extends BaseAttributeGenerator
+        implements Citable {
 
     @Override
     public void setOptions(List<Object> Options) throws Exception {
@@ -83,5 +89,22 @@ public class ValenceShellAttributeGenerator extends BaseAttributeGenerator {
                 + "of each constituent element divided by average number of total "
                 + "valence electrons";
     }
+
+    @Override
+    public List<Pair<String, Citation>> getCitations() {
+                List<Pair<String,Citation>> output = new LinkedList<>();
+        Citation citation = new Citation(this.getClass(),
+                "Article",
+                new String[]{"B. Meredig", "A. Agrawal", "et al."},
+                "Combinatorial screening for new materials in unconstrained composition space with machine learning",
+                "http://link.aps.org/doi/10.1103/PhysRevB.89.094104",
+                null
+            );
+        output.add(new ImmutablePair<>("Introduced using fraction of electrion in "
+                + "each valence shell as an attribute", citation));
+        return output;
+
+    }
+    
     
 }

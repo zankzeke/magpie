@@ -34,10 +34,6 @@ public class GCLPCalculator implements java.io.Serializable {
      * the lowest-energy phase at each entry
      */
     protected Map<CompositionEntry, Double> Phases = new TreeMap<>();
-    /**
-     * Composition for which equilibrium is currently computed.
-     */
-    protected CompositionEntry CurrentComposition = null;
 
     /**
      * Initialize a GCLP calculator. Sets the chemical potential of each
@@ -121,14 +117,13 @@ public class GCLPCalculator implements java.io.Serializable {
     public Pair<Double,Map<CompositionEntry,Double>> 
             runGCLP(CompositionEntry composition) throws Exception {
         // Set the composition and pull up lookup data
-        CurrentComposition = composition.clone();
-        int[] curElems = CurrentComposition.getElements();
-        double[] curFrac = CurrentComposition.getFractions();
+        int[] curElems = composition.getElements();
+        double[] curFrac = composition.getFractions();
         
         // Get the current possible phases (i.e., those that contain exclusively 
         //  the elements in the current compound).
-        List<CompositionEntry> components = new LinkedList<>();
-        List<Double> energies = new LinkedList<>();
+        List<CompositionEntry> components = new ArrayList<>();
+        List<Double> energies = new ArrayList<>();
         for (Map.Entry<CompositionEntry, Double> phase : Phases.entrySet()) {
             CompositionEntry component = phase.getKey();
             Double energy = phase.getValue();

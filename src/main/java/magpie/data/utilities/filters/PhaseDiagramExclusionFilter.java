@@ -1,11 +1,7 @@
 package magpie.data.utilities.filters;
 
-import java.util.Arrays;
-import java.util.List;
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
-import magpie.data.materials.CompositionEntry;
-import magpie.user.CommandHandler;
 import org.apache.commons.lang3.ArrayUtils;
 
 /**

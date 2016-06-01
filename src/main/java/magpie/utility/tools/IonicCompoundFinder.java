@@ -36,6 +36,8 @@ public class IonicCompoundFinder implements Commandable {
     private double MaximumDistance = 0.1;
     /** Maximum number of atoms in formula unit */
     private int MaxFormulaUnitSize = 5;
+    /** Directory of lookup data */
+    private String LookupDir = "Lookup Data";
 
     /**
      * Set the target composition of the ionic compound.
@@ -66,12 +68,21 @@ public class IonicCompoundFinder implements Commandable {
     public void setMaxFormulaUnitSize(int size) {
         this.MaxFormulaUnitSize = size;
     }
+
+    /**
+     * Set where to look for oxidation state data
+     * @param dir Path to lookup data directory
+     */
+    public void setLookupPath(String dir) {
+        LookupDir = dir;
+    }
     
     /**
      * Locate all ionic compounds within a certain distance of the target composition.
      * Subject to the constraints set by {@linkplain #setMaximumDistance(double) }
      * and {@linkplain #setMaxFormulaUnitSize(int) }.
-     * @return List of possible compositions
+     * @return List of possible compositions, sorted by L_1 distance to the target
+     * composition
      * @throws java.lang.Exception
      */
     public List<CompositionEntry> findAllCompounds() throws Exception {
@@ -91,6 +102,8 @@ public class IonicCompoundFinder implements Commandable {
         
         // Find which ones fit the desired tolerance
         CompositionDataset dataset = new CompositionDataset();
+        dataset.setDataDirectory(LookupDir);
+
         List<Pair<CompositionEntry, Double>> hits = new LinkedList<>();
         int[] elems = NominalComposition.getElements();
         double[] fracs = NominalComposition.getFractions();
@@ -111,7 +124,7 @@ public class IonicCompoundFinder implements Commandable {
                 hits.add(new ImmutablePair<>(cand, dist));
             }
         }
-        
+            
         // Sort such that closest is first
         Collections.sort(hits, new Comparator<Pair<CompositionEntry, Double>> () {
             @Override

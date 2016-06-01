@@ -10,14 +10,9 @@ There are currently two options for installing Magpie
 
 ### Building from Source ###
 
-First, download or clone a copy of this repository from BitBucket. We currently include the ability to build Magpie using [Apache Ant](http://ant.apache.org/) and [Grade](http://gradle.org/). To build with Ant:
-```
-#!shell
+First, download or clone a copy of this repository from BitBucket. 
 
-ant -f simple-build.xml jar
-```
-
-To build with Gradle, use the included Gradle wrapper (which will install Gradle on your system):
+To build with Gradle, use the included Gradle wrapper (which will install Gradle on your system if needed):
 
 ```
 #!shell
@@ -31,7 +26,7 @@ A complete version of Magpie that has already been compiled is available for **[
 
 ## How do I learn to use Magpie? ##
 
-Documentation for Magpie is available on [oqmd.org](http://oqmd.org/static/analytics/magpie/doc/). You may want to start with the [tutorial](oqmd.org/static/analytics/magpie/doc/tutorial.html).
+Documentation for Magpie is available on [oqmd.org](http://oqmd.org/static/analytics/magpie/doc/). You may want to start with the [tutorial](http://oqmd.org/static/analytics/magpie/doc/tutorial.html).
 
 
 ## Who can answer my questions? ##

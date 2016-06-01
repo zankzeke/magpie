@@ -25,26 +25,15 @@ abstract public class PropertyLists {
      */
     public static String[] getPropertySet(String name) throws Exception {
         switch (name) {
-            case "heusler":
-                return new String[]{"Number", "MendeleevNumber", "AtomicWeight", "MeltingT",
-                    "Column", "Row", "CovalentRadius", "Electronegativity", "NsValence",
-                    "NpValence", "NdValence", "NfValence", "NValance", "NsUnfilled",
-                    "NpUnfilled", "NdUnfilled", "NfUnfilled", "NUnfilled", "GSvolume_pa",
-                    "GSbandgap", "GSmagmom", "BCCvolume_pa", "BCCefflatcnt",
-                    "BCCenergydiff", "BCCvolume_padiff", "GSefflatcnt", "SpaceGroupNumber"};
             case "general":
                 return new String[]{"Number", "MendeleevNumber", "AtomicWeight",
                     "MeltingT", "Column", "Row", "CovalentRadius", "Electronegativity",
                     "NsValence", "NpValence", "NdValence", "NfValence", "NValance",
                     "NsUnfilled", "NpUnfilled", "NdUnfilled", "NfUnfilled", "NUnfilled",
                     "GSvolume_pa", "GSbandgap", "GSmagmom", "SpaceGroupNumber"};
-            case "yue":
-                return new String[]{"Number", "MendeleevNumber", "AtomicWeight",
-                    "MeltingT", "Column", "Row", "CovalentRadius", "Electronegativity",
-                    "NsValence", "NpValence", "NdValence", "NfValence", "NValance",
-                    "NsUnfilled", "NpUnfilled", "NdUnfilled", "NfUnfilled", "NUnfilled",
-                    "GSvolume_pa", "GSbandgap", "GSmagmom", "SpaceGroupNumber", "BulkModulus",
-                    "ShearModulus", "phi", "n_ws^third"};
+            case "radii":
+                return new String[]{"ZungerPP-r_s", "ZungerPP-r_p", "ZungerPP-r_d",
+                    "ZungerPP-r_sigma", "ZungerPP-r_pi"};
             default:
                 throw new Exception("Property set \"" + name + "\" not yet defined.");
         }

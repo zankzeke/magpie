@@ -2,6 +2,7 @@ package magpie.user;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import magpie.attributes.selectors.BaseAttributeSelector;
 import magpie.cluster.BaseClusterer;
@@ -25,6 +26,14 @@ public class Workspace {
      */
     public Workspace() {
         Variables = new TreeMap<>();
+    }
+    
+    /**
+     * Get the names of all variables stored in this class
+     * @return Names of all variables
+     */
+    public Set<String> getVariableNames() {
+        return Variables.keySet();
     }
     
     /**

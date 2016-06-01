@@ -54,29 +54,34 @@ public class ClassIntervalModifier extends BaseDatasetModifier {
     @Override
     protected void modifyDataset(Dataset Data) {
         // Add property to each entry
-        for (BaseEntry Entry : Data.getEntries()) {
+        for (BaseEntry entry : Data.getEntries()) {
             double value = Double.NaN;
-            if (Entry.hasMeasurement()) {
-                value = getBin(Entry.getMeasuredClass());
-            }
-            if (Entry instanceof MultiPropertyEntry) {
+            
+            // Get the bin
+            if (entry.hasMeasurement()) {
+                value = getBin(entry.getMeasuredClass());
+            } 
+            
+            // Add it to the dataset
+            if (entry instanceof MultiPropertyEntry) {
                 // Add property
-                MultiPropertyEntry Ptr = (MultiPropertyEntry) Entry;
-                if (Entry.hasMeasurement()) {
+                MultiPropertyEntry Ptr = (MultiPropertyEntry) entry;
+                if (entry.hasMeasurement()) {
                     if (Ptr.getTargetProperty() != -1)
                         Ptr.addProperty(value);
                     else {
-                        Entry.setMeasuredClass(value);
+                        entry.setMeasuredClass(value);
                     }
                 } else {
                     if (Ptr.getTargetProperty() != -1) {
                         Ptr.addProperty();
-                    } else {
-                        Ptr.setMeasuredClass(value);
                     }
                 }
             } else {
-                Entry.setMeasuredClass(value);
+                // Just set it
+                if (entry.hasMeasurement()) {
+                    entry.setMeasuredClass(value);
+                }
             }
         }
 		
@@ -128,6 +133,5 @@ public class ClassIntervalModifier extends BaseDatasetModifier {
     public String printUsage() {
         return "Usage: <edges...>";
     }
-    
     
 }

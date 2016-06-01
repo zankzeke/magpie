@@ -18,13 +18,27 @@ import org.apache.commons.lang3.ArrayUtils;
 /**
  * Stores information about all sites in a prototype crystal structure. 
  *  Has the capacity to store the following information:
+ * 
  * <ol>
  * <li>Number of atoms on each site</li>
  * <li>Which groups are used to calculate attributes</li>
- * <li>Which sites in the crystal are equivalet</li>
+ * <li>Which sites in the crystal are equivalent</li>
  * </ol>
+ * 
+ * <p>Example for the double perovskite structure: This structure has 5 sites, 
+ * and a stoichiometry of (AA')(BB')O<sub>6</sub>. The A and A' sites, and the B
+ * and B' are each interchangable. So, the site information file for a 
+ * double perovskite would be:
+ * 
+ * <p><code>
+ * 1 -equiv 1
+ * <br>1 -equiv 0
+ * <br>1 -equiv 3
+ * <br>1 -equiv 2
+ * <br>6</code>
+ * 
+ * 
  * @author Logan Ward
- * @version 0.1
  */
 public class PrototypeSiteInformation implements java.io.Serializable, Cloneable {
     /** Number of atoms on each site */
@@ -98,7 +112,6 @@ public class PrototypeSiteInformation implements java.io.Serializable, Cloneable
                         break;
                     case "-equiv":
                         p++;
-                        System.out.println(Line);
                         while (p < Words.length
                                 && UtilityOperations.isInteger(Words[p])) {
                             equivSites.add(Integer.parseInt(Words[p++]));
@@ -289,9 +302,11 @@ public class PrototypeSiteInformation implements java.io.Serializable, Cloneable
      */
     public void addSite(double NAtoms, boolean isIncluded, List<Integer> equivalentSites) {
 		equivalentArrangements = null; // Invalidate list 
+        
 		// Add information about this particular site
         this.NAtoms = ArrayUtils.add(this.NAtoms, NAtoms);
         this.IsIncluded = ArrayUtils.add(this.IsIncluded, isIncluded);
+        
         // This site's ID number
         int thisSite = this.NAtoms.length - 1;
         boolean alreadyAdded = false;
@@ -310,6 +325,7 @@ public class PrototypeSiteInformation implements java.io.Serializable, Cloneable
             if (alreadyAdded) {
                 group.add(thisSite);
                 group.addAll(equivalentSites);
+                break;
             }
         }
         if (!alreadyAdded) {

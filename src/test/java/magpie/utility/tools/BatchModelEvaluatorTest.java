@@ -2,7 +2,7 @@ package magpie.utility.tools;
 
 import java.util.*;
 import magpie.Magpie;
-import magpie.analytics.RegressionStatistics;
+import magpie.statistics.performance.RegressionStatistics;
 import magpie.data.BaseEntry;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.utilities.filters.AllMetalsFilter;

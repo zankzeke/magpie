@@ -1,5 +1,6 @@
 package magpie.data;
 
+import java.io.File;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -132,5 +133,16 @@ public class MultiPropertyDatasetTest {
         assertArrayEquals(new double[]{0.1,0.9}, 
                 data1.getEntry(2).getPropertyClassProbabilties(3), 1e-6);
     }
-    
+
+    @Test
+    public void testSave() throws Exception {
+        // Make a sample dataset
+        MultiPropertyDataset data = new MultiPropertyDataset();
+        data.addProperty("prop");
+        
+        // Write a CSV file to disk
+        File file = new File(data.saveCommand("test", "prop"));
+        assertEquals("test.prop", file.getName());
+        file.deleteOnExit();
+    }
 }

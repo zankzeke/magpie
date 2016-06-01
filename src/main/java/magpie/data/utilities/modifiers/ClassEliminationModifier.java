@@ -9,7 +9,7 @@ import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * Remove a possible class from a dataset. Either changes all entries with that are
- *  measured to have undesired class to a different one (i.e. semiconductor -&gt;
+ *  measured to have undesired class to a different one (ex: semiconductor -&gt;
  *  nonmetal) or removes those entries.
  * 
  * <p>Example: If you have a dataset where each entry is measured to be either a 
@@ -55,7 +55,7 @@ public class ClassEliminationModifier extends BaseDatasetModifier {
     }
     
     /**
-     * Define the name of the new class for entries measured to exist in the undersired 
+     * Define the name of the new class for entries measured to exist in the undesired 
      * class. Set to "null" to just delete those entries.
      * @param newClassName New class value (null to delete)
      */
@@ -68,7 +68,7 @@ public class ClassEliminationModifier extends BaseDatasetModifier {
         // Get index of class to remove
         int toRemove = ArrayUtils.indexOf(Data.getClassNames(), classToEliminate);
         if (toRemove == -1) {
-            throw new Error("Dataset does not contain class: " + classToEliminate);
+            throw new RuntimeException("Dataset does not contain class: " + classToEliminate);
         }
         
         // If set, get index of new class
@@ -81,7 +81,7 @@ public class ClassEliminationModifier extends BaseDatasetModifier {
         }
         
         // Modify all entries
-        Iterator<BaseEntry> iter = Data.getEntries().iterator();
+        Iterator<BaseEntry> iter = Data.getEntriesWriteAccess().iterator();
         while (iter.hasNext()) {
             BaseEntry e = iter.next();
             // Only operate on entries with a measured class

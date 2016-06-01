@@ -26,6 +26,14 @@ public class RescalingNormalizer extends IndependentVariableNormalizer {
     private double ClassRange;
 
     @Override
+    public RescalingNormalizer clone() {
+        RescalingNormalizer x = (RescalingNormalizer) super.clone();
+        x.AttributeMinimum = AttributeMinimum.clone();
+        x.AttributeRange = AttributeRange.clone();
+        return x;
+    }
+
+    @Override
     public void setOptions(List<Object> Options) throws Exception {
         if (! Options.isEmpty()) {
             throw new Exception(printUsage());

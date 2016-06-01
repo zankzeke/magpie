@@ -209,7 +209,7 @@ public class MultiPropertyEntry extends BaseEntry {
      * @return Whether a property is being used as the class variable.
      */
     public boolean usingPropertyAsClass() {
-        return TargetProperty != -1;
+        return TargetProperty >= 0;
     }
 
     /**
@@ -250,6 +250,18 @@ public class MultiPropertyEntry extends BaseEntry {
             return super.hasPrediction();
         }
     }
+
+    @Override
+    public boolean hasClassProbabilities() {
+        if (usingPropertyAsClass()) {
+            return PredictedProperty[TargetProperty] != null ? 
+                    PredictedProperty[TargetProperty].length > 1 : false;
+        } else {
+            return super.hasClassProbabilities(); 
+        }
+    }
+    
+    
 
     @Override
     public void deleteMeasuredClass() {
@@ -316,9 +328,12 @@ public class MultiPropertyEntry extends BaseEntry {
      */
     public void setPredictedProperty(int index, double newValue) {
         if (PredictedProperty[index] == null) {
-            PredictedProperty[index] = new double[1];
+            PredictedProperty[index] = new double[]{newValue};
+        } else if (PredictedProperty[index].length == 1) {
+            PredictedProperty[index][0] = newValue;
+        } else {
+            PredictedProperty[index] = new double[]{newValue};
         }
-        PredictedProperty[index][0] = newValue;
     }
     
     /**

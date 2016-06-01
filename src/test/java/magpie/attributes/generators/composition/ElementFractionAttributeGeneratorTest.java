@@ -29,8 +29,10 @@ public class ElementFractionAttributeGeneratorTest {
         assertEquals(LookupData.ElementNames.length, data.NAttributes());
         assertEquals(data.NAttributes(), data.getEntry(0).NAttributes());
         assertEquals(1.0, StatUtils.sum(data.getEntry(0).getAttributes()), 1e-6);
+        assertEquals(0.0, StatUtils.min(data.getEntry(0).getAttributes()), 1e-6);
         assertEquals(0.5, data.getEntry(0).getAttribute(10), 1e-6);
         assertEquals(1.0, StatUtils.sum(data.getEntry(1).getAttributes()), 1e-6);
+        assertEquals(0.0, StatUtils.min(data.getEntry(1).getAttributes()), 1e-6);
         assertEquals(1.0, data.getEntry(1).getAttribute(25), 1e-6);
     }
     

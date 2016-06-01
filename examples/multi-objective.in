@@ -4,6 +4,7 @@
 
 // Import dataset 
 data = new data.materials.CompositionDataset
+data duplicates RankingDuplicateResolver minmize PropertyRanker energy_pa SimpleEntryRanker
 data import datasets/small_set.txt
 data attributes properties add set general
 data attributes generate 

@@ -5,9 +5,7 @@ import java.io.FileReader;
 import java.util.*;
 import magpie.attributes.generators.element.ElementalPropertyAttributeGenerator;
 import magpie.data.BaseEntry;
-import magpie.data.Dataset;
 import magpie.data.MultiPropertyDataset;
-import magpie.data.MultiPropertyEntry;
 import magpie.data.materials.util.LookupData;
 import magpie.data.materials.util.PropertyLists;
 
@@ -85,7 +83,7 @@ public class ElementDataset extends MultiPropertyDataset {
     @Override
     public ElementDataset emptyClone() {
         ElementDataset x = (ElementDataset) super.emptyClone(); 
-        x.ElementalProperties = new ArrayList<>(AttributeName);
+        x.ElementalProperties = new ArrayList<>(ElementalProperties);
         return x;
     }
 

@@ -86,6 +86,7 @@ abstract public class BaseDatasetSplitter implements
         List<Dataset> output = new ArrayList<>(NumberUtils.max(labels)+1);
         for (int i=0; i<=NumberUtils.max(labels); i++)
             output.add(data.emptyClone());
+        
         // Split it up
         Iterator<BaseEntry> iter = data.getEntries().iterator();
         int i=0; 
@@ -93,10 +94,13 @@ abstract public class BaseDatasetSplitter implements
             BaseEntry E = iter.next();
             output.get(labels[i]).addEntry(E);
             i++; 
-            if (!toRetain) {
-                iter.remove();
-            }
         }
+        
+        // If not to retain, clear input data
+        if (! toRetain) {
+            data.clearData();
+        }
+        
         return output;
     }
     
@@ -184,7 +188,7 @@ abstract public class BaseDatasetSplitter implements
 
     @Override
     public String about() {
-        return "Splits dataset into " + getSplitNames() + " groups";
+        return "Splits dataset into " + getSplitNames().size() + " groups";
     }
 
     @Override

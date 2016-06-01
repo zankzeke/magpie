@@ -9,10 +9,9 @@ import java.nio.file.*;
 import java.util.*;
 import magpie.attributes.generators.BaseAttributeGenerator;
 import magpie.attributes.generators.composition.*;
-import magpie.data.BaseEntry;
-import magpie.data.materials.util.CompositionDatasetOutput;
 import magpie.data.materials.util.LookupData;
 import magpie.data.materials.util.PropertyLists;
+import magpie.data.utilities.output.CompositionOutput;
 import magpie.utility.tools.OxidationStateGuesser;
 
 /**
@@ -109,8 +108,8 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
      * Map of elemental property names to values
      */
     public SortedMap<String, double[]> PropertyData = LookupData.ElementalProperties;
-	/** Oxidation states of every element */
-	protected double[][] OxidationStates = LookupData.OxidationStates;
+    /** Oxidation states of every element */
+    protected double[][] OxidationStates = LookupData.OxidationStates;
 
     /**
      * Create a dataset using the default set of attribute generators. 
@@ -206,7 +205,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
     public void importText(String filename, Object[] options) throws Exception {
         // Clear out entry data
         clearData();
-        
+
         // Count the number of lines (1 per entry + 1 header)
         // Thanks to: http://stackoverflow.com/questions/453018/number-of-lines-in-a-file-in-java
         LineNumberReader lr = new LineNumberReader(new FileReader(filename));
@@ -223,15 +222,10 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
         // Read in properties from header
         line = is.readLine();
         line = line.trim();
-		importPropertyNames(line);
-
-        // Determine which property is the energy ("energy_pa")
-        int energy_id = getPropertyIndex("energy_pa");
+        importPropertyNames(line);
 
         // Read in each entry
-        TreeMap<BaseEntry, CompositionEntry> acceptedEntries = new TreeMap<>();
-        TreeMap<BaseEntry, List<double[]>> duplicateProperties = new TreeMap<>();
-        CompositionEntry Entry;
+        CompositionEntry entry;
         for (int e = 0; e < Entry_Count; e++) {
             double[] properties;
             // Read a line and tokenize it
@@ -249,80 +243,17 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
 
             // Make an entry
             try {
-                Entry = new CompositionEntry(words[0]);
+                entry = new CompositionEntry(words[0]);
             } catch (Exception ex) {
                 continue; // Skip if fails to parse
             }
-            Entry.setMeasuredProperties(properties);
-
-            // Add if the set does not already have it
-            if (!acceptedEntries.containsKey(Entry)) {
-                acceptedEntries.put(Entry, Entry);
-            } else {
-                // If the entries have a "energy_pa" as a property, supplant the existing
-                //   entry if it is higher in energy
-                if (energy_id != -1) {
-                    CompositionEntry oldBest = (CompositionEntry) acceptedEntries.get(Entry);
-                    if (oldBest.getMeasuredProperty(energy_id)
-                            > Entry.getMeasuredProperty(energy_id)) {
-                        acceptedEntries.remove(oldBest);
-                        acceptedEntries.put(Entry, Entry);
-                    }
-                } else {
-                    // Add to list of entries to duplicate properties if there is no "energy" property
-                    if (!duplicateProperties.containsKey(Entry)) {
-                        // Add in the property data of the accepted entry
-                        double[] props = acceptedEntries.get(Entry).getMeasuredProperties();
-                        List<double[]> newList = new LinkedList<>();
-                        newList.add(props);
-                        duplicateProperties.put(Entry, newList);
-                    }
-                    duplicateProperties.get(Entry).add(Entry.getMeasuredProperties());
-                }
-            }
-        }
-
-        // If we have any duplicate properties, average them
-        Iterator<BaseEntry> Eiter = duplicateProperties.keySet().iterator();
-        while (Eiter.hasNext()) {
-            CompositionEntry E = (CompositionEntry) Eiter.next();
-            CompositionEntry accepted = acceptedEntries.get(E);
-            List<double[]> dupProps = duplicateProperties.get(E);
-            for (int p = 0; p < NProperties(); p++) {
-                if (getPropertyClassCount(p) == 1) {
-                    double sum = 0, count = 0;
-                    for (double[] props : dupProps) {
-                        double toAdd = props[p];
-                        if (! Double.isNaN(toAdd)) {
-                            sum += toAdd; count++;
-                        }
-                    }
-                    if (count > 0) {
-                        accepted.setMeasuredProperty(p, sum / count);
-                    }
-                } else {
-                    double value = Double.MAX_VALUE;
-                    boolean wasFound = false;
-                    for (double[] props : dupProps) {
-                        if (! Double.isNaN(props[p])) {
-                            wasFound = true;
-                            if (props[p] < value) {
-                               value = props[p];
-                            }
-                        }                
-                    }
-                    if (wasFound) {
-                        accepted.setMeasuredProperty(p, value);
-                    }
-                }
-            }
+            entry.setMeasuredProperties(properties);
+            
+            addEntry(entry);
         }
 
         // Close the file
         is.close();
-
-        // Copy the entries
-        this.Entries = new ArrayList<>(acceptedEntries.keySet());
     }
 	    
     /**
@@ -362,13 +293,20 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
      * attributes.
      *
      * @param directory Path to the elemental property lookup directory
-     * @throws java.lang.Exception
      */
-    public void setDataDirectory(String directory) throws Exception {
+    public void setDataDirectory(String directory) {
         if (! Files.isDirectory(Paths.get(directory))) {
-            throw new Exception("No such directory: " + directory);
+            throw new IllegalArgumentException("No such directory: " + directory);
         }
         this.DataDirectory = directory;
+    }
+
+    /**
+     * Get path to directory containing elemental property lookup data
+     * @return directory Path to the lookup data directory
+     */
+    public String getDataDirectory() {
+        return DataDirectory;
     }
 
     /**
@@ -379,6 +317,18 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
     public void addElementalProperty(String Name) {
         if (! ElementalProperties.contains(Name)) {
             ElementalProperties.add(Name);
+        }
+    }
+    
+    /**
+     * Add a set of elemental properties to the list of those used when computing attributes.
+     * @param setName Name of set
+     * @throws java.lang.Exception
+     * @see PropertyLists#getPropertySet(java.lang.String) 
+     */
+    public void addElementalPropertySet(String setName) throws Exception {
+        for (String name : PropertyLists.getPropertySet(setName)) {
+            addElementalProperty(name);
         }
     }
     
@@ -633,8 +583,9 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
         switch (Format.toLowerCase()) {
             case "comp":
                 filename = Basename + ".csv";
-                CompositionDatasetOutput.saveCompositionProperties(this,
-                        filename);
+                CompositionOutput output = new CompositionOutput();
+                output.setSelectionMethod(CompositionOutput.ElementSelectionMethod.DYNAMIC);
+                new CompositionOutput().writeDataset(this, filename);
                 return filename;
             default:
                 return super.saveCommand(Basename, Format); 

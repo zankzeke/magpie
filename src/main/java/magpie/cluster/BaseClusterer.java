@@ -2,7 +2,7 @@ package magpie.cluster;
 
 import java.io.Serializable;
 import java.util.List;
-import magpie.analytics.ClustererStatistics;
+import magpie.statistics.performance.ClustererStatistics;
 import magpie.attributes.selectors.BaseAttributeSelector;
 import magpie.data.Dataset;
 import magpie.utility.UtilityOperations;

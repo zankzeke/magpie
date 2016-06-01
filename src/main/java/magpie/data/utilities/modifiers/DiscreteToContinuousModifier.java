@@ -28,6 +28,9 @@ public class DiscreteToContinuousModifier extends BaseDatasetModifier {
     public void setOptions(List<Object> Options) throws Exception {
         try {
 			setClassName(Options.get(0).toString());
+            if (Options.size() != 1) {
+                throw new Exception();
+            }
 		} catch (Exception e) {
 			throw new Exception(printUsage());
 		}
@@ -49,14 +52,14 @@ public class DiscreteToContinuousModifier extends BaseDatasetModifier {
 	
 	
 	@Override
-    protected void modifyDataset(Dataset Data) {
+    protected void modifyDataset(Dataset data) {
 		// Get index of target class
-		int index = ArrayUtils.indexOf(Data.getClassNames(), ClassName);
+		int index = ArrayUtils.indexOf(data.getClassNames(), ClassName);
 		if (index == -1) {
 			throw new Error("Class name not found: " + ClassName);
 		}
         /// Add property to each entry
-        for (BaseEntry entry : Data.getEntries()) {
+        for (BaseEntry entry : data.getEntries()) {
 			// Get current values
             double measured, predicted;
 			if (entry.hasMeasurement()) {
@@ -69,6 +72,7 @@ public class DiscreteToContinuousModifier extends BaseDatasetModifier {
 			} else {
 				predicted = Double.NaN;
 			}
+            
 			// Store them
             if (entry instanceof MultiPropertyEntry) {
                 // Add property
@@ -86,15 +90,18 @@ public class DiscreteToContinuousModifier extends BaseDatasetModifier {
         }
 		
         // Add property to dataset if MultiPropertyDataset
-        if (Data instanceof MultiPropertyDataset) {
-            MultiPropertyDataset Ptr = (MultiPropertyDataset) Data;
+        if (data instanceof MultiPropertyDataset) {
+            MultiPropertyDataset Ptr = (MultiPropertyDataset) data;
+            String name = String.format("P(%s=%s)", Ptr.getTargetPropertyName(),
+                Ptr.getClassName(index));
             if (Ptr.getTargetPropertyIndex() != -1) {
-				String name;
-				name = String.format("P(%s=%s)", Ptr.getTargetPropertyName(),
-						Ptr.getClassName(index));
                 Ptr.addProperty(name);
                 Ptr.setTargetProperty(name, true);
+            } else {
+                Ptr.setClassNames(new String[]{name});
             }
+        } else {
+            data.setClassNames(new String[]{"P(" + ClassName + ")"});
         }
     }
 }

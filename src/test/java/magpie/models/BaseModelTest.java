@@ -1,12 +1,16 @@
 package magpie.models;
 
 import java.util.LinkedList;
+import magpie.statistics.performance.BaseStatistics;
+import magpie.statistics.performance.ClassificationStatistics;
+import magpie.statistics.performance.RegressionStatistics;
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.CompositionEntry;
 import magpie.data.materials.PrototypeDataset;
 import magpie.data.materials.PrototypeEntry;
 import magpie.data.materials.util.PrototypeSiteInformation;
+import magpie.models.regression.AbstractRegressionModel;
 import magpie.models.regression.GuessMeanRegression;
 import org.apache.commons.math3.util.Combinations;
 import org.junit.Test;
@@ -148,14 +152,20 @@ public class BaseModelTest {
         Dataset data = getData();
         model1.train(data.getRandomSubset(0.5));
         model1.externallyValidate(data);
-        String Stats1 = model1.ValidationStats.toString();
+        BaseStatistics Stats1 = model1.ValidationStats;
         
         // Train its clone on a different dataset
         model2.train(data.getRandomSubset(0.5));
         
         // Validation stats should be the same
         model1.externallyValidate(data);
-        assertEquals(Stats1, model1.ValidationStats.toString());
+        if (model1 instanceof AbstractRegressionModel) {
+            assertEquals(((RegressionStatistics) Stats1).MAE,
+                    ((RegressionStatistics) model1.ValidationStats).MAE, 1e-6);
+        } else {
+            assertEquals(((ClassificationStatistics) Stats1).Accuracy,
+                    ((ClassificationStatistics) model1.ValidationStats).Accuracy, 1e-6);
+        }
     }
     
     @Test
@@ -196,7 +206,8 @@ public class BaseModelTest {
         // Make sure that training the model normally does
         model.train(data);
         assertTrue(data.getEntry(0).hasPrediction());
-        assertTrue(model.TrainingStats.NumberTested > 0);
+		assertTrue(model.TrainingStats.NumberTested > 0);
+
         
         // Check to make sure train + run doesn't change attributes / class
         attrAfter = data.getEntryArray();
@@ -204,6 +215,5 @@ public class BaseModelTest {
         for (int e=0; e<attrAfter.length; e++) {
             assertArrayEquals(attrBefore[e], attrAfter[e], 1e-6);
         }
-
     }
 }

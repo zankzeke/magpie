@@ -13,21 +13,30 @@ import java.util.concurrent.Future;
 import javax.naming.OperationNotSupportedException;
 import magpie.Magpie;
 import magpie.attributes.evaluators.BaseAttributeEvaluator;
-import magpie.attributes.expansion.BaseAttributeExpander;
+import magpie.attributes.expanders.BaseAttributeExpander;
 import magpie.attributes.generators.BaseAttributeGenerator;
-import magpie.data.utilities.DatasetOutput;
 import magpie.data.utilities.filters.BaseDatasetFilter;
 import magpie.data.utilities.generators.BaseEntryGenerator;
 import magpie.data.utilities.modifiers.BaseDatasetModifier;
+import magpie.data.utilities.modifiers.duplicates.BaseDuplicateResolver;
+import magpie.data.utilities.output.ARFFOutput;
+import magpie.data.utilities.output.DelimitedClassOutput;
+import magpie.data.utilities.output.DelimitedOutput;
+import magpie.data.utilities.output.SimpleOutput;
 import magpie.optimization.rankers.BaseEntryRanker;
 import static magpie.user.CommandHandler.instantiateClass;
 import static magpie.user.CommandHandler.printImplmentingClasses;
 import magpie.utility.UtilityOperations;
+import magpie.utility.interfaces.Citable;
+import magpie.utility.interfaces.Citation;
 import magpie.utility.interfaces.Commandable;
 import magpie.utility.interfaces.Options;
 import magpie.utility.interfaces.Printable;
 import magpie.utility.interfaces.Savable;
 import org.apache.commons.collections.Predicate;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.math3.ml.distance.DistanceMeasure;
 import weka.core.converters.ArffLoader;
 
 /**
@@ -88,6 +97,12 @@ import weka.core.converters.ArffLoader;
  * <command><p><b>combine $&lt;dataset&gt;</b> - Add all entries from another dataset
  * <br><pr><i>dataset</i>: Dataset to merge with this one. It will remain unchanged.
  * </command>
+ * 
+ * <command><p><b>duplicates &lt;resolver&gt; [&lt;resolver options&gt;]</b> -
+ * Eliminate duplicates within a dataset
+ * <br><pr><i>resolver</i>: Name of {@linkplain BaseDuplicateResolver} used
+ * to handle duplicates
+ * <br><pr><i>resolver options</i>: Any options for the resolver</command>
  *
  * <command><p>
  * <b>filter &lt;include|exclude> &lt;method> [&lt;options...>]</b> - Run
@@ -103,6 +118,13 @@ import weka.core.converters.ArffLoader;
  * <br><pr><i>method</i>: Name of a {@linkplain BaseEntryGenerator}. ("?" for
  * options)
  * <br><pr><i>options</i>: Any options for the entry generator</command>
+ * 
+ * <command><p>
+ * <b>match $&lt;dataset&gt; &lt;num&gt;</b> - Find most similar entries in this dataset
+ * <br><pr><i>dataset</i>: Dataset containing entries to be matched
+ * <br><pr><i>num</i>: Number of closest entries to print
+ * <br>Prints the most similar entries in this dataset to those in the dataset
+ * passed as the argument.</command>
  *
  * <command><p>
  * <b>modify &lt;method> [&lt;options>]</b> - Modify the dataset
@@ -165,8 +187,8 @@ import weka.core.converters.ArffLoader;
  * expanders</command>
  *
  * <command><p>
- * <b>attributes generators add &lt;method> [&lt;options...>]</b> - Add an
- * attribute generators to create additional attributes
+ * <b>attributes generators add &lt;method> [&lt;options...>]</b> - Add a new
+ * attribute generator to list of generators
  * <br><pr><i>method</i>: New generation method. Name of a
  * {@linkplain BaseAttributeGenerator} ("?" to print available methods)
  * <br><pr><i>options...</i>: Any options for the generator method These
@@ -201,6 +223,9 @@ import weka.core.converters.ArffLoader;
  * <print><p>
  * <b>dist</b> - Print distribution of entries between known classes</print>
  *
+ * <print><p>
+ * <b>description</b> - Print description of this dataset</print>
+ *
  * <p>
  * <b><u>Implemented Save Formats:</u></b> TBD
  *
@@ -223,7 +248,7 @@ import weka.core.converters.ArffLoader;
  * @version 0.1
  */
 public class Dataset extends java.lang.Object implements java.io.Serializable,
-        java.lang.Cloneable, Printable, Savable, Options, Commandable {
+        java.lang.Cloneable, Printable, Savable, Options, Commandable, Citable {
 
     /**
      * Names of attributes that describe each entry
@@ -263,32 +288,6 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     public Dataset() {
         this.ClassName = new String[]{"Class"};
         this.AttributeName = new ArrayList<>();
-        this.Entries = new ArrayList<>();
-    }
-
-    ;
-    
-    /** Create a Dataset that containing the same entries as another
-     * @param AttributeName Attribute names to use
-     * @param ClassName Name(s) of class variable
-     * @param Entries Entries to be stored
-     */
-    public Dataset(ArrayList<String> AttributeName,
-            String[] ClassName, ArrayList<BaseEntry> Entries) {
-        this.AttributeName = AttributeName;
-        this.ClassName = ClassName.clone();
-        this.Entries = new ArrayList<>(Entries);
-    }
-
-    /**
-     * Create an empty dataset with the same attributes names as another
-     *
-     * @param AttributeName Attribute names
-     * @param ClassName Name(s) of class variable
-     */
-    public Dataset(ArrayList<String> AttributeName, String[] ClassName) {
-        this.AttributeName = AttributeName;
-        this.ClassName = ClassName;
         this.Entries = new ArrayList<>();
     }
 
@@ -396,7 +395,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      *
      * @return List of attribute expanders
      * @see
-     * #addAttribueExpander(magpie.attributes.expansion.BaseAttributeExpander)
+     * #addAttribueExpander(magpie.attributes.expanders.BaseAttributeExpander)
      */
     public List<BaseAttributeExpander> getAttributeExpanders() {
         return new LinkedList<>(Expanders);
@@ -535,8 +534,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     }
 
     /**
-     * Perform attribute calculation. Should also store names in
-     * {@linkplain #AttributeName}.
+     * Compute attributes that are specific to this class.
      *
      * @throws Exception
      */
@@ -660,7 +658,9 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
 
                 // Set class variable
                 try {
-                    entry.setMeasuredClass(inst.classValue());
+                    if (! Double.isNaN(inst.classValue())) {
+                        entry.setMeasuredClass(inst.classValue());
+                    }
                 } catch (Exception e) {
                     // do nothing
                 }
@@ -704,7 +704,6 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
             BaseEntry E = new BaseEntry();
             E.setAttributes(attributes);
             E.setMeasuredClass(cValue);
-            E.reduceMemoryFootprint();
             addEntry(E);
         }
     }
@@ -722,12 +721,12 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * @return Names of possible classes for class variable
      */
     public String[] getClassNames() {
-        return ClassName;
+        return ClassName.clone();
     }
 
     /**
      * Get the name of a certain class (for data with multiple possible
-     * classficiations)
+     * classes)
      *
      * @param value Value of class variable
      * @return Name of that class
@@ -750,7 +749,6 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         for (int i = 0; i < NEntries(); i++) {
             BaseEntry E = getEntry(i);
             E.addAttribute(values[i]);
-            E.reduceMemoryFootprint();
         }
     }
     
@@ -763,30 +761,10 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     public void addAttributes(List<String> names) {
         for (String name : names) {
             if (AttributeName.contains(name)) {
-                throw new Error("Dataset already contains attribute: " + name);
+                throw new RuntimeException("Dataset already contains attribute: " + name);
             }
         }
         AttributeName.addAll(names);
-    }
-
-    /**
-     * Remove an attribute
-     *
-     * @param index Index of attribute to be removed
-     */
-    public void removeAttribute(int index) {
-        System.err.println("WARNING: This does not currently remove attribute from entries. LW 4Apr14");
-        AttributeName.remove(index);
-    }
-
-    /**
-     * Remove an attribute
-     *
-     * @param name Name of attribute to be removed
-     */
-    public void removeAttribute(String name) {
-        System.err.println("WARNING: This does not currently remove attribute from entries. LW 4Apr14");
-        AttributeName.remove(name);
     }
 
     /**
@@ -886,12 +864,63 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     }
 
     /**
-     * Remove all duplicate entries
+     * Remove all duplicate entries without any selection strategy
      */
     public void removeDuplicates() {
         Set Filter = new HashSet<>(Entries);
         Entries.clear();
         Entries.addAll(Filter);
+    }
+    
+    /**
+     * Resolve duplicates according to some strategy
+     * @param resolver Duplicate resolution strategy
+     */
+    public void resolveDuplicates(BaseDuplicateResolver resolver) {
+        resolver.transform(this);
+    }
+    
+    /**
+     * Get a map of all unique entries, and their duplicates.
+     * @return Map of entry to all duplicate entries
+     */
+    public Map<BaseEntry,List<BaseEntry>> getUniqueEntries() {
+        // Loop through entries, creating a map of entry to all duplicates
+        Map<BaseEntry, List<BaseEntry>> unique = new TreeMap<>();
+        for (BaseEntry entry : Entries) {
+            List<BaseEntry> dups = unique.get(entry);
+            
+            // Make a new list if needed, or add to existing
+            if (dups == null) {
+                dups = new ArrayList<>();
+                dups.add(entry);
+                unique.put(entry, dups);
+            } else {
+                dups.add(entry);
+            }
+        }
+        
+        return unique;
+    }
+    
+    /**
+     * Get a map of an example of a duplicate entry to all duplicates.
+     * @return Map of duplicates
+     */
+    public Map<BaseEntry,List<BaseEntry>> getDuplicates() {
+        // Get the collapsed map of entries
+        Map<BaseEntry,List<BaseEntry>> allEntries = getUniqueEntries();
+        
+        // Remove entries where the size is only 1
+        Map<BaseEntry,List<BaseEntry>> output = new TreeMap<>();
+        for (Map.Entry<BaseEntry,List<BaseEntry>> entry : allEntries.entrySet()) {
+            if (entry.getValue().size() > 1) {
+                output.put(entry.getKey(), entry.getValue());
+            }
+        }
+        
+        return output;
+        
     }
 
     /**
@@ -902,6 +931,58 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      */
     public boolean containsEntry(BaseEntry Entry) {
         return Entries.contains(Entry);
+    }
+    
+    /**
+     * Find entries in this dataset with attributes closest to a user-provided
+     * entry. Measures distance using the L2 norm.
+     * @param entry Entry to be matched
+     * @param n Number of top entries to list
+     * @return List of top entries
+     */
+    public List<BaseEntry> matchEntries(BaseEntry entry, int n) {
+        // Make sure the entry has the same number of attriutes
+        if (entry.NAttributes() != NAttributes()) {
+            throw new RuntimeException("Entry has wrong number of attributes: " 
+                    + entry.NAttributes() + " != " + NAttributes());
+                    
+        }
+        
+        // Make the priority queue to be sorted
+        PriorityQueue<Pair<BaseEntry, Double>> queue = new PriorityQueue<>(n, 
+                new Comparator<Pair<BaseEntry, Double>>() {
+
+            @Override
+            public int compare(Pair<BaseEntry, Double> o1, Pair<BaseEntry, Double> o2) {
+                return o2.getValue().compareTo(o1.getValue());
+            }
+        });
+        
+        // Loop through all entries in the dataset
+        DistanceMeasure meas = new org.apache.commons.math3.ml.distance.EuclideanDistance();
+        double[] myAtt = entry.getAttributes();
+        
+        for (BaseEntry e : Entries) {
+            // Get the distance
+            double dist = meas.compute(myAtt, e.getAttributes());
+            
+            // Add to queue
+            queue.add(new ImmutablePair<>(e, dist));
+            
+            // Pop off the current worst
+            if (queue.size() > n) {
+                queue.poll();
+            }
+        }
+        
+        // Transfer to a list
+        List<BaseEntry> output = new ArrayList<>(n);
+        
+        for (Pair<BaseEntry, Double> pair : queue) {
+            output.add(0, pair.getKey());
+        }
+        
+        return output;
     }
 
     /**
@@ -925,10 +1006,10 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     }
 
     /**
-     * Combine the data structure with an array of other Datasets. Leaves all of
-     * the others all unaltered.
+     * Combine the data structure with an array of other Datasets. Does not
+     * alter input Datasets.
      *
-     * @param d Array of DataStructures
+     * @param d Array of Datasets
      */
     public void combine(Dataset[] d) {
         for (Dataset data : d) {
@@ -938,7 +1019,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
 
     /**
      * Combine the data structure with a collection of other data structures.
-     * Leaves other datasets unaltered
+     * Does not alter input arrays
      *
      * @param d Collection of Datasets
      */
@@ -951,11 +1032,11 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     /**
      * Remove all entries that are in another dataset from this dataset
      *
-     * @param Data Second dataset
+     * @param data Second dataset
      */
-    public void subtract(Dataset Data) {
+    public void subtract(Dataset data) {
         TreeSet<BaseEntry> TempSet = new TreeSet<>(Entries);
-        TempSet.removeAll(Data.Entries);
+        TempSet.removeAll(data.Entries);
         Entries = new ArrayList(TempSet);
     }
 
@@ -970,12 +1051,22 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     }
 
     /**
-     * Retrieve the internal collection of entries
+     * Return copy of list of entries. Does not allow user to delete entries 
+     * from the dataset.
      *
-     * @return Collection of entries (probably an ArrayList)
+     * @return Collection of entries
      */
     public List<BaseEntry> getEntries() {
-        return this.Entries;
+        return Collections.unmodifiableList(Entries);
+    }
+    
+    /**
+     * Get the internal list of entries from this dataset. User can modify
+     * anything about the internal dataset (ex: sort, delete entries)
+     * @return Internal list of entries
+     */
+    public List<BaseEntry> getEntriesWriteAccess() {
+        return Entries;
     }
 
     /**
@@ -1047,7 +1138,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      */
     public Dataset randomSplit(int number) {
         if (number < 0 || number > NEntries()) {
-            throw new Error("Number must be positive, and less than the size of the set");
+            throw new RuntimeException("Number must be positive, and less than the size of the set");
         }
 
         // Create a list of which entries to move over
@@ -1082,7 +1173,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      */
     public Dataset randomSplit(double fraction) {
         if (fraction > 1 || fraction < 0) {
-            throw new Error("Fraction must be between 0 and 1");
+            throw new RuntimeException("Fraction must be between 0 and 1");
         }
         int to_new = (int) Math.floor((double) NEntries() * fraction);
         return randomSplit(to_new);
@@ -1095,11 +1186,8 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * @return Dataset containing a subset of entries
      */
     public Dataset getRandomSubset(int number) {
-        /**
-         * Grab a random subset from the original data, leave this intact
-         */
         if (number < 0 || number > NEntries()) {
-            throw new Error("Number must be positive, and less than the size of the set");
+            throw new RuntimeException("Number must be positive, and less than the size of the set");
         }
 
         // Create a list of which entries to move over
@@ -1132,7 +1220,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      */
     public Dataset getRandomSubset(double fraction) {
         if (fraction > 1 || fraction < 0) {
-            throw new Error("Fraction must be between 0 and 1");
+            throw new RuntimeException("Fraction must be between 0 and 1");
         }
         int to_new = (int) Math.floor((double) NEntries() * fraction);
         return getRandomSubset(to_new);
@@ -1204,6 +1292,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         } else {
             for (int i = 0; i < NClasses(); i++) {
                 final int cls = i;
+                
                 // Get the entries that are in class # cls
                 Predicate splitter = new Predicate() {
                     @Override
@@ -1443,6 +1532,15 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         }
         return output;
     }
+    
+    /**
+     * Delete all measured classes from entry from entries
+     */
+    public void deleteMeasuredClasses() {
+        for (BaseEntry entry : Entries) {
+            entry.deleteMeasuredClass();
+        }
+    }
 
     /**
      * Set predicted class for each entry, given an array of predictions
@@ -1590,6 +1688,30 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         // Print out attribute expanders
         return output;
     }
+
+    @Override
+    public List<Pair<String, Citation>> getCitations() {
+        // Initialize output
+        List<Pair<String, Citation>> output = new ArrayList<>();
+        
+        // Get citations from attribute generators
+        for (BaseAttributeGenerator gen : Generators) {
+            if (gen instanceof Citable) {
+                Citable itf = (Citable) gen;
+                output.addAll(itf.getCitations());
+            }
+        }
+        
+        // Get citations from attribute expanders
+        for (BaseAttributeExpander exp : Expanders) {
+            if (exp instanceof Citable) {
+                Citable itf = (Citable) exp;
+                output.addAll(itf.getCitations());
+            }
+        }
+        
+        return output;
+    }
     
     /**
      * Print out description of attributes. 
@@ -1618,7 +1740,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     @Override
     public String toString() {
         String output = "Number of entries:  " + NEntries();
-        output += "\nNumber of features: " + NAttributes();
+        output += "\nNumber of attributes: " + NAttributes();
         return output;
     }
 
@@ -1735,6 +1857,8 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 return this.toString();
             case "dist":
                 return this.printDistribution();
+            case "description":
+                return printDescription(false);
             default:
                 throw new Exception("ERROR: Print command \"" + Command.get(0)
                         + "\" not recognized");
@@ -1746,13 +1870,13 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     public String saveCommand(String Basename, String Command) throws Exception {
         switch (Command) {
             case "csv": // Save as CSV file
-                DatasetOutput.saveDelimited(this, Basename + ".csv", ",");
+                new DelimitedOutput(",").writeDataset(this, Basename + ".csv");
                 return Basename + ".csv";
             case "arff": // Save as an ARFF
-                DatasetOutput.saveARFF(this, Basename + ".arff");
+                new ARFFOutput().writeDataset(this, Basename + ".arff");
                 return Basename + ".arff";
             case "stats": // Save for statistics (only: name, predicted, measured)
-                DatasetOutput.printForStatistics(this, Basename + ".csv");
+                new DelimitedClassOutput(",").writeDataset(this, Basename + ".csv");
                 return Basename + ".csv";
             default:
                 throw new Exception("ERROR: Save command \"" + Command
@@ -1761,28 +1885,29 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     }
 
     @Override
-    public Object runCommand(List<Object> Command) throws Exception {
-        if (Command.isEmpty()) {
+    public Object runCommand(List<Object> command) throws Exception {
+        if (command.isEmpty()) {
             System.out.println(about());
             return null;
         }
-        String Action = Command.get(0).toString();
+        
+        String Action = command.get(0).toString();
         switch (Action.toLowerCase()) {
             case "add": {
-                if (Command.size() == 1) {
+                if (command.size() == 1) {
                     throw new Exception("Usage: \"add $<dataset> [-force]\" "
                             + "or \"add <entries...>\"");
                 }
-                if (Command.get(1) instanceof Dataset) {
-                    Dataset data = (Dataset) Command.get(1);
+                if (command.get(1) instanceof Dataset) {
+                    Dataset data = (Dataset) command.get(1);
                     boolean force = false;
-                    if (Command.size() == 3) {
-                        if (Command.get(2).toString().equalsIgnoreCase("-force")) {
+                    if (command.size() == 3) {
+                        if (command.get(2).toString().equalsIgnoreCase("-force")) {
                             force = true;
                         } else {
                             throw new Exception("Available options: -force");
                         }
-                    } else if (Command.size() > 3) {
+                    } else if (command.size() > 3) {
                         throw new Exception("Usage: add $<dataset> [-force]");
                     }
                     addEntries(data, force);
@@ -1791,7 +1916,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                     return null;
                 } else {
                     int nAdded = 0;
-                    for (Object entry : Command.subList(1, Command.size())) {
+                    for (Object entry : command.subList(1, command.size())) {
                         try {
                             addEntry(entry.toString());
                             nAdded++;
@@ -1805,22 +1930,22 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 }
             }
             case "attributes": case "attr":
-                return runAttributeCommand(Command.subList(1, Command.size()));
+                return runAttributeCommand(command.subList(1, command.size()));
             case "clone":
                 // Usage: <output> = clone [-emptyy]
-                if (Command.size() == 1) {
+                if (command.size() == 1) {
                     return clone();
-                } else if (Command.get(1).toString().equalsIgnoreCase("-empty")) {
+                } else if (command.get(1).toString().equalsIgnoreCase("-empty")) {
                     return emptyClone();
                 } else {
                     throw new Exception("Usage: clone [-empty]");
                 }
             case "combine": {
                 try {
-                    if (Command.size() != 2) {
+                    if (command.size() != 2) {
                         throw new Exception();
                     }
-                    Dataset other = (Dataset) Command.get(1);
+                    Dataset other = (Dataset) command.get(1);
                     combine(other);
                     System.out.format("\tAdded %d entries. New size: %d\n", 
                             other.NEntries(), NEntries());
@@ -1828,30 +1953,60 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                     throw new Exception("Usage: combine $<other dataset>");
                 }
             } break;
+            case "duplicates": {
+                // Usage: <method> <options...>
+                if (command.size() < 2) {
+                    throw new Exception("Usage: duplicates <method> <options...>");
+                }
+                // Get command
+                String method = command.get(1).toString();
+                if (method.equals("?")) {
+                    System.out.println(printImplmentingClasses(BaseDatasetModifier.class, false));
+                    return null;
+                }
+                // Get options
+                List<Object> options = command.subList(2, command.size());
+                
+                // Remove duplicates
+                int originalCount = NEntries();
+                BaseDuplicateResolver Mdfr = (BaseDuplicateResolver) instantiateClass(
+                        "data.utilities.modifiers.duplicates." + method, options);
+                Mdfr.transform(this);
+                
+                System.out.format("\tRemoved %d duplicates using a %s strategy.", 
+                        originalCount - NEntries(), method);
+                Map<BaseEntry,List<BaseEntry>> dups = getDuplicates();
+                if (! dups.isEmpty()) {
+                    System.out.format("%d duplciates remain.", dups.size());
+                }
+                System.out.println();
+            } break;
+                
             case "filter": {
                 // Usage: <include|exclude> <method> [<options...>]
                 String Method;
                 List<Object> Options;
                 boolean Exclude;
                 try {
-                    if (Command.get(1).toString().toLowerCase().startsWith("ex")) {
+                    if (command.get(1).toString().toLowerCase().startsWith("ex")) {
                         Exclude = true;
-                    } else if (Command.get(1).toString().toLowerCase().startsWith("in")) {
+                    } else if (command.get(1).toString().toLowerCase().startsWith("in")) {
                         Exclude = false;
                     } else {
                         throw new Exception();
                     }
-                    Method = Command.get(2).toString();
+                    Method = command.get(2).toString();
                     if (Method.equals("?")) {
                         System.out.println(printImplmentingClasses(BaseDatasetFilter.class, false));
                         return null;
                     }
-                    Options = Command.subList(3, Command.size());
+                    Options = command.subList(3, command.size());
                 } catch (Exception e) {
                     throw new Exception("Usage: <dataset> filter <exclude|include> <method> <options...>");
                 }
                 BaseDatasetFilter Filter = (BaseDatasetFilter) instantiateClass("data.utilities.filters." + Method, Options);
                 Filter.setExclude(Exclude);
+                Filter.train(this);
                 Filter.filter(this);
                 System.out.println("\tFiltered using a " + Method + ". New size: " + NEntries());
             }
@@ -1861,13 +2016,13 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 String Method = "";
                 List<Object> MethodOptions;
                 try {
-                    Method = Command.get(1).toString();
+                    Method = command.get(1).toString();
                     if (Method.equalsIgnoreCase("?")) {
                         System.out.println("Available Entry Generators");
                         System.out.println(printImplmentingClasses(BaseEntryGenerator.class, false));
                         return null;
                     }
-                    MethodOptions = Command.subList(2, Command.size());
+                    MethodOptions = command.subList(2, command.size());
                 } catch (Exception e) {
                     throw new Exception("Usage: generate <method> [<options...>]");
                 }
@@ -1880,24 +2035,53 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
             break;
             case "import": {
                 // Usage: import <filename> [<options...>]
-                String filename = Command.get(1).toString();
-                Object[] options = Command.subList(2, Command.size()).toArray();
+                String filename = command.get(1).toString();
+                Object[] options = command.subList(2, command.size()).toArray();
                 importText(filename, options);
                 System.out.println("\tImported " + NEntries() + " entries");
             }
             break;
+            case "match": {
+                // Usage: match $<dataset> <number to print>
+                Dataset toMatch;
+                int numToPrint;
+                
+                // Parse input
+                try {
+                    toMatch = (Dataset) command.get(1);
+                    numToPrint = Integer.parseInt(command.get(2).toString());
+                    if (command.size() != 3) {
+                        throw new Exception();
+                    }
+                } catch (Exception e) {
+                    throw new Exception("Usage: $<dataset> <num to print>");
+                }
+                
+                // Run matching
+                for (BaseEntry entry : toMatch.getEntries()) {
+                    // Find matches
+                    List<BaseEntry> matches = matchEntries(entry, numToPrint);
+                    
+                    // Print results
+                    System.out.println("Matches for " + entry.toString() + ":");
+                    for (BaseEntry match : matches) {
+                        System.out.println("\t" + match.toString());
+                    }
+                    System.out.println();
+                }
+            } break;
             case "modify": {
-                if (Command.size() < 2) {
+                if (command.size() < 2) {
                     throw new Exception("Usage: <dataset> modify <method> <options>");
                 }
                 // Get command
-                String Method = Command.get(1).toString();
+                String Method = command.get(1).toString();
                 if (Method.equals("?")) {
                     System.out.println(printImplmentingClasses(BaseDatasetModifier.class, false));
                     return null;
                 }
                 // Get options
-                List<Object> Options = Command.subList(2, Command.size());
+                List<Object> Options = command.subList(2, command.size());
                 // Modify the Dataset
                 BaseDatasetModifier Mdfr = (BaseDatasetModifier) instantiateClass("data.utilities.modifiers." + Method, Options);
                 Mdfr.transform(this);
@@ -1912,30 +2096,30 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 String Method;
                 List<Object> Options;
                 try {
-                    numberToPrint = Integer.parseInt(Command.get(1).toString());
-                    if (Command.get(2).toString().toLowerCase().startsWith("max")) {
+                    numberToPrint = Integer.parseInt(command.get(1).toString());
+                    if (command.get(2).toString().toLowerCase().startsWith("max")) {
                         maximize = true;
-                    } else if (Command.get(2).toString().toLowerCase().contains("min")) {
+                    } else if (command.get(2).toString().toLowerCase().contains("min")) {
                         maximize = false;
                     } else {
                         throw new Exception();
                     }
-                    if (Command.get(3).toString().toLowerCase().startsWith("mea")) {
+                    if (command.get(3).toString().toLowerCase().startsWith("mea")) {
                         measured = true;
-                    } else if (Command.get(3).toString().toLowerCase().startsWith("pre")) {
+                    } else if (command.get(3).toString().toLowerCase().startsWith("pre")) {
                         measured = false;
                     } else {
                         throw new Exception();
                     }
                     // Get Method and its options
-                    Method = Command.get(4).toString();
+                    Method = command.get(4).toString();
                     if (Method.equalsIgnoreCase("?")) {
                         System.out.println("Available EntryRankers:");
                         System.out.println(printImplmentingClasses(
                                 BaseEntryRanker.class, false));
                         return null;
                     }
-                    Options = Command.subList(5, Command.size());
+                    Options = command.subList(5, command.size());
                 } catch (Exception e) {
                     throw new Exception("Usage: <dataset> rank <number> <maximum|minimum> <measured|predicted> <method> [<options>]");
                 }
@@ -1944,7 +2128,12 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 ranker.setMaximizeFunction(maximize);
                 ranker.setUseMeasured(measured);
                 ranker.train(this);
-                System.out.println(DatasetOutput.printTopEntries(this, ranker, numberToPrint));
+                
+                // Make outputter
+                SimpleOutput output = new SimpleOutput();
+                output.setRanker(ranker);
+                output.setNToPrint(numberToPrint);
+                output.printHeader(this, System.out);
             }
             break;
             case "subset":
@@ -1952,7 +2141,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 // Usage: split|subset <fraction|number> = <output>
                 double size;
                 try {
-                    size = Double.parseDouble(Command.get(1).toString());
+                    size = Double.parseDouble(command.get(1).toString());
                 } catch (Exception e) {
                     throw new Exception("Usage: " + Action + " <fraction|number> = <output>");
                 }
@@ -2069,7 +2258,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 } catch (Exception e) {
                     throw new Exception("Usage: <dataset> expand <method> <options...>");
                 }
-                BaseAttributeExpander expander = (BaseAttributeExpander) instantiateClass("attributes.expansion." + Method, Options);
+                BaseAttributeExpander expander = (BaseAttributeExpander) instantiateClass("attributes.expanders." + Method, Options);
                 addAttribueExpander(expander);
                 System.out.println("\tAdded a " + Method + " to list of attribute expanders");
                 break;
@@ -2136,8 +2325,8 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * amount of memory used.
      */
     protected void finalizeGeneration() {
-        for (int i = 0; i < NEntries(); i++) {
-            getEntry(i).reduceMemoryFootprint();
+        for (BaseEntry entry : Entries) {
+            entry.reduceMemoryFootprint();
         }
         System.gc();
     }

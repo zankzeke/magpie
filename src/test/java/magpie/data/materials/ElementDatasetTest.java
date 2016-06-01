@@ -21,8 +21,8 @@ public class ElementDatasetTest {
         // Make an empty clone
         ElementDataset clone = data.emptyClone();
         assertEquals(0, clone.NEntries());
-        clone.removeElementalProperty("AtomicNumber");
-        assertNotEquals(data.getElementalProperties().size(), 
+        clone.removeElementalProperty("Number");
+        assertEquals(data.getElementalProperties().size() - 1, 
                 clone.getElementalProperties().size());
         
         // Make a regular clone

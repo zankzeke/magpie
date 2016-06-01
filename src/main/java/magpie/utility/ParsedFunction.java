@@ -11,9 +11,11 @@ import org.apache.commons.math3.exception.DimensionMismatchException;
  * Parses a function from text string.
  * 
  * <p>Variables in the function must be surrounded by "#{" and "}" (think Bash,
- * but using # instaed of $ to denote variables), and should not contain any characters 
+ * but using # instead of $ to denote variables), and should not contain any characters 
  * that would be confused with a math operation (e.g., +) or be named after a math function 
  * (e.g., cos). Also, don't put any whitespace inside the {}'s.
+ * 
+ * <p>Dev note: This class *is not* thread safe.
  * 
  * @author Logan Ward
  * @see expr.Parser
@@ -23,6 +25,11 @@ public class ParsedFunction implements MultivariateFunction, Serializable {
      * Variables of this function
      */
     final private List<Variable> Variables;
+    /** 
+     * Names of variables known to user. Created to allow variable names
+     * to contain characters that are not parseable
+     */
+    final private List<String> VariableNames;
     /**
      * String that was originally supplied to parser
      */
@@ -31,6 +38,10 @@ public class ParsedFunction implements MultivariateFunction, Serializable {
      * Function that was parsed
      */
     final private Expr Function;
+    /** 
+     * How many variables have been generated to date
+     */
+    static private long numGenerations = 0;
 
     /**
      * Parse a function from a text string. Uses the <a href="https://github.com/darius/expr">
@@ -51,13 +62,21 @@ public class ParsedFunction implements MultivariateFunction, Serializable {
             variableNames.add(variableName);
         }
         
-        // Replace "${...}" with the variable name, and create variables
+        // Replace "#{...}" with the variable name, and create variables
         String toParse = function.trim();
         Variables = new ArrayList<>(variableNames.size());
+        VariableNames = new ArrayList<>(variableNames.size());
         for (String name : variableNames) {
+            // Get the name without #{}'s
             String shortName = name.substring(2, name.length()-1);
-            toParse = toParse.replace(name, shortName);
-            Variables.add(Variable.make(shortName));
+            VariableNames.add(shortName);
+            
+            // Get a name suited for Expr
+            String niceName = getName();
+            Variables.add(Variable.make(niceName));
+            
+            // Replace variable name with the nice one
+            toParse = toParse.replace(name, niceName);
         }
         
         // Parse the function
@@ -69,18 +88,14 @@ public class ParsedFunction implements MultivariateFunction, Serializable {
         // Get the function
         Function = parser.parseString(toParse);
     }
-    
+
     /**
      * Get the list of variables. Returns them in the same order expected by
      * {@linkplain #value(double[]) )
      * @return 
      */
     public List<String> getVariableNames() {
-        List<String> output = new ArrayList<>(Variables.size());
-        for (Variable var : Variables) {
-            output.add(var.name());
-        }
-        return output;
+        return new ArrayList<>(VariableNames);
     }
 
     /**
@@ -100,8 +115,8 @@ public class ParsedFunction implements MultivariateFunction, Serializable {
     public void setVariable(String name, double val) throws Exception {
         // Get index
         int ind = -1;
-        for (int i=0; i<Variables.size(); i++) {
-            if (Variables.get(i).name().equals(name)) {
+        for (int i=0; i<VariableNames.size(); i++) {
+            if (VariableNames.get(i).equals(name)) {
                 ind = i;
                 break;
             }
@@ -146,5 +161,13 @@ public class ParsedFunction implements MultivariateFunction, Serializable {
      */
     public double evaluate() {
         return Function.value();
+    }
+    
+    /**
+     * Get a unique variable name
+     * @return 
+     */
+    synchronized private static String getName() {
+        return "x" + Long.toString(ParsedFunction.numGenerations++);
     }
 }

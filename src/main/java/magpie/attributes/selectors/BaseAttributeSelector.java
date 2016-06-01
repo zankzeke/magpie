@@ -2,7 +2,6 @@ package magpie.attributes.selectors;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import magpie.data.Dataset;
 import magpie.utility.interfaces.Commandable;
@@ -35,9 +34,9 @@ abstract public class BaseAttributeSelector implements java.io.Serializable,
     /** Whether this BaseAttributeSelector has been trained */
     protected boolean trained = false;
     /** List of attributes that were selected */
-    private List<Integer> Attribute_ID = new LinkedList<>();
+    private List<Integer> Attribute_ID = new ArrayList<>();
     /** Names of attributes that were selected */
-    final private List<String> Attribute_Names = new LinkedList<>();
+    final private List<String> Attribute_Names = new ArrayList<>();
     
     /** 
      * Train an attribute selection algorithm on a dataset. Selects which attributes
@@ -71,6 +70,28 @@ abstract public class BaseAttributeSelector implements java.io.Serializable,
     abstract protected List<Integer> train_protected(Dataset Data);
     
     /**
+     * Get the selected attributes
+     * @return Indices of the selected attributes
+     */
+    public List<Integer> getSelections() {
+        if (! isTrained()) {
+            throw new RuntimeException("Selector has not yet been trained");
+        }
+        return new ArrayList<>(Attribute_ID);
+    }
+    
+    /**
+     * Get the selected attributes
+     * @return Indices of the selected attributes
+     */
+    public List<String> getSelectionNames() {
+        if (! isTrained()) {
+            throw new RuntimeException("Selector has not yet been trained");
+        }
+        return new ArrayList<>(Attribute_Names);
+    }
+    
+    /**
      * Adjust the attribute list of a dataset, based on a trained selection algorithm
      * @param Data Dataset to be filtered
      */
@@ -89,8 +110,8 @@ abstract public class BaseAttributeSelector implements java.io.Serializable,
         Data.setAttributeNames(NewAttributeNames);
         
         // For each entry, redo the feature list
+        double[] newAttributes = new double[Data.NAttributes()];
         for (int i=0; i<Data.NEntries(); i++) {
-            double[] newAttributes = new double[Data.NAttributes()];
             for (int j=0; j<Data.NAttributes(); j++)
                 newAttributes[j] = Data.getEntry(i).getAttribute(Attribute_ID.get(j));
             Data.getEntry(i).setAttributes(newAttributes);
@@ -102,7 +123,7 @@ abstract public class BaseAttributeSelector implements java.io.Serializable,
         BaseAttributeSelector x;
         try { x = (BaseAttributeSelector) super.clone(); }
         catch (CloneNotSupportedException c) { throw new Error(c); }
-        x.Attribute_ID = new LinkedList<>(this.Attribute_ID);
+        x.Attribute_ID = new ArrayList<>(this.Attribute_ID);
         return x;
     }
     
@@ -136,7 +157,7 @@ abstract public class BaseAttributeSelector implements java.io.Serializable,
 
     @Override
     public String printDescription(boolean htmlFormat) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); 
     }
 
     @Override
@@ -144,8 +165,13 @@ abstract public class BaseAttributeSelector implements java.io.Serializable,
         // There are no print options, just print all selected attributes
         if (Command.isEmpty())
             return printSelections();
-        else 
-            throw new Exception("ERROR: Print command not recognized: " + Command.get(0));
+		
+		switch (Command.get(0).toLowerCase()) {
+			case "description":
+				return printDescription(false);
+			default:
+                throw new Exception("Print command not recognized: " + Command.get(0));
+        }
     }
 
     @Override
@@ -165,7 +191,11 @@ abstract public class BaseAttributeSelector implements java.io.Serializable,
                     throw new Exception("Usage: train $<dataset>");
                 }
                 train(Data);
-                System.out.println(printSelections());
+                if (Attribute_Names.size() < 24) {
+                    System.out.println(printSelections());
+                } else {
+                    System.out.format("\tSelected %d attributes\n", Attribute_Names.size());
+                }
             } break;
             case "run": {
                 // Usage: run $<dataset>

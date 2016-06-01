@@ -5,6 +5,9 @@
 data = new data.materials.CompositionDataset
 data import ./datasets/small_set.txt
 
+// Get only the ground-state instances of each compound
+data duplicates RankingDuplicateResolver minmize PropertyRanker energy_pa SimpleEntryRanker
+
 // Define where to find elemental property data
 data attributes properties directory ./Lookup Data/
 // Select which set of elemental properties to use for attributes
@@ -17,10 +20,14 @@ data attributes generate
 data target delta_e
 
 // Create a simple model using Weka, then test it
-model = new models.regression.WekaRegression trees.REPTree
+model = new models.regression.WekaRegression trees.RandomForest
 model train $data
 model crossvalidate $data 10
 
 // Print out training statistics
 print model validation stats
+
+// Print out suggested citations
+citations
+
 exit

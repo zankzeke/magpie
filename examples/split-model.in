@@ -8,6 +8,9 @@ data attributes properties directory ./Lookup Data/
 data attributes properties add set general
 data attributes generate
 
+// Get only the ground-state instances of each compound
+data duplicates RankingDuplicateResolver minmize PropertyRanker energy_pa SimpleEntryRanker
+
 // Create a new property for each entry that is 1 when bandgap > 0, and 0 otherwise
 data target bandgap
 data modify NonZeroClassModifier

@@ -1,7 +1,7 @@
 package magpie.models.classification;
 
 import java.util.List;
-import magpie.analytics.ClassificationStatistics;
+import magpie.statistics.performance.ClassificationStatistics;
 import magpie.data.Dataset;
 import magpie.models.BaseModel;
 import magpie.models.SplitModel;

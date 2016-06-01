@@ -1,6 +1,6 @@
 package magpie.models.classification;
 
-import magpie.analytics.ClassificationStatistics;
+import magpie.statistics.performance.ClassificationStatistics;
 import magpie.models.BaseModel;
 import magpie.data.Dataset;
 

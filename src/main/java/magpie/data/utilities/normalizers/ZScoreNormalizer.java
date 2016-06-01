@@ -25,6 +25,14 @@ public class ZScoreNormalizer extends IndependentVariableNormalizer {
     private double ClassStdDev;
 
     @Override
+    public ZScoreNormalizer clone() {
+        ZScoreNormalizer x = (ZScoreNormalizer) super.clone();
+        x.AttributeMean = AttributeMean.clone();
+        x.AttributeStdDev = AttributeStdDev.clone();
+        return x;
+    }
+
+    @Override
     public void setOptions(List<Object> Options) throws Exception {
         if (! Options.isEmpty()) {
             throw new Exception(printUsage());
@@ -54,7 +62,7 @@ public class ZScoreNormalizer extends IndependentVariableNormalizer {
     @Override
     protected void computeClassStatistics(double[] values) {
         ClassMean = StatUtils.mean(values);
-        ClassStdDev = StatUtils.variance(values, ClassMean);
+        ClassStdDev = Math.sqrt(StatUtils.variance(values, ClassMean));
         if (ClassStdDev == 0) { 
             ClassStdDev = 1; 
         }

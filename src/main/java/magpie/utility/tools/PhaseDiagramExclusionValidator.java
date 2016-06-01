@@ -2,9 +2,9 @@ package magpie.utility.tools;
 
 import java.io.FileWriter;
 import java.util.*;
-import magpie.analytics.BaseStatistics;
-import magpie.analytics.ClassificationStatistics;
-import magpie.analytics.RegressionStatistics;
+import magpie.statistics.performance.BaseStatistics;
+import magpie.statistics.performance.ClassificationStatistics;
+import magpie.statistics.performance.RegressionStatistics;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;

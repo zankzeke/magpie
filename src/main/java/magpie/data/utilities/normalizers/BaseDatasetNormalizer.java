@@ -27,11 +27,10 @@ import magpie.utility.interfaces.*;
  * 
  * <p><b><u>Implemented Commands:</u></b>
  * 
- * <command><p><b>normalize [attributes] [class] $&lt;dataset&gt;</b> - Normalize attributes of a dataset
- * <pr><br><i>attributes</i>: Normalize attributes
- * <pr><br><i>class</i>: Normalize class variable
+ * <command><p><b>normalize $&lt;dataset&gt;</b> - Normalize attributes and/or class variable of a dataset
  * <pr><br><i>dataset</i>: Dataset to be normalized
- * <br>Will train normalizer if needed.</command>
+ * <br>Must be trained first
+ * </command>
  * 
  * <command><p><b>restore $&lt;dataset&gt;</b> - Restore attributes from normalized
  *  to original ranges
@@ -50,7 +49,7 @@ import magpie.utility.interfaces.*;
  * @author Logan Ward
  */
 abstract public class BaseDatasetNormalizer 
-    implements Options, Commandable, Printable, Serializable {
+    implements Options, Commandable, Printable, Serializable, Cloneable {
     /** Whether this normalizer has been trained */
     private boolean Trained = false;
     /** Whether to normalize attributes */
@@ -59,6 +58,17 @@ abstract public class BaseDatasetNormalizer
     private boolean NormalizeClass = false;
     /** Names of attributes (to make sure the dataset is not different) */
     private String[]  AttributeNames = null;
+
+    @Override
+    public BaseDatasetNormalizer clone() {
+        try {
+            BaseDatasetNormalizer x = (BaseDatasetNormalizer) super.clone();
+            x.AttributeNames = AttributeNames.clone();
+            return x;
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * @return Whether this normalizer has been trained
@@ -108,7 +118,7 @@ abstract public class BaseDatasetNormalizer
         if (willNormalizeClass()) {
             // Check if data has discrete classes
             if (Data.NClasses() != 1) {
-                throw new Error("Discrete class variables cannot be normalized");
+                throw new RuntimeException("Discrete class variables cannot be normalized");
             }
             // Check if the data has a measured class variable
             if (! Data.getEntry(0).hasMeasurement()) {
@@ -143,20 +153,19 @@ abstract public class BaseDatasetNormalizer
     abstract protected void trainOnMeasuredClass(Dataset Data);
     
     /**
-     * Transform attributes from original to standardized range. If the normalize has
-     *  not been trained, it will train the normalizer on the provided dataset.
+     * Transform attributes from original to standardized range. 
      * 
      * @param Data Dataset to be transformed
      */
     public void normalize(Dataset Data) {
         // Check if it is trained
         if (!isTrained()) {
-            train(Data);
+            throw new RuntimeException("Normalizer not trained");
         }
         
         // Check if attributes are different
         if (! Arrays.equals(AttributeNames, Data.getAttributeNames())) {
-            throw new Error("Attribute names different: Different type of data?");
+            throw new RuntimeException("Attribute names different: Different type of data?");
         }
         
         // Run the normalization
@@ -190,12 +199,12 @@ abstract public class BaseDatasetNormalizer
     public void restore(Dataset Data) {
         // If it isn't trained, throw an error
         if (!isTrained()) {
-            throw new Error("Normalizer has not been trained.");
+            throw new RuntimeException("Normalizer has not been trained.");
         }
         
         // Check if attributes are different
         if (! Arrays.equals(AttributeNames, Data.getAttributeNames())) {
-            throw new Error("Attribute names different: Different type of data?");
+            throw new RuntimeException("Attribute names different: Different type of data?");
         }
         
         if (willNormalizeAttributes()) {
@@ -222,16 +231,22 @@ abstract public class BaseDatasetNormalizer
     /**
      * Check whether the normalize/restore operations are reversible. Tests both
      *  the attribute and class variables.
-     * @param Data Dataset to use for testings
+     * @param data Dataset to use for testings
      * @return Whether the model passes
      */
-    public boolean test(Dataset Data) {
-        double[][] before = Data.getEntryArray();
+    public boolean test(Dataset data) {
+        // Store original result
+        double[][] before = data.getEntryArray();
+        
+        // Train, normalize, restore
         setToNormalizeAttributes(true);
         setToNormalizeClass(true);
-        normalize(Data);
-        restore(Data);
-        double[][] after = Data.getEntryArray();
+        train(data);
+        normalize(data);
+        restore(data);
+        
+        // Make sure the results haven't changed
+        double[][] after = data.getEntryArray();
         for (int row=0; row<before.length; row++) {
             for (int col=0; col<before[row].length; col++) {
                 if (Math.abs(after[row][col] - before[row][col]) > 1e-6) {
@@ -249,7 +264,7 @@ abstract public class BaseDatasetNormalizer
 
     @Override
     public String printDescription(boolean htmlFormat) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); 
     }
 
     @Override
@@ -274,24 +289,11 @@ abstract public class BaseDatasetNormalizer
         switch (Action.toLowerCase()) {
             case "normalize": {
                 Dataset Data;
-                boolean doAttributes = false, doClass = false;
                 try {
-                    for (int i=1; i<Command.size()-1; i++) {
-                        String word = Command.get(i).toString().toLowerCase();
-                        if (word.startsWith("attr")) {
-                            doAttributes = true;
-                        } else if (word.startsWith("clas")) {
-                            doClass = true;
-                        } else {
-                            throw new Exception();
-                        }
-                    }
-                    Data = (Dataset) Command.get(Command.size() - 1);
+                    Data = (Dataset) Command.get(1);
                 } catch (Exception e) {
-                    throw new Exception("Usage: normalize [attributes] [class] $<dataset>");
+                    throw new Exception("Usage: normalize $<dataset>");
                 }
-                setToNormalizeAttributes(doAttributes);
-                setToNormalizeClass(doClass);
                 normalize(Data);
             } break;
             case "restore": {
@@ -321,9 +323,26 @@ abstract public class BaseDatasetNormalizer
                 } catch (Exception e) {
                     throw new Exception("Usage: train [attributes] [class] $<dataset>");
                 }
+                
+                // Define settings
+                if (! (doAttributes || doClass)) {
+                    throw new Exception("Must train attributes or class.");
+                }
                 setToNormalizeAttributes(doAttributes);
                 setToNormalizeClass(doClass);
+                
+                // Run training
                 train(Data);
+                
+                // Print out status
+                String wasTrained;
+                if (doAttributes && doClass) {
+                    wasTrained = "attributes and class";
+                } else {
+                    wasTrained = doAttributes ? "attributes" : "class";
+                }
+                System.out.println("\tTrained to normalize " + wasTrained 
+                        + " using " + Data.NEntries() + " entries");
             } break;
             case "test": {
                 Dataset Data;

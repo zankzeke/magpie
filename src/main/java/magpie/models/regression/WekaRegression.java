@@ -1,13 +1,20 @@
 package magpie.models.regression;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import magpie.analytics.RegressionStatistics;
+import magpie.statistics.performance.RegressionStatistics;
 import magpie.data.Dataset;
 import magpie.models.interfaces.WekaModel;
 import magpie.user.CommandHandler;
 import magpie.utility.WekaUtility;
+import magpie.utility.interfaces.Citation;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import weka.classifiers.AbstractClassifier;
 import weka.core.Instances;
+import weka.core.TechnicalInformation;
+import weka.core.TechnicalInformationHandler;
 
 /**
  * Implementation of {@link WekaModel} for regression purposes. To use this class, simply provide 
@@ -168,4 +175,18 @@ public class WekaRegression extends BaseRegression implements WekaModel {
         
         return output;
     }
+
+    @Override
+    public List<Pair<String, Citation>> getCitations() {
+        // Initialize output
+        List<Pair<String, Citation>> output = super.getCitations(); 
+        
+        // Get citations from Weka Model
+        List<Pair<String, Citation>> wekaCitations = WekaUtility.getWekaObjectCitations(Model, getClass());
+        
+        // Add in citations from Weka model
+        output.addAll(wekaCitations);
+        
+        return output;
+    }    
 }

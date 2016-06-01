@@ -8,6 +8,9 @@ data attributes properties directory ./Lookup Data/
 data attributes properties add set general
 data attributes generate
 
+// Get only the ground-state instances of each compound
+data duplicates RankingDuplicateResolver minmize PropertyRanker energy_pa SimpleEntryRanker
+
 // Set formation energy as property to be modeled
 data target delta_e
 

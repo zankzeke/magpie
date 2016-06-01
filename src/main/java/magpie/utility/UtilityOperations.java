@@ -1,12 +1,17 @@
 package magpie.utility;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
+import magpie.Magpie;
+import vassal.Vassal;
 
 /**
  * This is only a class full of useful static methods. 
@@ -82,26 +87,61 @@ public class UtilityOperations {
      * @return Whether string represents an integer
      */
     public static boolean isInteger(String str) {
-	if (str == null) {
-		return false;
-	}
-	int length = str.length();
-	if (length == 0) {
-		return false;
-	}
-	int i = 0;
-	if (str.charAt(0) == '-') {
-		if (length == 1) {
-			return false;
-		}
-		i = 1;
-	}
-	for (; i < length; i++) {
-		char c = str.charAt(i);
-		if (c <= '/' || c >= ':') {
-			return false;
-		}
-	}
-	return true;
-}
+        if (str == null) {
+            return false;
+        }
+        int length = str.length();
+        if (length == 0) {
+            return false;
+        }
+        int i = 0;
+        if (str.charAt(0) == '-') {
+            if (length == 1) {
+                return false;
+            }
+            i = 1;
+        }
+        for (; i < length; i++) {
+            char c = str.charAt(i);
+            if (c <= '/' || c >= ':') {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    /**
+     * Given the path of a path relative to the Magpie jar, find the actual path.
+     * @param toFind Relative path to file or directory (e.g. "py/lasso.py")
+     * @return Path to file. null if not found
+     */
+    public static File findFile(String toFind) {
+        // Get the path to Magpie
+        File magpiePath = null;
+        try {
+            magpiePath = new File(Magpie.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+        } catch (URISyntaxException e) {
+            // Nothing
+        }
+        
+        // Get a list of paths over which to search
+        List<File> toSearch = new ArrayList<>();
+        toSearch.add(new File(".")); // Current directory
+        toSearch.add(new File("..")); // One directory down
+        toSearch.add(new File("../..")); // Two directories down
+        if (magpiePath != null) {
+            toSearch.add(magpiePath); // Magpie path
+            toSearch.add(magpiePath.getParentFile()); // One directory down from Magpie
+            toSearch.add(magpiePath.getParentFile().getParentFile()); // Two directories down from Magpie
+        }
+        
+        // Look in these directories
+        for (File path : toSearch) {
+            File guess = new File(path, toFind);
+            if (guess.exists()) {
+                return guess;
+            }
+        }
+        return null;
+    }
 }
