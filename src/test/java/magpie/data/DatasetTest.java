@@ -14,6 +14,7 @@ import magpie.Magpie;
 import magpie.attributes.expanders.CrossExpander;
 import magpie.attributes.generators.BaseAttributeGenerator;
 import magpie.data.materials.CompositionDataset;
+import magpie.data.utilities.modifiers.NonZeroClassModifier;
 import magpie.data.utilities.output.SimpleOutput;
 import magpie.models.regression.WekaRegression;
 import org.junit.Test;
@@ -701,5 +702,36 @@ public class DatasetTest {
         
         System.out.println("\tRanked based on maximizing predicted distance from 1");
         data.runCommand(command);
+    }
+    
+    @Test
+    public void testPrintCommands() throws Exception {
+        // Create a dataset with something interesting about it
+        CompositionDataset data = new CompositionDataset();
+        data.importText("datasets/small_set.txt", null);
+        data.setTargetProperty("bandgap", true);
+        data.generateAttributes();
+        
+        NonZeroClassModifier mdfr = new NonZeroClassModifier();
+        mdfr.transform(data);
+        
+        // Print with details about the class
+        List<String> command = new LinkedList<>();
+        System.out.println("\tPrint: details");
+        command.add("details");
+        String output = data.printCommand(command);
+        System.out.println(output);
+        
+        // Print distribution of class variable
+        command.set(0, "dist");
+        System.out.println("\tPrint: dist");
+        output = data.printCommand(command);
+        System.out.println(output);
+        
+        // Print description
+        command.set(0, "description");
+        System.out.println("\tPrint: description");
+        output = data.printCommand(command);
+        System.out.println(output);
     }
 }

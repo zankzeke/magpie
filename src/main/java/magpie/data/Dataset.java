@@ -223,6 +223,9 @@ import weka.core.converters.ArffLoader;
  * <print><p>
  * <b>dist</b> - Print distribution of entries between known classes</print>
  *
+ * <print><p>
+ * <b>description</b> - Print description of this dataset</print>
+ *
  * <p>
  * <b><u>Implemented Save Formats:</u></b> TBD
  *
@@ -1737,7 +1740,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     @Override
     public String toString() {
         String output = "Number of entries:  " + NEntries();
-        output += "\nNumber of features: " + NAttributes();
+        output += "\nNumber of attributes: " + NAttributes();
         return output;
     }
 
@@ -1854,6 +1857,8 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 return this.toString();
             case "dist":
                 return this.printDistribution();
+            case "description":
+                return printDescription(false);
             default:
                 throw new Exception("ERROR: Print command \"" + Command.get(0)
                         + "\" not recognized");
