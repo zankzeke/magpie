@@ -19,8 +19,6 @@ import magpie.models.BaseModel;
 import magpie.models.classification.AbstractClassifier;
 import magpie.models.regression.*;
 import magpie.optimization.BaseOptimizer;
-import magpie.optimization.rankers.BaseEntryRanker;
-import magpie.optimization.rankers.SimpleEntryRanker;
 import magpie.utility.UtilityOperations;
 import magpie.utility.WekaUtility;
 import magpie.utility.interfaces.Citable;
@@ -35,13 +33,8 @@ import org.reflections.Reflections;
 
 /**
  * This class turns text commands into actions.
- * <p>Future directions:
- * <ul>
- * <li>Allow accessing variables using ${name} notation</li>
- * <li>Implementing defineOptions(Object[] options) interface, that will allow passing models and such to subclass</li>
- * </ul>
+ *
  * @author Logan Ward
- * @version 0.1
  */
 public class CommandHandler {
     /** Keep track of which variables have been created */
@@ -52,8 +45,6 @@ public class CommandHandler {
     protected String ElementalPropertyDirectory = "./Lookup Data";
     /** Whether to echo commands to screen */
     public boolean EchoCommands = false;
-    /** Method used to rank entries */
-    public BaseEntryRanker EntryRanker = new SimpleEntryRanker();
     /** Whether to exit on errors */
     private boolean Forgiving = true;
     /** Development use: Print stack trace on failures */
@@ -442,7 +433,7 @@ public class CommandHandler {
             NewObj = x.newInstance();
         } catch (ClassNotFoundException e) {
             throw new Exception("ERROR: Class " + ClassType + " not found");
-        } catch (Exception e) {
+        } catch (InstantiationException | IllegalAccessException e) {
             throw new Error("FATAL ERROR: Something wrong with " + ClassType + "'s implementation\n" + e);
         }
         if (NewObj instanceof Options) {
@@ -680,7 +671,8 @@ public class CommandHandler {
     /**
      * Print out citation information associated with a single variable
      * @param variableName Variable to be assessed
-     * @return Lines of output for 
+     * @return Lines of output for variable being assessed
+     * @throws java.lang.Exception If variable not found
      */
     public List<String> getCitationDescriptions(String variableName) throws Exception {
         // Get the variable
