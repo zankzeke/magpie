@@ -8,26 +8,38 @@ import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.CompositionEntry;
 import magpie.data.materials.util.LookupData;
+import magpie.utility.interfaces.Citable;
+import magpie.utility.interfaces.Citation;
 import magpie.utility.tools.OxidationStateGuesser;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.math3.stat.StatUtils;
 
 /**
- * Attributes suitable for modeling ionic compounds. Based on work by Ann Deml:
+ * Attributes derived from the oxidation states of elements in a material.
+ * Based on work by Deml <i> et al.</i>:
  * 
- * <p><center>Deml, <i>et al.</i> (?). Journal. Volume (Year), Page
+ * <p><center><a href="http://journals.aps.org/prb/abstract/10.1103/PhysRevB.93.085142">
+ * Deml <i>et al.</i>. PRB. 93 (2016), 085142</a>
  * 
- * <p>These attributes are based on the formal charges of 
- * 
- * <p>Currently implemented attributes:
+ * <p>These attributes are based on the formal charges of materials determined
+ * using the {@linkplain OxidationStateGuesser}. Currently implemented attributes:
  * <ol>
  * <li>Statistics of formal charges (min, max, range, mean, variance)
  * <li>Cumulative ionization energies / electron affinities
  * <li>Difference in electronegativity between cation and anion.
  * </ol>
  * 
+ * <p>For materials that the algorithm fails to find an charge states, 
+ * NaN is set for all attributes.
+ * 
+ * <usage><p><b>Usage</b>: *No options*</usage>
+ * 
  * @author Logan Ward
+ * @see http://journals.aps.org/prb/abstract/10.1103/PhysRevB.93.085142
  */
-public class IonicCompoundAttributeGenerator extends BaseAttributeGenerator {
+public class ChargeDependentAttributeGenerator extends BaseAttributeGenerator
+        implements Citable {
     /** Tool used to compute electronegativity */
     protected OxidationStateGuesser ChargeGuesser = null;
     /** Ionization energies of each element */
@@ -80,17 +92,17 @@ public class IonicCompoundAttributeGenerator extends BaseAttributeGenerator {
                 ChargeGuesser.setElectronegativity(electronegativity);
                 ChargeGuesser.setOxidationStates(compDataset.getOxidationStates());
             } catch (Exception e) {
-                throw new Error(e);
+                throw new RuntimeException(e);
             }
         }
         
         // Read in ionization energies
         if (IonizationEnergies == null) {
             try {
-                LookupData.readIonizationEnergies(compDataset.DataDirectory + "/IonizationEnergies.table");
+                LookupData.readIonizationEnergies(compDataset.getDataDirectory() + "/IonizationEnergies.table");
                 IonizationEnergies = LookupData.IonizationEnergies;
             } catch (IOException i) {
-                throw new Error(i);
+                throw new RuntimeException(i);
             }
         }
         
@@ -130,11 +142,6 @@ public class IonicCompoundAttributeGenerator extends BaseAttributeGenerator {
                     break;
                 }
             }
-            if (anyMissing) {
-                Arrays.fill(attrs, Double.NaN);
-                ptr.addAttributes(attrs);
-                continue;
-            }
             
             // Convert charge states to double array
             double[] charges = new double[chargesInt.length];
@@ -153,11 +160,16 @@ public class IonicCompoundAttributeGenerator extends BaseAttributeGenerator {
             }
             attrs[++pos] = 0;
             for (int i=0; i<fracs.length; i++) {
-                attrs[pos] += fracs[i] * Math.abs(charges[i] - attrs[pos-1]);
+                attrs[pos] += fracs[i] * Math.abs(Math.abs(charges[i]) - attrs[pos-1]);
             }
             pos++;
             
             // Compute attributes relating to ionization / affinity
+            if (anyMissing) {
+                Arrays.fill(attrs, pos, attrs.length, Double.NaN);
+                ptr.addAttributes(attrs);
+                continue;
+            }
             double cationFrac = 0, anionFrac = 0;
             double cationIonizationSum = 0, anionAffinitySum = 0;
             double meanCationEN = 0, meanAnionEN = 0;
@@ -212,6 +224,21 @@ public class IonicCompoundAttributeGenerator extends BaseAttributeGenerator {
                 + "and cations. Cumulative ionization energies for cations and "
                 + "electron affinitity times charge state for anions.";
         
+        return output;
+    }
+
+    @Override
+    public List<Pair<String, Citation>> getCitations() {
+        List<Pair<String,Citation>> output = new LinkedList<>();
+        Citation citation = new Citation(this.getClass(),
+                "Article",
+                new String[]{"A. Deml", "et al."},
+                "Predicting density functional theory total energies and enthalpies of formation of metal-nonmetal compounds by linear regression",
+                "http://link.aps.org/doi/10.1103/PhysRevB.89.094104",
+                null
+            );
+        output.add(new ImmutablePair<>("Used these attributes to predict "
+                + "total energy of ionic compounds.", citation));
         return output;
     }
     
