@@ -125,6 +125,9 @@ public class CoulombEwaldMatrixRegressionTest {
         // Train a model
         CoulombEwaldMatrixRegression r = new CoulombEwaldMatrixRegression();
         r.train(dataset);
+        
+        // Print citations
+        System.out.println(r.getCitations());
     }
     
 }

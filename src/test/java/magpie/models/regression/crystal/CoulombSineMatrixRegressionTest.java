@@ -126,6 +126,9 @@ public class CoulombSineMatrixRegressionTest {
         // Train a model
         CoulombSineMatrixRegression r = new CoulombSineMatrixRegression();
         r.train(dataset);
+        
+        // Print citations
+        System.out.println(r.getCitations());
     }
     
 }

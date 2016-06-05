@@ -2,7 +2,10 @@ package magpie.models.regression.crystal;
 
 import java.util.List;
 import magpie.data.materials.util.LookupData;
+import magpie.utility.interfaces.Citation;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.BlockRealMatrix;
@@ -152,6 +155,21 @@ public class CoulombSineMatrixRegression extends StructureKRRBasedRegression {
                 output.setEntry(r2, r1, res);
             }
         }
+        
+        return output;
+    }
+    
+    @Override
+    public List<Pair<String, Citation>> getCitations() {
+        List<Pair<String, Citation>> output = super.getCitations(); 
+        
+        output.add(new ImmutablePair<>("Adapted Coulomb Matrix for predicting properties of crystalline solids",
+                new Citation(this.getClass(), 
+                        "Article",
+                        new String[]{"Faber, F.", "et al."},
+                        "Crystal structure representations for machine learning models of formation energies",
+                        "http://doi.wiley.com/10.1002/qua.24917",
+                        null)));
         
         return output;
     }

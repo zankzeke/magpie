@@ -2,6 +2,7 @@ package magpie.models.regression.crystal;
 
 import java.util.*;
 import magpie.data.materials.util.LookupData;
+import magpie.utility.interfaces.Citation;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.*;
 import org.apache.commons.math3.stat.StatUtils;
@@ -154,4 +155,20 @@ public class PRDFRegression extends StructureKRRBasedRegression {
         
         return rep;
     }
+
+    @Override
+    public List<Pair<String, Citation>> getCitations() {
+        List<Pair<String, Citation>> output = super.getCitations(); 
+        
+        output.add(new ImmutablePair<>("Introduced use of PRDF for predicting properties of crystalline solids",
+                new Citation(this.getClass(), 
+                        "Article",
+                        new String[]{"Schutt, K.T.", "et al."},
+                        "How to represent crystal structures for machine learning: Towards fast prediction of electronic properties",
+                        "http://link.aps.org/doi/10.1103/PhysRevB.89.205118",
+                        null)));
+        
+        return output;
+    }
+    
 }

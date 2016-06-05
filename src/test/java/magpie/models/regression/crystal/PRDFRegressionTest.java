@@ -69,6 +69,9 @@ public class PRDFRegressionTest {
         // Train a model
         PRDFRegression r = new PRDFRegression();
         r.train(dataset);
+        
+        // Print citation
+        System.out.println(r.getCitations());
     }
     
     @Test
