@@ -5,7 +5,9 @@ apply plugin: 'com.github.kt3k.coveralls'
 
 // Where to find libraries for Magpie
 repositories {
-    mavenCentral()
+    maven  {
+        url "http://repo1.maven.org/maven2"
+    }
     flatDir {
         dirs 'required-libraries'
     }
@@ -34,7 +36,7 @@ cobertura {
 dependencies {
     compile name: 'commons-collections-3.2.1'
     compile name: 'commons-lang3-3.1'
-    compile name: 'commons-math3-3.3'
+    compile group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
     compile name: 'commons-io-2.4'
     compile name: 'expr'
     compile name: 'guava-16.0.1'
