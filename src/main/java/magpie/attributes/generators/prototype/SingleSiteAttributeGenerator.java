@@ -58,11 +58,97 @@ public class SingleSiteAttributeGenerator extends BaseAttributeGenerator {
         // Get the site information
         PrototypeSiteInformation siteInfo = data.getSiteInfo();
         
-        // Generate names and store site labels
-        List<String> attrNames = new ArrayList<>();
+        // Store properties from which attributes are computed
+        ElementalProperties = data.getElementalProperties();
+        
+        // Store prototype information
         SingleSites.clear();
         MultipleSites.clear();
-        ElementalProperties = data.getElementalProperties();
+        for (int g=0; g<siteInfo.NGroups(); g++) {
+            String siteLabel = siteInfo.getGroupLabel(g);
+            if (siteInfo.getSiteGroup(g).size() == 1) {
+                SingleSites.add(siteLabel);
+            } else {
+                MultipleSites.add(siteLabel);
+            }
+        }
+        
+        // Create names of attributes
+        List<String> attrNames = generateAttributeNames(siteInfo);
+        data.addAttributes(attrNames);
+        
+        // Compute attributes for each entry
+        double[] attrs = new double[attrNames.size()];
+        for (BaseEntry entryPtr : data.getEntries()) {
+            PrototypeEntry entry = (PrototypeEntry) entryPtr;
+            
+            // Compute attributes
+            generateAttributes(siteInfo, entry, data, attrs);
+            
+            // Add to entry
+            entry.addAttributes(attrs);
+        }
+    }
+
+    /**
+     * Compute attributes for a single entry
+     * @param siteInfo Information each site in this protoype
+     * @param entry Entry being computed
+     * @param data Dataset (link to property lookup tables)
+     * @param attrs [out] Temporary storage for attributes (to avoid recreating N double[] arrays)
+     * @throws Exception 
+     */
+    protected void generateAttributes(PrototypeSiteInformation siteInfo,
+            PrototypeEntry entry, PrototypeDataset data, double[] attrs) throws Exception {
+        // Loop through each site group
+        int pos=0;
+        for (int g = 0; g<siteInfo.NGroups(); g++) {
+            // Check whether this site is marked as "omittted"
+            if (! siteInfo.groupIsIncludedInAttributes(g)) {
+                continue;
+            }
+            
+            // Get the composition of each site in the crystal
+            List<CompositionEntry> siteComps = new ArrayList<>(siteInfo.getSiteGroup(g).size());
+            for (int site : siteInfo.getSiteGroup(g)) {
+                siteComps.add(entry.getSiteComposition(site));
+            }
+            
+            // Loop through each property
+            for (String prop : ElementalProperties) {
+                // Get a lookup table
+                double[] propValues = data.getPropertyLookupTable(prop);
+                
+                if (siteComps.size() == 1) {
+                    // Only compute the mean
+                    attrs[pos++] = siteComps.get(0).getMean(propValues);
+                } else {
+                    // Compute the mean for each site
+                    double[] siteMeans = new double[siteComps.size()];
+                    for (int s=0; s<siteMeans.length; s++) {
+                        siteMeans[s] = siteComps.get(s).getMean(propValues);
+                    }
+                    
+                    // Compute several statistics
+                    attrs[pos++] = StatUtils.min(siteMeans);
+                    double mean = StatUtils.mean(siteMeans);
+                    attrs[pos++] = mean;
+                    attrs[pos++] = StatUtils.max(siteMeans);
+                    attrs[pos++] = MathUtils.meanAbsoluteDeviation(siteMeans, mean);
+                    attrs[pos++] = StatUtils.max(siteMeans) - StatUtils.min(siteMeans);
+                }
+            }
+        }
+    }
+
+    /**
+     * Generate names of attributes
+     * @param siteInfo Information about sites in this prototype structure
+     * @return List of attribute names
+     */
+    protected List<String> generateAttributeNames(PrototypeSiteInformation siteInfo) {
+        // Generate names and store site labels
+        List<String> attrNames = new ArrayList<>();
         for (int g=0; g<siteInfo.NGroups(); g++) {
             // Check whether this site is marked as "omittted"
             if (! siteInfo.groupIsIncludedInAttributes(g)) {
@@ -73,75 +159,24 @@ public class SingleSiteAttributeGenerator extends BaseAttributeGenerator {
             String siteLabel = siteInfo.getGroupLabel(g);
             List<String> statNames = new ArrayList<>();
             if (siteInfo.getSiteGroup(g).size() == 1) {
-                 statNames.add("mean");
-                 SingleSites.add(siteLabel);
+                statNames.add("mean");
             } else {
                 statNames.add("minimum");
                 statNames.add("mean");
                 statNames.add("maximum");
                 statNames.add("variance");
                 statNames.add("range");
-                MultipleSites.add(siteLabel);
             }
             
             // Add in labes for each property
-            for (String prop : data.getElementalProperties()) {
+            for (String prop : ElementalProperties) {
                 for (String stat : statNames) {
                     attrNames.add(String.format("%s_%s_%s", siteLabel,
                             stat, prop));
                 }
             }
         }
-        data.addAttributes(attrNames);
-        
-        // Compute attributes for each entry
-        double[] attrs = new double[attrNames.size()];
-        for (BaseEntry entryPtr : data.getEntries()) {
-            PrototypeEntry entry = (PrototypeEntry) entryPtr;
-            
-            // Loop through each site group
-            int pos=0;
-            for (int g = 0; g<siteInfo.NGroups(); g++) {
-                // Check whether this site is marked as "omittted"
-                if (! siteInfo.groupIsIncludedInAttributes(g)) {
-                    continue;
-                }
-                
-                // Get the composition of each site in the crystal
-                List<CompositionEntry> siteComps = new ArrayList<>(siteInfo.getSiteGroup(g).size());
-                for (int site : siteInfo.getSiteGroup(g)) {
-                    siteComps.add(entry.getSiteComposition(site));
-                }
-                
-                // Loop through each property
-                for (String prop : data.getElementalProperties()) {
-                    // Get a lookup table
-                    double[] propValues = data.getPropertyLookupTable(prop);
-                    
-                    if (siteComps.size() == 1) {
-                        // Only compute the mean
-                        attrs[pos++] = siteComps.get(0).getMean(propValues);
-                    } else {
-                        // Compute the mean for each site
-                        double[] siteMeans = new double[siteComps.size()];
-                        for (int s=0; s<siteMeans.length; s++) {
-                            siteMeans[s] = siteComps.get(s).getMean(propValues);
-                        }
-                        
-                        // Compute several statistics
-                        attrs[pos++] = StatUtils.min(siteMeans);
-                        double mean = StatUtils.mean(siteMeans);
-                        attrs[pos++] = mean;
-                        attrs[pos++] = StatUtils.max(siteMeans);
-                        attrs[pos++] = MathUtils.meanAbsoluteDeviation(siteMeans, mean);
-                        attrs[pos++] = StatUtils.max(siteMeans) - StatUtils.min(siteMeans);
-                    }
-                }
-            }
-            
-            // Add to entry
-            entry.addAttributes(attrs);
-        }
+        return attrNames;
     }
 
     @Override
@@ -188,14 +223,25 @@ public class SingleSiteAttributeGenerator extends BaseAttributeGenerator {
                 output += " and " + MultipleSites.get(MultipleSites.size() - 1) + " sites";
             }
         }
+        output += ". ";
         
-        output += ". Considers the following elemental properties:\n";
+        return output + printElementalProperties(htmlFormat);
+    }
+
+    /**
+     * Print list of elemental properties used in computing attributes
+     * @param htmlFormat Whether to use HTML format
+     * @return List of attributes
+     */
+    protected String printElementalProperties(boolean htmlFormat) {
+        // Print out list of properties
+        String output = "Considers the following elemental properties:\n";
         if (htmlFormat) {
             output += "</br>";
         }
         
         // List properties
-         boolean started = false;
+        boolean started = false;
         for (String prop : ElementalProperties) {
             if (started) {
                 output += ", ";
