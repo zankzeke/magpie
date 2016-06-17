@@ -16,7 +16,8 @@ import org.apache.commons.math3.util.Combinations;
  * of atoms on that site is used to describe it. If there are multiple sites in a
  * group, then the maximum, mean, and minimum of that property is used to describe the site.
  * The difference between all descriptions of each site group are used to compute
- * attributes. 
+ * attributes. Both the absolute value of the difference and the magnitude of the difference
+ * are generated.
  * 
  * <p>Example: For a material with stoichiometry (AA')B<sub>2</sub> there are two
  * groups of sites: (1) The group including the A and A' sites, and (2) the B site.
@@ -65,6 +66,10 @@ public class PairSiteAttributeGenerator extends SingleSiteAttributeGenerator {
 
                 // Generate all combinations of these properties
                 for (List<String> stats : new CartesianSumGenerator<>(leftProps, rightProps)) {
+                    attrNames.add(String.format("(%s%s-%s%s)_%s", 
+                        stats.get(0), siteInfo.getGroupLabel(pair[0]),
+                        stats.get(1), siteInfo.getGroupLabel(pair[1]), 
+                        prop));
                     attrNames.add(String.format("|%s%s-%s%s|_%s", 
                         stats.get(0), siteInfo.getGroupLabel(pair[0]),
                         stats.get(1), siteInfo.getGroupLabel(pair[1]), 
@@ -119,7 +124,9 @@ public class PairSiteAttributeGenerator extends SingleSiteAttributeGenerator {
 
                 // Generate all combinations of these properties
                 for (List<Double> stats : new CartesianSumGenerator<>(leftProps, rightProps)) {
-                    attrs[pos++] = Math.abs(stats.get(1) - stats.get(0));
+                    double diff = stats.get(1) - stats.get(0);
+                    attrs[pos++] = diff;
+                    attrs[pos++] = Math.abs(diff);
                 }
             }
         }
@@ -127,14 +134,13 @@ public class PairSiteAttributeGenerator extends SingleSiteAttributeGenerator {
 
     @Override
     public String printDescription(boolean htmlFormat) {
-        
         String output = getClass().getName() + (htmlFormat ? " " : ": ");
 
         // Determine the number of attributes
         int nAttr = SingleSites.size() > 1 ? SingleSites.size() * (SingleSites.size() - 1) / 2 : 0;
         nAttr += SingleSites.size() * MultipleSites.size() * 3;
         nAttr += MultipleSites.size() > 1 ? MultipleSites.size() * (MultipleSites.size() - 1) * 9 / 2 : 0;
-        nAttr *= ElementalProperties.size();
+        nAttr *= ElementalProperties.size() * 2;
         
         // Print out short summary
         output += "(" + nAttr + ")";
