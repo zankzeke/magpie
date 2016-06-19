@@ -634,18 +634,23 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
             } break;
             case "crossvalidate": case "cv": case "cross": {
                 // Usage: crossvalidate $<dataset> [<folds = 10>]
-                Dataset Data;
+                Dataset data;
                 int folds;
                 try {
-                    Data = (Dataset) Command.get(1);
+                    data = (Dataset) Command.get(1);
                     folds = 10;
                     if (Command.size() > 2) {
-                        folds = Integer.valueOf(Command.get(2).toString());
+                        String foldVal = Command.get(2).toString();
+                        if (foldVal.equalsIgnoreCase("loocv")) {
+                            folds = data.NEntries();
+                        } else {
+                            folds = Integer.valueOf(Command.get(2).toString());
+                        }
                     }
                 } catch (Exception e) {
                     throw new Exception("Usage: crossvalidate $<dataset> [<folds = 10>]");
                 }
-                return crossValidate(folds, Data);
+                return crossValidate(folds, data);
             }
             case "normalize": {
                 boolean doAttributes = false, doClass = false;

@@ -261,12 +261,19 @@ public class MultiPropertyEntry extends BaseEntry {
         }
     }
     
-    
-
     @Override
     public void deleteMeasuredClass() {
         if (usingPropertyAsClass()) {
             setMeasuredProperty(TargetProperty, Double.NaN);
+        } else {
+            super.deleteMeasuredClass(); 
+        }
+    }
+    
+    @Override
+    public void deletePredictedClass() {
+        if (usingPropertyAsClass()) {
+            setPredictedProperty(TargetProperty, null);
         } else {
             super.deleteMeasuredClass(); 
         }
@@ -337,12 +344,13 @@ public class MultiPropertyEntry extends BaseEntry {
     }
     
     /**
-     * Directly set the probabilities of an entry existing in multiple classes.
+     * Directly set the probabilities of an entry existing in one of several classes.
      * @param index Index of property
-     * @param newValues Class probabilities
+     * @param newValues Class probabilities. If <code>null</code>, marks this
+     * class as unset
      */
     public void setPredictedProperty(int index, double[] newValues) {
-        PredictedProperty[index] = newValues;
+        PredictedProperty[index] = newValues != null ? newValues.clone() : null;
     }
 
     /**

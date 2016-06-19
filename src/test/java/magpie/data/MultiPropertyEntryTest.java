@@ -132,4 +132,38 @@ public class MultiPropertyEntryTest {
         assertFalse(entry.hasMeasurement());
     }
     
+    @Test
+    public void testDeletePrediction() {
+        MultiPropertyEntry entry = new MultiPropertyEntry();
+        entry.addProperty();
+        
+        // Test the entry
+        assertEquals(1, entry.NProperties());
+        assertEquals(-1, entry.getTargetProperty());
+        assertFalse(entry.hasPrediction());
+        
+        // Set the measurement
+        entry.setPredictedClass(1.0);
+        assertTrue(entry.hasPrediction());
+        
+        // Make sure you can delete it
+        entry.deletePredictedClass();
+        assertFalse(entry.hasPrediction());
+        
+        // Make the property the target property and repeat
+        entry.setTargetProperty(0);
+        
+        // Test the entry
+        assertEquals(0, entry.getTargetProperty());
+        assertFalse(entry.hasPrediction());
+        
+        // Set the measurement
+        entry.setPredictedClass(1.0);
+        assertTrue(entry.hasPrediction());
+        
+        // Make sure you can delete it
+        entry.deletePredictedClass();
+        assertFalse(entry.hasPrediction());
+    }
+    
 }

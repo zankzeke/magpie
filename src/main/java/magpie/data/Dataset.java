@@ -1534,11 +1534,20 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     }
     
     /**
-     * Delete all measured classes from entry from entries
+     * Delete all measured classes from entries
      */
     public void deleteMeasuredClasses() {
         for (BaseEntry entry : Entries) {
             entry.deleteMeasuredClass();
+        }
+    }
+    
+    /**
+     * Delete all predicted classes from entries
+     */
+    public void deletePredictedClasses() {
+        for (BaseEntry entry : Entries) {
+            entry.deletePredictedClass();
         }
     }
 

@@ -605,7 +605,7 @@ public class DatasetTest {
     }
     
     @Test
-    public void testDeleteMeasurements() {
+    public void testDeleteClass() {
         // Create fake dataset
         Dataset data = new Dataset();
         data.addEntry(new BaseEntry());
@@ -616,13 +616,23 @@ public class DatasetTest {
         data.getEntry(2).setMeasuredClass(-3);
         data.getEntry(1).setPredictedClass(-1);
         
-        // Test clear
+        // Test clear measured
         data.deleteMeasuredClasses();
         assertFalse(data.getEntry(0).hasMeasurement());
         assertFalse(data.getEntry(1).hasMeasurement());
         assertFalse(data.getEntry(2).hasMeasurement());
         assertFalse(data.getEntry(0).hasPrediction());
         assertTrue(data.getEntry(1).hasPrediction());
+        assertFalse(data.getEntry(2).hasPrediction());
+        
+        // Test clear predicted
+        data.getEntry(0).setMeasuredClass(-1);
+        data.deletePredictedClasses();
+        assertTrue(data.getEntry(0).hasMeasurement());
+        assertFalse(data.getEntry(1).hasMeasurement());
+        assertFalse(data.getEntry(2).hasMeasurement());
+        assertFalse(data.getEntry(0).hasPrediction());
+        assertFalse(data.getEntry(1).hasPrediction());
         assertFalse(data.getEntry(2).hasPrediction());
     }
     
