@@ -24,7 +24,7 @@ public class RandomGuessRegression extends BaseRegression {
             LowerBound = Double.parseDouble(Options.get(0).toString());
             UpperBound = Double.parseDouble(Options.get(1).toString());
         } catch (Exception e) {
-            throw new Exception(printUsage());
+            throw new IllegalArgumentException(printUsage());
         }
     }
 

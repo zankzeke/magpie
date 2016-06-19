@@ -58,7 +58,7 @@ public class CumulantExpansionClassifier extends BaseClassifier implements Savab
             filename = Options.get(0).toString();
             setNComponents(Integer.parseInt(Options.get(1).toString()));
         } catch (Exception e) {
-            throw new Exception(printUsage());
+            throw new IllegalArgumentException(printUsage());
         }
         defineKnownCompounds(filename);
     }
@@ -170,7 +170,7 @@ public class CumulantExpansionClassifier extends BaseClassifier implements Savab
                     if (Command.size() == 2)
                         toPrint = Integer.parseInt(Command.get(1));
                 } catch (NumberFormatException e) {
-                    throw new Exception("Usage: culumants [<toPrint>]");
+                    throw new IllegalArgumentException("Usage: culumants [<toPrint>]");
                 }
                 String output = "";
                 for (int i=0; i<NClasses; i++) {
@@ -198,7 +198,7 @@ public class CumulantExpansionClassifier extends BaseClassifier implements Savab
                 return Basename + "#.cumulants";
             }
             default: 
-				throw new Exception("Save format not supported: " + Command);
+				throw new IllegalArgumentException("Save format not supported: " + Command);
         }
     }
 

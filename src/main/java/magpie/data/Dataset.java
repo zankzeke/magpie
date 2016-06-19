@@ -1496,7 +1496,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      */
     public double[] getPredictedClassArray() {
         if (!Entries.iterator().next().hasPrediction()) {
-            throw new Error("Entries have no predicted class");
+            throw new RuntimeException("Entries have no predicted class");
         }
         double[] output = new double[NEntries()];
         int id = 0;

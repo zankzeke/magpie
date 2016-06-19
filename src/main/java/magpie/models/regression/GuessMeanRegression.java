@@ -23,9 +23,9 @@ public class GuessMeanRegression extends SingleGuessRegression {
             if (Options.length > 0)
                 if (Options[0].equalsIgnoreCase("-jitter"))
                     Jitter = Double.parseDouble(Options[1]);
-                else throw new Exception();
+                else throw new IllegalArgumentException();
         } catch (Exception e) {
-            throw new Exception(printUsage());
+            throw new IllegalArgumentException(printUsage());
         }
     }
 

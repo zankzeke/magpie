@@ -75,7 +75,7 @@ public class WekaRegression extends BaseRegression implements WekaModel {
                 }
             }
         } catch (Exception e) {
-            throw new Exception(printUsage());
+            throw new IllegalArgumentException(printUsage());
         }
 
         // Set the model

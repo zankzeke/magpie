@@ -113,7 +113,7 @@ public class SplitRegression extends SplitModel implements AbstractRegressionMod
                     double Q;
                     try { Q = Double.parseDouble(Command.get(1).toString()); }
                     catch (Exception e) {
-                        throw new Exception("Usage: robust <Q>");
+                        throw new IllegalArgumentException("Usage: robust <Q>");
                     }
                     setRobustRegressionQ(Q);
                     return null;

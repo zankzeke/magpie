@@ -36,12 +36,12 @@ abstract public class MultiModelUtility {
         if (UtilityOperations.isInteger(Action)) {
             int SubModelNumber = Integer.parseInt(Action);
             if (SubModelNumber >= Model.NModels()) {
-                throw new Exception("ERROR: There are only " + Model.NModels() + " submodels");
+                throw new IllegalArgumentException("ERROR: There are only " + Model.NModels() + " submodels");
             }
             List<String> SubModelCommand = Command.subList(2, Command.size());
 			return Model.getModel(SubModelNumber).printCommand(SubModelCommand);
         }
-        throw new Exception("ERROR: Submodel command not recognized.");
+        throw new IllegalArgumentException("ERROR: Submodel command not recognized.");
     }
 
     /**
@@ -94,7 +94,7 @@ abstract public class MultiModelUtility {
                             modelNumber = Integer.parseInt(Command.get(1).toString());
                         }
                     } catch (Exception e) {
-                        throw new Exception("Usage: submodel set <generic|#> = <model>");
+                        throw new IllegalArgumentException("Usage: submodel set <generic|#> = <model>");
                     }
                     if (modelNumber == -1) {
                         return Ptr.getGenericModel();
@@ -115,7 +115,7 @@ abstract public class MultiModelUtility {
                         }
                         model = (BaseModel) Command.get(2);
                     } catch (Exception e) {
-                        throw new Exception("Usage: submodel set <generic|#> $<model>");
+                        throw new IllegalArgumentException("Usage: submodel set <generic|#> $<model>");
                     }
                     if (modelNumber == -1) {
                         Ptr.setGenericModel(model);
@@ -125,7 +125,7 @@ abstract public class MultiModelUtility {
                 }
                 break;
             default:
-                throw new Exception("ERROR: Submodel command not recognized: " + Action);
+                throw new IllegalArgumentException("ERROR: Submodel command not recognized: " + Action);
         }
         return null;
     }

@@ -60,12 +60,12 @@ public class MultiObjectiveRegression extends BaseRegression {
             }
             rankerOptions = Options.subList(1, Options.size());
         } catch (Exception e) {
-            throw new Exception(printUsage());
+            throw new IllegalArgumentException(printUsage());
         }
         BaseEntryRanker obj = (BaseEntryRanker) CommandHandler.instantiateClass(
                 "optimization.rankers." + method, rankerOptions);
         if (! (obj instanceof MultiObjectiveEntryRanker)) {
-            throw new Exception("Ranker must be a MultiObjectiveEntryRanker");
+            throw new IllegalArgumentException("Ranker must be a MultiObjectiveEntryRanker");
         }
         setObjectiveFunction((MultiObjectiveEntryRanker) obj);
     }
@@ -132,7 +132,7 @@ public class MultiObjectiveRegression extends BaseRegression {
      */
     public void setModel(String propertyName, BaseModel model) throws Exception {
         if (! (model instanceof AbstractRegressionModel)) {
-            throw new Exception("Error: Model must be a regression model.");
+            throw new IllegalArgumentException("Error: Model must be a regression model.");
         }
         Models.put(propertyName, model.clone());
     }
@@ -143,7 +143,7 @@ public class MultiObjectiveRegression extends BaseRegression {
      */
     public void setGenericModel(BaseModel model) throws Exception {
         if (! (model instanceof AbstractRegressionModel)) {
-            throw new Exception("Error: Model must be a regression model.");
+            throw new IllegalArgumentException("Error: Model must be a regression model.");
         }
         this.GenericModel = model.clone();
     }
@@ -311,7 +311,7 @@ public class MultiObjectiveRegression extends BaseRegression {
                     name = Command.get(1).toString();
                     model = (BaseModel) Command.get(2);
                 } catch (Exception e) {
-                    throw new Exception("Usage: submodel set <property|generic> $<model>");
+                    throw new IllegalArgumentException("Usage: submodel set <property|generic> $<model>");
                 }
                 if (name.equalsIgnoreCase("generic")) {
                     setGenericModel(model);
@@ -325,15 +325,15 @@ public class MultiObjectiveRegression extends BaseRegression {
                 try {
                     name = Command.get(1).toString();
                 } catch (Exception e) {
-                    throw new Exception("Usage: <model> = submodel get <property>");
+                    throw new IllegalArgumentException("Usage: <model> = submodel get <property>");
                 }
                 if (! modelIsDefined(name)) {
-                    throw new Exception("No model defined for property:" + name);
+                    throw new IllegalArgumentException("No model defined for property:" + name);
                 }
                 return getModel(name);
             }
             default:
-                throw new Exception("Submodel command not recognized:" + Action);
+                throw new IllegalArgumentException("Submodel command not recognized:" + Action);
         }
     }
 }

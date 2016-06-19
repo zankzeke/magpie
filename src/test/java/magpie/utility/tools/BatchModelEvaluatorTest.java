@@ -53,12 +53,9 @@ public class BatchModelEvaluatorTest {
         eval.setBatchSize(100);
         eval.evaluate(data);
         
-        // Make sure it gives the same results
+        // Make sure running it normally gives the same results
         trainStats = (RegressionStatistics) weka.TrainingStats;
         runStats = new RegressionStatistics();
-        for (BaseEntry entry : data.getEntries()) {
-            entry.deletePredictedClass();
-        }
         runStats.evaluate(data);
         assertEquals(trainStats.MAE, runStats.MAE, 1e-6);
         

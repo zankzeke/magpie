@@ -35,10 +35,10 @@ public class LinearCorrectedRegression extends BaseRegression {
     public void setOptions(List<Object> Options) throws Exception {
         BaseModel submodel;
         try {
-            if (Options.size() != 1) throw new Exception();
+            if (Options.size() != 1) throw new IllegalArgumentException();
             submodel = (BaseModel) Options.get(0);
         } catch (Exception e) {
-            throw new Exception(printUsage());
+            throw new IllegalArgumentException(printUsage());
         }
         setSubmodel(submodel);
     }
@@ -55,7 +55,7 @@ public class LinearCorrectedRegression extends BaseRegression {
      */
     public void setSubmodel(BaseModel submodel) throws Exception {
         if (! (submodel instanceof AbstractRegressionModel)) {
-            throw new Exception("Model must be a regression model");
+            throw new IllegalArgumentException("Model must be a regression model");
         }
         Submodel = submodel.clone();
     }

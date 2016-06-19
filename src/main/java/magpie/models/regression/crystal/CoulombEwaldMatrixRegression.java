@@ -43,7 +43,7 @@ public class CoulombEwaldMatrixRegression extends StructureKRRBasedRegression {
             lam = Double.parseDouble(Options.get(0).toString());
             sig = Double.parseDouble(Options.get(1).toString());
         } catch (Exception e) {
-            throw new Exception(printUsage());
+            throw new IllegalArgumentException(printUsage());
         }
         setSigma(sig);
         setLambda(lam);

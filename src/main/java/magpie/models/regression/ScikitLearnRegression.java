@@ -82,14 +82,14 @@ public class ScikitLearnRegression extends BaseRegression {
         int level = 5;
         try {
             if (Options.size() > 2) {
-                throw new Exception();
+                throw new IllegalArgumentException();
             }
             path = Options.get(0).toString();
             if (Options.size() > 1) {
                 level = Integer.parseInt(Options.get(1).toString());
             }
         } catch (Exception e) {
-            throw new Exception(printUsage());
+            throw new IllegalArgumentException(printUsage());
         }
         readModel(new FileInputStream(path));
         setCompressionLevel(level);
@@ -114,7 +114,7 @@ public class ScikitLearnRegression extends BaseRegression {
      */
     public void setCompressionLevel(int level) throws Exception {
         if (level < 0 || level > 9) {
-            throw new Exception("Compression level must be 0-9");
+            throw new IllegalArgumentException("Compression level must be 0-9");
         }
         this.CompressionLevel = level;
     }
@@ -285,7 +285,7 @@ public class ScikitLearnRegression extends BaseRegression {
                 System.err.println(line);
                 line = fe.readLine();
             }
-            throw new Exception("Server failed to start");
+            throw new IllegalArgumentException("Server failed to start");
         }
         
         // Make sure the process is killed
@@ -348,7 +348,7 @@ public class ScikitLearnRegression extends BaseRegression {
 
             // Check if server is still running
             if (! serverIsRunning()) {
-                throw new Exception();
+                throw new IllegalArgumentException();
             }
             
             socket.close();

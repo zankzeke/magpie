@@ -228,7 +228,7 @@ public abstract class AbstractNonlinearRegression extends BaseRegression {
      */
     public void setInitialGuess(String Name, double value) throws Exception {
         int index = FittingNames.indexOf(Name);
-        if (index == -1) throw new Exception("ERROR: No coefficient with name: " + Name);
+        if (index == -1) throw new IllegalArgumentException("ERROR: No coefficient with name: " + Name);
         InitialGuess.set(index, value);
     }
     
@@ -345,7 +345,7 @@ public abstract class AbstractNonlinearRegression extends BaseRegression {
      * @throws Exception 
      */
     public Object runNonlinearCommand(List<Object> Command) throws Exception {
-        if (Command.isEmpty()) throw new Exception("This is a nonlinear model. But you didn't ask for anything.");
+        if (Command.isEmpty()) throw new IllegalArgumentException("This is a nonlinear model. But you didn't ask for anything.");
         String Action = Command.get(0).toString().toLowerCase();
         switch (Action) {
             case "guess": {
@@ -354,7 +354,7 @@ public abstract class AbstractNonlinearRegression extends BaseRegression {
                     Name = Command.get(1).toString();
                     guess = Double.parseDouble(Command.get(2).toString());
                 } catch (Exception e) {
-                    throw new Exception("Usage: nonlinear guess <parameter name> <guess>");
+                    throw new IllegalArgumentException("Usage: nonlinear guess <parameter name> <guess>");
                 }
                 setInitialGuess(Name, guess);
             } break;
@@ -363,12 +363,12 @@ public abstract class AbstractNonlinearRegression extends BaseRegression {
                 try {
                     maxIters = Integer.parseInt(Command.get(1).toString());
                 } catch (Exception e) {
-                    throw new Exception("Usage: nonlinear maxiter <maxiter>");
+                    throw new IllegalArgumentException("Usage: nonlinear maxiter <maxiter>");
                 }
                 setMaxIterations(maxIters);
             } break;
             default:
-                throw new Exception("Nonlinear command not recognized: " + Action);
+                throw new IllegalArgumentException("Nonlinear command not recognized: " + Action);
         }
         return null;
     }

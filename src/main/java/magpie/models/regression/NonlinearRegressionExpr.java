@@ -44,7 +44,7 @@ public class NonlinearRegressionExpr extends AbstractParsedNonlinearRegression {
             int varPos = Expression.indexOf("#{", curPos);
             if (varPos == -1) break; // No more variables
             int varEnd = Expression.indexOf("}", varPos);
-            if (varEnd == -1) throw new Exception("Poorly formed expression - Can't find }");
+            if (varEnd == -1) throw new IllegalArgumentException("Poorly formed expression - Can't find }");
             curPos = varEnd; // Move up the serach
             String varName = Expression.substring(varPos + 2, varEnd);
             

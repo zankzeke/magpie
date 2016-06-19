@@ -284,7 +284,7 @@ abstract public class SplitModel extends BaseModel implements MultiModel {
 					Method = Command.get(1).toString();
 					MethodOptions = Command.subList(2, Command.size());
 				} catch (Exception e) {
-					throw new Exception("splitter <method> <options...>");
+					throw new IllegalArgumentException("splitter <method> <options...>");
 				}
 				BaseDatasetSplitter splitter = (BaseDatasetSplitter)
 						CommandHandler.instantiateClass("data.utilities.splitters." + Method, MethodOptions);

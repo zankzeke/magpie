@@ -52,11 +52,11 @@ public class MetallurgicalHeuristicRegression extends BaseRegression {
                 if (Options.get(1).toString().equalsIgnoreCase("-correction")) {
                     setUseCorrection(true);
                 } else {
-                    throw new Exception();
+                    throw new IllegalArgumentException();
                 }
             }
 		} catch (Exception e) {
-			throw new Exception(printUsage());
+			throw new IllegalArgumentException(printUsage());
 		}
 	}
 

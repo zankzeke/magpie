@@ -19,7 +19,7 @@ public class MultiPropertyRegression extends MultiObjectiveRegression {
 	@Override
 	public void setOptions(List<Object> Options) throws Exception {
 		if (Options.isEmpty()) {
-			throw new Exception(printUsage());
+			throw new IllegalArgumentException(printUsage());
 		}
 		String formula = "#{" + Options.get(0) + "}";
 		for (Object prop : Options.subList(1, Options.size())) {

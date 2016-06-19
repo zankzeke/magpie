@@ -58,7 +58,7 @@ public abstract class AbstractParsedNonlinearRegression extends AbstractNonlinea
     public void setOptions(List OptionsObj) throws Exception {
         String[] Options = CommandHandler.convertCommandToString(OptionsObj);
         if (Options.length == 0) {
-            throw new Exception(printUsage());
+            throw new IllegalArgumentException(printUsage());
         }
         // Write down the formula as a string
         String formula = Options[0];

@@ -84,7 +84,7 @@ abstract public class BaseRegression extends BaseModel implements AbstractRegres
                     double Q;
                     try { Q = Double.parseDouble(Command.get(1).toString()); }
                     catch (Exception e) {
-                        throw new Exception("Usage: robust <Q>");
+                        throw new IllegalArgumentException("Usage: robust <Q>");
                     }
                     setRobustRegressionQ(Q);
                     return null;

@@ -34,9 +34,9 @@ public class SingleGuessRegression extends BaseRegression {
             if (Options.length > 1)
                 if (Options[1].equalsIgnoreCase("-jitter"))
                     Jitter = Double.parseDouble(Options[2]);
-                else throw new Exception();
+                else throw new IllegalArgumentException();
         } catch (Exception e) {
-            throw new Exception(printUsage());
+            throw new IllegalArgumentException(printUsage());
         }
     }
 

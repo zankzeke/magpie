@@ -4,8 +4,10 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import magpie.Magpie;
 import magpie.statistics.performance.BaseStatistics;
@@ -359,6 +361,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
             
             // Launch threads
             ExecutorService service = Executors.newFixedThreadPool(originalNThreads);
+            List<Future> futures = new ArrayList<>(originalNThreads);
             for (int i=0; i<originalNThreads; i++) {
                 final Dataset part = threadData[i];
                 final BaseModel model = i == 0 ? this : clone();
@@ -368,15 +371,17 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                         model.run(part);
                     }
                 };
-                service.submit(thread);
+                futures.add(service.submit(thread));
             }
             
-            // Wait until everything is done
+            // Check that each thread finished 
             service.shutdown();
-            try {
-                service.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
-            } catch (InterruptedException i) {
-                throw new Error(i);
+            for (Future future : futures) {
+                try {
+                    future.get();
+                } catch (ExecutionException | InterruptedException e) {
+                    throw new RuntimeException("Thread failed due to: " + e.getMessage());
+                }
             }
             
             // Restore parallelism
@@ -572,7 +577,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                     return "No attribute selector used";
                 else return AttributeSelector.printSelections();
             default:
-                throw new Exception("ERROR: Print command \"" + Command.get(0).toLowerCase()
+                throw new IllegalArgumentException("ERROR: Print command \"" + Command.get(0).toLowerCase()
                         + "\" not recognized");
         }
     }    
@@ -597,7 +602,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                     } else if (Command.get(1).toString().equalsIgnoreCase("exclude")) {
                         exclude = true;
                     } else {
-                        throw new Exception();
+                        throw new IllegalArgumentException();
                     }
                     
                     // Get filter name / options
@@ -605,7 +610,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                     filterOptions = Command.subList(3, Command.size());
                     
                 } catch (Exception e) {
-                    throw new Exception("Usage: filter [exclude|include] <filter name> <options...>");
+                    throw new IllegalArgumentException("Usage: filter [exclude|include] <filter name> <options...>");
                 }
                 
                 // Create filter
@@ -627,7 +632,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
             case "train": {
                 // Usage: train ${dataset}
                 if (Command.size() < 2 || ! (Command.get(1) instanceof Dataset)) {
-                    throw new Exception("Usage: train ${dataset}");
+                    throw new IllegalArgumentException("Usage: train ${dataset}");
                 }
                 Dataset Data = (Dataset) Command.get(1);
                 train(Data);
@@ -648,7 +653,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                         }
                     }
                 } catch (Exception e) {
-                    throw new Exception("Usage: crossvalidate $<dataset> [<folds = 10>]");
+                    throw new IllegalArgumentException("Usage: crossvalidate $<dataset> [<folds = 10>]");
                 }
                 return crossValidate(folds, data);
             }
@@ -677,7 +682,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                     Method = "data.utilities.normalizers." + Method;
                     Options = Command.subList(pos + 1, Command.size());
                 } catch (Exception e) {
-                    throw new Exception("Usage: normalize [attributes] [class] <method> [<options...>]");
+                    throw new IllegalArgumentException("Usage: normalize [attributes] [class] <method> [<options...>]");
                 }
                 Normalizer = (BaseDatasetNormalizer) 
                         CommandHandler.instantiateClass(Method, Options);
@@ -692,7 +697,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                 try {
                     Data = (Dataset) Command.get(1);
                 } catch (Exception e) {
-                    throw new Exception("Usage: run $<dataset>");
+                    throw new IllegalArgumentException("Usage: run $<dataset>");
                 }
                 run(Data);
             } break;
@@ -700,11 +705,11 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                 // Usage: validate $<dataset>
                 Dataset Data;
                 try { Data = (Dataset) Command.get(1); }
-                catch (Exception e) { throw new Exception("Usage: validate $<dataset>"); }
+                catch (Exception e) { throw new IllegalArgumentException("Usage: validate $<dataset>"); }
                 externallyValidate(Data);
             } break;
             default:
-                throw new Exception("ERROR: Model command not recognized: " + Action);
+                throw new IllegalArgumentException("ERROR: Model command not recognized: " + Action);
         }
         return null;
     }
@@ -716,7 +721,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
      */
     public void handleSetCommand(List<Object> Command) throws Exception {
         if (Command.size() != 3) {
-            throw new Exception("Usage: set <component> $<object>");
+            throw new IllegalArgumentException("Usage: set <component> $<object>");
         }
         String Cmp = Command.get(1).toString();
         setComponent(Cmp, Command.get(2));
@@ -733,7 +738,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
             case "selector":
                 setAttributeSelector((BaseAttributeSelector) Object); break;
             default:
-                throw new Exception("ERROR: Model does not contain a " + Name);
+                throw new IllegalArgumentException("ERROR: Model does not contain a " + Name);
         }
     }
 
@@ -745,7 +750,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
             case "validation":
                 return ValidationStats.saveCommand(Basename, "data");
             default:
-                throw new Exception("Format not recognized: " + Format);
+                throw new IllegalArgumentException("Format not recognized: " + Format);
         }
     }
 

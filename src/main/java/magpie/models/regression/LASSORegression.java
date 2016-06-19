@@ -59,12 +59,12 @@ public class LASSORegression extends BaseRegression {
                         setMaxNumberTerms(maxterms);
                         break;
                     default:
-                        throw new Exception();
+                        throw new IllegalArgumentException();
                 }
                 count++;
             }
         } catch (Exception e) {
-            throw new Exception(printUsage());
+            throw new IllegalArgumentException(printUsage());
         }
     }
 

@@ -80,7 +80,7 @@ public class ClassificationRegression extends BaseRegression {
             }
             OFOptions = Options.subList(3, Options.size());
         } catch (Exception e) {
-            throw new Exception(printUsage());
+            throw new IllegalArgumentException(printUsage());
         }
         // Set classifier
         setClassifier(NewClfr);
@@ -110,7 +110,7 @@ public class ClassificationRegression extends BaseRegression {
      */
     public void setClassifier(BaseModel Clfr) throws Exception {
         if (!(Clfr instanceof AbstractClassifier)) {
-            throw new Exception("Model must implement AbstractClassifier");
+            throw new IllegalArgumentException("Model must implement AbstractClassifier");
         }
         this.Clfr = Clfr.clone();
     }

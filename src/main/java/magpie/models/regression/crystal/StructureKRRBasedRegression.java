@@ -217,7 +217,7 @@ abstract public class StructureKRRBasedRegression extends BaseRegression {
                     data = (CrystalStructureDataset) Command.get(1);
                     toPrint = Integer.parseInt(Command.get(2).toString());
                 } catch (Exception e) {
-                    throw new Exception("Usage: $<dataset> <# to print>");
+                    throw new IllegalArgumentException("Usage: $<dataset> <# to print>");
                 }
                 
                 // Get a match for each entry in dataset

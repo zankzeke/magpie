@@ -66,7 +66,7 @@ public class PRDFRegression extends StructureKRRBasedRegression {
             cutoff = Double.parseDouble(Options.get(2).toString());
             bins = Integer.parseInt(Options.get(3).toString());
         } catch (Exception e) {
-            throw new Exception(printUsage());
+            throw new IllegalArgumentException(printUsage());
         }
         setSigma(sig);
         setLambda(lam);

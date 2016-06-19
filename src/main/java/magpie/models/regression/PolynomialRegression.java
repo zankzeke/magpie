@@ -32,7 +32,7 @@ public class PolynomialRegression extends BaseRegression {
         try {
             order = Integer.parseInt(Options.get(0).toString());
         } catch (Exception e) {
-            throw new Exception(printUsage());
+            throw new IllegalArgumentException(printUsage());
         }
     }
 

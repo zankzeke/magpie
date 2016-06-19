@@ -275,7 +275,7 @@ public class MultiPropertyEntry extends BaseEntry {
         if (usingPropertyAsClass()) {
             setPredictedProperty(TargetProperty, null);
         } else {
-            super.deleteMeasuredClass(); 
+            super.deletePredictedClass(); 
         }
     }
 
@@ -359,7 +359,7 @@ public class MultiPropertyEntry extends BaseEntry {
      */
     public void setTargetProperty(int index) {
         if (index >= NProperties())
-            throw new RuntimeException("Entry only has " + NProperties() + " defined. Target property cannot be " + index);
+            throw new IllegalArgumentException("Entry only has " + NProperties() + " defined. Target property cannot be " + index);
         TargetProperty = index;
     }
 
