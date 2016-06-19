@@ -191,8 +191,11 @@ public class PolynomialRegression extends BaseRegression {
         int count=1;
         for (int a=0; a<numAttributes; a++) {
             for (int o=1; o<=order; o++) {
-                output += String.format(" + %.3e * %s ^ %d", coefficients[count++],
-                        attributeNames[a], o);
+                output += String.format(" + %.3e * %s", coefficients[count++],
+                        attributeNames[a]);
+                if (o > 1) {
+                     output += String.format(" ^ %d", o);
+                }
                 if (count % 4 == 0)
                     output += "\n\t";
             }
