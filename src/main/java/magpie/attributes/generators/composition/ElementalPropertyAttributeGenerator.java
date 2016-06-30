@@ -64,7 +64,7 @@ public class ElementalPropertyAttributeGenerator extends BaseAttributeGenerator 
                 // Get the lookup table for this property
 				double[] lookup = ptr.getPropertyLookupTable(prop);
 
-                // Check if any required lookup data is missing;
+                // Check if any required lookup-data is missing;
                 int[] elems = entry.getElements();
                 for (int i = 0; i < elems.length; i++) {
                     if (Double.isNaN(lookup[elems[i]])) {

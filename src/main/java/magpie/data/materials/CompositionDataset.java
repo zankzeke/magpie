@@ -99,7 +99,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
     /**
      * Location of lookup date files
      */
-    public String DataDirectory = "./Lookup Data";
+    public String DataDirectory = "./lookup-data";
     /**
      * List of properties used when generating attributes
      */
@@ -302,8 +302,8 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
     }
 
     /**
-     * Get path to directory containing elemental property lookup data
-     * @return directory Path to the lookup data directory
+     * Get path to directory containing elemental property lookup-data
+     * @return directory Path to the lookup-data directory
      */
     public String getDataDirectory() {
         return DataDirectory;

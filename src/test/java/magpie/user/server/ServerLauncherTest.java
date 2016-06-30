@@ -31,7 +31,7 @@ public class ServerLauncherTest {
     public ServerLauncherTest() throws Exception {
         // Make a fake dataset
         CompositionDataset template = new CompositionDataset();
-        template.setDataDirectory("./Lookup Data");
+        template.setDataDirectory("./lookup-data");
         template.importText("datasets/small_set.txt", null);
         template.setTargetProperty("delta_e", true);
         template.generateAttributes();

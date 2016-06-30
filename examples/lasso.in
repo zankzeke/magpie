@@ -10,7 +10,7 @@ data import ./datasets/small_set.txt
 data duplicates RankingDuplicateResolver minmize PropertyRanker energy_pa SimpleEntryRanker
 
 // Define where to find elemental property data
-data attributes properties directory ./Lookup Data/
+data attributes properties directory ./lookup-data/
 
 // Select which set of elemental properties to use for attributes
 data attributes properties add set general

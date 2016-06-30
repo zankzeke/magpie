@@ -36,8 +36,8 @@ public class IonicCompoundFinder implements Commandable {
     private double MaximumDistance = 0.1;
     /** Maximum number of atoms in formula unit */
     private int MaxFormulaUnitSize = 5;
-    /** Directory of lookup data */
-    private String LookupDir = "Lookup Data";
+    /** Directory of lookup-data */
+    private String LookupDir = "lookup-data";
 
     /**
      * Set the target composition of the ionic compound.
@@ -71,7 +71,7 @@ public class IonicCompoundFinder implements Commandable {
 
     /**
      * Set where to look for oxidation state data
-     * @param dir Path to lookup data directory
+     * @param dir Path to lookup-data directory
      */
     public void setLookupPath(String dir) {
         LookupDir = dir;

@@ -51,7 +51,7 @@ import magpie.data.materials.util.PropertyLists;
  */
 public class ElementDataset extends MultiPropertyDataset {
     /** Directory containing elemental property lookup tables */
-    public String LookupDirectory = "./Lookup Data/";
+    public String LookupDirectory = "./lookup-data/";
     /** List of elemental properties used when computing attributes */
     public List<String> ElementalProperties = new ArrayList<>();
     /** Lookup table of elemental properties */

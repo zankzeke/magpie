@@ -285,7 +285,7 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
      * @return List of names of prototypes and their probabilities
      */
     public List<Pair<String, Double>> predictStructure(CompositionEntry composition) {
-        // --> Get lookup data
+        // --> Get lookup-data
         int nComp = composition.getElements().length;
         int[] elems = composition.getElements();
         double[] fracs = composition.getFractions();

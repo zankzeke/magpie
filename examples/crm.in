@@ -6,7 +6,7 @@ data = new data.materials.ElementDataset
 data import ./datasets/zirconia_sln_energies.txt
 
 // Define where to find elemental property data
-data attributes properties directory ./Lookup Data/
+data attributes properties directory ./lookup-data/
 
 // Select which set of elemental properties to use for attributes
 //  NOTE: This is a different set than those used by Meredig & Wolverton

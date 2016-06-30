@@ -42,7 +42,7 @@ public class CommandHandler {
     /** Which elemental properties to use when calculating features */
     protected final Set<String> ElementalProperties = new TreeSet<>();
     /** Directory that contain elemental property lookup files */
-    protected String ElementalPropertyDirectory = "./Lookup Data";
+    protected String ElementalPropertyDirectory = "./lookup-data";
     /** Whether to echo commands to screen */
     public boolean EchoCommands = false;
     /** Whether to exit on errors */

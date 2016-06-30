@@ -14,8 +14,8 @@ public class OxidationStateGuesserTest {
     @Test
     public void test() throws Exception {
         OxidationStateGuesser gsr = new OxidationStateGuesser();
-        gsr.setOxidationStates("./Lookup Data/OxidationStates.table");
-        gsr.setElectronegativity("./Lookup Data/Electronegativity.table");
+        gsr.setOxidationStates("./lookup-data/OxidationStates.table");
+        gsr.setElectronegativity("./lookup-data/Electronegativity.table");
         
         List<int[]> res = gsr.getPossibleStates(new CompositionEntry("NaCl"));
         assertEquals(1, res.size());

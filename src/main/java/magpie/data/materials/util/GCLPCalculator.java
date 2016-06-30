@@ -116,7 +116,7 @@ public class GCLPCalculator implements java.io.Serializable {
      */
     public Pair<Double,Map<CompositionEntry,Double>> 
             runGCLP(CompositionEntry composition) throws Exception {
-        // Set the composition and pull up lookup data
+        // Set the composition and pull up lookup-data
         int[] curElems = composition.getElements();
         double[] curFrac = composition.getFractions();
         

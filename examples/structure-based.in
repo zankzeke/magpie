@@ -7,7 +7,7 @@
 data = new data.materials.CrystalStructureDataset
 
 // Define where to find elemental property data
-data attributes properties directory ./Lookup Data/
+data attributes properties directory ./lookup-data/
 
 // Load in data
 data import ./datasets/icsd-sample

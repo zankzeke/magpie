@@ -39,7 +39,7 @@ import magpie.utility.interfaces.Options;
  * <br><pr><i>en</i>: Path to electronegativity lookup table
  * <br>Lookup tables must files where each line is contains either the allowed 
  * oxidation states or electronegativity for each element. Lines must be ordered 
- * by atomic number (H, He, ...). By default, looks in "./Lookup Data/".
+ * by atomic number (H, He, ...). By default, looks in "./lookup-data/".
  * </usage>
  * 
  * @author Logan Ward
@@ -53,8 +53,8 @@ public class OxidationStateGuesser implements Commandable, Options,
 
     @Override
     public void setOptions(List<Object> Options) throws Exception {
-        String oxFile = "./Lookup Data/OxidationStates.table";
-        String enFile = "./Lookup Data/Electronegativity.table";
+        String oxFile = "./lookup-data/OxidationStates.table";
+        String enFile = "./lookup-data/Electronegativity.table";
         if (Options.size() > 0) {
             oxFile = Options.get(0).toString();
         }

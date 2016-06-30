@@ -17,7 +17,7 @@ public class PropertyListsTest {
             
             // Make sure all files are there
             for (String prop : props) {
-                assertTrue(prop, new File("Lookup Data", prop + ".table").isFile());
+                assertTrue(prop, new File("lookup-data", prop + ".table").isFile());
             }
         }
     }

@@ -62,7 +62,7 @@ abstract public class LookupData {
 
     /**
      * Load in an elemental property lookup table
-     * @param dataDir Directory containing lookup data
+     * @param dataDir Directory containing lookup-data
      * @param property Property to be loaded
      * @return List of elemental properties, ordered by atomic number
      * @throws Exception

@@ -4,7 +4,7 @@
 // Load in a dataset of compound properties, generate attributes
 data = new data.materials.CompositionDataset
 data import ./datasets/small_set.txt
-data attributes properties directory ./Lookup Data/
+data attributes properties directory ./lookup-data/
 data attributes properties add set general
 data attributes generate
 
