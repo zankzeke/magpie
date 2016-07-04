@@ -117,9 +117,9 @@ public class CompositionDatasetTest {
     public void testBinaryLookup() throws Exception {
         CompositionDataset data = new CompositionDataset();
         double[][] table = data.getBinaryPropertyLookupTable("B2Volume");
-        assertEquals(11.113600, LookupData.readBinaryTable(table, "Nb", "O"), 1e-6);
-        assertEquals(11.113600, LookupData.readBinaryTable(table, "O", "Nb"), 1e-6);
-        assertEquals(30.408400, LookupData.readBinaryTable(table, "Ag", "Ac"), 1e-6);
+        assertEquals(11.113600, LookupData.readPairTable(table, "Nb", "O"), 1e-6);
+        assertEquals(11.113600, LookupData.readPairTable(table, "O", "Nb"), 1e-6);
+        assertEquals(30.408400, LookupData.readPairTable(table, "Ag", "Ac"), 1e-6);
     }
     
     @Test
@@ -177,15 +177,15 @@ public class CompositionDatasetTest {
         cmd.add("B");
         cmd.add("A");
         data.runCommand(cmd);
-        assertEquals(2, data.BinaryElementalProperties.size());
-        assertTrue(data.BinaryElementalProperties.contains("B"));
+        assertEquals(2, data.ElementPairProperties.size());
+        assertTrue(data.ElementPairProperties.contains("B"));
         
         // Test adding binary property
         cmd.set(3, "remove");
         cmd.remove(5);
         data.runCommand(cmd);
-        assertEquals(1, data.BinaryElementalProperties.size());
-        assertFalse(data.BinaryElementalProperties.contains("B"));
+        assertEquals(1, data.ElementPairProperties.size());
+        assertFalse(data.ElementPairProperties.contains("B"));
         
         // Make sure get operations do not allow write access
         List<String> temp = data.getElementalProperties();
@@ -193,9 +193,9 @@ public class CompositionDatasetTest {
         temp.clear();
         assertFalse(data.ElementalProperties.isEmpty());
         
-        temp = data.getBinaryElementalProperties();
-        assertEquals(data.BinaryElementalProperties, temp);
+        temp = data.getElementPairProperties();
+        assertEquals(data.ElementPairProperties, temp);
         temp.clear();
-        assertFalse(data.BinaryElementalProperties.isEmpty());
+        assertFalse(data.ElementPairProperties.isEmpty());
     }
 }

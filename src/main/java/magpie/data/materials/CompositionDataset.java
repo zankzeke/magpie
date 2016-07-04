@@ -106,7 +106,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
     /**
      * List of properties of pairs of elements used when generating attributes
      */
-    protected List<String> BinaryElementalProperties = new ArrayList<>();
+    protected List<String> ElementPairProperties = new ArrayList<>();
     /**
      * Map of elemental property names to values
      */
@@ -114,7 +114,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
     /**
      * Map of properties of pairs of elements
      */
-    protected SortedMap<String, double[][]> BinaryPropertyData = LookupData.BinaryProperties;
+    protected SortedMap<String, double[][]> PairPropertyData = LookupData.ElementPairProperties;
     
     /** Oxidation states of every element */
     protected double[][] OxidationStates = LookupData.OxidationStates;
@@ -344,9 +344,9 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
      * Add a property of a pair of elements that will be used when generating attributes
      * @param propName Name of property
      */
-    public void addBinaryElementalProperty(String propName) {
-        if (! BinaryElementalProperties.contains(propName)) {
-            BinaryElementalProperties.add(propName);
+    public void addElementPairProperty(String propName) {
+        if (! ElementPairProperties.contains(propName)) {
+            ElementPairProperties.add(propName);
         }
     }
     
@@ -362,8 +362,8 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
      * Get list of properties of pairs of elements currently being used to generate attributes.
      * @return List of elemental properties
      */
-    public List<String> getBinaryElementalProperties() {
-        return new ArrayList<>(BinaryElementalProperties);
+    public List<String> getElementPairProperties() {
+        return new ArrayList<>(ElementPairProperties);
     }
 
     /**
@@ -384,8 +384,8 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
      * @param name Name of property
      * @return Whether the property was found and removed
      */
-    public boolean removeBinaryElementalProperty(String name) {
-        return BinaryElementalProperties.remove(name);
+    public boolean removeElementPairProperty(String name) {
+        return ElementPairProperties.remove(name);
     }
 
     @Override
@@ -418,18 +418,18 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
      * @param propertyName Name of desired lookup table
      * @return Lookup table
      * @throws Exception 
-     * @see LookupData#BinaryProperties
+     * @see LookupData#ElementPairProperties
      */
     public double[][] getBinaryPropertyLookupTable(String propertyName) throws Exception {
         // Check if it has already been imported
-        double[][] output = BinaryPropertyData.get(propertyName);
+        double[][] output = PairPropertyData.get(propertyName);
         if (output != null) {
             return output;
         }
         
         // Load it in
-        output = LookupData.loadBinaryPropertyTable(DataDirectory, propertyName);
-        BinaryPropertyData.put(propertyName, output);
+        output = LookupData.loadPairPropertyTable(DataDirectory, propertyName);
+        PairPropertyData.put(propertyName, output);
         return output;
     }
 
@@ -553,17 +553,17 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
         switch (action) {
             case "add":
                 for (Object prop : command.subList(1, command.size())) {
-                    addBinaryElementalProperty(prop.toString());
+                    addElementPairProperty(prop.toString());
                 }
                 System.out.print("\tTotal number of binary properties: " 
-                        + BinaryElementalProperties.size());
+                        + ElementPairProperties.size());
                 return null;
             case "remove":
                 for (Object prop : command.subList(1, command.size())) {
-                    removeBinaryElementalProperty(prop.toString());
+                    removeElementPairProperty(prop.toString());
                 }
                 System.out.print("\tTotal number of binary properties: " 
-                        + BinaryElementalProperties.size());
+                        + ElementPairProperties.size());
                 return null;
             default: 
                 throw new IllegalArgumentException("No such command: " + action);

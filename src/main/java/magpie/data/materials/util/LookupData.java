@@ -70,7 +70,7 @@ abstract public class LookupData {
      * element Z=i+1 and Z=j+1. Ex: [1][2] is the property of He-Li. Unknown values
      * are stored as {@linkplain Double#NaN}
      */
-    static public SortedMap<String,double[][]> BinaryProperties = 
+    static public SortedMap<String,double[][]> ElementPairProperties = 
             Collections.synchronizedSortedMap(new TreeMap<String,double[][]>());
 
     /**
@@ -107,10 +107,10 @@ abstract public class LookupData {
      * @return 2D triangular array containing property data
      * @throws Exception 
      */
-    public static double[][] loadBinaryPropertyTable(String dataDir, 
+    public static double[][] loadPairPropertyTable(String dataDir, 
             String property) throws Exception {
         // Open up the file
-        File file = new File(new File(dataDir, "binary"), property + ".table");
+        File file = new File(new File(dataDir, "pair"), property + ".table");
         if (! file.isFile()) {
             throw new FileNotFoundException("No lookup file not found for " + property);
         }
@@ -162,7 +162,7 @@ abstract public class LookupData {
      * @param elemB Symbol of a second element
      * @return Property, {@linkplain Double#NaN} if not found
      */
-    static public double readBinaryTable(double[][] table, String elemA, String elemB) {
+    static public double readPairTable(double[][] table, String elemA, String elemB) {
         // Parse element names
         int elemAVal = ArrayUtils.indexOf(ElementNames, elemA);
         if (elemAVal == ArrayUtils.INDEX_NOT_FOUND) {
@@ -174,7 +174,7 @@ abstract public class LookupData {
         }
         
         // Lookup table
-        return readBinaryTable(table, elemAVal, elemBVal);
+        return LookupData.readPairTable(table, elemAVal, elemBVal);
     }
     
     /**
@@ -184,7 +184,7 @@ abstract public class LookupData {
      * @param elemB Index of a second element
      * @return Property, {@linkplain Double#NaN} if not found
      */
-    static public double readBinaryTable(double[][] table, int elemA, int elemB) {
+    static public double readPairTable(double[][] table, int elemA, int elemB) {
         return table[Math.max(elemA, elemB)][Math.min(elemA, elemB)];
     }
     
