@@ -87,7 +87,6 @@ import magpie.utility.tools.OxidationStateGuesser;
  * @version 0.2
  */
 public class CompositionDataset extends magpie.data.MultiPropertyDataset {
-
     /**
      * List of element names
      */
@@ -99,7 +98,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
     /**
      * Location of lookup date files
      */
-    public String DataDirectory = "./lookup-data";
+    protected String DataDirectory = "./lookup-data";
     /**
      * List of properties used when generating attributes
      */
@@ -107,7 +106,12 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
     /**
      * Map of elemental property names to values
      */
-    public SortedMap<String, double[]> PropertyData = LookupData.ElementalProperties;
+    protected SortedMap<String, double[]> PropertyData = LookupData.ElementalProperties;
+    /**
+     * Map of properties of pairs of elements
+     */
+    protected SortedMap<String, double[][]> BinaryPropertyData = LookupData.BinaryProperties;
+    
     /** Oxidation states of every element */
     protected double[][] OxidationStates = LookupData.OxidationStates;
 
@@ -366,19 +370,39 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
      * MeasuredProperty list should be contained in a file named
      * PropertyName.table
      *
-     * @param PropertyName MeasuredProperty of interest
+     * @param propertyName MeasuredProperty of interest
      * @return That property for each element
      * @throws java.lang.Exception
      */
-    public double[] getPropertyLookupTable(String PropertyName) throws Exception {
+    public double[] getPropertyLookupTable(String propertyName) throws Exception {
         // Check if it has been loaded in yet
-        if (PropertyData.containsKey(PropertyName)) {
-            return PropertyData.get(PropertyName);
+        if (PropertyData.containsKey(propertyName)) {
+            return PropertyData.get(propertyName);
         }
 
-        double[] table = LookupData.loadPropertyLookupTable(DataDirectory, PropertyName);
-        PropertyData.put(PropertyName, table);
+        double[] table = LookupData.loadPropertyLookupTable(DataDirectory, propertyName);
+        PropertyData.put(propertyName, table);
         return table;
+    }
+    
+    /**
+     * Get a lookup table for the properties of pairs of elements
+     * @param propertyName Name of desired lookup table
+     * @return Lookup table
+     * @throws Exception 
+     * @see LookupData#BinaryProperties
+     */
+    public double[][] getBinaryPropertyLookupTable(String propertyName) throws Exception {
+        // Check if it has already been imported
+        double[][] output = BinaryPropertyData.get(propertyName);
+        if (output != null) {
+            return output;
+        }
+        
+        // Load it in
+        output = LookupData.loadBinaryPropertyTable(DataDirectory, propertyName);
+        BinaryPropertyData.put(propertyName, output);
+        return output;
     }
 
     /**

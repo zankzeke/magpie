@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import magpie.data.materials.util.LookupData;
 import magpie.data.materials.util.PropertyLists;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -110,5 +111,14 @@ public class CompositionDatasetTest {
                 data.ElementalProperties.size());
         assertTrue(data.ElementalProperties.containsAll(
                 Arrays.asList(PropertyLists.getPropertySet("general"))));
+    }
+    
+    @Test
+    public void testBinaryLookup() throws Exception {
+        CompositionDataset data = new CompositionDataset();
+        double[][] table = data.getBinaryPropertyLookupTable("B2Volume");
+        assertEquals(11.113600, LookupData.readBinaryTable(table, "Nb", "O"), 1e-6);
+        assertEquals(11.113600, LookupData.readBinaryTable(table, "O", "Nb"), 1e-6);
+        assertEquals(30.408400, LookupData.readBinaryTable(table, "Ag", "Ac"), 1e-6);
     }
 }
