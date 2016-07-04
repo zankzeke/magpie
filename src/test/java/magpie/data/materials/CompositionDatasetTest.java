@@ -121,4 +121,81 @@ public class CompositionDatasetTest {
         assertEquals(11.113600, LookupData.readBinaryTable(table, "O", "Nb"), 1e-6);
         assertEquals(30.408400, LookupData.readBinaryTable(table, "Ag", "Ac"), 1e-6);
     }
+    
+    @Test
+    public void testManageProperties() throws Exception {
+        CompositionDataset data = new CompositionDataset();
+        
+        // Test changing the directory
+        assertEquals("./lookup-data", data.DataDirectory);
+        
+        List<Object> cmd = new LinkedList<>();
+        cmd.add("attributes");
+        cmd.add("properties");
+        cmd.add("directory");
+        cmd.add("lookup");
+        cmd.add("data");
+        
+        data.runCommand(cmd);
+        assertEquals("lookup data", data.DataDirectory);
+        
+        // Test adding a set of elemental propeties
+        cmd.set(2, "add");
+        cmd.set(3, "set");
+        cmd.set(4, "radii");
+        
+        data.runCommand(cmd);
+        assertEquals(PropertyLists.getPropertySet("radii").length,
+                data.ElementalProperties.size());
+        
+        // Test adding a few more properties
+        cmd.set(2, "add");
+        cmd.set(3, "A");
+        cmd.set(4, "B");
+        
+        data.runCommand(cmd);
+        assertEquals(PropertyLists.getPropertySet("radii").length + 2,
+                data.ElementalProperties.size());
+        
+        // Make sure it doesn't add things twice
+        data.runCommand(cmd);
+        assertEquals(PropertyLists.getPropertySet("radii").length + 2,
+                data.ElementalProperties.size());
+        
+        // Test removal
+        cmd.set(2, "remove");
+        cmd.set(3, "B");
+        cmd.remove(4);
+        data.runCommand(cmd);
+        assertEquals(PropertyLists.getPropertySet("radii").length + 1,
+                data.ElementalProperties.size());
+        assertFalse(data.ElementalProperties.contains("B"));
+        
+        // Test adding binary property
+        cmd.set(2, "binary");
+        cmd.set(3, "add");
+        cmd.add("B");
+        cmd.add("A");
+        data.runCommand(cmd);
+        assertEquals(2, data.BinaryElementalProperties.size());
+        assertTrue(data.BinaryElementalProperties.contains("B"));
+        
+        // Test adding binary property
+        cmd.set(3, "remove");
+        cmd.remove(5);
+        data.runCommand(cmd);
+        assertEquals(1, data.BinaryElementalProperties.size());
+        assertFalse(data.BinaryElementalProperties.contains("B"));
+        
+        // Make sure get operations do not allow write access
+        List<String> temp = data.getElementalProperties();
+        assertEquals(data.ElementalProperties, temp);
+        temp.clear();
+        assertFalse(data.ElementalProperties.isEmpty());
+        
+        temp = data.getBinaryElementalProperties();
+        assertEquals(data.BinaryElementalProperties, temp);
+        temp.clear();
+        assertFalse(data.BinaryElementalProperties.isEmpty());
+    }
 }

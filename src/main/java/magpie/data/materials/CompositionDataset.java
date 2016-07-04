@@ -104,6 +104,10 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
      */
     protected List<String> ElementalProperties = new ArrayList<>();
     /**
+     * List of properties of pairs of elements used when generating attributes
+     */
+    protected List<String> BinaryElementalProperties = new ArrayList<>();
+    /**
      * Map of elemental property names to values
      */
     protected SortedMap<String, double[]> PropertyData = LookupData.ElementalProperties;
@@ -337,27 +341,51 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
     }
     
     /**
+     * Add a property of a pair of elements that will be used when generating attributes
+     * @param propName Name of property
+     */
+    public void addBinaryElementalProperty(String propName) {
+        if (! BinaryElementalProperties.contains(propName)) {
+            BinaryElementalProperties.add(propName);
+        }
+    }
+    
+    /**
      * Get list of elemental properties currently being used to generate attributes.
      * @return List of elemental properties
      */
     public List<String> getElementalProperties() {
         return new ArrayList<>(ElementalProperties);
     }
+    
+    /**
+     * Get list of properties of pairs of elements currently being used to generate attributes.
+     * @return List of elemental properties
+     */
+    public List<String> getBinaryElementalProperties() {
+        return new ArrayList<>(BinaryElementalProperties);
+    }
 
     /**
      * Remove an elemental property from the list used when generating
      * attributes
      *
-     * @param Name Name of property
+     * @param name Name of property
      * @return Whether the property was found and removed
      */
-    public boolean removeElementalProperty(String Name) {
-        if (ElementalProperties.contains(Name)) {
-            ElementalProperties.remove(Name);
-            return true;
-        } else {
-            return false;
-        }
+    public boolean removeElementalProperty(String name) {
+        return ElementalProperties.remove(name);
+    }
+    
+    /**
+     * Remove an elemental property from the list used when generating
+     * attributes
+     *
+     * @param name Name of property
+     * @return Whether the property was found and removed
+     */
+    public boolean removeBinaryElementalProperty(String name) {
+        return BinaryElementalProperties.remove(name);
     }
 
     @Override
@@ -494,10 +522,10 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
                     switch (Command.get(1).toString().toLowerCase()) {
                         case "true": useComp = true; break;
                         case "false": useComp = false; break;
-                        default: throw new Exception();
+                        default: throw new IllegalArgumentException();
                     }
                 } catch (Exception e) {
-                    throw new Exception("Usage: <dataset> attributes composition <true|false>");
+                    throw new IllegalArgumentException("Usage: <dataset> attributes composition <true|false>");
                 }
                 useCompositionAsAttributes(useComp);
                 if (useComp) {
@@ -511,6 +539,36 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
                 return super.runAttributeCommand(Command);
         }
     }
+    
+    /**
+     * Run commands that set the binary properties to be used when generating attributes.
+     * 
+     * @param command Command to be parsed
+     * @return
+     * @throws Exception 
+     */
+    protected Object runBinaryPropertyCommand(List<Object> command) throws Exception {
+        String action = command.get(0).toString().toLowerCase();
+        
+        switch (action) {
+            case "add":
+                for (Object prop : command.subList(1, command.size())) {
+                    addBinaryElementalProperty(prop.toString());
+                }
+                System.out.print("\tTotal number of binary properties: " 
+                        + BinaryElementalProperties.size());
+                return null;
+            case "remove":
+                for (Object prop : command.subList(1, command.size())) {
+                    removeBinaryElementalProperty(prop.toString());
+                }
+                System.out.print("\tTotal number of binary properties: " 
+                        + BinaryElementalProperties.size());
+                return null;
+            default: 
+                throw new IllegalArgumentException("No such command: " + action);
+        }
+    }
 
     /**
      * Run commands that control which elemental properties are used when
@@ -521,27 +579,12 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
      * @throws Exception
      */
     protected Object runPropertyCommand(List<Object> Command) throws Exception {
-        if (Command.isEmpty()) {
-            Iterator<String> iter = ElementalProperties.iterator();
-            int count = 0;
-            while (iter.hasNext()) {
-                count++;
-                System.out.print("\t" + iter.next());
-                if (count % 5 == 0) {
-                    System.out.println();
-                }
-            }
-            if (count % 5 != 0) {
-                System.out.println();
-            }
-            return null;
-        }
-        String Action = Command.get(0).toString();
-        switch (Action.toLowerCase()) {
+        String action = Command.get(0).toString();
+        switch (action.toLowerCase()) {
             case "add": {
                 // Usage: add <name> or add set <name>
                 if (Command.size() < 2) {
-                    throw new Exception("Usage: \"<dataset> attributes properties add set <set name>\""
+                    throw new IllegalArgumentException("Usage: \"<dataset> attributes properties add set <set name>\""
                             + " or properties add <property names...>");
                 }
                 // Add in new properties
@@ -562,10 +605,12 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
                     + " new properties.");
             }
             break;
+            case "binary":
+                return runBinaryPropertyCommand(Command.subList(1, Command.size()));
             case "remove": {
                 // Usage: remove <names...>
                 if (Command.size() < 2) {
-                    throw new Exception("Usage: <dataset> attributes properties remove <property names...>");
+                    throw new IllegalArgumentException("Usage: <dataset> attributes properties remove <property names...>");
                 }
                 // Remove those property from the set
                 String output = "\tRemoved properties:";
@@ -587,7 +632,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
             case "directory": {
                 // Define the lookup directory
                 if (Command.size() < 2) {
-                    throw new Exception("Usage: <dataset> attributes properties directory <directory name>");
+                    throw new IllegalArgumentException("Usage: <dataset> attributes properties directory <directory name>");
                 }
                 DataDirectory = Command.get(1).toString();
                 for (int i = 2; i < Command.size(); i++) {
@@ -596,7 +641,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
             }
             break;
             default:
-                throw new Exception("ERROR: Property command not recognized: " + Action);
+                throw new IllegalArgumentException("Property command not recognized: " + action);
         }
         return null;
     }
