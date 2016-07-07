@@ -97,7 +97,7 @@ public class ElementPairPropertyAttributeGenerator extends BaseAttributeGenerato
             int attrPos = 0;
             for (String prop : ElementalProperties) {
                 // Get lookup table
-                double[][] table = ptr.getBinaryPropertyLookupTable(prop);
+                double[][] table = ptr.getPairPropertyLookupTable(prop);
                 
                 // Get the binary values
                 pos=0;

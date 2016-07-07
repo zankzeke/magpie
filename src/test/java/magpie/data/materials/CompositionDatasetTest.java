@@ -116,7 +116,7 @@ public class CompositionDatasetTest {
     @Test
     public void testBinaryLookup() throws Exception {
         CompositionDataset data = new CompositionDataset();
-        double[][] table = data.getBinaryPropertyLookupTable("B2Volume");
+        double[][] table = data.getPairPropertyLookupTable("B2Volume");
         assertEquals(11.113600, LookupData.readPairTable(table, "Nb", "O"), 1e-6);
         assertEquals(11.113600, LookupData.readPairTable(table, "O", "Nb"), 1e-6);
         assertEquals(30.408400, LookupData.readPairTable(table, "Ag", "Ac"), 1e-6);
@@ -171,8 +171,8 @@ public class CompositionDatasetTest {
                 data.ElementalProperties.size());
         assertFalse(data.ElementalProperties.contains("B"));
         
-        // Test adding binary property
-        cmd.set(2, "binary");
+        // Test adding pair property
+        cmd.set(2, "pair");
         cmd.set(3, "add");
         cmd.add("B");
         cmd.add("A");
@@ -180,7 +180,7 @@ public class CompositionDatasetTest {
         assertEquals(2, data.ElementPairProperties.size());
         assertTrue(data.ElementPairProperties.contains("B"));
         
-        // Test adding binary property
+        // Test adding pair property
         cmd.set(3, "remove");
         cmd.remove(5);
         data.runCommand(cmd);
@@ -197,5 +197,38 @@ public class CompositionDatasetTest {
         assertEquals(data.ElementPairProperties, temp);
         temp.clear();
         assertFalse(data.ElementPairProperties.isEmpty());
+    }
+    
+    @Test
+    public void testGeneratePairProperty() throws Exception {
+        CompositionDataset data = new CompositionDataset();
+        
+        // Make the ratio of atomic number
+        List<Object> cmd = new LinkedList<>();
+        cmd.add("attributes");
+        cmd.add("properties");
+        cmd.add("pair");
+        cmd.add("add");
+        cmd.add("difference");
+        cmd.add("AtomicWeight");
+        
+        data.runCommand(cmd);
+        
+        assertEquals(1, data.PairPropertyData.size());
+        assertTrue(data.PairPropertyData.containsKey("difference_AtomicWeight"));
+        
+        double[][] table = data.PairPropertyData.get("difference_AtomicWeight");
+        double[] lookup = data.getPropertyLookupTable("AtomicWeight");
+        assertEquals(Math.abs(lookup[14]-lookup[62]), 
+                LookupData.readPairTable(table, 62, 14), 1e-6);
+        
+        // Same thing, but with ratios
+        cmd.set(4, "ratio");
+        data.runCommand(cmd);
+        
+        table = data.PairPropertyData.get("ratio_AtomicWeight");
+        lookup = data.getPropertyLookupTable("AtomicWeight");
+        assertEquals(Math.abs(lookup[14]/lookup[62]), 
+                LookupData.readPairTable(table, 62, 14), 1e-6);
     }
 }
