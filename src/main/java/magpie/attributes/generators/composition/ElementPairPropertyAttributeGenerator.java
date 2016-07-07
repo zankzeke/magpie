@@ -136,9 +136,8 @@ public class ElementPairPropertyAttributeGenerator extends BaseAttributeGenerato
         output += " (" + (ElementalProperties.size() * 5) + ") ";
         
         // Print out description
-        output += "Properites based on statistics of the properties of pairs "
-                + "of elements in a material. Minimum, maximum, range, weighted-mean,"
-                + "and weighted mean absolute deviation"
+        output += "Statistics of the properties of pairs of constituent elements."
+                + " Minimum, maximum, range, weighted mean, and weighted mean absolute deviation"
                 + " of " + ElementalProperties.size() + " element pair properties:\n";
         
         // Print out elemental properties

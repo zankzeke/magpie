@@ -617,14 +617,14 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
                         addElementPairProperty(prop.toString());
                     }
                 }
-                System.out.print("\tTotal number of pair properties: " 
+                System.out.println("\tTotal number of pair properties: " 
                         + ElementPairProperties.size());
                 return null;
             case "remove":
                 for (Object prop : command.subList(1, command.size())) {
                     removeElementPairProperty(prop.toString());
                 }
-                System.out.print("\tTotal number of pair properties: " 
+                System.out.println("\tTotal number of pair properties: " 
                         + ElementPairProperties.size());
                 return null;
             default: 
@@ -663,8 +663,8 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
                         addElementalProperty(Command.get(i).toString());
                     }
                 }
-                System.out.println("\tAdded " + (ElementalProperties.size() - originalSize) 
-                    + " new properties.");
+                System.out.println("\tTotal number of elemental properties: "
+				        + ElementalProperties.size());
             }
             break;
             case "pair":
