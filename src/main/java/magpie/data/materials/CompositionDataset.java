@@ -175,6 +175,17 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
     }
 
     @Override
+    public CompositionDataset createTemplate() {
+        CompositionDataset data = (CompositionDataset) super.createTemplate();
+        
+        // Ensure links with LookupData are broken
+        data.OxidationStates = OxidationStates.clone();
+        data.PropertyData = new TreeMap<>(PropertyData);
+        
+        return data;
+    }
+
+    @Override
     public CompositionEntry getEntry(int index) {
         return (CompositionEntry) super.getEntry(index);
     }
