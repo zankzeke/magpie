@@ -9,13 +9,11 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import magpie.Magpie;
 import magpie.attributes.expanders.CrossExpander;
 import magpie.attributes.generators.BaseAttributeGenerator;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.utilities.modifiers.NonZeroClassModifier;
-import magpie.data.utilities.output.SimpleOutput;
 import magpie.models.regression.WekaRegression;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -743,5 +741,22 @@ public class DatasetTest {
         System.out.println("\tPrint: description");
         output = data.printCommand(command);
         System.out.println(output);
+    }
+    
+    @Test
+    public void testTemplate() throws Exception {
+        // Load in some data
+        Dataset data = new Dataset();
+        data.importText("datasets/simple-data.txt", null);
+        
+        // Save it to disk
+        File file = new File(data.saveCommand("temp", "template"));
+        assertTrue(file.isFile());
+        file.deleteOnExit();
+        
+        // Load it back in, make sure it has no entries 
+        Dataset dataCopy = Dataset.loadState(file.getPath());
+        assertEquals(2, dataCopy.NAttributes());
+        assertEquals(0, dataCopy.NEntries());
     }
 }

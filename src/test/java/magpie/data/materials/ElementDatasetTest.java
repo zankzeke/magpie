@@ -2,6 +2,8 @@ package magpie.data.materials;
 
 import java.io.File;
 import java.io.PrintWriter;
+import magpie.data.MultiPropertyDataset;
+import magpie.utility.UtilityOperations;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -65,5 +67,26 @@ public class ElementDatasetTest {
         // Compute attributes
         data.generateAttributes();
         assertEquals(data.getElementalProperties().size(), data.NAttributes());
+    }
+    
+    @Test
+    public void testTemplate() throws Exception {
+        // Make a sample dataset
+        ElementDataset data = new ElementDataset();
+        data.importText("datasets/zirconia_sln_energies.txt", null);
+        data.addElementalProperty("Electronegativity");
+        data.generateAttributes();
+        
+        // Save it to disk with serialization
+        File file = new File(data.saveCommand("temp", "template"));
+        assertEquals("temp.obj", file.getPath());
+        assertTrue(file.isFile());
+        file.deleteOnExit();
+        
+        // Load it back into memory
+        ElementDataset dataCopy = 
+                (ElementDataset) UtilityOperations.loadState(file.getAbsolutePath());
+        assertNotSame(data.PropertyData.get("Electronegativity"),
+                dataCopy.PropertyData.get("Electronegativity"));
     }
 }

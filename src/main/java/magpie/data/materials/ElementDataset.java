@@ -88,6 +88,18 @@ public class ElementDataset extends MultiPropertyDataset {
     }
 
     @Override
+    public ElementDataset createTemplate() {
+        ElementDataset data = (ElementDataset) super.createTemplate();
+        
+        // Make a local copy of the property data
+        data.PropertyData = new TreeMap<>(PropertyData);
+        
+        return data;
+    }
+    
+    
+
+    @Override
     public void importText(String filename, Object[] options) throws Exception {
         // Attempt to open file
         BufferedReader fp = new BufferedReader(new FileReader(filename));
