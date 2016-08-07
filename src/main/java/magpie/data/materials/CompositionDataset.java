@@ -9,6 +9,7 @@ import java.nio.file.*;
 import java.util.*;
 import magpie.attributes.generators.BaseAttributeGenerator;
 import magpie.attributes.generators.composition.*;
+import magpie.data.MultiPropertyDataset;
 import magpie.data.materials.util.LookupData;
 import magpie.data.materials.util.PropertyLists;
 import magpie.data.utilities.output.CompositionOutput;

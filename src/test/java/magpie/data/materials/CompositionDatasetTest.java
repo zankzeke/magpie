@@ -111,4 +111,22 @@ public class CompositionDatasetTest {
         assertTrue(data.ElementalProperties.containsAll(
                 Arrays.asList(PropertyLists.getPropertySet("general"))));
     }
+    
+    @Test
+    public void testTemplate() throws Exception {
+        // Make a dataset
+        CompositionDataset data = new CompositionDataset();
+        data.importText("datasets/small_set.txt", null);
+        data.generateAttributes();
+        
+        // Save a template copy
+        File file = new File(data.saveCommand("temp", "template"));
+        assertTrue(file.isFile());
+        
+        // Make sure the connection to LookupData are broken
+        CompositionDataset dataCopy = (CompositionDataset)
+                CompositionDataset.loadState(file.getPath());
+        assertNotSame(data.OxidationStates, dataCopy.OxidationStates);
+        assertNotSame(data.ElementNames, dataCopy.ElementNames);
+    }
 }

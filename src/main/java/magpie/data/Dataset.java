@@ -341,6 +341,14 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         copy.Entries = new ArrayList<>();
         return copy;
     }
+    
+    /**
+     * Create a template designed to be saved using serialization
+     */
+    public Dataset createTemplate() {
+        // Create an empty clone
+        return emptyClone();
+    }
 
     /**
      * Get a dataset that only contains entries with a measured class variable.
@@ -1852,11 +1860,18 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
 
     /**
      * Save the state of this object using serialization
-     *
-     * @param filename Filename for output
+     * @param filename Path to output file
      */
     public void saveState(String filename) {
         UtilityOperations.saveState(this, filename);
+    }
+    
+    /**
+     * Save a template of this dataset to disk using 
+     * @param filename Path to output file
+     */
+    public void saveTemplate(String filename) {
+        UtilityOperations.saveState(createTemplate(), filename);
     }
 
     @Override
@@ -1871,7 +1886,6 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
             default:
                 throw new Exception("ERROR: Print command \"" + Command.get(0)
                         + "\" not recognized");
-
         }
     }
 
@@ -1887,6 +1901,9 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
             case "stats": // Save for statistics (only: name, predicted, measured)
                 new DelimitedClassOutput(",").writeDataset(this, Basename + ".csv");
                 return Basename + ".csv";
+            case "template":
+                saveTemplate(Basename + ".obj");
+                return Basename + ".obj";
             default:
                 throw new Exception("ERROR: Save command \"" + Command
                         + "\" not recognized");

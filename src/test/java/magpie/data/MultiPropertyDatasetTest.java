@@ -1,6 +1,7 @@
 package magpie.data;
 
 import java.io.File;
+import magpie.utility.UtilityOperations;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -144,5 +145,23 @@ public class MultiPropertyDatasetTest {
         File file = new File(data.saveCommand("test", "prop"));
         assertEquals("test.prop", file.getName());
         file.deleteOnExit();
+    }
+    
+    @Test
+    public void saveTemplate() throws Exception {
+        // Make a sample dataset
+        MultiPropertyDataset data = new MultiPropertyDataset();
+        data.addProperty("prop");
+        
+        // Save it to disk with serialization
+        File file = new File(data.saveCommand("temp", "template"));
+        assertEquals("temp.obj", file.getPath());
+        assertTrue(file.isFile());
+        file.deleteOnExit();
+        
+        // Load it back into memory
+        MultiPropertyDataset dataCopy = 
+                (MultiPropertyDataset) UtilityOperations.loadState(file.getAbsolutePath());
+        assertEquals(0, dataCopy.NProperties());
     }
 }

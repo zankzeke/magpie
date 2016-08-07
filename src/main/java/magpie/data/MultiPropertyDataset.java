@@ -47,6 +47,16 @@ public class MultiPropertyDataset extends Dataset {
     }
 
     @Override
+    public MultiPropertyDataset createTemplate() {
+        MultiPropertyDataset data = (MultiPropertyDataset) super.createTemplate(); 
+        
+        // Clear property data
+        data.clearPropertyData();
+        
+        return data;
+    }
+
+    @Override
     public MultiPropertyEntry getEntry(int index) {
         return (MultiPropertyEntry) super.getEntry(index); 
     }
