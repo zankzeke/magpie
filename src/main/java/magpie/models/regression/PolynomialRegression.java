@@ -11,26 +11,48 @@ import org.apache.commons.math3.stat.regression.UpdatingMultipleLinearRegression
  * exponents. This method creates models that are nonlinear polynomials, like this:
  * <center><code>f(x,y,z) = a + b * x + c * x<sup>2</sup> + d * y + e * y<sup>2</sup> + ...</code></center>
  * 
- * <usage><p><b>Usage</b>: &lt;order>
- * <br><pr><i>order</i>: Maximum order of terms in polynomial</usage>
+ * <usage><p><b>Usage</b>: &lt;Order&gt [-print_accuracy &lt;figs&gt;]
+ * <br><pr><i>Order</i>: Maximum Order of terms in polynomial
+ <br><pr><i>figs</i>: Optional: Number of significant figures to write when printing model
+ * (default: 4)
+ * </usage>
+ * 
  * 
  * @author Logan Ward
  * @version 0.1
  */
 public class PolynomialRegression extends BaseRegression {
-    /** Desired order of polynomial */
-    protected int order = 1;
+    /** Desired Order of polynomial */
+    protected int Order = 1;
     /** Number of attributes used in model */
     private int numAttributes = 0;
     /** Coefficients of each term in the polynomial */
     protected double[] coefficients = null;
     /** Names of attributes */
     private String[] attributeNames;
+    /** Number of significant figures to print */
+    private int PrintAccuracy = 4;
 
     @Override
     public void setOptions(List Options) throws Exception {
+        // Get the options
+        if (Options.size() > 3) {
+            throw new IllegalArgumentException(printUsage());
+        }
+        
         try {
-            order = Integer.parseInt(Options.get(0).toString());
+            setOrder(Integer.parseInt(Options.get(0).toString()));
+            
+            // Optionally, get the print accuracy
+            if (Options.size() > 1) {
+                if (! Options.get(1).toString().equalsIgnoreCase("-print_accuracy")) {
+                    throw new IllegalArgumentException();
+                }
+                
+                int digits = Integer.parseInt(Options.get(2).toString());
+                setPrintAccuracy(digits);
+            }
+            
         } catch (Exception e) {
             throw new IllegalArgumentException(printUsage());
         }
@@ -49,16 +71,24 @@ public class PolynomialRegression extends BaseRegression {
     
     @Override
     public String printUsage() {
-        return "Usage: <order of polynomial>";
+        return "Usage: <order of polynomial> [-print_accuracy <digits>]";
     }
 
 	/**
-	 * Define order of polynomial.
-	 * @param order Desired order of polynomial.
+	 * Define Order of polynomial.
+	 * @param order Desired Order of polynomial.
 	 */
 	public void setOrder(int order) {
-		this.order = order;
+		this.Order = order;
 	}
+
+    /**
+     * Set the number of digits printed when outputting model
+     * @param digits Number of significant figures
+     */
+    public void setPrintAccuracy(int digits) {
+        this.PrintAccuracy = digits;
+    }
     
     /**
      * Get coefficients of model. 
@@ -83,7 +113,7 @@ public class PolynomialRegression extends BaseRegression {
         attributeNames = TrainData.getAttributeNames();
         
         // Fit a polynomial model
-        coefficients = fitPolynomialModel(attributes, order, classVariable);
+        coefficients = fitPolynomialModel(attributes, Order, classVariable);
     }
 
     @Override
@@ -93,7 +123,7 @@ public class PolynomialRegression extends BaseRegression {
         
         // Run the model
         double[][] attributes = TrainData.getAttributeArray();
-        double[] result = runPolynomialModel(attributes, order, coefficients);
+        double[] result = runPolynomialModel(attributes, Order, coefficients);
         
         // Store results
         TrainData.setPredictedClasses(result);
@@ -101,16 +131,16 @@ public class PolynomialRegression extends BaseRegression {
 
     @Override
     public int getNFittingParameters() {
-        return 1 + numAttributes * order;
+        return 1 + numAttributes * Order;
     }
     
     /**
      * Fit a polynomial model based on a matrix of attribute values. Returns the 
-     *  coefficients of this model in the following order:<p>
+  coefficients of this model in the following Order:<p>
      * Intercept, Coefficient of attribute1, Coefficient of attribute1<sup>2</sup>, ...,
      *   Coefficient of attribute2, ...
      * @param attributes Matrix containing attributes for each entry (entries are rows, attributes columns)
-     * @param order Desired order of polynomial
+     * @param order Desired Order of polynomial
      * @param classVariable Class variable for each entry
      * @return Coefficients for model
      */
@@ -136,8 +166,8 @@ public class PolynomialRegression extends BaseRegression {
     
     /**
      * Expand attribute array in order to allow it to be used to fit a polynomial
-     *  model. First column is all ones (for the intercept), other columns are for
-     *  terms listed in the same order as {@linkplain #fitPolynomialModel(double[][], int, double[]) }.
+     * model. First column is all ones (for the intercept), other columns are for
+     * terms listed in the same order as {@linkplain #fitPolynomialModel(double[][], int, double[]) }.
      * @param attributes Matrix containing attributes for each entry (entries are rows, attributes columns)
      * @param order Desired order of polynomial
      * @return Matrix that can be used to fit this model
@@ -163,7 +193,7 @@ public class PolynomialRegression extends BaseRegression {
     
     /**
      * Run a polynomial model based on a matrix of attribute values. Coefficients
-     *  coefficients of this model in the following order:<p>
+     * coefficients of this model in the following order:<p>
      * Intercept, Coefficient of attribute1, Coefficient of attribute1<sup>2</sup>, ...,
      *   Coefficient of attribute2, ...
      * @param attributes Matrix containing attributes for each entry (entries are rows, attributes columns)
@@ -187,11 +217,14 @@ public class PolynomialRegression extends BaseRegression {
 
     @Override
     protected String printModel_protected() {
-        String output = String.format("%.3e", coefficients[0]);
+        // Get the format string
+        String numFormat = String.format("%%.%de", PrintAccuracy - 1);
+        
+        String output = String.format(numFormat, coefficients[0]);
         int count=1;
         for (int a=0; a<numAttributes; a++) {
-            for (int o=1; o<=order; o++) {
-                output += String.format(" + %.3e * %s", coefficients[count++],
+            for (int o=1; o<=Order; o++) {
+                output += String.format(" + " + numFormat + " * %s", coefficients[count++],
                         attributeNames[a]);
                 if (o > 1) {
                      output += String.format(" ^ %d", o);
@@ -207,9 +240,8 @@ public class PolynomialRegression extends BaseRegression {
     public List<String> printModelDescriptionDetails(boolean htmlFormat) {
         List<String> output = super.printModelDescriptionDetails(htmlFormat);
         
-        output.add("Order: " + order);
+        output.add("Order: " + Order);
         
         return output;
     }
-    
 }
