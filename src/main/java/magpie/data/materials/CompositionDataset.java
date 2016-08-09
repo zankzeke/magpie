@@ -87,7 +87,7 @@ import magpie.utility.tools.OxidationStateGuesser;
  * @author Logan Ward
  * @version 0.2
  */
-public class CompositionDataset extends magpie.data.MultiPropertyDataset {
+public class CompositionDataset extends MultiPropertyDataset {
 
     /**
      * List of element names
@@ -179,7 +179,9 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
         CompositionDataset data = (CompositionDataset) super.createTemplate();
         
         // Ensure links with LookupData are broken
-        data.OxidationStates = OxidationStates.clone();
+        if (OxidationStates != null) {
+            data.OxidationStates = OxidationStates.clone();
+        }
         data.PropertyData = new TreeMap<>(PropertyData);
         
         return data;
@@ -432,7 +434,7 @@ public class CompositionDataset extends magpie.data.MultiPropertyDataset {
             }
             is.close();
         } catch (IOException | NumberFormatException e) {
-            throw new Error("Oxidation states failed to read due to " + e);
+            throw new RuntimeException("Oxidation states failed to read due to " + e);
         }
     }
     
