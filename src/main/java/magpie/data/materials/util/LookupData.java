@@ -125,4 +125,40 @@ abstract public class LookupData {
             IonizationEnergies[i] = temp.get(i);
         }
     }
+
+    /**
+     * Reads in a data file that contains known oxidation states for each
+     * element. List should be contained in a file named OxidationStates.table
+     * 
+     * @param dataDir Path to directory holding the lookup data
+     * 
+     * @return Oxidation states for each element
+     */
+    static synchronized public double[][] readOxidationStates(String dataDir) {
+        Path datafile = Paths.get(dataDir);
+        BufferedReader is;
+        try {
+            is = Files.newBufferedReader(
+                    datafile.resolve("OxidationStates.table"), Charset.forName("US-ASCII"));
+            // Read the file
+            int i;
+            int j; // Counters
+            OxidationStates = new double[ElementNames.length][];
+            for (i = 0; i < ElementNames.length; i++) {
+                String[] states = is.readLine().split(" ");
+                if (states[0].isEmpty()) {
+                    OxidationStates[i] = new double[0];
+                } else {
+                    OxidationStates[i] = new double[states.length];
+                    for (j = 0; j < OxidationStates[i].length; j++) {
+                        OxidationStates[i][j] = Double.parseDouble(states[j]);
+                    }
+                }
+            }
+            is.close();
+        } catch (IOException | NumberFormatException e) {
+            throw new RuntimeException("Oxidation states failed to read due to " + e);
+        }
+        return OxidationStates;
+    }
 }

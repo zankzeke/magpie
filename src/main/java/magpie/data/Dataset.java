@@ -344,6 +344,8 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     
     /**
      * Create a template designed to be saved using serialization
+     * 
+     * @return An empty clone of the dataset, with any additional changes made
      */
     public Dataset createTemplate() {
         // Create an empty clone
@@ -501,7 +503,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
             try {
                 // Wait until that thread finishes
                 results.get(0).get();
-                
+
                 // Set the names for this instance to those of the first part
                 AttributeName = threadData[0].AttributeName;
             } catch (ExecutionException e) {
@@ -1239,6 +1241,8 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * thread n contains all entries where [entry ID] % NThreads == 0. 
      * 
      * <p>Example: 4 threads, thread 1 has entry #1, 5, 9, ...
+     * 
+     * <p>The entries in this object are untouched.
      * 
      * @param NThreads Number of subsets to create
      * @return Array of equally-sized Dataset objects
