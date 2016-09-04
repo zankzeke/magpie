@@ -6,6 +6,10 @@ import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.CompositionEntry;
+import magpie.utility.interfaces.Citable;
+import magpie.utility.interfaces.Citation;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * Generate attributes based on stoichiometry of material. Includes attributes
@@ -22,7 +26,8 @@ import magpie.data.materials.CompositionEntry;
  * <br><pr><i>p norms</i>: Which p norms to compute (e.g., 2). </usage>
  * @author Logan Ward
  */
-public class StoichiometricAttributeGenerator extends BaseAttributeGenerator {
+public class StoichiometricAttributeGenerator extends BaseAttributeGenerator
+        implements Citable {
     /** List of p norms to compute */
     protected Set<Integer> PNorms = new TreeSet<>();
 
@@ -140,5 +145,22 @@ public class StoichiometricAttributeGenerator extends BaseAttributeGenerator {
         
         return output;
     }
-    
+
+    @Override
+    public List<Pair<String, Citation>> getCitations() {
+        List<Pair<String, Citation>> output = new ArrayList<>();
+        
+        output.add(new ImmutablePair(
+                "Used these attributes as part of a general-purpose set",
+                new Citation(this.getClass(),
+                        "Article",
+                        new String[]{"L. Ward", "et al."},
+                        "A General-Purpose Machine Learning Framework for Predicting Properties of Inorganic Materials",
+                        "http://www.nature.com/articles/npjcompumats201628",
+                        null
+                )
+        ));
+        
+        return output;
+    }    
 }

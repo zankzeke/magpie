@@ -46,6 +46,7 @@ public class IonicityAttributeGeneratorTest {
         
         // Print description
         System.out.println(gen.printDescription(true));
+        System.out.println(gen.getCitations());
     }
     
 }

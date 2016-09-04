@@ -1,12 +1,17 @@
 package magpie.attributes.generators.composition;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import magpie.attributes.generators.BaseAttributeGenerator;
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.CompositionEntry;
+import magpie.utility.interfaces.Citable;
+import magpie.utility.interfaces.Citation;
 import magpie.utility.tools.OxidationStateGuesser;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * Generate attributes based on the "ioncity" of a compound.
@@ -28,7 +33,8 @@ import magpie.utility.tools.OxidationStateGuesser;
  * 
  * @author Logan Ward
  */
-public class IonicityAttributeGenerator extends BaseAttributeGenerator {
+public class IonicityAttributeGenerator extends BaseAttributeGenerator 
+        implements Citable {
 
     @Override
     public void setOptions(List<Object> Options) throws Exception {
@@ -104,5 +110,22 @@ public class IonicityAttributeGenerator extends BaseAttributeGenerator {
         
         return output;
     }
-    
+
+    @Override
+    public List<Pair<String, Citation>> getCitations() {
+        List<Pair<String, Citation>> output = new ArrayList<>();
+        
+        output.add(new ImmutablePair(
+                "Used these attributes as part of a general-purpose set",
+                new Citation(this.getClass(),
+                        "Article",
+                        new String[]{"L. Ward", "et al."},
+                        "A General-Purpose Machine Learning Framework for Predicting Properties of Inorganic Materials",
+                        "http://www.nature.com/articles/npjcompumats201628",
+                        null
+                )
+        ));
+        
+        return output;
+    }
 }

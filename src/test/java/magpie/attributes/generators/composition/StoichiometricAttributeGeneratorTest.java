@@ -34,6 +34,6 @@ public class StoichiometricAttributeGeneratorTest {
         
         // Print results
         System.out.println(gen.printDescription(true));
+        System.out.println(gen.getCitations());
     }
-    
 }
