@@ -57,7 +57,7 @@ import org.apache.commons.lang3.tuple.Pair;
  * 
  * @author Logan Ward
  */
-public class LassoAttributeSelector extends BaseAttributeSelector 
+public class LassoAttributeSelector extends PythonBasedAttributeSelector 
         implements Citable {
     /** Number of attributes to pick via LASSO. Default = 20 */
     protected int NLASSO = 20;
@@ -75,12 +75,10 @@ public class LassoAttributeSelector extends BaseAttributeSelector
     protected int CVIterations = 100;
     /** Whether to pick dataset size via cross-validation. */
     protected boolean SelectSizeAutomatically = false;
-    /** Debug mode. Pipe output from subprocess to stdout */
-    public boolean Debug = false;
-
+    
     @Override
     public void setOptions(List<Object> Options) throws Exception {
-        int nLasso, maxDim; // Nandatory
+        int nLasso, maxDim; // Mandatory
         int nDown = -1, cvIter = -1;
         double cvFrac = -1;
         boolean pickBest = false;
@@ -191,23 +189,25 @@ public class LassoAttributeSelector extends BaseAttributeSelector
         this.NLASSO = NLASSO;
     }
     
-    @Override
-    protected List<Integer> train_protected(Dataset Data) {
-        // Create system call
-        File lassoCodePath = UtilityOperations.findFile("py/lasso_attribute_selection.py");
-        if (lassoCodePath == null) {
-            throw new RuntimeException("can't find lasso_attribute_selection.py");
-        }
-        
+    /**
+     * Prepare the system call with all command-line arguments
+     * 
+     * @param codePath Path to executable or script to be run
+     * @return Command to be executed
+     */
+    protected List<String> assembleSystemCall(File codePath) {
         List<String> call = new LinkedList<>();
         call.add("python");
-        call.add(lassoCodePath.getAbsolutePath());
-        call.add("-n_lasso"); call.add(Integer.toString(NLASSO));
+        call.add(codePath.getAbsolutePath());
+        call.add("-n_lasso");
+        call.add(Integer.toString(NLASSO));
         if (NDownselect > 0) {
             call.add("-corr_downselect"); call.add(Integer.toString(NDownselect));
         }
-        call.add("-max_dim"); call.add(Integer.toString(MaxCount));
-        call.add("-n_procs"); call.add(Integer.toString(Magpie.NThreads));
+        call.add("-max_dim");
+        call.add(Integer.toString(MaxCount));
+        call.add("-n_procs");
+        call.add(Integer.toString(Magpie.NThreads));
         if (SelectSizeAutomatically) {
             call.add("-pick_best");
         }
@@ -215,77 +215,7 @@ public class LassoAttributeSelector extends BaseAttributeSelector
             call.add("-cv_method"); call.add(Double.toString(CVFraction));
             call.add(Integer.toString(CVIterations));
         }
-        
-        // Start the subprocess
-        final Process lasso;
-        try {
-            lasso = new ProcessBuilder(call).start();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        
-        // Start a tread reading from the error stream
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    int b = lasso.getErrorStream().read();
-                    while (b != -1) {
-                        b = lasso.getErrorStream().read();
-                        System.err.write(b);
-                    }
-                } catch (IOException e) {
-                    return;
-                }
-            }
-        });
-        t.start();
-        
-        List<String> attrNames = new ArrayList<>(MaxCount);
-        try {
-            // Write dataset to the lasso code
-            DelimitedOutput delimitedOutput = new DelimitedOutput(",");
-            delimitedOutput.writeDataset(Data, lasso.getOutputStream());
-            lasso.getOutputStream().close(); // Done, let the subprocess go
-            
-            // Read until the answer or null is found
-            BufferedReader fp = new BufferedReader(new InputStreamReader(lasso.getInputStream()));
-            String line = fp.readLine();
-            while (line != null) {
-                line = fp.readLine();
-                if (Debug) {
-                    System.out.println(line);
-                }
-                if (line.startsWith("[Answer]")) {
-                    break;
-                }
-            }
-            
-            // If the line is null, an error has occured
-            if (line == null) {
-                throw new Exception("Answer not found.");
-            }
-            
-            // Otherwise, get the attribute names
-            String[] words = line.split(" ");
-            for (int i=1; i<words.length; i++) {
-                attrNames.add(words[i]);
-            }
-        } catch (Exception e) {
-            lasso.destroy();
-            throw new RuntimeException(e);
-        }
-        
-        // Match names with id)
-        List<Integer> output = new ArrayList<>(attrNames.size());
-        for (String name : attrNames) {
-            int id = Data.getAttributeIndex(name); 
-            if (id == -1) {
-                throw new RuntimeException("Attribute not found: " + name);
-            }
-            output.add(id);
-        }
-        return output;
+        return call;
     }
 
     @Override
@@ -348,6 +278,5 @@ public class LassoAttributeSelector extends BaseAttributeSelector
         }
         
         return output;
-    }
-    
+    }    
 }
