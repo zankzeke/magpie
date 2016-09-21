@@ -130,6 +130,11 @@ public class LassoAttributeSelector extends PythonBasedAttributeSelector
         return "Usage: -n_lasso <# lasso> -max_dim <dim> [-corr_downselect <# corr>] [-cv_method <cv frac> <cv iters>] [-pick_best]";
     }
 
+    @Override
+    protected String getScriptPath() {
+        return "py/lasso_attribute_selection.py";
+    }
+
     /**
      * Set the fraction of entries to without during cross-validation. Set to a negative number
      * to use training set fitness rather than CV score
@@ -193,9 +198,10 @@ public class LassoAttributeSelector extends PythonBasedAttributeSelector
      * Prepare the system call with all command-line arguments
      * 
      * @param codePath Path to executable or script to be run
+     * @param data Dataset being used to train attribute selector
      * @return Command to be executed
      */
-    protected List<String> assembleSystemCall(File codePath) {
+    protected List<String> assembleSystemCall(File codePath, Dataset data) {
         List<String> call = new LinkedList<>();
         call.add("python");
         call.add(codePath.getAbsolutePath());

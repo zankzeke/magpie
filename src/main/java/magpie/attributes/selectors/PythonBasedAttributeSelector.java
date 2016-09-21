@@ -23,19 +23,21 @@ import magpie.utility.UtilityOperations;
  * @author Logan Ward
  */
 public abstract class PythonBasedAttributeSelector extends BaseAttributeSelector {
-    /** Path to script to be executed */
-    protected String Script = "py/lasso_attribute_selection.py";
     /** Debug mode. Pipe output from subprocess to stdout */
     public boolean Debug = false;
 
     @Override
     protected List<Integer> train_protected(Dataset data) {
         // Create system call
-        File lassoCodePath = UtilityOperations.findFile(Script);
-        if (lassoCodePath == null) {
+        File scriptPath = UtilityOperations.findFile(getScriptPath());
+        if (scriptPath == null) {
             throw new RuntimeException("can't find lasso_attribute_selection.py");
         }
-        List<String> call = assembleSystemCall(lassoCodePath);
+        if (Debug) {
+            System.out.println("Python script path: " + scriptPath);
+        }
+        List<String> call = assembleSystemCall(scriptPath, data);
+        
         // Start the subprocess
         final Process python;
         try {
@@ -43,8 +45,10 @@ public abstract class PythonBasedAttributeSelector extends BaseAttributeSelector
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        
         // Start a tread reading from the error stream
         spawnStderrReader(python);
+        
         List<String> attrNames = new ArrayList<>();
         try {
             // Write dataset to the lasso code
@@ -55,13 +59,13 @@ public abstract class PythonBasedAttributeSelector extends BaseAttributeSelector
             BufferedReader fp = new BufferedReader(new InputStreamReader(python.getInputStream()));
             String line = fp.readLine();
             while (line != null) {
-                line = fp.readLine();
                 if (Debug) {
                     System.out.println(line);
                 }
                 if (line.startsWith("[Answer]")) {
                     break;
                 }
+                line = fp.readLine();
             }
             // If the line is null, an error has occured
             if (line == null) {
@@ -92,9 +96,16 @@ public abstract class PythonBasedAttributeSelector extends BaseAttributeSelector
      * Prepare the system call with all command-line arguments
      *
      * @param codePath Path to executable or script to be run
+     * @param data Dataset being used to train attribute selector
      * @return Command to be executed
      */
-    protected abstract List<String> assembleSystemCall(File codePath);
+    protected abstract List<String> assembleSystemCall(File codePath, Dataset data);
+    
+    /**
+     * Get the path to the Python script to be run.
+     * @return Path
+     */
+    protected abstract String getScriptPath();
 
     /**
      * Launch a thread that does nothing but read from the standard error of an
