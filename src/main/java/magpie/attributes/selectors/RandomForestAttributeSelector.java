@@ -12,6 +12,11 @@ import magpie.data.Dataset;
  * attributes as selected by a RandomForest model, and then repeating the process 
  * on the reduced set of attributes.
  * 
+ * <p>A technical note you should be aware of: This selection makes no assurances
+ * that the selected attributes are not correlated with each other. You may
+ * want to follow up the selection of a subset with a tool that does ensure
+ * selected attributes are not correlated.
+ * 
  * <p>Procedure:
  * 
  * <ol>
