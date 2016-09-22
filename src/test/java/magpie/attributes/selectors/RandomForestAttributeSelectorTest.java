@@ -9,9 +9,22 @@ import static org.junit.Assert.*;
 
 /**
  *
- * @author Logan
+ * @author Logan Ward
  */
 public class RandomForestAttributeSelectorTest {
+    
+    @Test
+    public void testRegression() throws Exception {
+        Dataset data = makeTestDataset();
+        
+        // Set the class such it is "A^2 + 2B"
+        for (BaseEntry entry : data.getEntries()) {
+            entry.setMeasuredClass(entry.getAttribute(0) * entry.getAttribute(0)
+                    + 2 * entry.getAttribute(1));
+        }
+        
+        testSelector(data);
+    }
     
     @Test
     public void testClassifier() throws Exception {
@@ -28,6 +41,16 @@ public class RandomForestAttributeSelectorTest {
                     0 : 1 );
         }
         
+        testSelector(data);
+    }
+
+    /**
+     * Given a dataset where the measured class is related to the first two 
+     * variables, test the ability of the selector to find it.
+     * @param data Dataset used for testing
+     * @throws Exception 
+     */
+    protected void testSelector(Dataset data) throws Exception {
         // Create the selector
         RandomForestAttributeSelector sel = new RandomForestAttributeSelector();
         

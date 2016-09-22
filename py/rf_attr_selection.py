@@ -56,7 +56,7 @@ if __name__ == '__main__':
             pos += 1
             num_trees = int(sys.argv[pos])
         elif sys.argv[pos] == '-regression':
-            is_classifier = True
+            is_classifier = False
         else:
             print >>sys.stderr, '[ERROR] Unrecognized command line argument: ', sys.argv[pos]
         pos += 1
