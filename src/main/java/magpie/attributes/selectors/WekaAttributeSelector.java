@@ -86,7 +86,7 @@ public class WekaAttributeSelector extends BaseAttributeSelector {
                 SearcherOptions = Arrays.copyOfRange(Options, searchStart + 2, End);
             }
         } catch (Exception e) {
-            throw new Exception(printUsage());
+            throw new IllegalArgumentException(printUsage());
         }
         if (set_evaluator) {
             setEvaluator(EvalType, EvalOptions);
@@ -167,19 +167,55 @@ public class WekaAttributeSelector extends BaseAttributeSelector {
         return newObj;
     }
     
-    @Override protected List<Integer> train_protected(Dataset Data) {
+    @Override protected List<Integer> train_protected(Dataset data) {
         List<Integer> output = new LinkedList<>();
-        try { 
-            Instances wekadata = Data.transferToWeka(true, false);
+        try {
+            // Transfer data to a Weka format
+            Instances wekadata = data.transferToWeka(true, 
+                    data.NClasses() > 1);
             Evaluator.buildEvaluator(wekadata);
-            int[] List = Searcher.search(Evaluator, wekadata);
-            for (int i=0; i<List.length; i++) {
-                output.add(List[i]);
+            
+            // Get the results
+            int[] list = Searcher.search(Evaluator, wekadata);
+            for (int i=0; i<list.length; i++) {
+                output.add(list[i]);
             }
-            Data.restoreAttributes(wekadata);
+            data.restoreAttributes(wekadata);
         } catch (Exception e) {
-            throw new Error(e);
+            throw new RuntimeException(e);
         }
         return output;
     }
+
+    @Override
+    public String printDescription(boolean htmlFormat) {
+        String output = "Uses Weka to perform attribute selection.\n";
+        
+        // Print out the evaluator
+        if (htmlFormat) {
+            output += "<br>";
+        }
+        output += "Evaluator: " + Evaluator.getClass().getSimpleName();
+        if (Evaluator instanceof OptionHandler) {
+            for (String option : ((OptionHandler) Evaluator).getOptions()) {
+                output += " " + option;
+            }
+        }
+        output += "\n";
+        
+        // Print out the search method
+        if (htmlFormat) {
+            output += "<br>";
+        }
+        output += "Searcher: " + Searcher.getClass().getSimpleName();
+        if (Searcher instanceof OptionHandler) {
+            for (String option : ((OptionHandler) Searcher).getOptions()) {
+                output += " " + option;
+            }
+        }
+        
+        return output;
+    }
+    
+    
 }

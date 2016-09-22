@@ -1,5 +1,7 @@
 package magpie.attributes.selectors;
 
+import java.util.ArrayList;
+import java.util.List;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.util.PropertyLists;
 import org.junit.Test;
@@ -24,13 +26,29 @@ public class WekaAttributeSelectorTest {
         data.generateAttributes();
         data.setTargetProperty("delta_e", false);
         
-        // Run the filter
+        // Create the selector
         WekaAttributeSelector selector = new WekaAttributeSelector();
+        
+        List<Object> options = new ArrayList<>();
+        options.add("-eval");
+        options.add("weka.attributeSelection.CfsSubsetEval");
+        options.add("-M");
+        
+        options.add("-search");
+        options.add("BestFirst");
+        options.add("-D");
+        options.add("1");
+        
+        selector.setOptions(options);
+        
+        // Test it
         int originalCount = data.NAttributes();
         selector.train(data);
         assertEquals(originalCount, data.NAttributes());
         selector.run(data);
         assertNotEquals(originalCount, data.NAttributes());
+        
+        // Print description 
+        System.out.println(selector.printDescription(true));
     }
-    
 }
