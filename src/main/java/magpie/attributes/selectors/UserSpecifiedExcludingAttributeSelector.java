@@ -46,5 +46,18 @@ public class UserSpecifiedExcludingAttributeSelector extends
         return output;
     }
     
-    
+    @Override
+    public String printDescription(boolean htmlFormat) {
+        String output = "Select only attributes that were not specified by a user:\n";
+        
+        if (htmlFormat) {
+            output += "<br>";
+        }
+        
+        for (String name : SelectedAttributes) {
+            output += name + " ";
+        }
+        
+        return output;
+    }
 }

@@ -50,6 +50,23 @@ public class UserSpecifiedAttributeSelector extends BaseAttributeSelector {
     }
     
     /**
+     * Clear list of user-specified attributes
+     */
+    public void clearSpecifiedAttributes() {
+        SelectedAttributes.clear();
+        trained = false;
+    }
+    
+    /**
+     * Add an attribute to the list of attributes to be selected
+     * @param attribute Name of attribute
+     */
+    public void addAttributeSpecification(String attribute) {
+        SelectedAttributes.add(attribute);
+        trained = false;
+    }
+    
+    /**
      * Define a list of attributes that will be used when training a model
      * @param Attributes List of desired attributes
      */
@@ -59,7 +76,7 @@ public class UserSpecifiedAttributeSelector extends BaseAttributeSelector {
 			throw new Error("You must provide at least one attribute");
 		}
         
-        this.SelectedAttributes.addAll(Attributes);
+        SelectedAttributes.addAll(Attributes);
 		trained = false;
     }
 
@@ -74,6 +91,21 @@ public class UserSpecifiedAttributeSelector extends BaseAttributeSelector {
             }
             output.add(id);
         }
+        return output;
+    }
+
+    @Override
+    public String printDescription(boolean htmlFormat) {
+        String output = "Select only attributes that were specified by a user:\n";
+        
+        if (htmlFormat) {
+            output += "<br>";
+        }
+        
+        for (String name : SelectedAttributes) {
+            output += name + " ";
+        }
+        
         return output;
     }
 }

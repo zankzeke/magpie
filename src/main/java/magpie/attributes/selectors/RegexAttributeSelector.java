@@ -9,18 +9,18 @@ import magpie.data.Dataset;
 /**
  * Selects attributes based on whether their name matches a regular expression.
  * 
- * <usage><p><b>Usage</b>: [-v] &lt;regex&gt;
- * <br><pr><i>-v</i>: Exclude attributes whose name matches this regex
- * <br><pr><i>regex</i>: Regular expression designed to match attributes to be included.
- * <br>If the regex includes spaces, surround with ""s</usage>
+ * <usage><p><b>Usage</b>: [-v] &lt;Regex&gt;
+ * <br><pr><i>-v</i>: Exclude attributes whose name matches this Regex
+ <br><pr><i>Regex</i>: Regular expression designed to match attributes to be included.
+ * <br>If the Regex includes spaces, surround with ""s</usage>
  * 
  * @author Logan Ward
  */
 public class RegexAttributeSelector extends BaseAttributeSelector {
     /** Regular expression to be matched */
-    protected Pattern regex;
+    protected Pattern Regex;
     /** Whether to include attributes that match */
-    protected boolean includeMatching = true;
+    protected boolean IncludeMatching = true;
 
     @Override
     public void setOptions(List<Object> Options) throws Exception {
@@ -56,7 +56,7 @@ public class RegexAttributeSelector extends BaseAttributeSelector {
      * @throws PatternSyntaxException 
      */
     public void setRegex(String regex) throws PatternSyntaxException {
-        this.regex = Pattern.compile(regex);
+        this.Regex = Pattern.compile(regex);
 		trained = false;
     }
 
@@ -65,7 +65,7 @@ public class RegexAttributeSelector extends BaseAttributeSelector {
      * @param x Desired operation
      */
     public void setIncludeMatching(boolean x) {
-        this.includeMatching = x;
+        this.IncludeMatching = x;
 		trained = false;
     }
 
@@ -74,14 +74,22 @@ public class RegexAttributeSelector extends BaseAttributeSelector {
         List<Integer> output = new LinkedList<>();
         for (int i=0; i<Data.NAttributes(); i++) {
             String name = Data.getAttributeName(i);
-            boolean matches = regex.matcher(name).matches();
-            if (matches == includeMatching) {
+            boolean matches = Regex.matcher(name).matches();
+            if (matches == IncludeMatching) {
                 output.add(i);
             }
         }
         return output;
     }
-    
-    
-    
+
+    @Override
+    public String printDescription(boolean htmlFormat) {
+        String output = "Select attributes that ";
+        
+        output += IncludeMatching ? "match" : "do not match";
+        
+        output += " the regex: " + Regex;
+        
+        return output;
+    }
 }

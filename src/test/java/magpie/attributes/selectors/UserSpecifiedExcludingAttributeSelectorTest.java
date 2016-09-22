@@ -32,6 +32,8 @@ public class UserSpecifiedExcludingAttributeSelectorTest {
         // Test result
         assertEquals(1, data.NAttributes());
         assertEquals("y", data.getAttributeNames()[0]);
+        
+        System.out.println(selector.printDescription(true));
     }
     
 }
