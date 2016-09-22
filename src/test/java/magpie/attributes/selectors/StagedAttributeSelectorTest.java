@@ -41,7 +41,7 @@ public class StagedAttributeSelectorTest {
         sel.train(data);
         
         assertEquals(1, sel.getSelections().size());
-        assertTrue(sel.getSelectionNames().contains("x1"));
+        assertTrue(sel.getSelectionNames().contains("x2"));
         
         // Print the description
         System.out.println(sel.printDescription(true));

@@ -96,8 +96,16 @@ public class StagedAttributeSelector extends BaseAttributeSelector
             sel.run(localData);
         }
         
-        // Get the selections from the last selector
-        return Selectors.get(Selectors.size() - 1).getSelections();
+        // Get the names of selected attributes from the last selector, 
+        //   make them to numbers _in the original dataset_
+        List<String> names = Selectors.get(Selectors.size() - 1).getSelectionNames();
+        
+        List<Integer> output = new ArrayList<>(names.size());
+        for (String name : names) {
+            output.add(data.getAttributeIndex(name));
+        }
+        
+        return output;
     }
 
     @Override
