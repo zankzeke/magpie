@@ -93,28 +93,40 @@ abstract public class BaseAttributeSelector implements java.io.Serializable,
     
     /**
      * Adjust the attribute list of a dataset, based on a trained selection algorithm
-     * @param Data Dataset to be filtered
+     * @param data Dataset to be filtered
      */
-    public void run(Dataset Data) {
+    public void run(Dataset data) {
         if (! trained) 
-            throw new Error("AttributeSelector not trained");
+            throw new RuntimeException("AttributeSelector not trained");
         if (Attribute_ID.isEmpty())
-            throw new Error("No attributes selected.");
+            throw new RuntimeException("No attributes selected.");
         
         // Get the new list of feature names
-        ArrayList<String> NewAttributeNames = new ArrayList<>(Attribute_ID.size());
-        String[] oldAttributeNames = Data.getAttributeNames();
-        for (Integer id : Attribute_ID) {
+        List<Integer> selectedAttributes = Attribute_ID;
+        applyAttributeSelection(selectedAttributes, data);
+    }    
+
+    /**
+     * Given a list of attribute IDs, adjust a dataset so that it only has the 
+     * specified attributes.
+     * 
+     * @param selectedAttributes List of selected attributes
+     * @param data Dataset to be run
+     */
+    static protected void applyAttributeSelection(List<Integer> selectedAttributes, Dataset data) {
+        ArrayList<String> NewAttributeNames = new ArrayList<>(selectedAttributes.size());
+        String[] oldAttributeNames = data.getAttributeNames();
+        for (Integer id : selectedAttributes) {
             NewAttributeNames.add((String) oldAttributeNames[id]);
         }
-        Data.setAttributeNames(NewAttributeNames);
+        data.setAttributeNames(NewAttributeNames);
         
         // For each entry, redo the feature list
-        double[] newAttributes = new double[Data.NAttributes()];
-        for (int i=0; i<Data.NEntries(); i++) {
-            for (int j=0; j<Data.NAttributes(); j++)
-                newAttributes[j] = Data.getEntry(i).getAttribute(Attribute_ID.get(j));
-            Data.getEntry(i).setAttributes(newAttributes);
+        double[] newAttributes = new double[data.NAttributes()];
+        for (int i=0; i<data.NEntries(); i++) {
+            for (int j=0; j<data.NAttributes(); j++)
+                newAttributes[j] = data.getEntry(i).getAttribute(selectedAttributes.get(j));
+            data.getEntry(i).setAttributes(newAttributes);
         }
     }    
 
