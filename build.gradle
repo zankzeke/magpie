@@ -2,6 +2,15 @@ apply plugin: 'java'
 apply plugin: 'cobertura'
 apply plugin: 'com.github.kt3k.coveralls'
 
+// Java 8 _requires_ conforming HTML for the Javadoc
+//  this code prints warnings but does not fail
+if (JavaVersion.current().isJava8Compatible()) {
+	allprojects {
+		tasks.withType(Javadoc) {
+			options.addStringOption('Xdoclint:none', '-quiet')
+		}
+	}
+}
 
 // Where to find libraries for Magpie
 repositories {
@@ -12,7 +21,6 @@ repositories {
         dirs 'required-libraries'
     }
 }
-
 
 // Resources for the build script
 buildscript {
