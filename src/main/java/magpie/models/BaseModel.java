@@ -4,11 +4,11 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import magpie.Magpie;
 import magpie.statistics.performance.BaseStatistics;
 import magpie.attributes.selectors.BaseAttributeSelector;
@@ -177,16 +177,28 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
     }
     
     /** 
-     * Perform n-fold cross validation
+     * Perform k-fold cross validation
      * @param folds Number of folds in CV test
      * @param cvData Data to use for CV
      * @return Clone of input dataset. Class variable is the predicted 
      * value of the model used when computing CV statistics
      */
     public Dataset crossValidate(int folds, Dataset cvData) {
+        return crossValidate(folds, cvData, new Random().nextLong());
+    }
+    
+    /** 
+     * Perform k-fold cross validation
+     * @param folds Number of folds in CV test
+     * @param cvData Data to use for CV
+     * @param seed Random seed used when splitting dataset
+     * @return Clone of input dataset. Class variable is the predicted 
+     * value of the model used when computing CV statistics
+     */
+    public Dataset crossValidate(int folds, Dataset cvData, long seed) {
         // Split into several parts
         Dataset internalTest = cvData.clone();
-        Dataset[] testFolds = internalTest.splitIntoFolds(folds);
+        Dataset[] testFolds = internalTest.splitIntoFolds(folds, seed);
         
         // Generate a clone of the model to play with
         BaseModel testModel;

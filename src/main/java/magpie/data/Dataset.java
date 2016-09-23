@@ -2,7 +2,6 @@ package magpie.data;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import magpie.data.utilities.DatasetHelper;
 import weka.core.*;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -23,6 +22,7 @@ import magpie.data.utilities.output.ARFFOutput;
 import magpie.data.utilities.output.DelimitedClassOutput;
 import magpie.data.utilities.output.DelimitedOutput;
 import magpie.data.utilities.output.SimpleOutput;
+import magpie.data.utilities.splitters.MeasuredClassSplitter;
 import magpie.optimization.rankers.BaseEntryRanker;
 import static magpie.user.CommandHandler.instantiateClass;
 import static magpie.user.CommandHandler.printImplmentingClasses;
@@ -33,7 +33,6 @@ import magpie.utility.interfaces.Commandable;
 import magpie.utility.interfaces.Options;
 import magpie.utility.interfaces.Printable;
 import magpie.utility.interfaces.Savable;
-import org.apache.commons.collections.Predicate;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.math3.ml.distance.DistanceMeasure;
@@ -1266,15 +1265,30 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         
         return output;
     }
+    
+    /**
+     * Split the dataset into multiple folds for cross-validation, empties the
+     * original test set
+     *
+     * @param folds Number of folds
+     * @return Independent data sets
+     */
+    public Dataset[] splitIntoFolds(int folds) {
+        return splitIntoFolds(folds, new Random().nextLong());
+    }
 
     /**
      * Split the dataset into multiple folds for cross-validation, empties the
      * original test set
      *
      * @param folds Number of folds
-     * @return Vector of independent test sets
+     * @param seed Random seed
+     * @return Independent data sets
      */
-    public Dataset[] splitIntoFolds(int folds) {
+    public Dataset[] splitIntoFolds(int folds, long seed) {
+        // Make the Random number generator
+        Random random = new Random(seed);
+        
         // Generate the output array
         Dataset[] output = new Dataset[folds];
         for (int i = 0; i < folds; i++) {
@@ -1290,34 +1304,27 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 count += to_split;
             }
             Arrays.fill(to_switch, count, NEntries(), 0);
-            Collections.shuffle(Arrays.asList(to_switch));
+            Collections.shuffle(Arrays.asList(to_switch), random);
 
             // Assign them to the appropriate array
             int id = 0;
             Iterator<BaseEntry> iter = Entries.iterator();
             while (iter.hasNext()) {
                 BaseEntry e = iter.next();
-                iter.remove(); // Remove from old set
                 output[to_switch[id]].addEntry(e);
                 id++;
             }
+            Entries.clear();
         } else {
-            for (int i = 0; i < NClasses(); i++) {
-                final int cls = i;
-                
-                // Get the entries that are in class # cls
-                Predicate splitter = new Predicate() {
-                    @Override
-                    public boolean evaluate(Object input) {
-                        BaseEntry input_obj = (BaseEntry) input;
-                        return input_obj.getMeasuredClass() == cls;
-                    }
-                };
-                Dataset split = DatasetHelper.split(this, splitter);
-
+            // Split dataset based on measured class
+            MeasuredClassSplitter splitter = new MeasuredClassSplitter();
+            splitter.train(this);
+            List<Dataset> splits = splitter.split(this);
+            
+            for (Dataset split : splits) {
                 // Split them into folds for cross-validation
                 split.setClassNames(new String[]{"Class"});
-                Dataset[] split_folds = split.splitIntoFolds(folds);
+                Dataset[] split_folds = split.splitIntoFolds(folds, random.nextLong());
                 for (Dataset S : split_folds) {
                     S.setClassNames(getClassNames());
                 }

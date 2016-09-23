@@ -86,6 +86,44 @@ public class DatasetTest {
     }
     
     @Test
+    public void testSplitIntoFolds() {
+        // Make a Dataset
+        Dataset data = new Dataset();
+        data.addAttribute("x", new double[0]);
+        for (int i=0; i<100; i++) {
+            BaseEntry entry = new BaseEntry();
+            entry.addAttribute(i);
+            entry.setMeasuredClass(i % 4 == 0 ? 1 : 0);
+            data.addEntry(entry);
+        }
+        
+        // Test that it gets the number right
+        assertEquals(2, data.clone().splitIntoFolds(2).length);
+        assertEquals(8, data.clone().splitIntoFolds(8).length);
+        
+        // Test that same seed gives same result
+        double[] split1 = data.clone().splitIntoFolds(2, 1)[0].getSingleAttributeArray(0);
+        double[] split2 = data.clone().splitIntoFolds(2, 1)[0].getSingleAttributeArray(0);
+        assertArrayEquals(split1, split2, 1e-5);
+        
+        // Test that the lengths of the two datasets are the same
+        Dataset[] folds = data.clone().splitIntoFolds(2);
+        assertEquals(folds[0].NEntries(), folds[1].NEntries());
+        
+        // Make sure that a stratified split yeilds the right balance between
+        //  the two classes
+        data.setClassNames(new String[]{"Yes", "No"});
+        folds = data.clone().splitIntoFolds(5);
+        
+        // Make sure that the splits match up to expectation
+        assertArrayEquals(new int[]{75,25}, data.getDistributionCount());
+        
+        for (Dataset fold : folds) {
+            assertArrayEquals(new int[]{15, 5}, fold.getDistributionCount());
+        }
+    }
+    
+    @Test
     public void testAttributeExpansion() throws Exception {
         // Make a sample dataset
         Dataset data = new Dataset();
