@@ -33,9 +33,11 @@ import magpie.utility.interfaces.Commandable;
 import magpie.utility.interfaces.Options;
 import magpie.utility.interfaces.Printable;
 import magpie.utility.interfaces.Savable;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.math3.ml.distance.DistanceMeasure;
+import org.apache.commons.math3.util.MathUtils;
 import weka.core.converters.ArffLoader;
 
 /**
@@ -1137,40 +1139,121 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         }
         return output;
     }
+    
+    /**
+     * Split off a certain number of entries into a separate dataset. Deletes
+     * those entries from the original set. 
+     * 
+     * <p>Does not specifically ensure that split has same distribution of classes
+     * as this dataset
+     * 
+     * @param number Fraction of entries from original set to move
+     * @return Dataset containing a subset of entries
+     * @see #getRandomSplit(int, long, boolean) 
+     */
+    public Dataset getRandomSplit(int number) {
+        return getRandomSplit(number, new Random().nextLong(), false);
+    }
 
     /**
      * Split off a certain number of entries into a separate dataset. Deletes
      * those entries from the original set
      *
      * @param number Number of entries in new set
+     * @param seed Seed used for random number generator
+     * @param stratified Ensure split has the same distribution of classes as the
      * @return Dataset containing a subset of entries
      */
-    public Dataset randomSplit(int number) {
+    public Dataset getRandomSplit(int number, long seed, boolean stratified) {
         if (number < 0 || number > NEntries()) {
             throw new RuntimeException("Number must be positive, and less than the size of the set");
         }
-
-        // Create a list of which entries to move over
-        Boolean[] to_switch = new Boolean[NEntries()];
-        Arrays.fill(to_switch, 0, number, true);
-        Arrays.fill(to_switch, number, NEntries(), false);
-        Collections.shuffle(Arrays.asList(to_switch));
-
-        // Delete or switch, as suggested
+        
+        // Create the output set
         Dataset out = emptyClone();
-        int id = 0;
-        Iterator<BaseEntry> iter = Entries.iterator();
-        ArrayList<BaseEntry> new_set = new ArrayList<>(number);
-        while (iter.hasNext()) {
-            BaseEntry e = iter.next();
-            if (to_switch[id]) {
-                new_set.add(e);
-                iter.remove();
+        
+        // Initialize the random number generator
+        Random random = new Random(seed);
+        
+        if (stratified && NClasses() > 1) {
+            // Split dataset based on measured class
+            MeasuredClassSplitter splitter = new MeasuredClassSplitter();
+            splitter.train(this);
+            List<Dataset> splits = splitter.split(this, true);
+            
+            // Get the fraction of entries from each class to extract
+            int[] nToSplit = getDistributionCount();
+            int count = 0;
+            for (int c=0; c<nToSplit.length; c++) {
+                nToSplit[c] *= number;
+                nToSplit[c] /= NEntries();
+                count += nToSplit[c];
             }
-            id++;
+            if (count < number) {
+                while (count < number) {
+                    nToSplit[random.nextInt(nToSplit.length)]++;
+                    count++;
+                }
+            } else {
+                while (count > number) {
+                    nToSplit[random.nextInt(nToSplit.length)]--;
+                    count--;
+                }
+            }
+            
+            // Clear entries from this dataset
+            Entries.clear();
+            
+            for (int s=0; s<nToSplit.length; s++) {
+                // Get the split
+                Dataset split = splits.get(s);
+                
+                // Split them into folds for cross-validation
+                split.setClassNames(new String[]{"Class"});
+                Dataset fromSplit = split.getRandomSplit(nToSplit[s], random.nextLong(), false);
+                fromSplit.setClassNames(getClassNames());
+                split.setClassNames(getClassNames());
+
+                // Add them to the output structure
+                out.combine(fromSplit);
+                Entries.addAll(split.Entries);
+            }
+        } else {
+            // Create a list of which entries to move over
+            Boolean[] to_switch = new Boolean[NEntries()];
+            Arrays.fill(to_switch, 0, number, true);
+            Arrays.fill(to_switch, number, NEntries(), false);
+            Collections.shuffle(Arrays.asList(to_switch), random);
+
+            // Delete or switch, as suggested
+            int id = 0;
+            Iterator<BaseEntry> iter = Entries.iterator();
+            ArrayList<BaseEntry> new_set = new ArrayList<>(number);
+            while (iter.hasNext()) {
+                BaseEntry e = iter.next();
+                if (to_switch[id]) {
+                    new_set.add(e);
+                    iter.remove();
+                }
+                id++;
+            }
+            out.addEntries(new_set);
         }
-        out.addEntries(new_set);
         return out;
+    }
+    
+    /**
+     * Split off a certain number of entries into a separate dataset. Deletes
+     * those entries from the original set. 
+     * 
+     * <p>Does not specifically ensure that split has same distribution of classes
+     * as this dataset
+     * @param fraction Fraction of entries from original set to move
+     * @return Dataset containing a subset of entries
+     * @see #getRandomSplit(double, long, boolean) 
+     */
+    public Dataset getRandomSplit(double fraction) {
+        return getRandomSplit(fraction, new Random().nextLong(), false);
     }
 
     /**
@@ -1178,14 +1261,17 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * those entries from the original set
      *
      * @param fraction Fraction of entries of original set to move to new set
+     * @param seed Seed used for random number generator
+     * @param stratified Ensure split has the same distribution of classes as the
+     * host dataset
      * @return Dataset containing a subset of entries
      */
-    public Dataset randomSplit(double fraction) {
+    public Dataset getRandomSplit(double fraction, long seed, boolean stratified) {
         if (fraction > 1 || fraction < 0) {
             throw new RuntimeException("Fraction must be between 0 and 1");
         }
         int to_new = (int) Math.floor((double) NEntries() * fraction);
-        return randomSplit(to_new);
+        return getRandomSplit(to_new, seed, stratified);
     }
 
     /**
@@ -2187,7 +2273,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                     output = size >= 1 ? getRandomSubset((int) size) : getRandomSubset(size);
                     System.out.println("\tGenerated a subset containing " + output.NEntries() + " entries.");
                 } else {
-                    output = size >= 1 ? randomSplit((int) size) : randomSplit(size);
+                    output = size >= 1 ? getRandomSplit((int) size) : getRandomSplit(size);
                     System.out.println("\tSplit off " + output.NEntries() + " entries from dataset");
                 }
                 return output;

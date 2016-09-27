@@ -15,6 +15,7 @@ import magpie.attributes.generators.BaseAttributeGenerator;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.utilities.modifiers.NonZeroClassModifier;
 import magpie.models.regression.WekaRegression;
+import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import weka.core.Instances;
@@ -120,6 +121,64 @@ public class DatasetTest {
         
         for (Dataset fold : folds) {
             assertArrayEquals(new int[]{15, 5}, fold.getDistributionCount());
+        }
+    }
+    
+    @Test
+    public void testRandomSplit() throws Exception {
+        // Make a Dataset
+        Dataset data = new Dataset();
+        data.addAttribute("x", new double[0]);
+        for (int i=0; i<100; i++) {
+            BaseEntry entry = new BaseEntry();
+            entry.addAttribute(i);
+            entry.setMeasuredClass(i % 4 == 0 ? 1 : 0);
+            data.addEntry(entry);
+        }
+        data.setClassNames(new String[]{"Yes", "No"});
+        
+        // Make sure the splits give the right number
+        assertEquals(55, data.clone().getRandomSplit(0.55).NEntries());
+        assertEquals(55, data.clone().getRandomSplit(55).NEntries());
+        assertEquals(55, data.clone().getRandomSplit(0.55, 1, true).NEntries());
+        for (int i=1; i<=99; i++) { // Stronger test for stratified
+            assertEquals(i, data.clone().getRandomSplit(i, 1, true).NEntries());
+        }
+        
+        // Make sure two random subsets are the same when provided the same seed
+        double[] test1 = data.clone().getRandomSplit(0.5, 1, true).getSingleAttributeArray(0);
+        double[] test2 = data.clone().getRandomSplit(0.5, 1, true).getSingleAttributeArray(0);
+        assertArrayEquals(test1, test2, 1e-5);
+        
+        // Make sure the stratified splits have the correct number
+        int[] dist = data.clone().getRandomSplit(80, 1, true).getDistributionCount();
+        assertArrayEquals(new int[]{60,20}, dist);
+        
+        // Make sure the split are independent
+        Dataset runSet = data.clone();
+        Dataset trainSet = runSet.getRandomSplit(0.5, 1, false);
+        test1 = runSet.getSingleAttributeArray(0);
+        test2 = trainSet.getSingleAttributeArray(0);
+        
+        assertEquals(100, test1.length + test2.length);
+        for (int i=0; i<100; i++) {
+            assertTrue(ArrayUtils.contains(test1, i) != 
+                    ArrayUtils.contains(test2, i));
+        }
+        
+        //  Repeat test for a stratified split
+        runSet = data.clone();
+        trainSet = runSet.getRandomSplit(0.412, 1, true);
+        test1 = runSet.getSingleAttributeArray(0);
+        test2 = trainSet.getSingleAttributeArray(0);
+        
+        assertArrayEquals(data.getClassNames(), runSet.getClassNames());
+        assertArrayEquals(data.getClassNames(), trainSet.getClassNames());
+        
+        assertEquals(100, test1.length + test2.length);
+        for (int i=0; i<100; i++) {
+            assertTrue(ArrayUtils.contains(test1, i) != 
+                    ArrayUtils.contains(test2, i));
         }
     }
     

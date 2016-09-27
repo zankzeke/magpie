@@ -108,7 +108,7 @@ public class ActiveLearningOptimizer extends BaseOptimizer {
         // Get randomly selected entries
         Dataset NewCandidates;
         if (RandomFraction > 0.0)
-            NewCandidates = ToSearch.randomSplit((int) (RandomFraction * (double) EntriesPerGeneration));
+            NewCandidates = ToSearch.getRandomSplit((int) (RandomFraction * (double) EntriesPerGeneration));
         else 
             NewCandidates = InitialData.emptyClone();
         
