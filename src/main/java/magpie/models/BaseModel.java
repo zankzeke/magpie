@@ -49,10 +49,20 @@ import org.apache.commons.lang3.tuple.Pair;
  * <command><p><b>output = crossvalidate $&lt;dataset> [&lt;folds>]</b> - 
  * Use k-fold cross-validation to assess model performance.
  * <br><pr><i>dataset</i>: Dataset to use for cross validation
- * <br><pr><i>folds</i>: Number of crossvalidation folds (default = 10)
- * <br><pr><i>output</i>: Dataset, result of used to compute performance staistics
+ * <br><pr><i>folds</i>: Number of cross validation folds (default = 10)
+ * <br><pr><i>output</i>: Dataset, result of used to compute performance statistics
  * <br>Splits <i>dataset</i> into <i>folds</i> parts. Trains model on <i>folds</i> - 1 parts, validates against remaining part.
  * Repeats using each part as the validation set.</command>
+ * 
+ * <command><p><b>output = crossvalidate $&lt;dataset> &lt;split size&gt;> [&lt;n repeats&gt;]</b> - 
+ * Cross-validation by splitting dataset into train and test sets. Test is repeated
+ * multiple times
+ * <br><pr><i>dataset</i>: Dataset to use for cross validation
+ * <br><pr><i>folds</i>: Fraction of entries used in test set
+ * <br><pr><i>n repeats</i>: Number of times to repeat test
+ * <br><pr><i>output</i>: Dataset, result of used to compute performance statistics
+ * <br>Same command structure as k-fold cross-validation. 
+ * Runs if the number of folds is less than 1.</command>
  * 
  * <command><p><b>run $&lt;dataset></b> - Use model to predict class values for each entry
  * <br><pr><i>dataset</i>: Dataset to evaluate</command>
@@ -234,6 +244,62 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         }           
         
         return internalTest;
+    }
+    
+    /**
+     * Run a cross-validation test where the dataset is randomly partitioned into 
+     * a training and test set. 
+     * 
+     * <p>For data with a discrete class, we ensure that the distribution of classes
+     * in the train and test set are the same.
+     * 
+     * @param testFraction Fraction entries in the test sets
+     * @param nRepeats Number of times test is repeated
+     * @param data Dataset used for cross-validation
+     * @param seed Random seed
+     * @return Results from the cross-validation tests
+     */
+    public Dataset crossValidate(double testFraction, int nRepeats, Dataset data, long seed) {
+        if (testFraction <= 0 || testFraction >= 1) {
+            throw new IllegalArgumentException("Fraction must be between 0 and 1");
+        }
+        
+        // Initialize the random number generator
+        Random random = new Random(seed);
+        
+        // Create an empty dataset holding model test results
+        Dataset testResults = data.emptyClone();
+        
+        // Make a clone of the model
+        BaseModel localModel = clone();
+        
+        // Run the tests
+        for (int n=0; n<nRepeats; n++) {
+            // Make a copy of the dataset
+            Dataset trainSet = data.clone();
+            
+            // Split off a test set
+            Dataset testSet = trainSet.getRandomSplit(testFraction, random.nextLong(), true);
+            
+            // Train model on trainSet, run on testSet
+            localModel.train(trainSet);
+            localModel.run(testSet);
+            
+            // Add results to output, after clearing attributes
+            testResults.combine(testSet);
+        }
+        
+        // Compute the statistics
+        ValidationStats.evaluate(testResults);
+        validated = true;
+        
+        // Set the "validation method"
+        ValidationMethod = String.format("Cross-validation with a %.1f%%/%.1f%% split"
+                + " between the test and train set, respectively. Test was repeated %d times"
+                + " using %d entries.",
+                100 * testFraction, 100 * (1 - testFraction), nRepeats, data.NEntries());
+        
+        return testResults;
     }
     
     /** Use external testing data to validate a model (should not contain any data
@@ -595,12 +661,12 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
     }    
 
     @Override
-    public Object runCommand(List<Object> Command) throws Exception {
-        if (Command.isEmpty()) {
+    public Object runCommand(List<Object> command) throws Exception {
+        if (command.isEmpty()) {
             System.out.println(about());
             return null;
         }
-        String Action = Command.get(0).toString().toLowerCase();
+        String Action = command.get(0).toString().toLowerCase();
         switch (Action) {
             case "filter": {
                 // Usage: filter [exclude|include] <filter name> <filter options...>
@@ -609,17 +675,17 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                 List<Object> filterOptions;
                 try {
                     // Determine whether filter is inclusive or exclusive
-                    if (Command.get(1).toString().equalsIgnoreCase("include")) {
+                    if (command.get(1).toString().equalsIgnoreCase("include")) {
                         exclude = false;
-                    } else if (Command.get(1).toString().equalsIgnoreCase("exclude")) {
+                    } else if (command.get(1).toString().equalsIgnoreCase("exclude")) {
                         exclude = true;
                     } else {
                         throw new IllegalArgumentException();
                     }
                     
                     // Get filter name / options
-                    filterName = Command.get(2).toString();
-                    filterOptions = Command.subList(3, Command.size());
+                    filterName = command.get(2).toString();
+                    filterOptions = command.subList(3, command.size());
                     
                 } catch (Exception e) {
                     throw new IllegalArgumentException("Usage: filter [exclude|include] <filter name> <options...>");
@@ -643,31 +709,46 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
             }
             case "train": {
                 // Usage: train ${dataset}
-                if (Command.size() < 2 || ! (Command.get(1) instanceof Dataset)) {
+                if (command.size() < 2 || ! (command.get(1) instanceof Dataset)) {
                     throw new IllegalArgumentException("Usage: train ${dataset}");
                 }
-                Dataset Data = (Dataset) Command.get(1);
+                Dataset Data = (Dataset) command.get(1);
                 train(Data);
             } break;
             case "crossvalidate": case "cv": case "cross": {
-                // Usage: crossvalidate $<dataset> [<folds = 10>]
+                // Usage: crossvalidate $<dataset> [<folds/split = 10>] [<nrepeats = 100>]
                 Dataset data;
-                int folds;
+                double folds = 10;
+                int nRepeats = 100;
+                
+                // Get the options
                 try {
-                    data = (Dataset) Command.get(1);
-                    folds = 10;
-                    if (Command.size() > 2) {
-                        String foldVal = Command.get(2).toString();
+                    data = (Dataset) command.get(1);
+                    
+                    // Get the number of folds
+                    if (command.size() > 2) {
+                        String foldVal = command.get(2).toString();
                         if (foldVal.equalsIgnoreCase("loocv")) {
                             folds = data.NEntries();
                         } else {
-                            folds = Integer.valueOf(Command.get(2).toString());
+                            folds = Double.valueOf(command.get(2).toString());
                         }
+                    }
+                    
+                    // Get the number of repeats
+                    if (command.size() > 3) {
+                        nRepeats = Integer.parseInt(command.get(3).toString());
                     }
                 } catch (Exception e) {
                     throw new IllegalArgumentException("Usage: crossvalidate $<dataset> [<folds = 10>]");
                 }
-                return crossValidate(folds, data);
+                
+                // Figure out whether to run k-fold or random split CV
+                if (folds > 1) {
+                    return crossValidate((int) folds, data);
+                } else {
+                    return crossValidate(folds, nRepeats, data, new Random().nextLong());
+                }
             }
             case "normalize": {
                 boolean doAttributes = false, doClass = false;
@@ -675,7 +756,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                 try {
                     int pos = 1;
                     while (true && pos < 3) {
-                        String word = Command.get(pos).toString().toLowerCase();
+                        String word = command.get(pos).toString().toLowerCase();
                         if (word.equals("attributes")) {
                             doAttributes = true;
                         } else if (word.equals("class")) {
@@ -685,14 +766,14 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                         }
                         pos++;
                     }
-                    Method = Command.get(pos).toString();
+                    Method = command.get(pos).toString();
                     if (Method.equals("?")) {
                         System.out.println("Available Normalizers:");
                         System.out.println(CommandHandler.printImplmentingClasses(BaseDatasetNormalizer.class, false));
                         return null;
                     }
                     Method = "data.utilities.normalizers." + Method;
-                    Options = Command.subList(pos + 1, Command.size());
+                    Options = command.subList(pos + 1, command.size());
                 } catch (Exception e) {
                     throw new IllegalArgumentException("Usage: normalize [attributes] [class] <method> [<options...>]");
                 }
@@ -702,12 +783,12 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                 Normalizer.setToNormalizeClass(doClass);
             } break;
             case "set":
-                handleSetCommand(Command); break;
+                handleSetCommand(command); break;
             case "run": {
                 // Usage: run $<dataset>
                 Dataset Data;
                 try {
-                    Data = (Dataset) Command.get(1);
+                    Data = (Dataset) command.get(1);
                 } catch (Exception e) {
                     throw new IllegalArgumentException("Usage: run $<dataset>");
                 }
@@ -716,7 +797,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
             case "validate": {
                 // Usage: validate $<dataset>
                 Dataset Data;
-                try { Data = (Dataset) Command.get(1); }
+                try { Data = (Dataset) command.get(1); }
                 catch (Exception e) { throw new IllegalArgumentException("Usage: validate $<dataset>"); }
                 externallyValidate(Data);
             } break;

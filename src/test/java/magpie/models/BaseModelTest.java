@@ -122,24 +122,30 @@ public class BaseModelTest {
         assertTrue(model.getValidationMethod().contains("Unvalidated"));
         assertFalse(model.isValidated());
 		
-        // Run CV
+        // Run k-fold CV
 		Dataset output = model.crossValidate(10, data);
         assertTrue(model.getValidationMethod().contains("10-fold"));
         assertEquals(data.NEntries(), output.NEntries());
         
-        // Reset model
-        model.resetModel();
-        assertTrue(model.getValidationMethod().contains("Unvalidated"));
-        assertFalse(model.isValidated());
+        // Run random split CV
+        model.crossValidate(0.5, 10, data, 1);
+        assertTrue(model.isValidated());
+        assertTrue(model.getValidationMethod().contains("50.0%"));
+        assertTrue(model.getValidationMethod().contains("10"));
         
         // Externally validate model
-        model.train(data);
         model.externallyValidate(data);
         assertTrue(model.isValidated());
         assertTrue(model.getValidationMethod().contains(Integer.toString(data.NEntries())));
         
         // Make sure that validation stats are the same as training stats
+        //   Should give same result, because model should not have been re-trained
         assertEquals(model.TrainingStats.toString(), model.ValidationStats.toString());
+        
+        // Reset model
+        model.resetModel();
+        assertTrue(model.getValidationMethod().contains("Unvalidated"));
+        assertFalse(model.isValidated());
 	}
     
     @Test

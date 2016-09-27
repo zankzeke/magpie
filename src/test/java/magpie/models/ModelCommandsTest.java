@@ -119,5 +119,30 @@ public class ModelCommandsTest {
         }
         assertEquals(((RegressionStatistics) model.ValidationStats).MAE,
                 StatUtils.mean(error), 1e-6);
+        
+        // Run 50/50 split 100 times
+        cmd.set(2, 0.5);
+        
+        model.runCommand(cmd);
+        
+        int count50 = model.ValidationStats.NumberTested;
+        assertFalse(model.isTrained());
+        assertTrue(model.isValidated());
+        assertFalse(data.getEntry(0).hasPrediction());
+        assertTrue(model.getValidationMethod().toLowerCase().contains("50.0%"));
+        assertTrue(model.getValidationMethod().toLowerCase().contains("100"));
+        
+        // Run 75/25 split 100 times
+        cmd.set(2, 0.75);
+        cmd.add(50);
+        
+        model.runCommand(cmd);
+        
+        assertFalse(model.isTrained());
+        assertTrue(model.isValidated());
+        assertFalse(data.getEntry(0).hasPrediction());
+        assertTrue(model.getValidationMethod().toLowerCase().contains("75.0%"));
+        assertTrue(model.getValidationMethod().toLowerCase().contains("50"));
+        assertTrue(model.ValidationStats.NumberTested * 2 > count50);
     }
 }
