@@ -2,9 +2,11 @@ package magpie.models;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -241,7 +243,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         } else {
             ValidationMethod = String.format("%d-fold cross-validation using %d entries",
                     folds, cvData.NEntries());
-        }           
+        }
         
         return internalTest;
     }
@@ -265,28 +267,61 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         }
         
         // Initialize the random number generator
-        Random random = new Random(seed);
+        final Random random = new Random(seed);
         
         // Create an empty dataset holding model test results
         Dataset testResults = data.emptyClone();
         
-        // Make a clone of the model
-        BaseModel localModel = clone();
+        // Set NThreads to 1 so no subthreads spawn threads
+        int originalNThreads = Magpie.NThreads;
+        Magpie.NThreads = 1;
         
-        // Run the tests
-        for (int n=0; n<nRepeats; n++) {
-            // Make a copy of the dataset
-            Dataset trainSet = data.clone();
+        // Prepare the executable service 
+        ExecutorService service = Executors.newFixedThreadPool(originalNThreads);
+        List<Future<Dataset>> futures = new LinkedList<>();
+        
+        // Make threads to run the test
+        final double finalTestFraction = testFraction;
+        final Dataset finalDataset = data;
+        final BaseModel finalModel = this;
+        for (int i=0; i<nRepeats; i++) {
+            final long mySeed = random.nextLong();
             
-            // Split off a test set
-            Dataset testSet = trainSet.getRandomSplit(testFraction, random.nextLong(), true);
+            Callable<Dataset> to_run = new Callable<Dataset>() {
+
+                @Override
+                public Dataset call() throws Exception {
+                    // Mkae a copy of the model
+                    BaseModel localModel = finalModel.clone();
+
+                    // Make a copy of the dataset
+                    Dataset trainSet = finalDataset.clone();
+
+                    // Split off a test set
+                    Dataset testSet = trainSet.getRandomSplit(finalTestFraction, 
+                            mySeed, true);
+
+                    // Train model on trainSet, run on testSet
+                    localModel.train(trainSet);
+                    localModel.run(testSet);
+
+                    return testSet;
+                }
+            };
             
-            // Train model on trainSet, run on testSet
-            localModel.train(trainSet);
-            localModel.run(testSet);
-            
-            // Add results to output, after clearing attributes
-            testResults.combine(testSet);
+            // Submit it
+            futures.add(service.submit(to_run));
+        }
+        
+        // Collect the test results
+        Iterator<Future<Dataset>> resultIter = futures.iterator();
+        while (resultIter.hasNext()) {
+            try {
+                Dataset result = resultIter.next().get();
+                testResults.combine(result);
+            } catch (ExecutionException | InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
         
         // Compute the statistics
@@ -298,6 +333,9 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                 + " between the test and train set, respectively. Test was repeated %d times"
                 + " using %d entries.",
                 100 * testFraction, 100 * (1 - testFraction), nRepeats, data.NEntries());
+        
+        // Reset the thread count
+        Magpie.NThreads = originalNThreads;
         
         return testResults;
     }
