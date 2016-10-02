@@ -308,6 +308,9 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                     // Train model on trainSet, run on testSet
                     localModel.train(trainSet);
                     localModel.run(testSet);
+                    
+                    // Clear up local model
+                    localModel.done();
 
                     return testSet;
                 }
@@ -327,10 +330,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                 throw new RuntimeException(e);
             }
         }
-        
-        // Done with the local model
-        localModel.done();
-        
+                
         // Compute the statistics
         ValidationStats.evaluate(testResults);
         validated = true;
