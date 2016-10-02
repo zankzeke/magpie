@@ -1,7 +1,6 @@
 package magpie.models.classification;
 
 import java.io.*;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -9,7 +8,6 @@ import java.util.List;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterInputStream;
 import java.util.zip.InflaterOutputStream;
-import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.models.interfaces.ExternalModel;
 import magpie.models.utility.ExternalModelUtility;
