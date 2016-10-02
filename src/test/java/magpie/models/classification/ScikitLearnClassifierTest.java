@@ -17,6 +17,7 @@ public class ScikitLearnClassifierTest extends BaseClassifierTest {
         try {
             model.readModel(new FileInputStream("test-files/sklearn-gbc.pkl"));
             model.setCompressionLevel(1);
+            model.Debug = true;
         } catch (Exception e) {
             throw new Error(e);
         }

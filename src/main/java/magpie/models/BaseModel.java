@@ -16,6 +16,7 @@ import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.data.utilities.filters.BaseDatasetFilter;
 import magpie.data.utilities.normalizers.BaseDatasetNormalizer;
+import magpie.models.interfaces.ExternalModel;
 import magpie.models.regression.AbstractRegressionModel;
 import magpie.user.CommandHandler;
 import magpie.utility.UtilityOperations;
@@ -229,6 +230,9 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
             testModel.run(testFolds[i]);
         }
         
+        // Done with the cloned model
+        testModel.done();
+        
         // Evaluate stats on the whole thing
         internalTest.combine(testFolds);
         ValidationStats.evaluate(internalTest);
@@ -288,6 +292,9 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
             // Add results to output, after clearing attributes
             testResults.combine(testSet);
         }
+        
+        // Done with the local model
+        localModel.done();
         
         // Compute the statistics
         ValidationStats.evaluate(testResults);
@@ -447,6 +454,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                     @Override
                     public void run() {
                         model.run(part);
+                        model.done();
                     }
                 };
                 futures.add(service.submit(thread));
@@ -612,7 +620,6 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
      * by {@link #printDescription(boolean)}. You should also call the super 
      * operation to get the Normalizer and Attribute selector settings
      * 
-     * <p
      * @param htmlFormat Whether to use HTML format
      * @return List describing model details. Each entry is a different line of the 
      * description (i.e., in place of newline characters).
@@ -865,5 +872,16 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         }
         
         return output;
+    }
+    
+    /**
+     * Run if done with a model, clears any external resources.
+     * 
+     * For example, closes the external server for {@linkplain External
+     */
+    public void done() {
+        if (this instanceof ExternalModel) {
+            ((ExternalModel) this).closeServer();
+        }
     }
 }

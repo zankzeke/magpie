@@ -1,6 +1,7 @@
 package magpie.models;
 
 import java.util.LinkedList;
+import magpie.Magpie;
 import magpie.statistics.performance.BaseStatistics;
 import magpie.statistics.performance.ClassificationStatistics;
 import magpie.statistics.performance.RegressionStatistics;
@@ -10,9 +11,11 @@ import magpie.data.materials.CompositionEntry;
 import magpie.data.materials.PrototypeDataset;
 import magpie.data.materials.PrototypeEntry;
 import magpie.data.materials.util.PrototypeSiteInformation;
+import magpie.models.interfaces.ExternalModel;
 import magpie.models.regression.AbstractRegressionModel;
 import magpie.models.regression.GuessMeanRegression;
 import org.apache.commons.math3.util.Combinations;
+import org.junit.After;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -95,6 +98,7 @@ public class BaseModelTest {
 		BaseModel model = generateModel();
         Dataset data = getData();
 		model.train(data);
+        model.done();
 	}
 	
 	@Test
@@ -106,6 +110,8 @@ public class BaseModelTest {
 		addEntry(clone);
 		
 		model.train(clone);
+        
+        model.done();
 	}
 	
     @Test
@@ -128,6 +134,7 @@ public class BaseModelTest {
         assertEquals(data.NEntries(), output.NEntries());
         
         // Run random split CV
+        Magpie.NThreads = 2;
         model.crossValidate(0.5, 10, data, 1);
         assertTrue(model.isValidated());
         assertTrue(model.getValidationMethod().contains("50.0%"));
@@ -146,6 +153,8 @@ public class BaseModelTest {
         model.resetModel();
         assertTrue(model.getValidationMethod().contains("Unvalidated"));
         assertFalse(model.isValidated());
+        
+        model.done();
 	}
     
     @Test
@@ -172,6 +181,9 @@ public class BaseModelTest {
             assertEquals(((ClassificationStatistics) Stats1).Accuracy,
                     ((ClassificationStatistics) model1.ValidationStats).Accuracy, 1e-6);
         }
+        
+        model1.done();
+        model2.done();
     }
     
     @Test
@@ -189,6 +201,8 @@ public class BaseModelTest {
         dcrpt = model.printDescription(false);
         assertTrue(dcrpt.length() > 0);
         System.out.println(dcrpt);
+        
+        model.done();
     }
     
     @Test
@@ -214,12 +228,13 @@ public class BaseModelTest {
         assertTrue(data.getEntry(0).hasPrediction());
 		assertTrue(model.TrainingStats.NumberTested > 0);
 
-        
         // Check to make sure train + run doesn't change attributes / class
         attrAfter = data.getEntryArray();
         assertEquals(attrBefore.length, attrAfter.length);
         for (int e=0; e<attrAfter.length; e++) {
             assertArrayEquals(attrBefore[e], attrAfter[e], 1e-6);
         }
+        
+        model.done();
     }
 }
