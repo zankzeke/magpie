@@ -164,4 +164,43 @@ public class MultiPropertyDatasetTest {
                 (MultiPropertyDataset) UtilityOperations.loadState(file.getAbsolutePath());
         assertEquals(0, dataCopy.NProperties());
     }
+    
+    @Test
+    public void testPropertyLine() {
+        MultiPropertyDataset data = new MultiPropertyDataset();
+        
+        // Test #1: nothing
+        data.importPropertyNames("entry ");
+        assertEquals(0, data.NProperties());
+        
+        // Test #2: Two continuous variables
+        data.importPropertyNames("entry x y");
+        assertEquals(2, data.NProperties());
+        assertEquals(1, data.getPropertyClassCount(0));
+        assertEquals(1, data.getPropertyClassCount(1));
+        
+        // Test #3: One continuous, one discrete
+        data.importPropertyNames("entry x{Yes,No} y");
+        assertEquals(2, data.NProperties());
+        assertArrayEquals(new String[]{"x", "y"}, data.getPropertyNames());
+        assertEquals(2, data.getPropertyClassCount(0));
+        assertArrayEquals(new String[]{"Yes","No"}, data.getPropertyClasses(0));
+        assertEquals(1, data.getPropertyClassCount(1));
+        
+        data.importPropertyNames("entry x y{Yes,No}");
+        assertEquals(2, data.NProperties());
+        assertArrayEquals(new String[]{"x", "y"}, data.getPropertyNames());
+        assertEquals(2, data.getPropertyClassCount(1));
+        assertArrayEquals(new String[]{"Yes","No"}, data.getPropertyClasses(1));
+        assertEquals(1, data.getPropertyClassCount(0));
+        
+        // Test #3: Two discrete
+        data.importPropertyNames("entry x{Yes,No} y{Yes,No}");
+        assertEquals(2, data.NProperties());
+        assertArrayEquals(new String[]{"x", "y"}, data.getPropertyNames());
+        assertEquals(2, data.getPropertyClassCount(0));
+        assertArrayEquals(new String[]{"Yes","No"}, data.getPropertyClasses(0));
+        assertEquals(2, data.getPropertyClassCount(1));
+        assertArrayEquals(new String[]{"Yes","No"}, data.getPropertyClasses(1));
+    }
 }

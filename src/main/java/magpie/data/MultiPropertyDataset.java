@@ -634,15 +634,15 @@ public class MultiPropertyDataset extends Dataset {
     protected void importPropertyNames(String line) {
         // Clear out current property data
         clearPropertyData();
+        
         // Initialize regex
-        Pattern totalPattern = Pattern.compile("[\\d\\w]+(\\{.*\\})?"); // Captures entire name/classes
+        String[] propertyNames = line.split("\\s+");
         Pattern namePattern = Pattern.compile("^[\\d\\w]+"); // Given name/classes, get name
         Pattern classPattern = Pattern.compile("\\{.*\\}"); // Get the possible classes
-        Matcher totalMatcher = totalPattern.matcher(line);
-        totalMatcher.find(); // First match is composition
+        
         // Find all property names
-        while (totalMatcher.find()) {
-            String total = totalMatcher.group();
+        for (int p=1; p<propertyNames.length; p++) {
+            String total = propertyNames[p];
             Matcher tempMatcher = namePattern.matcher(total);
             tempMatcher.find();
             String name = tempMatcher.group();
@@ -667,7 +667,7 @@ public class MultiPropertyDataset extends Dataset {
 
     /**
      * Used by {@linkplain #importText(java.lang.String, java.lang.Object[]) }
-     * to import property measurments for each entry.
+     * to import property measurements for each entry.
      *
      * @param words Line describing entry, split into words
      * @return Property measurements for this entry
@@ -687,7 +687,7 @@ public class MultiPropertyDataset extends Dataset {
                     }
                     properties[p] = index;
                 }
-            } catch (Exception exc) {
+            } catch (NumberFormatException exc) {
                 // System.err.println("Warning: Entry #"+i+" has an invalid property.");
                 properties[p] = Double.NaN;
             }
