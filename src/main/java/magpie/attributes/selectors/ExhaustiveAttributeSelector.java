@@ -299,6 +299,11 @@ public class ExhaustiveAttributeSelector extends BaseAttributeSelector {
                         data.NAttributes(), CurSize);
                 return CurCombinations.next();
             }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException("Not supported.");
+            }
         };
     }
 
