@@ -12,6 +12,7 @@ import magpie.models.classification.WekaClassifier;
 import magpie.models.regression.PolynomialRegression;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import weka.classifiers.Evaluation;
 
 /**
  *
@@ -66,7 +67,7 @@ public class ExhaustiveAttributeSelectorTest {
         options.add(1);
         options.add("-max_size");
         options.add(3);
-        options.add("-n_folds");
+        options.add("-k_fold");
         options.add(10);
         
         sel.setOptions(options);
@@ -100,7 +101,7 @@ public class ExhaustiveAttributeSelectorTest {
         options.add(1);
         options.add("-max_size");
         options.add(3);
-        options.add("-n_folds");
+        options.add("-k_fold");
         options.add(10);
         
         sel.setOptions(options);
@@ -157,4 +158,84 @@ public class ExhaustiveAttributeSelectorTest {
         return data;
     }
     
+    
+    @Test
+    public void testEvalMethods() throws Exception {
+        Dataset data = makeTestDataset();
+        
+        // Set the class such it is A^2 + 2*B
+        for (BaseEntry entry : data.getEntries()) {
+            entry.setMeasuredClass(entry.getAttribute(0) * entry.getAttribute(0)
+                    + 2 * entry.getAttribute(1));
+        }
+        
+        // Make the selector
+        ExhaustiveAttributeSelector sel = new ExhaustiveAttributeSelector();
+        
+        PolynomialRegression model = new PolynomialRegression();
+        model.setOrder(2);
+        
+        // Set for the training set
+        List<Object> options = new ArrayList<>();
+        options.add(model);
+        options.add("-min_size");
+        options.add(1);
+        options.add("-max_size");
+        options.add(3);
+        options.add("-train");
+        
+        sel.setOptions(options);
+        
+        // Test settings
+        assertEquals(1, sel.MinSubsetSize);
+        assertEquals(3, sel.MaxSubsetSize);
+        assertEquals(ExhaustiveAttributeSelector.EvaluationMethod.TRAINING, 
+                sel.TestMethod);
+        sel.train(data);
+        System.out.println(sel.printDescription(true));
+        
+        // Set for the training set
+        options = new ArrayList<>();
+        options.add(model);
+        options.add("-min_size");
+        options.add(1);
+        options.add("-max_size");
+        options.add(3);
+        options.add("-k_fold");
+        options.add(8);
+        
+        sel.setOptions(options);
+        
+        // Test settings
+        assertEquals(1, sel.MinSubsetSize);
+        assertEquals(3, sel.MaxSubsetSize);
+        assertEquals(8, sel.KFolds);
+        assertEquals(ExhaustiveAttributeSelector.EvaluationMethod.KFOLD_CROSSVALIDATION, 
+                sel.TestMethod);
+        sel.train(data);
+        System.out.println(sel.printDescription(true));
+        
+        // Set for the training set
+        options = new ArrayList<>();
+        options.add(model);
+        options.add("-min_size");
+        options.add(1);
+        options.add("-max_size");
+        options.add(3);
+        options.add("-random_cv");
+        options.add(0.25);
+        options.add(100);
+        
+        sel.setOptions(options);
+        
+        // Test settings
+        assertEquals(1, sel.MinSubsetSize);
+        assertEquals(3, sel.MaxSubsetSize);
+        assertEquals(100, sel.RandomTestCount);
+        assertEquals(0.25, sel.RandomTestFraction, 1e-6);
+        assertEquals(ExhaustiveAttributeSelector.EvaluationMethod.RANDOMSPLIT_CROSSVALIDATION,
+                sel.TestMethod);
+        sel.train(data);
+        System.out.println(sel.printDescription(true));
+    }
 }

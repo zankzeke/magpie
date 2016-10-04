@@ -15,6 +15,7 @@ import magpie.data.Dataset;
 import magpie.models.BaseModel;
 import magpie.models.classification.AbstractClassifier;
 import magpie.models.regression.RandomGuessRegression;
+import magpie.statistics.performance.BaseStatistics;
 import magpie.statistics.performance.ClassificationStatistics;
 import magpie.statistics.performance.RegressionStatistics;
 import org.apache.commons.lang3.ArrayUtils;
@@ -32,23 +33,45 @@ import org.apache.commons.math3.util.CombinatoricsUtils;
  * classification models.
  * 
  * <usage><p><b>Usage</b>: $&lt;model&gt; [-min_size &lt;min&gt;]
- * [-max_size &lt;max&gt;] [-n_folds &lt;k&gt;]
+ * [-max_size &lt;max&gt;] [-k_fold &lt;k&gt;] | [-random_cv &lt;test_frac&gt;
+ * &lt;n_repeat&gt;] | [-train]
  * <pr><br><i>model</i>: {@linkplain BaseModel} used to test attribute sets
  * <pr><br><i>min</i>: Minimum attribute set size (default=1)
  * <pr><br><i>max</i>: Maximum attribute set size (default=4)
- * <pr><br><i>k</i>: Number of folds to use during cross-validation (default=10)</usage>
+ * <pr><br><i>k</i>: Use k-fold CV to evaluate model: Number of folds to use during cross-validation
+ * <pr><br><i>test_frac</i>: Use random split CV for validation: Size of split for test set
+ * <pr><br><i>n_repeat</i>: Use  random split CV for validation: Number of times to repeat test
+ * By default, class uses 10-fold CV. Can specify only one option of "-k_fold"
+ * (for k-fold CV), -random_cv (for multiple test/train set splits), and "-train"
+ * (for using training set score).</usage>
  * 
  * @author Logan Ward
  */
 public class ExhaustiveAttributeSelector extends BaseAttributeSelector {
+    /** List of methods used to evaluate model performance */
+    public enum EvaluationMethod {
+        /** Use the performance on the training set */
+        TRAINING,
+        /** Use k-fold cross-validation */
+        KFOLD_CROSSVALIDATION,
+        /** Use a number of random train/test splits */
+        RANDOMSPLIT_CROSSVALIDATION
+    }
+    
     /** Model used for cross-validation */
     protected BaseModel Model = new RandomGuessRegression();
     /** Minimum attribute subset size */
     protected int MinSubsetSize = 1;
     /** Maximum attribute subset size */
     protected int MaxSubsetSize = 4;
-    /** Number of folds used in cross-validation test */
+    /** If test method is K-Fold: Number of folds used in cross-validation test */
     protected int KFolds = 10;
+    /** Method used to evaluate models */
+    protected EvaluationMethod TestMethod = EvaluationMethod.KFOLD_CROSSVALIDATION;
+    /** If method is random split, fraction of entries withheld for test set */
+    protected double RandomTestFraction = 0.25;
+    /** If method is random split, number of times to repeat test */
+    protected int RandomTestCount = 100;
     
     // State variables used to store the progress of the search
     /** Iterator over subsets of attributes to be tested */
@@ -66,10 +89,12 @@ public class ExhaustiveAttributeSelector extends BaseAttributeSelector {
 
     @Override
     public void setOptions(List<Object> Options) throws Exception {
-        int n_folds = 10;
         int min_size = 1;
         int max_size = 4;
         BaseModel model;
+        EvaluationMethod testMethod = EvaluationMethod.KFOLD_CROSSVALIDATION;
+        int n_folds = 10;
+        double test_split = 0.25;
         
         try {
             model = (BaseModel) Options.get(0);
@@ -86,9 +111,18 @@ public class ExhaustiveAttributeSelector extends BaseAttributeSelector {
                         pos++;
                         max_size = Integer.parseInt(Options.get(pos).toString());
                         break;
-                    case "-n_folds":
+                    case "-k_fold":
                         pos++;
+                        testMethod = EvaluationMethod.KFOLD_CROSSVALIDATION;
                         n_folds = Integer.parseInt(Options.get(pos).toString());
+                        break;
+                    case "-random_cv":
+                        testMethod = EvaluationMethod.RANDOMSPLIT_CROSSVALIDATION;
+                        test_split = Double.parseDouble(Options.get(++pos).toString());
+                        n_folds = Integer.parseInt(Options.get(++pos).toString());
+                        break;
+                    case "-train":
+                        testMethod = EvaluationMethod.TRAINING;
                         break;
                     default:
                         throw new IllegalArgumentException();
@@ -103,7 +137,22 @@ public class ExhaustiveAttributeSelector extends BaseAttributeSelector {
         setModel(model);
         setMinSubsetSize(min_size);
         setMaxSubsetSize(max_size);
-        setNFolds(n_folds);
+        
+        // Set the evaluation method
+        setTestMethod(testMethod);
+        switch (testMethod) {
+            case KFOLD_CROSSVALIDATION:
+                setNFolds(n_folds); 
+                break;
+            case RANDOMSPLIT_CROSSVALIDATION:
+                setRandomSplit(test_split, n_folds);
+                break;
+            case TRAINING:
+                break;
+            default:
+                throw new IllegalArgumentException("Eval. method not recognized: " +
+                        testMethod);
+        }
     }
 
     @Override
@@ -134,13 +183,35 @@ public class ExhaustiveAttributeSelector extends BaseAttributeSelector {
     public void setMaxSubsetSize(int size) {
         this.MaxSubsetSize = size;
     }
+
+    /**
+     * Set method used to evaluate model performance
+     * @param method Desired method
+     */
+    public void setTestMethod(EvaluationMethod method) {
+        this.TestMethod = method;
+    }
     
     /**
-     * Set the number of folds used in K-fold cross-validation.
+     * Set the number of folds used in K-fold cross-validation. Will set K-fold CV
+     * to be the evaluation method
      * @param k Number of folds
      */
     public void setNFolds(int k) {
         KFolds = k;
+        setTestMethod(EvaluationMethod.KFOLD_CROSSVALIDATION);
+    }
+    
+    /**
+     * Set the size of test set split and number of times to repeat CV. Will
+     * set Random Split CV to be the evaluation method
+     * @param test_split
+     * @param n_repeats 
+     */
+    public void setRandomSplit(double test_split, int n_repeats) {
+        RandomTestCount = n_repeats;
+        RandomTestFraction = test_split;
+        setTestMethod(EvaluationMethod.RANDOMSPLIT_CROSSVALIDATION);
     }
 
     @Override
@@ -191,12 +262,29 @@ public class ExhaustiveAttributeSelector extends BaseAttributeSelector {
                         
                         // Run cross-validation using the same random seed as 
                         //  the previous tests
-                        myModel.crossValidate(KFolds, curData, randomSeed);
+                        switch (TestMethod) {
+                            case KFOLD_CROSSVALIDATION:
+                                myModel.crossValidate(KFolds, curData, randomSeed);
+                                break;
+                            case RANDOMSPLIT_CROSSVALIDATION:
+                                myModel.crossValidate(RandomTestFraction, KFolds, curData, randomSeed);
+                                break;
+                            case TRAINING:
+                                myModel.train(curData);
+                                break;
+                            default:
+                                throw new RuntimeException("Eval method not defined: " 
+                                        + TestMethod);
+                        }
+                        
+                        // Get which stats to use 
+                        BaseStatistics stats = TestMethod == EvaluationMethod.TRAINING ? 
+                                myModel.TrainingStats : myModel.ValidationStats;
                         
                         // Check if results is better
                         double curScore = isClassifier ?
-                                ((ClassificationStatistics) myModel.ValidationStats).Accuracy 
-                                : ((RegressionStatistics) myModel.ValidationStats).RMSE;
+                                ((ClassificationStatistics) stats).Accuracy 
+                                : ((RegressionStatistics) stats).RMSE;
                         if (isClassifier) {
                             if (curScore > bestScore) {
                                 bestScore = curScore;
@@ -309,6 +397,33 @@ public class ExhaustiveAttributeSelector extends BaseAttributeSelector {
 
     @Override
     public String printDescription(boolean htmlFormat) {
-        return super.printDescription(htmlFormat); //To change body of generated methods, choose Tools | Templates.
+        String output = String.format("Find the subset of attributes with between "
+                + "%d and %d members that leads to the model with the best performance ", 
+                MinSubsetSize, MaxSubsetSize);
+        
+        // Define the test method
+        switch (TestMethod) {
+            case TRAINING:
+                output += "on the training set."; 
+                break;
+            case KFOLD_CROSSVALIDATION:
+                output += String.format(
+                        "in %d-fold cross-validation.",
+                        KFolds);
+                break;
+            case RANDOMSPLIT_CROSSVALIDATION:
+                output += String.format(
+                        "over %d iterations of %.1f/%.1f%% test/train split cross-valdation.",
+                        RandomTestCount,
+                        100 * RandomTestFraction,
+                        100 * (1 - RandomTestFraction)
+                );
+                break;
+            default:
+                throw new RuntimeException("Evaluation method not implemented: " +
+                        TestMethod);
+        }
+        
+        return output;
     }
 }
