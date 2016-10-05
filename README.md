@@ -12,6 +12,11 @@ There are currently two options for installing Magpie
 
 First, download or clone a copy of this repository from BitBucket. 
 
+```
+#!shell
+git clone https://bitbucket.org/wolverton/magpie
+```
+
 To build with Gradle, use the included Gradle wrapper (which will install Gradle on your system if needed):
 
 ```
