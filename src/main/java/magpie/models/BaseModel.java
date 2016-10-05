@@ -337,6 +337,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         }
         
         // Collect the test results
+        service.shutdown();
         Iterator<Future<List<Dataset>>> resultIter = futures.iterator();
         while (resultIter.hasNext()) {
             try {
