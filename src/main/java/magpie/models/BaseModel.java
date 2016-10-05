@@ -270,8 +270,12 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
             throw new IllegalArgumentException("Fraction must be between 0 and 1");
         }
         
-        // Initialize the random number generator
-        final Random random = new Random(seed);
+        // Get the random seed for each test
+        Random random = new Random(seed);
+        final List<Long> randomSeeds = new ArrayList<>(nRepeats);
+        for (int i=0; i<nRepeats; i++) {
+            randomSeeds.add(random.nextLong());
+        }
         
         // Create an empty dataset holding model test results
         Dataset testResults = data.emptyClone();
@@ -280,39 +284,51 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         int originalNThreads = Magpie.NThreads;
         Magpie.NThreads = 1;
         
+        // Split random seeds into partitions for each thread
+        List<List<Long>> threadPartitions = UtilityOperations.
+                partitionList(randomSeeds, originalNThreads);
+        
         // Prepare the executable service 
         ExecutorService service = Executors.newFixedThreadPool(originalNThreads);
-        List<Future<Dataset>> futures = new LinkedList<>();
+        List<Future<List<Dataset>>> futures = new LinkedList<>();
         
         // Make threads to run the test
         final double finalTestFraction = testFraction;
         final Dataset finalDataset = data;
         final BaseModel finalModel = this;
-        for (int i=0; i<nRepeats; i++) {
-            final long mySeed = random.nextLong();
+        for (int i=0; i<originalNThreads; i++) {
+            final List<Long> mySeeds = threadPartitions.get(i);
             
-            Callable<Dataset> to_run = new Callable<Dataset>() {
+            Callable<List<Dataset>> to_run = new Callable<List<Dataset>>() {
 
                 @Override
-                public Dataset call() throws Exception {
-                    // Mkae a copy of the model
+                public List<Dataset> call() throws Exception {
+                    // Make a copy of the model
                     BaseModel localModel = finalModel.clone();
+                    
+                    // Get a repository for storing the test results
+                    List<Dataset> myResults = new ArrayList<>(mySeeds.size());
 
-                    // Make a copy of the dataset
-                    Dataset trainSet = finalDataset.clone();
+                    for (long mySeed : mySeeds) {
+                        // Make a copy of the dataset
+                        Dataset trainSet = finalDataset.clone();
 
-                    // Split off a test set
-                    Dataset testSet = trainSet.getRandomSplit(finalTestFraction, 
-                            mySeed, true);
+                        // Split off a test set
+                        Dataset testSet = trainSet.getRandomSplit(finalTestFraction, 
+                                mySeed, true);
 
-                    // Train model on trainSet, run on testSet
-                    localModel.train(trainSet);
-                    localModel.run(testSet);
+                        // Train model on trainSet, run on testSet
+                        localModel.train(trainSet);
+                        localModel.run(testSet);
+                        
+                        // Store test set in results
+                        myResults.add(testSet);
+                    }
                     
                     // Clear up local model
                     localModel.done();
 
-                    return testSet;
+                    return myResults;
                 }
             };
             
@@ -321,11 +337,11 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         }
         
         // Collect the test results
-        Iterator<Future<Dataset>> resultIter = futures.iterator();
+        Iterator<Future<List<Dataset>>> resultIter = futures.iterator();
         while (resultIter.hasNext()) {
             try {
-                Dataset result = resultIter.next().get();
-                testResults.combine(result);
+                List<Dataset> results = resultIter.next().get();
+                testResults.combine(results);
             } catch (ExecutionException | InterruptedException e) {
                 throw new RuntimeException(e);
             }

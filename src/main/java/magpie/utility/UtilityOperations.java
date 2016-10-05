@@ -8,7 +8,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import magpie.Magpie;
 import vassal.Vassal;
@@ -143,5 +145,28 @@ public class UtilityOperations {
             }
         }
         return null;
+    }
+    
+    /**
+     * Split a list into smaller sublists that are as equally-sized as possible.
+     * @param toSplit List to be split
+     * @param nPartitions Number of partitions to create
+     * @return List of sublists
+     */
+    static public <T> List<List<T>> partitionList(List<T> toSplit,
+            int nPartitions) {
+        // Prepare the output
+        List<List<T>> output = new ArrayList<>(nPartitions);
+        for (int n=0; n<nPartitions; n++) {
+            output.add(new ArrayList(toSplit.size() / nPartitions + 1));
+        }
+        
+        // Iterate over all entries in the list to split
+        int pos = 0;
+        Iterator<T> iter = toSplit.iterator();
+        while (iter.hasNext()) {
+            output.get(pos++ % nPartitions).add(iter.next());
+        }
+        return output;
     }
 }
