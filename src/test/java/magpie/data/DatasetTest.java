@@ -16,6 +16,7 @@ import magpie.data.materials.CompositionDataset;
 import magpie.data.utilities.modifiers.NonZeroClassModifier;
 import magpie.models.regression.WekaRegression;
 import org.apache.commons.lang3.ArrayUtils;
+import org.json.JSONObject;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import weka.core.Instances;
@@ -855,5 +856,22 @@ public class DatasetTest {
         Dataset dataCopy = Dataset.loadState(file.getPath());
         assertEquals(2, dataCopy.NAttributes());
         assertEquals(0, dataCopy.NEntries());
+    }
+    
+    @Test
+    public void testJSON() throws Exception {
+        // Load in some data
+        Dataset data = new Dataset();
+        data.importText("datasets/simple-data.txt", null);
+        
+        // Get in JSON format
+        JSONObject obj = data.toJSON();
+        assertEquals(obj.getString("type"), data.getClass().getName());
+        assertTrue(obj.getJSONArray("attribute-names").toList().equals(
+                Arrays.asList(data.getAttributeNames())));
+        assertArrayEquals((String[]) obj.get("class-names"),
+                data.getClassNames());
+        assertEquals(obj.getJSONArray("entries").length(), 
+                data.NEntries());
     }
 }

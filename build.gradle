@@ -45,6 +45,7 @@ dependencies {
     compile name: 'commons-collections-3.2.1'
     compile name: 'commons-lang3-3.1'
     compile group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
+    compile group: 'org.json', name: 'json', version: '20160810'
     compile name: 'commons-io-2.4'
     compile name: 'expr'
     compile name: 'guava-16.0.1'

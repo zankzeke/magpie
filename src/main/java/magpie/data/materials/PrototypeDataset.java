@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.TreeMap;
 import magpie.attributes.generators.prototype.SingleSiteAttributeGenerator;
 import magpie.data.BaseEntry;
+import org.json.JSONObject;
 
 /**
  * Store data about compounds based on a single crystal structure prototype. User 
@@ -191,5 +192,5 @@ public class PrototypeDataset extends CompositionDataset {
 		PrototypeEntry toAdd = new PrototypeEntry(SiteInfo, input);
 		addEntry(toAdd);
 		return toAdd;
-	}	
+	}
 }

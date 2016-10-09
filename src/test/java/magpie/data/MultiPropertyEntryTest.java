@@ -1,5 +1,6 @@
 package magpie.data;
 
+import org.json.JSONObject;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -166,4 +167,29 @@ public class MultiPropertyEntryTest {
         assertFalse(entry.hasPrediction());
     }
     
+    @Test
+    public void testJSON() {
+        MultiPropertyEntry e = new MultiPropertyEntry();
+        
+        // Test an empty entry
+        JSONObject j = e.toJSON();
+        assertEquals(j.getJSONArray("properties").length(), e.NProperties());
+        
+        // Add two properties
+        e.addProperty(0);
+        e.addProperty();
+        e.setPredictedProperty(1, new double[]{0.1,0.9});
+        j = e.toJSON();
+        
+        assertEquals(j.getJSONArray("properties").length(), e.NProperties());
+        assertEquals(j.getJSONArray("properties").getJSONObject(0).getDouble("measured"), 
+                e.getMeasuredProperty(0), 1e-6);
+        assertFalse(j.getJSONArray("properties").getJSONObject(0).has("predicted"));
+        
+        assertEquals(j.getJSONArray("properties").getJSONObject(1).getDouble("predicted"), 
+                e.getPredictedProperty(1), 1e-6);
+        assertFalse(j.getJSONArray("properties").getJSONObject(1).has("measured"));
+        assertArrayEquals((double[]) j.getJSONArray("properties").getJSONObject(1).get("probabilities"),
+                e.getPropertyClassProbabilties(1), 1e-6);
+    }
 }

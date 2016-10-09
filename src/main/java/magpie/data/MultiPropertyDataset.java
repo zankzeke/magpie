@@ -5,6 +5,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import magpie.data.utilities.output.PropertiesOutput;
 import org.apache.commons.lang3.ArrayUtils;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  * Dataset that can store multiple properties for each entry. User can define the names
@@ -694,6 +696,25 @@ public class MultiPropertyDataset extends Dataset {
         }
         return properties;
     }
-    
+
+    @Override
+    public JSONObject toJSON() {
+        JSONObject output = super.toJSON(); 
+        
+        // Add in property information
+        JSONArray properties = new JSONArray();
+        for (int p=0; p<NProperties(); p++) {
+            JSONObject propInfo = new JSONObject();
+            
+            propInfo.put("name", getPropertyName(p));
+            if (getPropertyClassCount(p) > 1) {
+                propInfo.put("classes", getPropertyClasses(p));
+            }
+            properties.put(propInfo);
+        }
+        output.put("properties", properties);
+        
+        return output;
+    }
     
 }

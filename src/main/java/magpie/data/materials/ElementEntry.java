@@ -3,6 +3,7 @@ package magpie.data.materials;
 import magpie.data.MultiPropertyEntry;
 import magpie.data.materials.util.LookupData;
 import org.apache.commons.lang3.ArrayUtils;
+import org.json.JSONObject;
 
 /**
  * Holds identity and properties of an element.
@@ -71,5 +72,14 @@ public class ElementEntry extends MultiPropertyEntry {
     @Override
     public String toHTMLString() {
         return toString();
+    }
+
+    @Override
+    public JSONObject toJSON() {
+        JSONObject output = super.toJSON();
+        
+        output.put("element", ElementName);
+        
+        return output;
     }
 }

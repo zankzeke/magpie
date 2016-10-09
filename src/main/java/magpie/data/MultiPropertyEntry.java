@@ -2,6 +2,8 @@ package magpie.data;
 
 import java.util.Arrays;
 import org.apache.commons.lang3.ArrayUtils;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  * Entry that can have multiple properties. Consider these properties as potential
@@ -254,11 +256,20 @@ public class MultiPropertyEntry extends BaseEntry {
     @Override
     public boolean hasClassProbabilities() {
         if (usingPropertyAsClass()) {
-            return PredictedProperty[TargetProperty] != null ? 
-                    PredictedProperty[TargetProperty].length > 1 : false;
+            return hasPropertyClassProbabilities(TargetProperty);
         } else {
             return super.hasClassProbabilities(); 
         }
+    }
+
+    /**
+     * Check whether a property has predicted class probabilities
+     * @param index Index of property
+     * @return Whether it has class probabilities
+     */
+    public boolean hasPropertyClassProbabilities(int index) {
+        return PredictedProperty[index] != null ?
+                PredictedProperty[index].length > 1 : false;
     }
     
     @Override
@@ -368,5 +379,27 @@ public class MultiPropertyEntry extends BaseEntry {
      */
     public int NProperties() {
         return MeasuredProperty.length;
+    }
+
+    @Override
+    public JSONObject toJSON() {
+        JSONObject output = super.toJSON(); 
+        
+        // Save the property data
+        JSONArray propertyData = new JSONArray();
+        for (int p=0; p<NProperties(); p++) {
+            JSONObject propertyVals = new JSONObject();
+            propertyVals.put("measured", hasMeasuredProperty(p) ? 
+                    getMeasuredProperty(p) : null);
+            propertyVals.put("predicted", hasPredictedProperty(p) ?
+                    getPredictedProperty(p) : null);
+            if (hasPropertyClassProbabilities(p)) {
+                propertyVals.put("probabilities", getPropertyClassProbabilties(p));
+            }
+            propertyData.put(propertyVals);
+        }
+        output.put("properties", propertyData);
+        
+        return output;
     }
 }

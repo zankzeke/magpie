@@ -9,11 +9,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import magpie.data.materials.util.LookupData;
 import magpie.data.materials.util.PrototypeSiteInformation;
 import org.apache.commons.math3.stat.StatUtils;
+import org.json.JSONObject;
 
 /**
  * Entry in a {@linkplain PrototypeCompositionDataset}. Stores which elements are on
@@ -285,6 +287,33 @@ public class PrototypeEntry extends CompositionEntry {
         }
         return output;
     }
-    
+
+    @Override
+    public JSONObject toJSON() {
+        JSONObject output = super.toJSON(); 
+        
+        // Get the composition of each site
+        JSONObject siteComps = new JSONObject();
+        for (int sg=0; sg<SiteInfo.NGroups(); sg++) {
+            Set<Integer> siteGroup = SiteInfo.getSiteGroup(sg);
+            
+            if (siteGroup.size() == 1) {
+                siteComps.put(SiteInfo.getGroupLabel(sg), 
+                        getSiteComposition(siteGroup.iterator().next()).toString());
+            } else {
+                // Get a list of compositions for this set
+                Set<String> comps = new TreeSet<>();
+                for (Integer s : siteGroup) {
+                    comps.add(getSiteComposition(s).toString());
+                }
+                
+                siteComps.put(SiteInfo.getGroupLabel(sg),
+                        comps);
+            }
+        }
+        output.put("sites", siteComps);
+        
+        return output;
+    }
     
 }

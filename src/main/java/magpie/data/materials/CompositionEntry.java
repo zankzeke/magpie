@@ -11,6 +11,7 @@ import java.util.TreeMap;
 import java.util.regex.*;
 import magpie.data.materials.util.LookupData;
 import org.apache.commons.math3.stat.StatUtils;
+import org.json.JSONObject;
 
 /**
  * Stores several properties about a compound and its composition. Can store information regarding
@@ -617,5 +618,14 @@ public class CompositionEntry extends MultiPropertyEntry {
                 output[i] = format.format(expanded);
         }
         return output;
+    }
+
+    @Override
+    public JSONObject toJSON() {
+        JSONObject object = super.toJSON();
+        
+        object.put("composition", toString());
+        
+        return object;
     }
 }

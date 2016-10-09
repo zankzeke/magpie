@@ -1,5 +1,6 @@
 package magpie.data.materials;
 
+import org.json.JSONObject;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -26,5 +27,12 @@ public class ElementEntryTest {
         assertEquals("Fe", entry.toHTMLString());
         assertEquals(25, entry.getElementID());
     }
-    
+
+    @Test
+    public void testJSON() throws Exception {
+        ElementEntry entry = new ElementEntry("Al");
+        
+        JSONObject j = entry.toJSON();
+        assertEquals(entry.toString(), j.getString("element"));
+    }
 }

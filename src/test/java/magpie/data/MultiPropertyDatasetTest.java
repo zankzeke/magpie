@@ -2,6 +2,7 @@ package magpie.data;
 
 import java.io.File;
 import magpie.utility.UtilityOperations;
+import org.json.JSONObject;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -202,5 +203,28 @@ public class MultiPropertyDatasetTest {
         assertArrayEquals(new String[]{"Yes","No"}, data.getPropertyClasses(0));
         assertEquals(2, data.getPropertyClassCount(1));
         assertArrayEquals(new String[]{"Yes","No"}, data.getPropertyClasses(1));
+    }
+    
+    @Test
+    public void testJSON() {
+        MultiPropertyDataset data = new MultiPropertyDataset();
+        
+        // Test empty property
+        JSONObject j = data.toJSON();
+        assertEquals(data.NProperties(), j.getJSONArray("properties").length());
+        
+        // Test with two properties
+        data.addProperty("x");
+        data.addProperty("y", new String[]{"Yes", "No"});
+        
+        j = data.toJSON();
+        assertEquals(data.NProperties(), j.getJSONArray("properties").length());
+        assertEquals(data.getPropertyName(0),
+                j.getJSONArray("properties").getJSONObject(0).get("name"));
+        assertFalse(j.getJSONArray("properties").getJSONObject(0).has("classes"));
+        assertEquals(data.getPropertyName(1),
+                j.getJSONArray("properties").getJSONObject(1).get("name"));
+        assertArrayEquals(data.getPropertyClasses(1),
+                (String[]) j.getJSONArray("properties").getJSONObject(1).get("classes"));
     }
 }

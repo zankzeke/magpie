@@ -1,7 +1,9 @@
 package magpie.data;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
+import java.io.FileWriter;
 import weka.core.*;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -33,11 +35,10 @@ import magpie.utility.interfaces.Commandable;
 import magpie.utility.interfaces.Options;
 import magpie.utility.interfaces.Printable;
 import magpie.utility.interfaces.Savable;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.math3.ml.distance.DistanceMeasure;
-import org.apache.commons.math3.util.MathUtils;
+import org.json.JSONObject;
 import weka.core.converters.ArffLoader;
 
 /**
@@ -244,6 +245,12 @@ import weka.core.converters.ArffLoader;
  * <b>stats</b> - Writes predicted and measured class variables.
  * <br>This is intended to allow an external program to evaluate model
  * performance.</save>
+ * 
+ * <save><p>
+ * <b>template</b> - Save an empty clone of the dataset using serialization</save>
+ * 
+ * <save><p>
+ * <b>json</b> - Save dataset into JSON format</save>
  *
  * @author Logan Ward
  * @version 0.1
@@ -1857,6 +1864,31 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         output += "\nNumber of attributes: " + NAttributes();
         return output;
     }
+    
+    /**
+     * Print dataset to JSON format
+     * 
+     * @return JSONObject representing dataset.
+     */
+    public JSONObject toJSON() {
+        JSONObject output = new JSONObject();
+        
+        // Add in the type of class
+        output.put("type", this.getClass().getName());
+        
+        // Add in the names of the attributes
+        output.put("attribute-names", this.AttributeName);
+        
+        // Add in class names
+        output.put("class-names", this.ClassName);
+        
+        // Add in the entries
+        for (BaseEntry e : Entries) {
+            output.append("entries", e.toJSON());
+        }
+        
+        return output;
+    }
 
     /**
      * Get the distribution of entries between known classes
@@ -2001,6 +2033,11 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
             case "template":
                 saveTemplate(Basename + ".obj");
                 return Basename + ".obj";
+            case "json":
+                BufferedWriter fp = new BufferedWriter(new FileWriter(Basename + ".json"));
+                fp.write(toJSON().toString(2));
+                fp.close();
+                return Basename + ".json";
             default:
                 throw new Exception("ERROR: Save command \"" + Command
                         + "\" not recognized");

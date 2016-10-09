@@ -1,11 +1,11 @@
 package magpie.data;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.*;
 import org.apache.commons.lang3.ArrayUtils;
+import org.json.JSONObject;
 
 /**
  * This class is designed to store all information related to an entry in a Dataset
@@ -276,6 +276,27 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
      */
     public String toHTMLString() {
         return toString();
+    }
+    
+    /**
+     * Print entry as a JSON object
+     * @return JSON object
+     */
+    public JSONObject toJSON() {
+        JSONObject output = new JSONObject();
+        
+        // Set the attribute and class values
+        output.put("attributes", AttributeList);
+        
+        JSONObject classVals = new JSONObject();
+        classVals.put("measured", hasMeasurement() ? getMeasuredClass() : null);
+        classVals.put("predicted", hasPrediction() ? getPredictedClass() : null);
+        if (hasClassProbabilities()) {
+            classVals.put("probabilities", getClassProbilities()); 
+        }
+        output.put("class", classVals);
+        
+        return output;
     }
     
 }

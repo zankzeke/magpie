@@ -3,6 +3,7 @@ package magpie.data.materials;
 import magpie.utility.DistinctPermutationGenerator;
 import magpie.utility.MathUtils;
 import org.apache.commons.math3.util.CombinatoricsUtils;
+import org.json.JSONObject;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -218,5 +219,13 @@ public class CompositionEntryTest {
                 assertEquals(0, data.getEntry(e1).compareTo(data.getEntry(e1)));
             }
         }
+    }
+    
+    @Test
+    public void testJSON() throws Exception {
+        CompositionEntry entry = new CompositionEntry("AlNi");
+        
+        JSONObject j = entry.toJSON();
+        assertEquals(entry.toString(), j.getString("composition"));
     }
 }
