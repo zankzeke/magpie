@@ -50,7 +50,7 @@ import org.apache.commons.math3.util.CombinatoricsUtils;
  */
 public class ExhaustiveAttributeSelector extends BaseAttributeSelector {
     /** List of methods used to evaluate model performance */
-    public enum EvaluationMethod implements Serializable {
+    public enum EvaluationMethod {
         /** Use the performance on the training set */
         TRAINING,
         /** Use k-fold cross-validation */
@@ -339,6 +339,9 @@ public class ExhaustiveAttributeSelector extends BaseAttributeSelector {
 
         // Restore the thread count
         Magpie.NThreads = originalNThreads;
+        
+        // Clear the iterator
+        SetIterator = null;
         
         // Return the result
         return Arrays.asList(ArrayUtils.toObject(bestSet));
