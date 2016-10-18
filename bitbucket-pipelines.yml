@@ -1,0 +1,25 @@
+# This is a sample build configuration for Gradle.
+# Check our guides at https://confluence.atlassian.com/x/VYk8Lw for more examples.
+# Only use spaces to indent your .yml configuration.
+# -----
+# You can specify a custom docker image from Docker Hub as your build environment.
+image: java:8
+
+pipelines:
+  default:
+    - step:
+        script:
+          # Get Conda
+          - wget -q https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh
+          - bash Miniconda2-latest-Linux-x86_64.sh -b > conda.log
+          - export PATH="~/miniconda2/bin:$PATH"
+          - conda create --name magpie scikit-learn pandas | grep -v "\#"
+          - source activate magpie
+
+          # Update the sklearn models
+          - cd test-files
+          - python make_models.py
+          - cd ..
+
+          # Build the software
+          - ./gradlew build test 
