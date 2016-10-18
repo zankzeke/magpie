@@ -1,5 +1,6 @@
 package magpie.attributes.selectors;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -49,7 +50,7 @@ import org.apache.commons.math3.util.CombinatoricsUtils;
  */
 public class ExhaustiveAttributeSelector extends BaseAttributeSelector {
     /** List of methods used to evaluate model performance */
-    public enum EvaluationMethod {
+    public enum EvaluationMethod implements Serializable {
         /** Use the performance on the training set */
         TRAINING,
         /** Use k-fold cross-validation */
