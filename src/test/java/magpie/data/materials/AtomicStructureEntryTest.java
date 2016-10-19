@@ -2,6 +2,7 @@ package magpie.data.materials;
 
 import java.util.Map;
 import java.util.TreeMap;
+import org.json.JSONObject;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import vassal.data.Atom;
@@ -67,5 +68,23 @@ public class AtomicStructureEntryTest {
         System.out.println(name);
         assertTrue(name.contains("CuZr"));
         assertTrue(name.contains("B2"));
+    }
+    
+        
+    @Test
+    public void testToJSON() throws Exception {
+        // Make B2-CuZr
+        Cell cell = new Cell();
+        cell.addAtom(new Atom(new double[]{0,0,0}, 0));
+        cell.addAtom(new Atom(new double[]{0.5,0.5,0.5}, 1));
+        cell.setTypeName(0, "Cu");
+        cell.setTypeName(1, "Zr");
+        AtomicStructureEntry CuZr = new AtomicStructureEntry(cell, "B2", null);
+        
+        // Get name
+        JSONObject json = CuZr.toJSON();
+        System.out.println(json.toString(2));
+        assertTrue(json.getString("name").contains("B2"));
+        assertTrue(json.has("poscar"));
     }
 }

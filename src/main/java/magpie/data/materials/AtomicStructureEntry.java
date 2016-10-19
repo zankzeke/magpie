@@ -6,7 +6,9 @@ import vassal.data.Atom;
 import vassal.data.Cell;
 import magpie.data.materials.util.LookupData;
 import org.apache.commons.lang3.ArrayUtils;
+import org.json.JSONObject;
 import vassal.analysis.VoronoiCellBasedAnalysis;
+import vassal.io.VASP5IO;
 
 /**
  * Represents a crystal structure.
@@ -195,5 +197,20 @@ public class AtomicStructureEntry extends CompositionEntry {
     public String toString() {
         String comp = super.toString();
         return Name + ":" + comp;
+    }
+
+    @Override
+    public JSONObject toJSON() {
+        JSONObject output = super.toJSON();
+        
+        // Add in name and poscar
+        output.put("name", Name);
+        output.put("composition", super.toString());
+        try {
+            output.put("poscar", new VASP5IO().printStructure(Structure));
+        } catch (Exception e) {
+        }
+        
+        return output;
     }
 }
