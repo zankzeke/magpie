@@ -311,6 +311,12 @@ public class DatasetTest {
         
         // Make sure it called both the generator and expander
         assertEquals(3, data.NAttributes());
+        
+        // Check clearing attributes
+        command.set(1, "clear");
+        data.runCommand(command);
+        
+        assertEquals(0, data.NAttributes());
     }
     
     @Test

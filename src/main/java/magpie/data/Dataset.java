@@ -170,6 +170,9 @@ import weka.core.converters.ArffLoader;
  *
  * <command><p>
  * <b>attributes</b> - Print all attributes</command>
+ * 
+ * <command><p>
+ * <b>attributes clear</b> - Clear all attribute data</command>
  *
  * <command><p>
  * <b>attributes expanders add &lt;method> [&lt;options...>]</b> - Add an
@@ -2345,6 +2348,14 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         }
         String Action = Command.get(0).toString();
         switch (Action.toLowerCase()) {
+            case "clear": {
+                if (Command.size() > 1) {
+                    throw new IllegalArgumentException("Usage: data attributes clear");
+                }
+                clearAttributes();
+                System.out.println("\tCleared attributes.");
+            } 
+                break;
             case "expanders": {
                 runAttributeExpansionCommand(Command.subList(1, Command.size()));
             }
@@ -2356,7 +2367,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
             case "generate":
                 // Usage: generate
                 if (Command.size() > 1) {
-                    throw new Exception("Usage: <dataset> generate");
+                    throw new IllegalArgumentException("Usage: <dataset> generate");
                 }
                 generateAttributes();
                 System.out.println("\tGenerated " + NAttributes() + " attributes.");
@@ -2379,14 +2390,14 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                     }
                     MethodOptions = Command.subList(3, Command.size());
                 } catch (Exception e) {
-                    throw new Exception("Usage: <dataset> attributes rank <number> <method> [<method options...>]");
+                    throw new IllegalArgumentException("Usage: <dataset> attributes rank <number> <method> [<method options...>]");
                 }
                 BaseAttributeEvaluator Evaluator = (BaseAttributeEvaluator) instantiateClass("attributes.evaluators." + Method, MethodOptions);
                 System.out.print(Evaluator.printRankings(this, NumToPrint));
             }
             break;
             default:
-                throw new Exception("ERROR: Dataset attribute command not recognized" + Action);
+                throw new IllegalArgumentException("ERROR: Dataset attribute command not recognized" + Action);
         }
         return null;
     }
