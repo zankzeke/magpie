@@ -1,17 +1,5 @@
 package magpie.data;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
-import weka.core.*;
-import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import javax.naming.OperationNotSupportedException;
 import magpie.Magpie;
 import magpie.attributes.evaluators.BaseAttributeEvaluator;
 import magpie.attributes.expanders.BaseAttributeExpander;
@@ -20,26 +8,29 @@ import magpie.data.utilities.filters.BaseDatasetFilter;
 import magpie.data.utilities.generators.BaseEntryGenerator;
 import magpie.data.utilities.modifiers.BaseDatasetModifier;
 import magpie.data.utilities.modifiers.duplicates.BaseDuplicateResolver;
-import magpie.data.utilities.output.ARFFOutput;
-import magpie.data.utilities.output.DelimitedClassOutput;
-import magpie.data.utilities.output.DelimitedOutput;
-import magpie.data.utilities.output.SimpleOutput;
+import magpie.data.utilities.output.*;
 import magpie.data.utilities.splitters.MeasuredClassSplitter;
 import magpie.optimization.rankers.BaseEntryRanker;
-import static magpie.user.CommandHandler.instantiateClass;
-import static magpie.user.CommandHandler.printImplmentingClasses;
 import magpie.utility.UtilityOperations;
-import magpie.utility.interfaces.Citable;
-import magpie.utility.interfaces.Citation;
-import magpie.utility.interfaces.Commandable;
-import magpie.utility.interfaces.Options;
-import magpie.utility.interfaces.Printable;
-import magpie.utility.interfaces.Savable;
+import magpie.utility.interfaces.*;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.math3.ml.distance.DistanceMeasure;
 import org.json.JSONObject;
+import weka.core.Attribute;
+import weka.core.DenseInstance;
+import weka.core.Instance;
+import weka.core.Instances;
 import weka.core.converters.ArffLoader;
+
+import javax.naming.OperationNotSupportedException;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.util.*;
+import java.util.concurrent.*;
+
+import static magpie.user.CommandHandler.instantiateClass;
+import static magpie.user.CommandHandler.printImplmentingClasses;
 
 /**
  * Provides a basic storage container for data-mining tasks. Must be filled with
@@ -266,10 +257,6 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      */
     protected ArrayList<String> AttributeName;
     /**
-     * Names of the class(s) of each entry
-     */
-    private String[] ClassName;
-    /**
      * Internal array that stores entries
      */
     protected ArrayList<BaseEntry> Entries;
@@ -281,6 +268,19 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * Tools to generate special-purpose attributes
      */
     protected List<BaseAttributeGenerator> Generators = new LinkedList<>();
+    /**
+     * Names of the class(s) of each entry
+     */
+    private String[] ClassName;
+
+    /**
+     * Generate a blank dataset
+     */
+    public Dataset() {
+        this.ClassName = new String[]{"Class"};
+        this.AttributeName = new ArrayList<>();
+        this.Entries = new ArrayList<>();
+    }
 
     /**
      * Read the state from file using serialization
@@ -291,15 +291,6 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      */
     public static Dataset loadState(String filename) throws Exception {
         return (Dataset) UtilityOperations.loadState(filename);
-    }
-
-    /**
-     * Generate a blank dataset
-     */
-    public Dataset() {
-        this.ClassName = new String[]{"Class"};
-        this.AttributeName = new ArrayList<>();
-        this.Entries = new ArrayList<>();
     }
 
     @Override
@@ -454,8 +445,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * Get a copy of the list of currently-employed attribute generators.
      *
      * @return List of attribute expanders
-     * @see
-     * #addAttribueExpander(magpie.attributes.expansion.BaseAttributeExpander)
+     * @see Dataset#addAttribueGenerator(BaseAttributeGenerator)
      */
     public List<BaseAttributeGenerator> getAttributeGenerators() {
         return new LinkedList<>(Generators);
@@ -466,7 +456,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * generators.
      *
      * @throws java.lang.Exception
-     * @see #getAttributeGenerators()
+     * @see Dataset#getAttributeGenerators()
      */
     public void runAttributeGenerators() throws Exception {
         for (BaseAttributeGenerator generator : Generators) {
@@ -571,16 +561,6 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     }
 
     /**
-     * Get name of a specific attribute
-     *
-     * @param index Attribute number
-     * @return Name of that attribute
-     */
-    public String getAttributeName(int index) {
-        return AttributeName.get(index);
-    }
-
-    /**
      * Set the names of each attributes.
      *
      * <p>
@@ -592,6 +572,16 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     public void setAttributeNames(List<String> attributeNames) {
         AttributeName.clear();
         AttributeName.addAll(attributeNames);
+    }
+
+    /**
+     * Get name of a specific attribute
+     *
+     * @param index Attribute number
+     * @return Name of that attribute
+     */
+    public String getAttributeName(int index) {
+        return AttributeName.get(index);
     }
 
     /**
@@ -730,19 +720,19 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     }
 
     /**
+     * @return Names of possible classes for class variable
+     */
+    public String[] getClassNames() {
+        return ClassName.clone();
+    }
+
+    /**
      * Set name of class variable (or possible classes)
      *
      * @param newClassNames New name(s) to use
      */
     public void setClassNames(String[] newClassNames) {
         ClassName = newClassNames.clone();
-    }
-
-    /**
-     * @return Names of possible classes for class variable
-     */
-    public String[] getClassNames() {
-        return ClassName.clone();
     }
 
     /**
@@ -811,8 +801,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     }
 
     /**
-     * Add an entry. You may need to run {@linkplain #generateAttributes(java.lang.Object[])
-     * }.
+     * Add an entry. You may need to run {@linkplain Dataset#generateAttributes(java.lang.Object[])}
      *
      * @param e Entry to be added
      */
@@ -1104,7 +1093,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 maxLabel = labels[i];
             }
         }
-        return partition(labels, (int) maxLabel + 1);
+        return partition(labels, maxLabel + 1);
     }
 
     /**
@@ -2037,9 +2026,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 saveTemplate(Basename + ".obj");
                 return Basename + ".obj";
             case "json":
-                BufferedWriter fp = new BufferedWriter(new FileWriter(Basename + ".json"));
-                fp.write(toJSON().toString(2));
-                fp.close();
+                new JSONOutput().writeDataset(this, Basename + ".json");
                 return Basename + ".json";
             default:
                 throw new Exception("ERROR: Save command \"" + Command
