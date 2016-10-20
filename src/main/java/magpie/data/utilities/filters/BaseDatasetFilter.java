@@ -1,13 +1,14 @@
 package magpie.data.utilities.filters;
 
-import java.util.ArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import magpie.Magpie;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.utility.interfaces.Options;
+
+import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Abstract model for classes that filter undesired entries out of a dataset. User has
@@ -102,7 +103,7 @@ abstract public class BaseDatasetFilter implements java.io.Serializable, Options
         }
         
         // Reset thread count
-        Magpie.NThreads = 1;
+        Magpie.NThreads = nThreads;
         
         return output;
     }

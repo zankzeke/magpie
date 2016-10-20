@@ -801,7 +801,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     }
 
     /**
-     * Add an entry. You may need to run {@linkplain Dataset#generateAttributes(java.lang.Object[])}
+     * Add an entry. You may need to run {@linkplain Dataset#generateAttributes()}
      *
      * @param e Entry to be added
      */
