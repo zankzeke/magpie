@@ -5,14 +5,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import magpie.data.Dataset;
 import magpie.models.BaseModel;
-import magpie.user.server.thrift.MagpieServer;
-import magpie.user.server.thrift.MagpieServerHandler;
 import magpie.utility.WekaUtility;
-import org.apache.thrift.protocol.TJSONProtocol;
-import org.apache.thrift.transport.TServerSocket;
-import org.apache.thrift.server.*;
-import org.apache.thrift.transport.TServerTransport;
-import org.apache.thrift.transport.TTransportException;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -69,12 +62,8 @@ import org.eclipse.jetty.servlets.CrossOriginFilter;
 public class ServerLauncher {
     /** Port on which to listen */
     public static int ListenPort = 4581;
-    /** Socket server */
-    public static TServer SocketServer;
     /** HTTP server */
     public static Server HTTPServer;
-    /** Tool used to handle requests */
-    public static MagpieServerHandler Handler = new MagpieServerHandler();
     
     /**
      * Handle input passed to the server. See class documentation for format
@@ -231,12 +220,10 @@ public class ServerLauncher {
 
     /**
      * Given the current settings, start the Magpie server
-     * @throws TTransportException
      * @throws Exception 
      */
-    public static void startServer() throws TTransportException, Exception {
-        // Create the processor
-        MagpieServer.Processor processor = new MagpieServer.Processor(Handler);
+    public static void startServer() throws Exception {
+        ResourceConfig
         
         // Initialize the server
         TServerTransport trans = new TServerSocket(ListenPort);

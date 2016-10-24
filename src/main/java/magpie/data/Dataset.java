@@ -547,7 +547,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     /**
      * Compute attributes that are specific to this class.
      *
-     * @throws Exception
+     * @throws Exception If attribute calculation fails
      */
     protected void calculateAttributes() throws Exception {
         throw new OperationNotSupportedException("Dataset does not support attribute generation");
@@ -567,7 +567,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * NOTE: This will not effect the number of attributes of each entry. Make
      * sure to update those if needed!
      *
-     * @param attributeNames
+     * @param attributeNames New names for each attribute
      */
     public void setAttributeNames(List<String> attributeNames) {
         AttributeName.clear();
@@ -877,7 +877,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * Remove all duplicate entries without any selection strategy
      */
     public void removeDuplicates() {
-        Set Filter = new HashSet<>(Entries);
+        Set<BaseEntry> Filter = new HashSet<>(Entries);
         Entries.clear();
         Entries.addAll(Filter);
     }
