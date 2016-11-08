@@ -20,7 +20,7 @@ import org.apache.commons.math3.stat.StatUtils;
  * Based on work by Deml <i> et al.</i>:
  * 
  * <p><center><a href="http://journals.aps.org/prb/abstract/10.1103/PhysRevB.93.085142">
- * Deml <i>et al.</i>. PRB. 93 (2016), 085142</a>
+ * Deml <i>et al.</i>. PRB. 93 (2016), 085142</a></center>
  * 
  * <p>These attributes are based on the formal charges of materials determined
  * using the {@linkplain OxidationStateGuesser}. Currently implemented attributes:
