@@ -488,6 +488,12 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
             throw new RuntimeException("Attribute names are different.");
         }
         
+        // Check if attributes have been computed
+        if ((runData.NEntries() > 0) 
+                && runData.NAttributes() != runData.getEntry(0).NAttributes()) {
+            throw new RuntimeException("Attributes have not yet been generated.");
+        }
+        
         // Test if run will be parallel
         if (Magpie.NThreads > 1 && runData.NEntries() > Magpie.NThreads) {
             // Original thread count
