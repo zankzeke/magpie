@@ -15,7 +15,6 @@ import magpie.optimization.oracles.BaseOracle;
 import magpie.optimization.rankers.MultiObjectiveEntryRanker;
 import magpie.user.CommandHandler;
 import static magpie.user.CommandHandler.instantiateClass;
-import static magpie.user.CommandHandler.printImplmentingClasses;
 import magpie.utility.UtilityOperations;
 import magpie.utility.interfaces.Commandable;
 import magpie.utility.interfaces.Options;
@@ -62,11 +61,11 @@ import magpie.utility.interfaces.Printable;
  *
  * <command><p><b>set objective &lt;min|max> &lt;method> [&lt;options...>]</b> - Set the objective function
  * <br><pr><i>min|max</i>: Whether to minimize or maximize the objective function.
- * <br><pr><i>method</i>: Desired objective function. Name of an {@link BaseEntryRanker} class. ("?" for options)
+ * <br><pr><i>method</i>: Desired objective function. Name of an {@link BaseEntryRanker} class.
  * <br><pr><i>options...</i>: Options for objective function</command>
  *
  * <command><p><b>set oracle &lt;method> [&lt;options...>]</b> - Define method used to calculate properties of selected candidates
- * <br><pr><i>method</i>: How to calculate properties of an entry. Name of a {@linkplain BaseOracle} ("?" for options)</command>
+ * <br><pr><i>method</i>: How to calculate properties of an entry. Name of a {@linkplain BaseOracle}</command>
  *
  * <command><p><b>set gensize &lt;number</b> - Set number of new candidates per iteration
  * <br><pr><i>number</i>: Desired number of new entries per generation</command>
@@ -80,7 +79,7 @@ import magpie.utility.interfaces.Printable;
  * <command><p><b>stats success &lt;include|exclude> &lt;filter method&gt; [&lt;filter options...&gt;]</b> 
  *	- Define a filter used to define when an entry is a "success"
  * <br><pr><i>include|exclude</i>: Whether to include entries that pass the filter as a success
- * <br><pr><i>filter method</i>: Name of a dataset filter ("?" for options)
+ * <br><pr><i>filter method</i>: Name of a dataset filter
  * <br><pr><i>filter options...</i>: Any options for that filter</command>
  * 
  * <command><p><b>write generations &lt;directory&gt; &lt;format&gt;</b> - Write out the data from each generation
@@ -575,11 +574,6 @@ abstract public class BaseOptimizer implements java.io.Serializable,
 						throw new Exception();
 					}
 					FilterMethod = Command.get(2).toString();
-					if (FilterMethod.equalsIgnoreCase("?")) {
-						System.out.println("Available Filters:");
-						System.out.println(printImplmentingClasses(BaseDatasetFilter.class, false));
-						return;
-					}
 					FilterOptions = Command.subList(3, Command.size());
                 } catch (Exception e) {
                     throw new Exception("Usage: stats success <include|exclude> <filter method> <filter options...>");
@@ -626,10 +620,6 @@ abstract public class BaseOptimizer implements java.io.Serializable,
                     }
                     // Read Method name
                     Method = Command.get(2).toString();
-                    if (Method.equals("?")) {
-                        System.out.println(printImplmentingClasses(BaseEntryRanker.class, false));
-                        return;
-                    }
                     // Get method options
                     Options = Command.subList(3, Command.size());
                 } catch (Exception e) {
@@ -684,10 +674,6 @@ abstract public class BaseOptimizer implements java.io.Serializable,
                 List<Object> Options;
                 try {
                     Method = Command.get(1).toString();
-                    if (Method.contains("?")) {
-                        System.out.println("Available Oracles:");
-                        System.out.println(CommandHandler.printImplmentingClasses(BaseOracle.class, false));
-                    }
                     Options = Command.subList(2, Command.size());
                 } catch (Exception e) {
                     throw new Exception("Usage: set oracle <method> [<options...>]");

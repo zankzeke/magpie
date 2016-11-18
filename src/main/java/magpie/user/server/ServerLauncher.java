@@ -1,16 +1,12 @@
 
 package magpie.user.server;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import magpie.data.Dataset;
-import magpie.models.BaseModel;
 import magpie.utility.WekaUtility;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.servlets.CrossOriginFilter;
+import org.glassfish.grizzly.http.server.HttpServer;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
+
+import java.net.URI;
 
 /**
  * Main class for launching a Magpie server. 
@@ -62,8 +58,6 @@ import org.eclipse.jetty.servlets.CrossOriginFilter;
 public class ServerLauncher {
     /** Port on which to listen */
     public static int ListenPort = 4581;
-    /** HTTP server */
-    public static Server HTTPServer;
     
     /**
      * Handle input passed to the server. See class documentation for format
@@ -77,9 +71,7 @@ public class ServerLauncher {
             switch (tag) {
                 case "-port":
                     ListenPort = Integer.parseInt(args[++pos]);
-                    System.out.println("Set listen ports:");
-                    System.out.println("\tSocket port: " + ListenPort);
-                    System.out.println("\tHTTPClient port: " + (ListenPort + 1));
+                    System.out.println("Set ports: " + ListenPort);
                     break;
                 case "-model":
                     readInformationFile(args[++pos]);
@@ -94,116 +86,11 @@ public class ServerLauncher {
     /**
      * Given model information file, configure the handler
      * @param path Path to model information file
-     * @throws Exception 
-     * @see MagpieServer
+     * @throws Exception
      */
     public static void readInformationFile(String path) throws Exception {
         // Make sure Weka models are available
         WekaUtility.importWekaHome();
-        
-        // Open up the reader
-        BufferedReader reader = new BufferedReader(new FileReader(path));
-        
-        // Read in model information
-        String line = "";
-        while (true) {
-            if (! line.toLowerCase().startsWith("entry ")) {
-                line = reader.readLine();
-            }
-            if (line == null) {
-                break;
-            }
-            String[] words = line.split("[ \t]");
-            if (words.length == 0) {
-                continue;
-            }
-            if (! words[0].equalsIgnoreCase("entry")) {
-                continue;
-            }
-            
-            // Get the name of this model
-            String name = words[1];
-            System.out.println("Creating model: " + name);
-            
-            // Read in model and dataset
-            line = reader.readLine();
-            if (line == null) {
-                throw new Exception("Format error: Missing line for model path");
-            }
-            System.out.println("\tReading in model from: " + line);
-            BaseModel model;
-            try {
-                model = BaseModel.loadState(line);
-            } catch (Exception e) {
-                System.err.println("Model failed to read: " + e.getLocalizedMessage());
-                continue;
-            }
-            
-            line = reader.readLine();
-            if (line == null) {
-                throw new Exception("Format error: Missing line for dataset path");
-            }
-            System.out.println("\tReading in dataset from: " + line);
-            Dataset data;
-            try {
-                data = Dataset.loadState(line).emptyClone();
-            } catch (Exception e) {
-                System.err.println("Dataset failed to read: " + e.getLocalizedMessage());
-                continue;
-            }
-            
-            // Create the information holder
-            ModelPackage modelInfo = new ModelPackage(data, model);
-            
-            // Read in other stuff
-            line = reader.readLine();
-            while (line != null && ! line.toLowerCase().startsWith("entry ")) {
-                words = line.split("[ \t]");
-                if (words.length == 1) {
-                    line = reader.readLine();
-                    continue;
-                }
-                switch (words[0]) {
-                    case "property":
-                        modelInfo.Property = line.replaceFirst("property", "").trim();
-                        System.out.println("\tProperty: " + modelInfo.Property);
-                        break;
-                    case "units":
-                        modelInfo.Units = line.replaceFirst("units", "").trim();
-                        System.out.println("\tUnits: " + modelInfo.Units);
-                        break;
-                    case "author":
-                        modelInfo.Author = line.replaceFirst("author", "").trim();
-                        System.out.println("\tAuthor: " + modelInfo.Author);
-                        break;
-                    case "citation":
-                        modelInfo.Citation = line.replaceFirst("citation", "").trim();
-                        System.out.println("\tCitation: " + modelInfo.Citation);
-                        break;
-                    case "description":
-                        modelInfo.Description = line.replaceFirst("description", "").trim();
-                        System.out.println("\tdescription: " + modelInfo.Description);
-                        break;
-                    case "training":
-                        modelInfo.TrainingSet = line.replaceFirst("training", "").trim();
-                        System.out.println("\tTraining set: " + modelInfo.TrainingSet);
-                        break;
-                    case "notes":
-                        modelInfo.Notes = line.replaceFirst("notes", "").trim();
-                        System.out.println("\tNotes: " + modelInfo.Notes);
-                        break;
-                    default:
-                        System.out.println("Unrecognized property: " + words[0]);
-                }
-                line = reader.readLine();
-            }
-            
-            // Add in model to handler
-            Handler.addModel(name, modelInfo);
-
-            // If at end of file, break
-            if (line == null) break;
-        }
     }
     
     /**
@@ -223,63 +110,11 @@ public class ServerLauncher {
      * @throws Exception 
      */
     public static void startServer() throws Exception {
-        ResourceConfig
-        
-        // Initialize the server
-        TServerTransport trans = new TServerSocket(ListenPort);
-        SocketServer = new TThreadPoolServer(new TThreadPoolServer.Args(trans)
-                .processor(processor));
-        
-        // Initialize HTTP Server
-        HTTPServer = new Server(ListenPort + 1);
-        
-        ServletContextHandler handler = new ServletContextHandler(ServletContextHandler.SESSIONS);
-        handler.setContextPath("/");
-        
-        FilterHolder filter = new FilterHolder();
-        filter.setInitParameter("allowedOrigins", "*");
-        filter.setFilter(new CrossOriginFilter());
-        handler.addFilter(filter, "/*", null);
-        
-        HTTPServer.setHandler(handler);
-        TServlet tServlet;
-        tServlet = new TServlet(processor, new TJSONProtocol.Factory());
-        handler.addServlet(new ServletHolder(tServlet), "/*");
-        HTTPServer.start();
-        
-        // Fork server to the background
-        Thread thr = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                SocketServer.serve();
-            }
-        });
-        thr.start();
-        
-        // System status message
-        System.out.println("Started servers:");
-        System.out.println("\tSocket w/ TBinaryProtocol: " + ListenPort);
-        System.out.println("\tHTTPServer w/ TJSONProtocol: " + (ListenPort + 1));
-    }
-    
-    /**
-     * Stop the servers
-     * @throws Exception 
-     */
-    public static void stopServer() throws Exception {
-        SocketServer.stop();
-        HTTPServer.stop();
-    }
-    
-    /**
-     * Check if the servers are running
-     * @return Whether they are running
-     */
-    public static boolean isRunning() {
-        if (SocketServer == null || HTTPServer == null) {
-            return false;
-        } else {
-            return SocketServer.isServing() && HTTPServer.isStarted();
-        }
+        // Make the HTTP server
+        final ResourceConfig cfg = new ResourceConfig().packages("magpie.user.server");
+        HttpServer server = GrizzlyHttpServerFactory.createHttpServer(URI.create("http://0.0.0.0:" + ListenPort), cfg);
+
+        // Launch it
+        server.start();
     }
 }

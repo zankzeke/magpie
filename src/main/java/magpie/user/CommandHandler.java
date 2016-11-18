@@ -29,8 +29,6 @@ import magpie.utility.interfaces.Printable;
 import magpie.utility.interfaces.Savable;
 import org.apache.commons.lang3.tuple.Pair;
 
-import org.reflections.Reflections;
-
 /**
  * This class turns text commands into actions.
  *
@@ -111,8 +109,6 @@ public class CommandHandler {
             } else if (TextCommand.get(0).equalsIgnoreCase("timer")) {
                 String output = runTimerCommand(TextCommand.subList(1, TextCommand.size()));
                 System.out.println("\t" + output);
-            } else if (TextCommand.get(0).equalsIgnoreCase("types")) {
-                printTypes(TextCommand);
             } else if (TextCommand.size() > 1 && TextCommand.get(1).equals("=")) {
                 assignment(TextCommand);
             } else {
@@ -126,8 +122,9 @@ public class CommandHandler {
                 e.printStackTrace();
             }
             System.err.println(e.getMessage());
-            if (! Forgiving) 
+            if (! Forgiving) {
                 System.exit(3);
+            }
         }
     }
 
@@ -446,59 +443,6 @@ public class CommandHandler {
     }
     
     /**
-     * Print the names and options (if applicable) of all classes that are 
-     *  subtypes of a certain class.
-     * @param cls Superclass of all objects of interest
-     * @param printPackage Whether to print the package name as well
-     * @return List of names and options of all 
-     */
-    static public String printImplmentingClasses(Class cls, boolean printPackage) {
-        Reflections reflections = new Reflections("magpie");
-        Set<Class<? extends Object>> allClasses = reflections.getSubTypesOf(cls);
-        return printClassInformation(allClasses, printPackage);
-    }
-    
-    /**
-     * Given a list of classes, print the names of non-abstract classes and their 
-     *  options (if they implement Options)
-     * @param allClasses Set containing all classes to print
-     * @param printPackage Whether to print the package name
-     * @return Names and options, formatted as a table
-     */
-    public static String printClassInformation(Set<Class<? extends Object>> allClasses,
-            boolean printPackage) {
-		List<String> classes = new LinkedList<>();
-        for (Class cls : allClasses) {
-            if (! Modifier.isAbstract(cls.getModifiers())) {
-                // Check whether class can be instantiated
-                Object obj;
-                try { obj = cls.newInstance(); }
-                catch (IllegalAccessException | InstantiationException e) {
-                    // If it can be accessed, skip it
-                    continue;
-                }
-                // Print the package name
-				String thisClass = printPackage ? cls.getName().replaceFirst("^magpie.", "") :
-                        cls.getSimpleName();
-                // If object has options, print Usage
-                if (Options.class.isAssignableFrom(cls)) {
-                    Options ptr = (Options) obj;
-                    thisClass += "\t" + ptr.printUsage();
-                }
-                thisClass+="\n";
-				classes.add(thisClass);
-            }
-        }
-		// Sort and make output
-		String output = "";
-		Collections.sort(classes);
-		for (String line : classes) {
-			output += line;
-		}
-        return output;
-    }
-    
-    /**
      * Run a certain time command. Two options:
      * 
      * <ul>
@@ -574,64 +518,7 @@ public class CommandHandler {
             System.out.println("\tSerialized " + ObjectName + " to " + Basename + ".obj");
         }
     }
-    
-    /**
-     * Run a command to print out variable types
-     * @param Command Commands to print types
-     * @throws Exception 
-     */
-    protected void printTypes(List<String> Command) throws Exception {
-        if (Command.size() != 2) 
-            throw new Exception("Usage: types <object type>");
-        String toPrint = "";
-        String type=Command.get(1).toLowerCase();
-        switch (type) {
-            case "stats": case "statistics":
-                toPrint += "\tAvailable Statistics:\n";
-                toPrint += printImplmentingClasses(BaseStatistics.class, true);
-                break;
-            case "selector": case "selectors":
-                toPrint += "\tAvailable Attribute Selectors:\n";
-                toPrint += printImplmentingClasses(BaseAttributeSelector.class, true);
-                break;
-            case "clusterer": case "clusterers":
-                toPrint += "\tAvailable Clusterers:\n";
-                toPrint += printImplmentingClasses(BaseClusterer.class, true);
-                break;
-            case "dataset": case "datasets":
-                toPrint += "\tAvailable Datasets:\n";
-                toPrint += printImplmentingClasses(Dataset.class, true);
-                break;
-            case "split": case "splitter":
-                toPrint += "\tAvailable Dataset Splitters:\n";
-                toPrint += printImplmentingClasses(BaseDatasetSplitter.class, true);
-                break;
-            case "model": case "models":
-                toPrint += "\tAvailable Models:\n";
-                toPrint += printImplmentingClasses(BaseModel.class, true);
-                break;
-            case "model.classification": case "models.classification":
-            case "classifiers": case "models.classifiers":
-                toPrint += "\tAvailable Classifiers:\n";
-                toPrint += printImplmentingClasses(AbstractClassifier.class, true);
-                break;
-            case "model.regression": case "regression": case "models.regression":
-                toPrint += "\tAvailable Regression Models:\n";
-                toPrint += printImplmentingClasses(AbstractRegressionModel.class, true);
-                break;
-            case "opt": case "optimizer": 
-                toPrint += "\tAvailable Optimization Algorithms:\n";
-                toPrint += printImplmentingClasses(BaseOptimizer.class, true);
-                break;
-            case "csp":
-                toPrint += "\tAvailable Crystal Structure Predictors:\n";
-                toPrint += printImplmentingClasses(CSPEngine.class, true);
-                break;
-            default:
-                throw new Exception("Object type "+Command.get(1)+" not recognized.");
-        }
-        System.out.println(toPrint);
-    }
+
 
     /**
      * Run command to print out citations. First word should be "citations".

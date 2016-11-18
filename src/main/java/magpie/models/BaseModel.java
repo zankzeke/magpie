@@ -84,7 +84,7 @@ import org.apache.commons.lang3.tuple.Pair;
  *  - Define how to normalize data (data is not normalized by default)
  * <br><pr><i>attributes</i>: Whether to normalize attributes
  * <br><pr><i>class</i>: Whether to normalize class variable
- * <br><pr><i>method</i>: Method used to normalize attributes ("?" for available options)
+ * <br><pr><i>method</i>: Method used to normalize attributes
  * <br><pr><i>options...</i>: Any options for the normalizer</command>
  * 
  * <p><b><u>Implemented Print Commands</u></b>
@@ -835,11 +835,6 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                         pos++;
                     }
                     Method = command.get(pos).toString();
-                    if (Method.equals("?")) {
-                        System.out.println("Available Normalizers:");
-                        System.out.println(CommandHandler.printImplmentingClasses(BaseDatasetNormalizer.class, false));
-                        return null;
-                    }
                     Method = "data.utilities.normalizers." + Method;
                     Options = command.subList(pos + 1, command.size());
                 } catch (Exception e) {
