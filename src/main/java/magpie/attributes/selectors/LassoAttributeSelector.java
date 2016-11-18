@@ -244,7 +244,7 @@ public class LassoAttributeSelector extends PythonBasedAttributeSelector
         } else {
             output += MaxCount;
         }
-        output += " attributes is selected to be the set that generates a linear "
+        output += " attributes is selected based on which, out of all possible subsets, generates a linear "
                 + "regression model with the lowest mean squared error ";
         if (CVFraction > 0) {
             output += String.format("over %d iterations of a hold-%.1f%%-out "
