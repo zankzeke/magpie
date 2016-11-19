@@ -1,6 +1,8 @@
 
 package magpie.user.server;
 
+import magpie.data.Dataset;
+import magpie.models.BaseModel;
 import magpie.utility.WekaUtility;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
@@ -24,7 +26,7 @@ import java.util.TreeMap;
  * you would use with Python client) starts on this server, HTTP server will start
  * on port + 1.
  * <br><b>-models &lt;path&gt;</b>: Path to file describing models to be served.
- * This file should be formated in YAML and follow the following structure:
+ * This file should be formatted in YAML and follow the following structure:
  * 
  * <div style="padding: 10px 0 0 20px;">
  *     This YAML file should be partitioned into several separate documents, which each describe a different model and
@@ -39,6 +41,7 @@ import java.util.TreeMap;
  *         <li><b>units</b> (Optional) Units for the property</li>
  *         <li><b>training</b> Short description of the training set</li>
  *         <li><b>citation</b> Citation for the model</li>
+ *         <li><b>author</b> Name of author of the model</li>
  *         <li><b>notes</b>Longer description of the model</li>
  *     </ul>
  *
@@ -62,6 +65,10 @@ public class ServerLauncher {
      * List of models available to this program
      */
     public static Map<String, ModelPackage> Models = new TreeMap<>();
+    /**
+     * Server currently being used
+     */
+    public static HttpServer Server = null;
 
     
     /**
@@ -76,9 +83,9 @@ public class ServerLauncher {
             switch (tag) {
                 case "-port":
                     ListenPort = Integer.parseInt(args[++pos]);
-                    System.out.println("Set ports: " + ListenPort);
+                    System.out.println("Set port: " + ListenPort);
                     break;
-                case "-model":
+                case "-models":
                     readInformationFile(args[++pos]);
                     break;
                 default:
@@ -106,9 +113,31 @@ public class ServerLauncher {
         for (Object modelDataObj : yaml.loadAll(fp)) {
             Map<String, Object> modelData = (Map) modelDataObj;
 
-            // Get the path to the model
+            // Get the name of the model
+            String modelName = modelData.get("name").toString();
+
+            // Get the path to the model and dataset
             String modelPath = modelData.get("modelPath").toString();
             String dataPath = modelData.get("datasetPath").toString();
+
+            // Read in the files
+            Dataset dataset = Dataset.loadState(dataPath);
+            dataset = dataset.emptyClone();
+            BaseModel model = BaseModel.loadState(modelPath);
+
+            // Read both to generate model package
+            ModelPackage modelPackage = new ModelPackage(dataset, model);
+
+            // Read in the other information
+            modelPackage.Property = modelData.get("property").toString();
+            modelPackage.Units = modelData.containsKey("units") ? modelData.get("units").toString() : "None";
+            modelPackage.TrainingSet = modelData.get("training").toString();
+            modelPackage.Author = modelData.get("author").toString();
+            modelPackage.Citation = modelData.get("citation").toString();
+            modelPackage.Notes = modelData.get("notes").toString();
+
+            // Store the model
+            Models.put(modelName, modelPackage);
         }
     }
     
@@ -131,9 +160,9 @@ public class ServerLauncher {
     public static void startServer() throws Exception {
         // Make the HTTP server
         final ResourceConfig cfg = new ResourceConfig().packages("magpie.user.server");
-        HttpServer server = GrizzlyHttpServerFactory.createHttpServer(URI.create("http://0.0.0.0:" + ListenPort), cfg);
+        Server = GrizzlyHttpServerFactory.createHttpServer(URI.create("http://0.0.0.0:" + ListenPort), cfg);
 
         // Launch it
-        server.start();
+        Server.start();
     }
 }
