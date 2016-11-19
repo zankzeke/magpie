@@ -3,10 +3,14 @@ package magpie.user.server;
 
 import magpie.utility.WekaUtility;
 import org.glassfish.grizzly.http.server.HttpServer;
-import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.yaml.snakeyaml.Yaml;
 
+import java.io.FileInputStream;
 import java.net.URI;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Main class for launching a Magpie server. 
@@ -20,44 +24,45 @@ import java.net.URI;
  * you would use with Python client) starts on this server, HTTP server will start
  * on port + 1.
  * <br><b>-models &lt;path&gt;</b>: Path to file describing models to be served.
- * This file must follow the following format:
+ * This file should be formated in YAML and follow the following structure:
  * 
  * <div style="padding: 10px 0 0 20px;">
- * This file should contain a list of entries describing how to run each model,
- * and information necessary for someone to properly use it. Each model should
- * be described by an entry in the following format. For longer descriptions, it
- * is advised to use HTML format.
- * <p>entry &lt;name&gt; // Unique name used to describe this model
- * <div style="padding: 0 0 0 20px;">
- * &lt;model path&gt; // Path to model to evaluated
- * &lt;dataset path&gt; // Path to dataset used to generate attributes
- * <br>property &lt;description&gt; // Short description of the property being predicted
- * <br>units &lt;path&gt; // Define the units of this model
- * <br>training &lt;description&gt; // Description of training set
- * <br>author &lt;name&gt; // Contact information for author
- * <br>citation &lt;info&gt; // Information for how to properly cite this model
- * <br>description &lt;words&gt; // Short description of model
- * <br>notes &lt;words&gt; // Longer description of model
- * </div>
- * 
+ *     This YAML file should be partitioned into several separate documents, which each describe a different model and
+ *     are separated by lines of '---'.
+ *
+ *     <p>Each document should contain the following fields:</p>
+ *     <ul>
+ *         <li><b>name</b> Name for this model</li>
+ *         <li><b>modelPath</b> Path to the model file</li>
+ *         <li><b>datasetPath</b> Path to the dataset</li>
+ *         <li><b>property</b> Name of property being modeled, or a short description</li>
+ *         <li><b>units</b> (Optional) Units for the property</li>
+ *         <li><b>training</b> Short description of the training set</li>
+ *         <li><b>citation</b> Citation for the model</li>
+ *         <li><b>notes</b>Longer description of the model</li>
+ *     </ul>
+ *
+ *     <p>Feel free to use HTML formatting in the YAML file. This information will likely be rendered by a web browser</p>
  * </div>
  * 
  * 
  * <p>Example: java -jar Magpie.jar -server -model volume volume.obj -data data.obj
  * 
  * <p><b>Client Implementation Guide</b>
- * 
- * <p>This code uses <a href="http://thrift.apache.org/">Apache Thrift</a> to 
- * define the interface. There are several different commands available through
- * this API, which are described in the "magpie.thrift" file included with this
- * software package. An example for a client that uses the JavaScript interface
- * and an example Python client are provided.
+ *
+ * <p>This code uses a REST interface. Eventually, we may provide a wrapper for this API in other languages. There will
+ * at least be a few examples of webpages using this interface.</p>
  * 
  * @author Logan Ward
  */
 public class ServerLauncher {
     /** Port on which to listen */
     public static int ListenPort = 4581;
+    /**
+     * List of models available to this program
+     */
+    public static Map<String, ModelPackage> Models = new TreeMap<>();
+
     
     /**
      * Handle input passed to the server. See class documentation for format
@@ -91,6 +96,20 @@ public class ServerLauncher {
     public static void readInformationFile(String path) throws Exception {
         // Make sure Weka models are available
         WekaUtility.importWekaHome();
+
+        // Clear the list of models
+        Models.clear();
+
+        // Parse the input file
+        Yaml yaml = new Yaml();
+        FileInputStream fp = new FileInputStream(path);
+        for (Object modelDataObj : yaml.loadAll(fp)) {
+            Map<String, Object> modelData = (Map) modelDataObj;
+
+            // Get the path to the model
+            String modelPath = modelData.get("modelPath").toString();
+            String dataPath = modelData.get("datasetPath").toString();
+        }
     }
     
     /**
