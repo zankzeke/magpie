@@ -2,6 +2,8 @@ package magpie.user.server;
 
 import magpie.data.Dataset;
 import magpie.models.BaseModel;
+import magpie.models.classification.AbstractClassifier;
+import org.json.JSONObject;
 
 /**
  * Holds information about a model.
@@ -35,5 +37,26 @@ public class ModelPackage {
     public ModelPackage(Dataset data, BaseModel model) {
         this.Dataset = data;
         this.Model = model;
+    }
+
+    public JSONObject toJSON() {
+        JSONObject output = new JSONObject();
+
+        // Add in the data
+        output.put("property", Property);
+        output.put("units", Model instanceof AbstractClassifier ?
+                ((AbstractClassifier) Model).getClassNames() :
+                Property);
+        output.put("trainingSetDescription", TrainingSet);
+        output.put("trainingSetSize", Model.TrainingStats.NumberTested);
+        output.put("author", Author);
+        output.put("citation", Citation);
+        output.put("description", Description);
+        output.put("notes", Notes);
+        output.put("modelTrainedDate", Model.getTrainTime().toString());
+        output.put("modelDetails", Model.printDescription(true));
+        output.put("datasetDetails", Model.printDescription(true));
+
+        return output;
     }
 }

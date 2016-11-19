@@ -37,12 +37,13 @@ import java.util.TreeMap;
  *         <li><b>name</b> Name for this model</li>
  *         <li><b>modelPath</b> Path to the model file</li>
  *         <li><b>datasetPath</b> Path to the dataset</li>
+ *         <li><b>description</b> Short description of model</li>
  *         <li><b>property</b> Name of property being modeled, or a short description</li>
  *         <li><b>units</b> (Optional) Units for the property</li>
  *         <li><b>training</b> Short description of the training set</li>
  *         <li><b>citation</b> Citation for the model</li>
  *         <li><b>author</b> Name of author of the model</li>
- *         <li><b>notes</b>Longer description of the model</li>
+ *         <li><b>notes</b> Longer description of the model</li>
  *     </ul>
  *
  *     <p>Feel free to use HTML formatting in the YAML file. This information will likely be rendered by a web browser</p>
@@ -129,6 +130,7 @@ public class ServerLauncher {
             ModelPackage modelPackage = new ModelPackage(dataset, model);
 
             // Read in the other information
+            modelPackage.Description = modelData.get("description").toString();
             modelPackage.Property = modelData.get("property").toString();
             modelPackage.Units = modelData.containsKey("units") ? modelData.get("units").toString() : "None";
             modelPackage.TrainingSet = modelData.get("training").toString();
@@ -161,6 +163,14 @@ public class ServerLauncher {
         // Make the HTTP server
         final ResourceConfig cfg = new ResourceConfig().packages("magpie.user.server");
         Server = GrizzlyHttpServerFactory.createHttpServer(URI.create("http://0.0.0.0:" + ListenPort), cfg);
+
+        // Add hook to shutdown Server
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Server.shutdownNow();
+            }
+        }));
 
         // Launch it
         Server.start();

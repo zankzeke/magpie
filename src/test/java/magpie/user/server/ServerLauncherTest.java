@@ -8,10 +8,15 @@ import magpie.data.utilities.modifiers.NonZeroClassModifier;
 import magpie.models.BaseModel;
 import magpie.models.classification.WekaClassifier;
 import magpie.models.regression.GuessMeanRegression;
+import org.json.JSONObject;
 import org.junit.*;
 
 import static org.junit.Assert.*;
 import org.junit.rules.Timeout;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
 
 /**
  * Run basic tests on Magpie Server
@@ -21,6 +26,11 @@ public class ServerLauncherTest {
     /** Timeout for test */
     @Rule
     public Timeout globalTimeout = new Timeout(60, TimeUnit.SECONDS);
+
+    /**
+     * Client used to interact with test server
+     */
+    private WebTarget Target;
 
     public ServerLauncherTest() throws Exception {
         // Make a fake dataset
@@ -60,6 +70,7 @@ public class ServerLauncherTest {
         fp.println("name: delta_e");
         fp.println("modelPath: ms-deltae.obj");
         fp.println("datasetPath: ms-data.obj");
+        fp.println("description: Just a formation enthalpy model");
         fp.println("property: '&Delta;H'");
         fp.println("units: eV/atom");
         fp.println("training: Some OQMD calculations");
@@ -70,6 +81,7 @@ public class ServerLauncherTest {
         fp.println("name: volume_pa");
         fp.println("modelPath: ms-volume.obj");
         fp.println("datasetPath: ms-data.obj");
+        fp.println("description: Just a specific volume model");
         fp.println("training: Some OQMD calculations");
         fp.println("property: V");
         fp.println("units: Angstrom<sup>3</sup>atom");
@@ -80,6 +92,7 @@ public class ServerLauncherTest {
         fp.println("name: ismetal");
         fp.println("modelPath: ms-metal.obj");
         fp.println("datasetPath: ms-data.obj");
+        fp.println("description: Guesses whether a material is metallic or not");
         fp.println("training: Some OQMD calculations");
         fp.println("property: E<sub>g</sub> > 0");
         fp.println("author: Logan Ward");
@@ -92,11 +105,33 @@ public class ServerLauncherTest {
     @Before
     public void launchServer() throws Exception {
         ServerLauncher.main(new String[]{"-port", "4234", "-models", "ms-model.yml"});
+
+        Client c = ClientBuilder.newClient();
+        Target = c.target("http://127.0.0.1:4234");
+    }
+
+    @After
+    public void shutdownServer() throws Exception {
+        ServerLauncher.Server.shutdownNow();
     }
 
     @Test
     public void testLaunch() throws Exception {
         assertNotNull(ServerLauncher.Server);
         assertTrue(ServerLauncher.Server.isStarted());
+    }
+
+    @Test
+    public void testGetVersion() throws Exception {
+        String response = Target.path("version").request().get(String.class);
+        assertEquals("0.0.1", response);
+    }
+
+    @Test
+    public void testModelInformation() throws Exception {
+        String response = Target.path("model/delta_e/info").request().get(String.class);
+        JSONObject info = new JSONObject(response);
+        assertEquals("Just a formation enthalpy model", info.get("description"));
+        System.out.println(info.toString(2));
     }
 }
