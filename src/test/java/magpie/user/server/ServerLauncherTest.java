@@ -1,11 +1,13 @@
 package magpie.user.server;
 
+import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.utilities.modifiers.NonZeroClassModifier;
 import magpie.models.BaseModel;
 import magpie.models.classification.WekaClassifier;
 import magpie.models.regression.GuessMeanRegression;
 import magpie.user.server.operations.ServerInformation;
+import magpie.utility.UtilityOperations;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
@@ -17,6 +19,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.concurrent.TimeUnit;
@@ -50,6 +53,7 @@ public class ServerLauncherTest {
         // Make a fake model for delta_e
         BaseModel model = new GuessMeanRegression();
         model.train(template);
+        model.crossValidate(10, template);
         model.saveState("ms-deltae.obj");
         new File("ms-deltae.obj").deleteOnExit();
         
@@ -151,5 +155,18 @@ public class ServerLauncherTest {
         // Test the 404
         Response response2 = Target.path("model/nope/info").request().get();
         assertEquals(404, response2.getStatus());
+    }
+
+    @Test
+    public void testModelOutput() throws Exception {
+        // Get the info of an existing model
+        byte[] response = Target.path("model/delta_e/model").request().get(byte[].class);
+        BaseModel model = (BaseModel) UtilityOperations.loadState(new ByteArrayInputStream(response));
+        assertEquals(ServerLauncher.Models.get("delta_e").Model.getTrainTime(), model.getTrainTime());
+
+        // Get the info of an existing model
+        response = Target.path("model/delta_e/dataset").request().get(byte[].class);
+        Dataset data = (Dataset) UtilityOperations.loadState(new ByteArrayInputStream(response));
+        assertEquals(ServerLauncher.Models.get("delta_e").Dataset.NAttributes(), data.NAttributes());
     }
 }

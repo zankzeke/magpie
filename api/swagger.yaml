@@ -41,3 +41,41 @@ paths:
           description: Successful response
         404:
           description: No model by that name found
+
+  /model/{name}/model:
+    get:
+      description: |
+        Get the model, serialized
+      parameters:
+        - name: name
+          in: path
+          description: Name of model
+          required: true
+          type: number
+          format: int
+      produces:
+        - application/octet-stream
+      responses:
+        200:
+          description: Successful response
+        404:
+          description: No model by that name found
+
+/model/{name}/dataset:
+    get:
+      description: |
+        Get the dataset used to generate representations for this model, serailized
+      parameters:
+        - name: name
+          in: path
+          description: Name of model
+          required: true
+          type: number
+          format: int
+      produces:
+        - application/octet-stream
+      responses:
+        200:
+          description: Successful response
+        404:
+          description: No model by that name found

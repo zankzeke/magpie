@@ -57,6 +57,17 @@ public class ModelPackage {
         output.put("modelDetails", Model.printDescription(true));
         output.put("datasetDetails", Model.printDescription(true));
 
+        // Add in the model statistics
+        JSONObject stats = new JSONObject();
+        if (Model.isTrained()) {
+            stats.put("training", Model.TrainingStats.getStatisticsNoNaNs());
+        }
+        if (Model.isValidated()) {
+            stats.put("validation", Model.ValidationStats.getStatisticsNoNaNs());
+            stats.getJSONObject("validation").put("method", Model.getValidationMethod());
+        }
+        output.put("modelStats", stats);
+
         return output;
     }
 }

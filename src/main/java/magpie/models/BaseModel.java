@@ -1,18 +1,6 @@
 package magpie.models;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+
 import magpie.Magpie;
-import magpie.statistics.performance.BaseStatistics;
 import magpie.attributes.selectors.BaseAttributeSelector;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
@@ -20,10 +8,14 @@ import magpie.data.utilities.filters.BaseDatasetFilter;
 import magpie.data.utilities.normalizers.BaseDatasetNormalizer;
 import magpie.models.interfaces.ExternalModel;
 import magpie.models.regression.AbstractRegressionModel;
+import magpie.statistics.performance.BaseStatistics;
 import magpie.user.CommandHandler;
 import magpie.utility.UtilityOperations;
 import magpie.utility.interfaces.*;
 import org.apache.commons.lang3.tuple.Pair;
+
+import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * Base class for any model, regression or classification.
@@ -112,14 +104,18 @@ import org.apache.commons.lang3.tuple.Pair;
  */
 abstract public class BaseModel implements java.io.Serializable, java.lang.Cloneable, 
         Options, Printable, Commandable, Savable, Citable {
+    /**
+     * Statistics about performance on training set
+     */
+    public BaseStatistics TrainingStats;
+    /**
+     * Statistics generated during model validation
+     */
+    public BaseStatistics ValidationStats;
     /** Records whether model has been trained */
     protected boolean trained=false;
     /** Records whether model has been validated */
     protected boolean validated=false;
-    /** Statistics about performance on training set */
-    public BaseStatistics TrainingStats; 
-    /** Statistics generated during model validation */
-    public BaseStatistics ValidationStats;
     /** BaseAttributeSelector used to screen attributes during training */
     protected BaseAttributeSelector AttributeSelector = null;
     /** Used to normalize attributes before training / running model */
@@ -132,7 +128,18 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
     private Date TrainTime = null;
     /** Names of attributes used to train model */
     private String[] AttributeNames;
-       
+
+    /**
+     * Read the state from file using serialization
+     *
+     * @param filename Filename for input
+     * @return Model stored in that file
+     * @throws java.lang.Exception
+     */
+    public static BaseModel loadState(String filename) throws Exception {
+        return (BaseModel) UtilityOperations.loadState(filename);
+    }
+    
     /**
      * @return Whether this model has been trained
      */
@@ -150,11 +157,11 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
      * @return Whether any sort of validation has been run on this model
      */
     public boolean isValidated() { return validated; }
-    
+
     /**
      * Mark this model as untrained and unvalidated
      */
-    public void resetModel() { trained=false; validated=false; };    
+    public void resetModel() { trained=false; validated=false; }
 
     /**
      * Return the BaseAttributeSelector used by this model
@@ -165,12 +172,21 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
     }
 
     /**
-     * Define an attribute selector that will force this model to only use a 
+     * Define an attribute selector that will force this model to only use a
      *  subset of the attributes supplied with a Dataset
      * @param AttributeSelector Untrained BaseAttributeSelector
      */
     public void setAttributeSelector(BaseAttributeSelector AttributeSelector) {
         this.AttributeSelector = AttributeSelector;
+    }
+
+    /**
+     * Get filter used before training
+     *
+     * @return Link to internal filter object
+     */
+    public BaseDatasetFilter getFilter() {
+        return Filter;
     }
     
     /**
@@ -182,83 +198,75 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
     }
     
     /**
-     * Get filter used before training
-     * @return Link to internal filter object
-     */
-    public BaseDatasetFilter getFilter() {
-        return Filter;
-    }
-    
-    /** 
      * Perform k-fold cross validation
      * @param folds Number of folds in CV test
      * @param cvData Data to use for CV
-     * @return Clone of input dataset. Class variable is the predicted 
+     * @return Clone of input dataset. Class variable is the predicted
      * value of the model used when computing CV statistics
      */
     public Dataset crossValidate(int folds, Dataset cvData) {
         return crossValidate(folds, cvData, new Random().nextLong());
     }
     
-    /** 
+    /**
      * Perform k-fold cross validation
      * @param folds Number of folds in CV test
      * @param cvData Data to use for CV
      * @param seed Random seed used when splitting dataset
-     * @return Clone of input dataset. Class variable is the predicted 
+     * @return Clone of input dataset. Class variable is the predicted
      * value of the model used when computing CV statistics
      */
     public Dataset crossValidate(int folds, Dataset cvData, long seed) {
         // Split into several parts
         Dataset internalTest = cvData.clone();
         Dataset[] testFolds = internalTest.splitIntoFolds(folds, seed);
-        
+
         // Generate a clone of the model to play with
         BaseModel testModel;
-        testModel = (BaseModel) this.clone(); 
-        
+        testModel = this.clone();
+
         for(int i=0; i<folds; i++){
             Dataset TrainData = cvData.emptyClone();
-            
+
             // Build a training set that does not inclue the current iteration
             for(int j=0; j<folds; j++) {
                 if (i!=j) {
                     TrainData.combine(testFolds[j]);
                 }
             }
-            
+
             // Build a model on the training set, evaluate on the remaining data
             testModel.train(TrainData, false);
             testModel.run(testFolds[i]);
         }
-        
+
         // Done with the cloned model
         testModel.done();
-        
+
         // Evaluate stats on the whole thing
         internalTest.combine(testFolds);
         ValidationStats.evaluate(internalTest);
         validated = true;
-        
+
         // Store that this model was cross valided
         if (folds == cvData.NEntries()) {
-            ValidationMethod = "Leave-one-out cross-validation using " 
+            ValidationMethod = "Leave-one-out cross-validation using "
                     + cvData.NEntries() + " entries";
         } else {
             ValidationMethod = String.format("%d-fold cross-validation using %d entries",
                     folds, cvData.NEntries());
         }
-        
+
         return internalTest;
     }
-    
+
     /**
-     * Run a cross-validation test where the dataset is randomly partitioned into 
-     * a training and test set. 
-     * 
+     * Run a cross-validation test where the dataset is randomly partitioned into
+     * a training and test set.
+     *
      * <p>For data with a discrete class, we ensure that the distribution of classes
      * in the train and test set are the same.
-     * 
+     *
      * @param testFraction Fraction entries in the test sets
      * @param nRepeats Number of times test is repeated
      * @param data Dataset used for cross-validation
@@ -269,43 +277,43 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         if (testFraction <= 0 || testFraction >= 1) {
             throw new IllegalArgumentException("Fraction must be between 0 and 1");
         }
-        
+
         // Get the random seed for each test
         Random random = new Random(seed);
         final List<Long> randomSeeds = new ArrayList<>(nRepeats);
         for (int i=0; i<nRepeats; i++) {
             randomSeeds.add(random.nextLong());
         }
-        
+
         // Create an empty dataset holding model test results
         Dataset testResults = data.emptyClone();
-        
+
         // Set NThreads to 1 so no subthreads spawn threads
         int originalNThreads = Magpie.NThreads;
         Magpie.NThreads = 1;
-        
+
         // Split random seeds into partitions for each thread
         List<List<Long>> threadPartitions = UtilityOperations.
                 partitionList(randomSeeds, originalNThreads);
-        
-        // Prepare the executable service 
+
+        // Prepare the executable service
         ExecutorService service = Executors.newFixedThreadPool(originalNThreads);
         List<Future<List<Dataset>>> futures = new LinkedList<>();
-        
+
         // Make threads to run the test
         final double finalTestFraction = testFraction;
         final Dataset finalDataset = data;
         final BaseModel finalModel = this;
         for (int i=0; i<originalNThreads; i++) {
             final List<Long> mySeeds = threadPartitions.get(i);
-            
+
             Callable<List<Dataset>> to_run = new Callable<List<Dataset>>() {
 
                 @Override
                 public List<Dataset> call() throws Exception {
                     // Make a copy of the model
                     BaseModel localModel = finalModel.clone();
-                    
+
                     // Get a repository for storing the test results
                     List<Dataset> myResults = new ArrayList<>(mySeeds.size());
 
@@ -314,28 +322,28 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                         Dataset trainSet = finalDataset.clone();
 
                         // Split off a test set
-                        Dataset testSet = trainSet.getRandomSplit(finalTestFraction, 
+                        Dataset testSet = trainSet.getRandomSplit(finalTestFraction,
                                 mySeed, true);
 
                         // Train model on trainSet, run on testSet
                         localModel.train(trainSet);
                         localModel.run(testSet);
-                        
+
                         // Store test set in results
                         myResults.add(testSet);
                     }
-                    
+
                     // Clear up local model
                     localModel.done();
 
                     return myResults;
                 }
             };
-            
+
             // Submit it
             futures.add(service.submit(to_run));
         }
-        
+
         // Collect the test results
         service.shutdown();
         Iterator<Future<List<Dataset>>> resultIter = futures.iterator();
@@ -347,23 +355,23 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                 throw new RuntimeException(e);
             }
         }
-                
+
         // Compute the statistics
         ValidationStats.evaluate(testResults);
         validated = true;
-        
+
         // Set the "validation method"
         ValidationMethod = String.format("Cross-validation with a %.1f%%/%.1f%% split"
                 + " between the test and train set, respectively. Test was repeated %d times"
                 + " using %d entries.",
                 100 * testFraction, 100 * (1 - testFraction), nRepeats, data.NEntries());
-        
+
         // Reset the thread count
         Magpie.NThreads = originalNThreads;
-        
+
         return testResults;
     }
-    
+
     /** Use external testing data to validate a model (should not contain any data
      * used to train the model)
      * @param testData External test dataset
@@ -371,10 +379,10 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
     public void externallyValidate(Dataset testData) {
         run(testData); ValidationStats.evaluate(testData);
         validated = true;
-        ValidationMethod = "External validation using " + testData.NEntries() 
+        ValidationMethod = "External validation using " + testData.NEntries()
                 + " entries";
     }
-
+    
     /**
      * Get a description of how this model was validated
      * @return Validation technique if model has been validated. "Unvalidated" otherwise.
@@ -382,9 +390,9 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
     public String getValidationMethod() {
         return validated ? ValidationMethod : "Unvalidated";
     }
-    
+
     /**
-     * Train a model on a specified training set and then evaluate performance 
+     * Train a model on a specified training set and then evaluate performance
      *  on the training set. Results from running model on training set will be
      *  stored as the predicted class for entries in TrainingData.
      * @param TrainingData Dataset used for training
@@ -392,9 +400,9 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
     public void train(Dataset TrainingData) {
         train(TrainingData, true);
     }
-    
-    /** 
-     * Train a model on a specified training set and then evaluate performance 
+
+    /**
+     * Train a model on a specified training set and then evaluate performance
      *  on the training set, if desired
      * @param data Dataset to use for training
      * @param recordStats Whether to record training statistics
@@ -403,12 +411,12 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         // Store information about this model
         TrainTime = new Date();
         AttributeNames = data.getAttributeNames();
-        
+
         // Gather only the entries that have measured classes
 		Dataset trainingData = data.getTrainingExamples();
         if (trainingData.NEntries() == 0)
             throw new RuntimeException("Data does not contain any training entries");
-        
+
         // Filter dataset
         List<BaseEntry> beforeFilter = null;
         if (Filter != null) {
@@ -416,13 +424,13 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
             Filter.train(trainingData);
             Filter.filter(trainingData);
         }
-        
+
         // Perform normalization, if desired
         if (Normalizer != null) {
             Normalizer.train(data);
             Normalizer.normalize(trainingData);
         }
-        
+
         // Perform attribute selection, if desired
         List<double[]> attributes = new ArrayList<>(trainingData.NEntries());
         String[] attributeNames = null;
@@ -432,21 +440,21 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                 attributes.add(entry.getAttributes());
             }
             attributeNames = data.getAttributeNames();
-            // Run the 
+            // Run the
             AttributeSelector.train(trainingData);
             AttributeSelector.run(trainingData);
         }
-        
+
         // Train the model
         if (this instanceof AbstractRegressionModel) {
-            // For regression models only: Perform robust training. 
+            // For regression models only: Perform robust training.
             AbstractRegressionModel Ptr = (AbstractRegressionModel) this;
             Ptr.robustTraining(trainingData);
         } else {
             train_protected(trainingData);
         }
         trained=true;
-        
+
         // Restore attributes
         if (AttributeSelector != null) {
             trainingData.setAttributeNames(Arrays.asList(attributeNames));
@@ -454,18 +462,18 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                 trainingData.getEntry(i).setAttributes(attributes.get(i));
             }
         }
-        
+
         // De-normalize data
         if (Normalizer != null) {
             Normalizer.restore(trainingData);
         }
-        
+
         // Return filtered entries
         if (Filter != null) {
             trainingData.clearData();
             trainingData.addEntries(beforeFilter);
         }
-        
+
         if (recordStats) {
             run(trainingData);
             TrainingStats.evaluate(trainingData);
@@ -475,36 +483,36 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
     /**
      * Run a model on provided data. Results will be stored as the predicted
      *  class variable.
-	 * 
-     * @param runData Dataset to evaluate. 
+     *
+     * @param runData Dataset to evaluate.
      */
     public void run(Dataset runData) {
         // Check that the model has been trained
         if (!isTrained())
             throw new RuntimeException("Model not yet trained");
-        
+
         // Check that the attributes are the same
         if (! Arrays.equals(AttributeNames, runData.getAttributeNames())) {
             throw new RuntimeException("Attribute names are different.");
         }
-        
+
         // Check if attributes have been computed
-        if ((runData.NEntries() > 0) 
+        if ((runData.NEntries() > 0)
                 && runData.NAttributes() != runData.getEntry(0).NAttributes()) {
             throw new RuntimeException("Attributes have not yet been generated.");
         }
-        
+
         // Test if run will be parallel
         if (Magpie.NThreads > 1 && runData.NEntries() > Magpie.NThreads) {
             // Original thread count
             int originalNThreads = Magpie.NThreads;
-            
+
             // Make sure any children of this model don't launch competing threads
-            Magpie.NThreads = 1; 
-            
+            Magpie.NThreads = 1;
+
             // Split data for threads
             Dataset[] threadData = runData.splitForThreading(originalNThreads);
-            
+
             // Launch threads
             ExecutorService service = Executors.newFixedThreadPool(originalNThreads);
             List<Future> futures = new ArrayList<>(originalNThreads);
@@ -520,8 +528,8 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                 };
                 futures.add(service.submit(thread));
             }
-            
-            // Check that each thread finished 
+
+            // Check that each thread finished
             service.shutdown();
             for (Future future : futures) {
                 try {
@@ -530,7 +538,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                     throw new RuntimeException("Thread failed due to: " + e.getMessage());
                 }
             }
-            
+
             // Restore parallelism
             Magpie.NThreads = originalNThreads;
         } else {
@@ -539,21 +547,21 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                 Normalizer.normalize(runData);
             }
 
-            // Perform any attribute filtering 
+            // Perform any attribute filtering
             Dataset data = runData;
             if (AttributeSelector != null) {
                 data = runData.clone();
                 AttributeSelector.run(data);
             }
-            
-            // Run it serially 
+
+            // Run it serially
             run_protected(data);
-            
+
             // Copy results to original array, if attribute selection was used
             if (AttributeSelector != null) {
                 if (data.NClasses() == 1)
                     runData.setPredictedClasses(data.getPredictedClassArray());
-                else 
+                else
                     runData.setClassProbabilities(data.getClassProbabilityArray());
             }
 
@@ -567,17 +575,8 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
     /** Save the state of this object using serialization
      * @param filename Filename for output
      */
-    public void saveState(String filename) {
+    public void saveState(String filename) throws Exception {
         UtilityOperations.saveState(this, filename);
-    }
-    
-    /** Read the state from file using serialization
-     * @param filename Filename for input
-     * @return Model stored in that file
-     * @throws java.lang.Exception 
-     */
-    public static BaseModel loadState(String filename) throws Exception {
-        return (BaseModel) UtilityOperations.loadState(filename);
     }
     
     @Override 

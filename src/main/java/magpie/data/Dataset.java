@@ -26,6 +26,7 @@ import weka.core.converters.ArffLoader;
 import javax.naming.OperationNotSupportedException;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -1975,16 +1976,18 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     /**
      * Save the state of this object using serialization
      * @param filename Path to output file
+     * @throws IOException
      */
-    public void saveState(String filename) {
+    public void saveState(String filename) throws IOException {
         UtilityOperations.saveState(this, filename);
     }
     
     /**
-     * Save a template of this dataset to disk using 
+     * Save a template of this dataset to disk using
+     * @throws IOException
      * @param filename Path to output file
      */
-    public void saveTemplate(String filename) {
+    public void saveTemplate(String filename) throws IOException {
         UtilityOperations.saveState(createTemplate(), filename);
     }
 
