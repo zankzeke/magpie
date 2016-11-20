@@ -57,6 +57,7 @@ public class MetallurgicalHeuristicRegressionTest extends BaseModelTest {
         double Etern = 0.375 * Eac + 0.375 * Eab + 0.25 * Ebc;
                
         // Compute the formation energy
+        testData.generateAttributes();
         m.run(testData);
         
         // Check it
