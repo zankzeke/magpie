@@ -68,7 +68,7 @@ public class ModelOperator {
         return new StreamingOutput() {
             @Override
             public void write(OutputStream output) throws IOException, WebApplicationException {
-                UtilityOperations.saveState(Model.Model, output);
+                Model.writeModel(output);
             }
         };
     }
@@ -84,7 +84,7 @@ public class ModelOperator {
         return new StreamingOutput() {
             @Override
             public void write(OutputStream output) throws IOException, WebApplicationException {
-                UtilityOperations.saveState(Model.Dataset, output);
+                Model.writeDataset(output);
             }
         };
     }
@@ -127,7 +127,7 @@ public class ModelOperator {
         }
 
         // Read entries into the dataset
-        final Dataset data = Model.Dataset.emptyClone();
+        final Dataset data = Model.getDatasetCopy();
         for (String entry : entryNames) {
             try {
                 data.addEntry(entry);
@@ -150,7 +150,6 @@ public class ModelOperator {
                     throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
                             .entity("attribute generation failed: " + e.getMessage()).build());
                 }
-                Model.Model.run(data);
             }
         };
         Future future = ServerLauncher.ThreadPool.submit(thread);

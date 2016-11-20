@@ -3,7 +3,12 @@ package magpie.user.server;
 import magpie.data.Dataset;
 import magpie.models.BaseModel;
 import magpie.models.classification.AbstractClassifier;
+import magpie.utility.UtilityOperations;
 import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Holds information about a model.
@@ -11,9 +16,9 @@ import org.json.JSONObject;
  */
 public class ModelPackage {
     /** Dataset used to generate attributes */
-    final public Dataset Dataset;
+    final protected Dataset Dataset;
     /** Model to be evaluated */
-    final public BaseModel Model;
+    final protected BaseModel Model;
     /** Name of property being modeled. HTML format suggested */
     public String Property = "Unspecified";
     /** Units for property */
@@ -28,6 +33,18 @@ public class ModelPackage {
     public String Description = "";
     /** Long form description of model */
     public String Notes;
+    /**
+     * How many times this model has been run
+     */
+    protected AtomicLong NumberRuns = new AtomicLong(0);
+    /**
+     * Number of entries evaluated
+     */
+    protected AtomicLong NumberEvaluated = new AtomicLong(0);
+    /**
+     * How long this model has been run for, in milliseconds
+     */
+    protected AtomicLong RunTime = new AtomicLong(0);
 
     /**
      * Initialize model package
@@ -35,8 +52,52 @@ public class ModelPackage {
      * @param model Model to be evaluated
      */
     public ModelPackage(Dataset data, BaseModel model) {
-        this.Dataset = data;
-        this.Model = model;
+        this.Dataset = data.createTemplate();
+        this.Model = model.clone();
+    }
+
+    /**
+     * Run the model stored in this package.
+     * <p>
+     * <p>Synchronized because some ML algorithms (e.g., ANNs in Weka) do not handle concurrent execution</p>
+     *
+     * @param data Dataset to be run
+     */
+    public synchronized void runModel(Dataset data) {
+        long startTime = System.currentTimeMillis();
+        Model.run(data);
+        RunTime.addAndGet(System.currentTimeMillis() - startTime);
+        NumberRuns.incrementAndGet();
+        NumberEvaluated.addAndGet(data.NEntries());
+    }
+
+    /**
+     * Get a copy of the dataset
+     *
+     * @return Clone of dataset
+     */
+    public Dataset getDatasetCopy() {
+        return Dataset.emptyClone();
+    }
+
+    /**
+     * Write the dataset out via serialization
+     *
+     * @param output Output stream
+     * @throws IOException
+     */
+    public void writeDataset(OutputStream output) throws IOException {
+        UtilityOperations.saveState(Dataset, output);
+    }
+
+    /**
+     * Write the model out via serialization
+     *
+     * @param output Output stream
+     * @throws IOException
+     */
+    public void writeModel(OutputStream output) throws IOException {
+        UtilityOperations.saveState(Model, output);
     }
 
     public JSONObject toJSON() {
@@ -67,6 +128,12 @@ public class ModelPackage {
             stats.getJSONObject("validation").put("method", Model.getValidationMethod());
         }
         output.put("modelStats", stats);
+
+        // Output usage information
+        output.put("numberTimesRun", NumberRuns);
+        output.put("numberEntriesEvaluated", NumberEvaluated);
+        output.put("totalRunTime", UtilityOperations.millisecondsToString(RunTime.get()));
+        output.put("totalRunTimeMilliseconds", RunTime);
 
         return output;
     }

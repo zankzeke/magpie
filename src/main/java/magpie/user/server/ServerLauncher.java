@@ -82,6 +82,10 @@ public class ServerLauncher {
      * Executor used to prevent too many complex calculations at once.
      */
     public static ExecutorService ThreadPool;
+    /**
+     * Number of allowed threads
+     */
+    public static int ThreadCount;
 
     
     /**
@@ -186,6 +190,7 @@ public class ServerLauncher {
 
         // Create the thread pool for running models, etc.
         ThreadPool = Executors.newFixedThreadPool(Magpie.NThreads);
+        ThreadCount = Magpie.NThreads;
         Magpie.NThreads = 1; // Prevent any other parallel operations
 
         // Launch it

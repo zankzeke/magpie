@@ -8,6 +8,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This is only a class full of useful static methods. 
@@ -186,5 +187,24 @@ public class UtilityOperations {
         }
 
         return output;
+    }
+
+    /**
+     * Print a time, stored in milliseconds, into a human-readable string.
+     *
+     * @param time Time in milliseconds
+     * @return Time as a human readable string
+     */
+    public static String millisecondsToString(long time) {
+        return String.format("%d days, %02d hours, %02d minutes, %02d.%03d seconds",
+                TimeUnit.MILLISECONDS.toDays(time),
+                TimeUnit.MILLISECONDS.toHours(time) - 24 * TimeUnit.MILLISECONDS.toDays(time),
+                TimeUnit.MILLISECONDS.toMinutes(time) - 60 * TimeUnit.MILLISECONDS.toHours(time)
+                        - 24 * TimeUnit.MILLISECONDS.toDays(time),
+                TimeUnit.MILLISECONDS.toSeconds(time) - 60 * TimeUnit.MILLISECONDS.toMinutes(time)
+                        - 60 * TimeUnit.MILLISECONDS.toHours(time) - 24 * TimeUnit.MILLISECONDS.toDays(time),
+                time - 1000 * TimeUnit.MILLISECONDS.toSeconds(time) - 60 * TimeUnit.MILLISECONDS.toMinutes(time)
+                        - 60 * TimeUnit.MILLISECONDS.toHours(time) - 24 * TimeUnit.MILLISECONDS.toDays(time)
+        );
     }
 }
