@@ -187,8 +187,32 @@ public class ServerLauncherTest {
         assertTrue(output.has("attributes"));
         assertTrue(Arrays.asList(ServerLauncher.Models.get("delta_e").Dataset.getAttributeNames()).equals(
                 output.getJSONArray("attributes").toList()));
-        assertEquals("NaCl", output.getJSONArray("entries").getJSONObject(0).getString("name"));
+        assertEquals("NaCl", output.getJSONArray("data").getJSONObject(0).getString("name"));
         assertEquals(ServerLauncher.Models.get("delta_e").Dataset.NAttributes(),
-                output.getJSONArray("entries").getJSONObject(0).getJSONArray("attributes").length());
+                output.getJSONArray("data").getJSONObject(0).getJSONArray("attributes").length());
+    }
+
+    @Test
+    public void testRunClassifier() throws Exception {
+        // Get the info of an existing model
+        Form dataEntryForm = new Form("entries",
+                new JSONObject().put("data", new String[]{"NaCl", "Al2O3"}).toString());
+        Response response = Target.path("model/delta_e/run").request().post(Entity.form(dataEntryForm));
+        assertEquals(200, response.getStatus());
+
+        // Test the results
+        JSONObject output = new JSONObject(response.readEntity(String.class));
+        System.out.println(output.toString(2));
+        assertTrue(output.has("units"));
+        assertEquals(output.getString("units"), ServerLauncher.Models.get("delta_e").getUnits());
+        assertEquals("NaCl", output.getJSONArray("data").getJSONObject(0).getString("name"));
+        assertTrue(output.getJSONArray("data").getJSONObject(0).has("predictedValue"));
+
+        // Get the model status, to see if it tracked the model evaluation time
+        response = Target.path("model/delta_e/info").request().get();
+        JSONObject info = new JSONObject(response.readEntity(String.class));
+        assertEquals("Just a formation enthalpy model", info.get("description"));
+        assertEquals(1, info.get("numberTimesRun"));
+        System.out.println(info.toString(2));
     }
 }

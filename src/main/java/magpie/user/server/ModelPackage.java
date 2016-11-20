@@ -4,6 +4,7 @@ import magpie.data.Dataset;
 import magpie.models.BaseModel;
 import magpie.models.classification.AbstractClassifier;
 import magpie.utility.UtilityOperations;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -21,8 +22,6 @@ public class ModelPackage {
     final protected BaseModel Model;
     /** Name of property being modeled. HTML format suggested */
     public String Property = "Unspecified";
-    /** Units for property */
-    public String Units  = "Unspecified";
     /** Training set description */
     public String TrainingSet  = "Unspecified";
     /** Author of this model */
@@ -34,16 +33,16 @@ public class ModelPackage {
     /** Long form description of model */
     public String Notes;
     /**
+     * Units for property
+     */
+    protected String Units = "Unspecified";
+    /**
      * How many times this model has been run
      */
     protected AtomicLong NumberRuns = new AtomicLong(0);
-    /**
-     * Number of entries evaluated
-     */
+    /** Number of entries evaluated */
     protected AtomicLong NumberEvaluated = new AtomicLong(0);
-    /**
-     * How long this model has been run for, in milliseconds
-     */
+    /** How long this model has been run for, in milliseconds */
     protected AtomicLong RunTime = new AtomicLong(0);
 
     /**
@@ -57,14 +56,49 @@ public class ModelPackage {
     }
 
     /**
+     * Get whether model is a classification model
+     *
+     * @return
+     */
+    public boolean isClassifer() {
+        return Model instanceof AbstractClassifier;
+    }
+
+    /**
+     * Get the units for the model (regression), or the possible classes (classification)
+     *
+     * @return Model units or classes
+     */
+    public String getUnits() {
+        return isClassifer() ? StringUtils.join(getPossibleClasses(), ", ") : Units;
+    }
+
+    public void setUnits(String units) {
+        Units = units;
+    }
+
+    /**
+     * Get the names of classes for a classification model
+     *
+     * @return Possible classes
+     */
+    public String[] getPossibleClasses() {
+        if (!isClassifer()) {
+            throw new RuntimeException("Model is not a classifier");
+        }
+        return ((AbstractClassifier) Model).getClassNames();
+    }
+
+    /**
      * Run the model stored in this package.
      * <p>
      * <p>Synchronized because some ML algorithms (e.g., ANNs in Weka) do not handle concurrent execution</p>
      *
-     * @param data Dataset to be run
+     * @param data Dataset to be run, attributes will also be computed
      */
-    public synchronized void runModel(Dataset data) {
+    public synchronized void runModel(Dataset data) throws Exception {
         long startTime = System.currentTimeMillis();
+        data.generateAttributes();
         Model.run(data);
         RunTime.addAndGet(System.currentTimeMillis() - startTime);
         NumberRuns.incrementAndGet();
@@ -100,11 +134,16 @@ public class ModelPackage {
         UtilityOperations.saveState(Model, output);
     }
 
+    /**
+     * Render the model information as a JSON file
+     * @return JSON object holding various data about the model
+     */
     public JSONObject toJSON() {
         JSONObject output = new JSONObject();
 
         // Add in the data
         output.put("property", Property);
+        output.put("modelType", Model instanceof AbstractClassifier ? "classification" : "regression");
         output.put("units", Model instanceof AbstractClassifier ?
                 ((AbstractClassifier) Model).getClassNames() :
                 Property);

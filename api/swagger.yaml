@@ -103,3 +103,28 @@ paths:
           description: Successful response
         405:
           description: Some problem in running the attribute generation
+
+  /model/{name}/run:
+    post:
+      description: |
+        Generate the attributes and run this model
+      parameters:
+        - name: name
+          in: path
+          description: Name of model
+          required: true
+          type: string
+        - name: entries
+          in: formData
+          description: |
+            Entries to be processed as JSON file. Only key in JSON file is
+            "data," which contains the entries to be run written as strings
+          type: string
+          required: true
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Successful response
+        405:
+          description: Some problem in running the attribute generation

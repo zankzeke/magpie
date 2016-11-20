@@ -148,7 +148,7 @@ public class ServerLauncher {
             // Read in the other information
             modelPackage.Description = modelData.get("description").toString();
             modelPackage.Property = modelData.get("property").toString();
-            modelPackage.Units = modelData.containsKey("units") ? modelData.get("units").toString() : "None";
+            modelPackage.setUnits(modelData.containsKey("units") ? modelData.get("units").toString() : "None");
             modelPackage.TrainingSet = modelData.get("training").toString();
             modelPackage.Author = modelData.get("author").toString();
             modelPackage.Citation = modelData.get("citation").toString();
