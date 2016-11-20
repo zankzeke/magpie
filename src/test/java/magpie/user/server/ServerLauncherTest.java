@@ -5,6 +5,7 @@ import magpie.data.utilities.modifiers.NonZeroClassModifier;
 import magpie.models.BaseModel;
 import magpie.models.classification.WekaClassifier;
 import magpie.models.regression.GuessMeanRegression;
+import magpie.user.server.operations.ServerInformation;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
@@ -127,8 +128,16 @@ public class ServerLauncherTest {
 
     @Test
     public void testGetVersion() throws Exception {
-        String response = Target.path("version").request().get(String.class);
+        String response = Target.path("/server/version").request().get(String.class);
         assertEquals("0.0.1", response);
+    }
+
+    @Test
+    public void testServerStatus() throws Exception {
+        String response = Target.path("server/status").request().get(String.class);
+        JSONObject status = new JSONObject(response);
+        assertEquals(new ServerInformation().getVersion(), status.get("apiVersion"));
+        System.out.println(status.toString(2));
     }
 
     @Test

@@ -11,6 +11,7 @@ import org.yaml.snakeyaml.Yaml;
 
 import java.io.FileInputStream;
 import java.net.URI;
+import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -70,6 +71,10 @@ public class ServerLauncher {
      * Server currently being used
      */
     public static HttpServer Server = null;
+    /**
+     * Time server was launched
+     */
+    public static Date StartDate;
 
     
     /**
@@ -174,5 +179,6 @@ public class ServerLauncher {
 
         // Launch it
         Server.start();
+        StartDate = new Date();
     }
 }

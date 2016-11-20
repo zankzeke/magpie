@@ -1,0 +1,43 @@
+swagger: '2.0'
+
+info:
+  version: "0.0.1"
+  title: Magpie REST API
+  description: The REST API used to interact with models hosted by a Magpie server
+
+paths:
+  /server/version:
+    get:
+      description: Get the version of the REST API
+      responses:
+        200:
+          description: Successful response
+
+  /server/status:
+    get:
+      description: |
+       Information about the server. Includes the versions of the software and API, available memory, and processor count
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Successful response
+
+  /model/{name}/info:
+    get:
+      description: |
+        Gets information about a model stored in the server
+      parameters:
+        - name: name
+          in: path
+          description: Name of model
+          required: true
+          type: number
+          format: int
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Successful response
+        404:
+          description: No model by that name found

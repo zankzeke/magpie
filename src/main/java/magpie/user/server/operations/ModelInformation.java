@@ -1,4 +1,4 @@
-package magpie.user.server.operations.models;
+package magpie.user.server.operations;
 
 import magpie.user.server.ModelPackage;
 import magpie.user.server.ServerLauncher;
@@ -11,11 +11,11 @@ import javax.ws.rs.core.Response;
  *
  * @author Logan Ward
  */
-@Path("/model/{name}/info")
+@Path("model/")
 public class ModelInformation {
-
     @GET
     @Produces("application/json")
+    @Path("{name}/info")
     public String getModelInfo(@PathParam("name") String modelName) {
         if (ServerLauncher.Models.containsKey(modelName)) {
             ModelPackage modelPackage = ServerLauncher.Models.get(modelName);
