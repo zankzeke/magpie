@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
  * @author Logan Ward
  */
 @Path("server")
-public class ServerInformation {
+public class ServerInformationGetter {
 
     /**
      * @return REST API version

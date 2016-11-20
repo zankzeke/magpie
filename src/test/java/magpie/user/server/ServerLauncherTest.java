@@ -6,7 +6,7 @@ import magpie.data.utilities.modifiers.NonZeroClassModifier;
 import magpie.models.BaseModel;
 import magpie.models.classification.WekaClassifier;
 import magpie.models.regression.GuessMeanRegression;
-import magpie.user.server.operations.ServerInformation;
+import magpie.user.server.operations.ServerInformationGetter;
 import magpie.utility.UtilityOperations;
 import org.json.JSONObject;
 import org.junit.After;
@@ -17,7 +17,9 @@ import org.junit.rules.Timeout;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Form;
 import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -140,7 +142,7 @@ public class ServerLauncherTest {
     public void testServerStatus() throws Exception {
         String response = Target.path("server/status").request().get(String.class);
         JSONObject status = new JSONObject(response);
-        assertEquals(new ServerInformation().getVersion(), status.get("apiVersion"));
+        assertEquals(new ServerInformationGetter().getVersion(), status.get("apiVersion"));
         System.out.println(status.toString(2));
     }
 
@@ -168,5 +170,14 @@ public class ServerLauncherTest {
         response = Target.path("model/delta_e/dataset").request().get(byte[].class);
         Dataset data = (Dataset) UtilityOperations.loadState(new ByteArrayInputStream(response));
         assertEquals(ServerLauncher.Models.get("delta_e").Dataset.NAttributes(), data.NAttributes());
+    }
+
+    @Test
+    public void testGenerateAttributes() throws Exception {
+        // Get the info of an existing model
+        Form dataEntryForm = new Form("entries",
+                new JSONObject().put("data", new String[]{"NaCl", "Al2O3"}).toString());
+        Response response = Target.path("model/delta_e/attributes").request().post(Entity.form(dataEntryForm));
+        assertEquals(200, response.getStatus());
     }
 }

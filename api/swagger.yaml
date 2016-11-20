@@ -61,17 +61,16 @@ paths:
         404:
           description: No model by that name found
 
-/model/{name}/dataset:
+  /model/{name}/dataset:
     get:
       description: |
-        Get the dataset used to generate representations for this model, serailized
+        Get the dataset used to generate inputs for this model, serialized
       parameters:
         - name: name
           in: path
           description: Name of model
           required: true
-          type: number
-          format: int
+          type: string
       produces:
         - application/octet-stream
       responses:
@@ -79,3 +78,28 @@ paths:
           description: Successful response
         404:
           description: No model by that name found
+
+  /model/{name}/attributes:
+    post:
+      description: |
+        Generate the attributes which serve as input into this model
+      parameters:
+        - name: name
+          in: path
+          description: Name of model
+          required: true
+          type: string
+        - name: entries
+          in: formData
+          description: |
+            Entries to be processed as JSON file. Only key in JSON file is
+            "data," which contains the entries to be run written as strings
+          type: string
+          required: true
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Successful response
+        405:
+          description: Some problem in running the attribute generation
