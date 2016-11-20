@@ -1,6 +1,7 @@
 
 package magpie.user.server;
 
+import magpie.Magpie;
 import magpie.data.Dataset;
 import magpie.models.BaseModel;
 import magpie.utility.WekaUtility;
@@ -14,6 +15,8 @@ import java.net.URI;
 import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Main class for launching a Magpie server. 
@@ -75,6 +78,10 @@ public class ServerLauncher {
      * Time server was launched
      */
     public static Date StartDate;
+    /**
+     * Executor used to prevent too many complex calculations at once.
+     */
+    public static ExecutorService ThreadPool;
 
     
     /**
@@ -176,6 +183,10 @@ public class ServerLauncher {
                 Server.shutdownNow();
             }
         }));
+
+        // Create the thread pool for running models, etc.
+        ThreadPool = Executors.newFixedThreadPool(Magpie.NThreads);
+        Magpie.NThreads = 1; // Prevent any other parallel operations
 
         // Launch it
         Server.start();

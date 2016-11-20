@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Future;
 
 /**
  * Queries for getting the information about and running models.
@@ -139,14 +140,27 @@ public class ModelOperator {
             }
         }
 
-        // Run the model
+        // Submit the model to be run
+        Runnable thread = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    data.generateAttributes();
+                } catch (Exception e) {
+                    throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
+                            .entity("attribute generation failed: " + e.getMessage()).build());
+                }
+                Model.Model.run(data);
+            }
+        };
+        Future future = ServerLauncher.ThreadPool.submit(thread);
+
+        // Wait until thread finishes
         try {
-            data.generateAttributes();
+            future.get();
         } catch (Exception e) {
-            throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
-                    .entity("attribute generation failed: " + e.getMessage()).build());
+            throw new RuntimeException(e);
         }
-        Model.Model.run(data);
 
         // Assemble the output
         JSONObject output = new JSONObject();
