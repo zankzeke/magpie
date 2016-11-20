@@ -1,22 +1,26 @@
 package magpie.user.server;
 
-import java.io.*;
-import java.util.concurrent.TimeUnit;
-
 import magpie.data.materials.CompositionDataset;
 import magpie.data.utilities.modifiers.NonZeroClassModifier;
 import magpie.models.BaseModel;
 import magpie.models.classification.WekaClassifier;
 import magpie.models.regression.GuessMeanRegression;
 import org.json.JSONObject;
-import org.junit.*;
-
-import static org.junit.Assert.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.Timeout;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.PrintWriter;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.*;
 
 /**
  * Run basic tests on Magpie Server
@@ -129,9 +133,14 @@ public class ServerLauncherTest {
 
     @Test
     public void testModelInformation() throws Exception {
+        // Get the info of an existing model
         String response = Target.path("model/delta_e/info").request().get(String.class);
         JSONObject info = new JSONObject(response);
         assertEquals("Just a formation enthalpy model", info.get("description"));
         System.out.println(info.toString(2));
+
+        // Test the 404
+        Response response2 = Target.path("model/nope/info").request().get();
+        assertEquals(404, response2.getStatus());
     }
 }
