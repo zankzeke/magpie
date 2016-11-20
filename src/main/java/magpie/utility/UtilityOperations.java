@@ -1,11 +1,11 @@
 package magpie.utility;
 
 import magpie.Magpie;
+import org.json.JSONArray;
 
 import java.io.*;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -166,22 +166,25 @@ public class UtilityOperations {
     }
 
     /**
-     * Randomly select number from a list of a certain length
+     * Convert an array of doubles into a JSON array.
      *
-     * @param Length   Numbers will range from [0,Length)
-     * @param ToSelect Number to select
-     * @return Array of length ToSelect that is randomly populated (no duplicates)
+     * <p>Changes in NaN or inf values into strings (JSON doesn't support these as numbers</p>
+     * @param array Array to be converted
+     * @return Array as JSON
      */
-    public int[] getRandomList(int Length, int ToSelect) {
-        // Shuffle an ascending list
-        ArrayList<Integer> total = new ArrayList<>(Length);
-        for (int i = 0; i < Length; i++) total.add(i);
-        Collections.shuffle(total);
+    public static JSONArray toJSONArray(double[] array) {
+        JSONArray output = new JSONArray();
 
-        // Retrive a shortened segment
-        int[] output = new int[ToSelect];
-        for (int i = 0; i < ToSelect; i++)
-            output[i] = total.get(i);
+        for (double x : array) {
+            if (Double.isNaN(x)) {
+                output.put("NaN");
+            } else if (Double.isInfinite(x)) {
+                output.put(x < 0 ? "-inf" : "inf");
+            } else {
+                output.put(x);
+            }
+        }
+
         return output;
     }
 }

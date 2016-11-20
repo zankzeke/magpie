@@ -1,10 +1,12 @@
 package magpie.utility;
 
+import org.json.JSONArray;
+import org.junit.Test;
+
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import org.junit.Test;
+
 import static org.junit.Assert.*;
 
 /**
@@ -50,6 +52,19 @@ public class UtilityOperationsTest {
         assertEquals(3, output.size());
         assertEquals(100, output.get(0).size() 
                 + output.get(1).size() + output.get(2).size());
+    }
+
+    @Test
+    public void toJSONTest() {
+        double[] testArray = new double[]{0, 1.5, Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY};
+
+        JSONArray output = UtilityOperations.toJSONArray(testArray);
+
+        assertEquals(output.getDouble(0), 0, 1e-6);
+        assertEquals(output.getDouble(1), 1.5, 1e-6);
+        assertEquals("NaN", output.getString(2));
+        assertEquals("inf", output.getString(3));
+        assertEquals("-inf", output.getString(4));
     }
     
 }

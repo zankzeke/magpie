@@ -24,6 +24,7 @@ import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
@@ -179,5 +180,15 @@ public class ServerLauncherTest {
                 new JSONObject().put("data", new String[]{"NaCl", "Al2O3"}).toString());
         Response response = Target.path("model/delta_e/attributes").request().post(Entity.form(dataEntryForm));
         assertEquals(200, response.getStatus());
+
+        // Test the results
+        JSONObject output = new JSONObject(response.readEntity(String.class));
+        System.out.println(output.toString(2));
+        assertTrue(output.has("attributes"));
+        assertTrue(Arrays.asList(ServerLauncher.Models.get("delta_e").Dataset.getAttributeNames()).equals(
+                output.getJSONArray("attributes").toList()));
+        assertEquals("NaCl", output.getJSONArray("entries").getJSONObject(0).getString("name"));
+        assertEquals(ServerLauncher.Models.get("delta_e").Dataset.NAttributes(),
+                output.getJSONArray("entries").getJSONObject(0).getJSONArray("attributes").length());
     }
 }
