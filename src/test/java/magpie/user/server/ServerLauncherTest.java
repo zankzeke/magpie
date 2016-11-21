@@ -2,10 +2,12 @@ package magpie.user.server;
 
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
+import magpie.data.materials.CrystalStructureDataset;
 import magpie.data.utilities.modifiers.NonZeroClassModifier;
 import magpie.models.BaseModel;
 import magpie.models.classification.WekaClassifier;
 import magpie.models.regression.GuessMeanRegression;
+import magpie.models.regression.WekaRegression;
 import magpie.user.server.operations.ServerInformationGetter;
 import magpie.utility.UtilityOperations;
 import org.json.JSONObject;
@@ -75,6 +77,21 @@ public class ServerLauncherTest {
         metal.train(template);
         metal.saveState("ms-metal.obj");
         new File("ms-metal.obj").deleteOnExit();
+
+        // Make a crystal structure dataset model
+        CrystalStructureDataset crystalDataset = new CrystalStructureDataset();
+        crystalDataset.importText("datasets/icsd-sample", null);
+        crystalDataset.setTargetProperty("delta_e", true);
+        crystalDataset.generateAttributes();
+
+        WekaRegression crystModel = new WekaRegression("trees.REPTree", null);
+        crystModel.train(crystalDataset, true);
+        crystModel.crossValidate(0.1, 5, crystalDataset, 1);
+
+        crystalDataset.saveState("crystalModel-data.obj");
+        new File("crystalModel-data.obj").deleteOnExit();
+        crystModel.saveState("crystalModel-model.obj");
+        new File("crystalModel-model.obj").deleteOnExit();
         
         // Create fake input file
         PrintWriter fp = new PrintWriter("ms-model.yml");
@@ -110,6 +127,17 @@ public class ServerLauncherTest {
         fp.println("author: Logan Ward");
         fp.println("citation: None");
         fp.println("notes: Simple model that predicts whether an entry is a metal or not?");
+        fp.println("---");
+        fp.println("name: delta_e-crystal");
+        fp.println("modelPath: crystalModel-model.obj");
+        fp.println("datasetPath: crystalModel-data.obj");
+        fp.println("description: Just a formation enthalpy model, but now on crystal structures");
+        fp.println("property: '&Delta;H'");
+        fp.println("units: eV/atom");
+        fp.println("training: Some OQMD calculations");
+        fp.println("author: Logan Ward");
+        fp.println("citation: None");
+        fp.println("notes: Simple model created to demonstrate formation energy prediction");
         fp.close();
         new File("ms-model.yml").deleteOnExit();
     }
@@ -214,5 +242,31 @@ public class ServerLauncherTest {
         assertEquals("Just a formation enthalpy model", info.get("description"));
         assertEquals(1, info.get("numberTimesRun"));
         System.out.println(info.toString(2));
+    }
+
+    @Test
+    public void testModelQuery() throws Exception {
+        // Get all the models
+        Response response = Target.path("models").request().get();
+        assertEquals(200, response.getStatus());
+        JSONObject info = new JSONObject(response.readEntity(String.class));
+        assertEquals(4, info.length());
+
+        // Get only models that are based on a CompositionDataset
+        response = Target.path("models").queryParam("datasetType", "materials.CompositionDataset").request().get();
+        assertEquals(200, response.getStatus());
+        info = new JSONObject(response.readEntity(String.class));
+        assertEquals(3, info.length());
+
+        // Make sure it crashes if I give it a bad class name
+        response = Target.path("models").queryParam("datasetType", "materials.CompDataset").request().get();
+        assertEquals(400, response.getStatus());
+        System.out.println(response.readEntity(String.class));
+
+        // Get only models that, at least, support data that supports CompositionDataset.
+        response = Target.path("models").queryParam("supportsDatasetType", "materials.CompositionDataset").request().get();
+        assertEquals(200, response.getStatus());
+        info = new JSONObject(response.readEntity(String.class));
+        assertEquals(4, info.length());
     }
 }

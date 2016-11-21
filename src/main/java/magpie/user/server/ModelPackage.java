@@ -91,7 +91,7 @@ public class ModelPackage {
 
     /**
      * Run the model stored in this package.
-     * <p>
+     *
      * <p>Synchronized because some ML algorithms (e.g., ANNs in Weka) do not handle concurrent execution</p>
      *
      * @param data Dataset to be run, attributes will also be computed
@@ -132,6 +132,32 @@ public class ModelPackage {
      */
     public void writeModel(OutputStream output) throws IOException {
         UtilityOperations.saveState(Model, output);
+    }
+
+
+    /**
+     * Check whether dataset is a superclass of a certain class.
+     * <p>
+     * <p>You can use this to check whether the model supports data of a certain type. For example, a
+     * {@linkplain magpie.data.materials.CrystalStructureDataset} is a subclass of
+     * {@linkplain magpie.data.materials.CompositionDataset} so entries supported the CrystalStructureDataset are
+     * also valid entires for a CompositionDataset</p>
+     *
+     * @param toCheckAgainst Dataset type to check against
+     * @return Whether this model is compatible with data stored in that object
+     */
+    public boolean modelSupports(Dataset toCheckAgainst) {
+        return toCheckAgainst.getClass().isInstance(Dataset);
+    }
+
+    /**
+     * Check whether the dataset type is the same as a provided type.
+     *
+     * @param toCheckAgainst Dataset type to check against
+     * @return Whether the type of dataset are the same
+     */
+    public boolean datasetMatches(Dataset toCheckAgainst) {
+        return Dataset.getClass().getName().equals(toCheckAgainst.getClass().getName());
     }
 
     /**

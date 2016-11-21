@@ -128,3 +128,29 @@ paths:
           description: Successful response
         405:
           description: Some problem in running the attribute generation
+
+  /models:
+    get:
+      description: |
+        Get information about all models matching a certain query
+      parameters:
+        - name: datasetType
+          in: query
+          description: Dataset used by model must be this type
+          type: string
+          required: false
+        - name: supportedDatasetType
+          in: query
+          description: |
+            Dataset used by model must support data of this type. For example, data
+            that is comptabile with a
+            [CrystalStructureDataset](http://oqmd.org/static/analytics/magpie/javadoc/magpie/data/materials/CrystalStructureDataset.html)
+            (i.e., has infomration about a crystal structure) is also compatible with a
+            [CompositionDataset](http://oqmd.org/static/analytics/magpie/javadoc/magpie/data/materials/CompositionDataset.html)
+          required: false
+          type: string
+      responses:
+        200:
+          description: Succesful response
+        400:
+          description: Some problem with
