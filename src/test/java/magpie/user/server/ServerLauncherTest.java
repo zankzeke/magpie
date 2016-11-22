@@ -10,6 +10,7 @@ import magpie.models.regression.GuessMeanRegression;
 import magpie.models.regression.WekaRegression;
 import magpie.user.server.operations.ServerInformationGetter;
 import magpie.utility.UtilityOperations;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
@@ -205,7 +206,9 @@ public class ServerLauncherTest {
     public void testGenerateAttributes() throws Exception {
         // Get the info of an existing model
         Form dataEntryForm = new Form("entries",
-                new JSONObject().put("data", new String[]{"NaCl", "Al2O3"}).toString());
+                new JSONObject().put("entries",
+                        new JSONArray().put(new JSONObject().put("name", "NaCl"))
+                                .put(new JSONObject().put("name", "Al2O3"))).toString());
         Response response = Target.path("model/delta_e/attributes").request().post(Entity.form(dataEntryForm));
         assertEquals(200, response.getStatus());
 
@@ -215,16 +218,18 @@ public class ServerLauncherTest {
         assertTrue(output.has("attributes"));
         assertTrue(Arrays.asList(ServerLauncher.Models.get("delta_e").Dataset.getAttributeNames()).equals(
                 output.getJSONArray("attributes").toList()));
-        assertEquals("NaCl", output.getJSONArray("data").getJSONObject(0).getString("name"));
+        assertEquals("NaCl", output.getJSONArray("entries").getJSONObject(0).getString("name"));
         assertEquals(ServerLauncher.Models.get("delta_e").Dataset.NAttributes(),
-                output.getJSONArray("data").getJSONObject(0).getJSONArray("attributes").length());
+                output.getJSONArray("entries").getJSONObject(0).getJSONArray("attributes").length());
     }
 
     @Test
     public void testRunClassifier() throws Exception {
         // Get the info of an existing model
         Form dataEntryForm = new Form("entries",
-                new JSONObject().put("data", new String[]{"NaCl", "Al2O3"}).toString());
+                new JSONObject().put("entries",
+                        new JSONArray().put(new JSONObject().put("name", "NaCl"))
+                                .put(new JSONObject().put("name", "Al2O3"))).toString());
         Response response = Target.path("model/delta_e/run").request().post(Entity.form(dataEntryForm));
         assertEquals(200, response.getStatus());
 
@@ -233,7 +238,7 @@ public class ServerLauncherTest {
         System.out.println(output.toString(2));
         assertTrue(output.has("units"));
         assertEquals(output.getString("units"), ServerLauncher.Models.get("delta_e").getUnits());
-        assertEquals("NaCl", output.getJSONArray("data").getJSONObject(0).getString("name"));
+        assertEquals("NaCl", output.getJSONArray("entries").getJSONObject(0).getString("name"));
         assertTrue(output.getJSONArray("data").getJSONObject(0).has("predictedValue"));
 
         // Get the model status, to see if it tracked the model evaluation time

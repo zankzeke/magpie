@@ -95,7 +95,7 @@ public class ModelOperator {
      * @return Dataset as a JSON file with the format:
      * <p>{
      *     'attributes': [list of attribute names],
-     *     'data': [list of entries, their names and attributes]
+     *     'entries': [list of entries, their names and attributes]
      * }
      * </p>
      */
@@ -133,25 +133,7 @@ public class ModelOperator {
         }
 
         // Assemble the output
-        JSONObject output = new JSONObject();
-
-        output.put("attributes", data.getAttributeNames());
-
-        JSONArray entryArray = new JSONArray();
-        for (int e = 0; e < entryNames.size(); e++) {
-            JSONObject entryJSON = new JSONObject();
-            BaseEntry entry = data.getEntry(e);
-
-            // Get the entry data
-            entryJSON.put("name", entryNames.get(e));
-            entryJSON.put("parsedName", entry.toString());
-            entryJSON.put("attributes", UtilityOperations.toJSONArray(entry.getAttributes()));
-
-            // Add it to the list
-            entryArray.put(entryJSON);
-        }
-        output.put("data", entryArray);
-
+        JSONObject output = createDatasetJSON(entryNames, data);
         return output.toString();
     }
 
@@ -162,7 +144,7 @@ public class ModelOperator {
      * <p>{
      * 'possibleClasses': [list of class names], <-- Only if classification model
      * 'units': [units], <-- Only if a regression model
-     * 'data': [list of entries, their names predicted values]
+     * 'entries': [list of entries, their names predicted values]
      * }
      * </p>
      */
@@ -184,6 +166,7 @@ public class ModelOperator {
             public void run() {
                 try {
                     Model.runModel(data);
+                    data.clearAttributes();
                 } catch (Exception e) {
                     throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
                             .entity("attribute generation failed: " + e.getMessage()).build());
@@ -200,14 +183,34 @@ public class ModelOperator {
         }
 
         // Assemble the output
+        JSONObject output = createDatasetJSON(entryNames, data);
+        return output.toString();
+    }
+
+    /**
+     * Turn a dataset into a JSON object. Follows the schema described in the Swagger API
+     *
+     * @param entryNames Names of entries, as strings
+     * @param data       Dataset to be converted
+     * @return Dataset as a JSON object
+     */
+    public JSONObject createDatasetJSON(List<String> entryNames, Dataset data) {
         JSONObject output = new JSONObject();
 
-        //  Put in model details
+        // Put in model details
         String[] classNames = Model.isClassifer() ? Model.getPossibleClasses() : null;
         if (Model.isClassifer()) {
             output.put("possibleClasses", classNames);
+            output.put("modelType", "classification");
         } else {
             output.put("units", Model.getUnits());
+            output.put("modelType", "regression");
+        }
+        output.put("property", Model.Property);
+
+        // Put in the attribute names, if present
+        if (data.NAttributes() > 0) {
+            output.put("attributes", data.getAttributeNames());
         }
 
         JSONArray entryArray = new JSONArray();
@@ -219,27 +222,34 @@ public class ModelOperator {
             entryJSON.put("name", entryNames.get(e));
             entryJSON.put("parsedName", entry.toString());
 
-            // Get the predictions
-            entryJSON.put("predictedValue", entry.getPredictedClass());
-            if (Model.isClassifer()) {
-                // Text name of class
-                entryJSON.put("predictedClass", classNames[(int) entry.getPredictedClass()]);
+            // Add in the attributes, if present
+            if (entry.NAttributes() > 0) {
+                entryJSON.put("attributes", UtilityOperations.toJSONArray(entry.getAttributes()));
+            }
 
-                // Class probabilities
-                JSONObject probs = new JSONObject();
-                double[] predProbs = entry.getClassProbilities();
-                for (int cl = 0; cl < classNames.length; cl++) {
-                    probs.put(classNames[cl], predProbs[cl]);
+            // If predicted values
+            if (entry.hasPrediction()) {
+                // Get the predictions
+                entryJSON.put("predictedValue", entry.getPredictedClass());
+                if (Model.isClassifer()) {
+                    // Text name of class
+                    entryJSON.put("predictedClass", classNames[(int) entry.getPredictedClass()]);
+
+                    // Class probabilities
+                    JSONObject probs = new JSONObject();
+                    double[] predProbs = entry.getClassProbilities();
+                    for (int cl = 0; cl < classNames.length; cl++) {
+                        probs.put(classNames[cl], predProbs[cl]);
+                    }
+                    entryJSON.put("classProbabilities", probs);
                 }
-                entryJSON.put("classProbabilities", probs);
             }
 
             // Add it to the list
             entryArray.put(entryJSON);
         }
-        output.put("data", entryArray);
-
-        return output.toString();
+        output.put("entries", entryArray);
+        return output;
     }
 
     /**
@@ -280,15 +290,24 @@ public class ModelOperator {
         }
 
         // Check format
-        if (!entries.has("data")) {
+        if (!entries.has("entries")) {
             throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
-                    .entity("bad format: entries should contain key 'data'").build());
+                    .entity("bad format: dataset should contain key 'entries'").build());
         }
 
         // Get the user-provided names of entries
-        List<String> entryNames = new ArrayList<>(entries.getJSONArray("data").length());
-        for (Object entry : entries.getJSONArray("data")) {
-            entryNames.add(entry.toString());
+        List<String> entryNames = new ArrayList<>(entries.getJSONArray("entries").length());
+        for (Object entryPtr : entries.getJSONArray("entries")) {
+            if (!(entryPtr instanceof JSONObject)) {
+                throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
+                        .entity("bad format: entries does not contain JSON objects").build());
+            }
+            JSONObject entry = (JSONObject) entryPtr;
+            if (!entry.has("name")) {
+                throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
+                        .entity("bad format: entry should contain key 'name'").build());
+            }
+            entryNames.add(entry.getString("name"));
         }
         return entryNames;
     }
