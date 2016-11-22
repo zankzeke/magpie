@@ -37,6 +37,21 @@ public class ModelOperator {
     private ModelPackage Model;
 
     /**
+     * Prepare an Exception in a form that will get the CORS headers
+     * @param message Exception message
+     * @return Exception with the desired message
+     */
+    public static WebApplicationException prepareException(String message) {
+        return new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
+                .entity(message)
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Headers", "origin, content-type, accept, authorization")
+                .header("Access-Control-Allow-Credentials", "true")
+                .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
+                .build());
+    }
+
+    /**
      * Get the model used for this request
      */
     private void getModel() {
@@ -99,7 +114,7 @@ public class ModelOperator {
      * }
      * </p>
      */
-    @PUT
+    @POST
     @Produces("application/json")
     @Path("attributes")
     public String generateAttributes(@FormParam("entries") String userInput) {
@@ -118,8 +133,7 @@ public class ModelOperator {
                 try {
                     data.generateAttributes();
                 } catch (Exception e) {
-                    throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
-                            .entity("attribute generation failed: " + e.getMessage()).build());
+                    throw prepareException("attribute generation failed: " + e.getMessage());
                 }
             }
         };
@@ -148,7 +162,7 @@ public class ModelOperator {
      * }
      * </p>
      */
-    @PUT
+    @POST
     @Produces("application/json")
     @Path("run")
     public String runModel(@FormParam("entries") String userInput) {
@@ -168,8 +182,7 @@ public class ModelOperator {
                     Model.runModel(data);
                     data.clearAttributes();
                 } catch (Exception e) {
-                    throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
-                            .entity("attribute generation failed: " + e.getMessage()).build());
+                    throw prepareException("attribute generation failed: " + e.getMessage());
                 }
             }
         };
@@ -263,11 +276,7 @@ public class ModelOperator {
             try {
                 data.addEntry(entry);
             } catch (Exception e) {
-                throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
-                        .entity(String.format("entry \"%s\" failed to parse: %s",
-                                entry,
-                                e.getMessage()))
-                        .build());
+                prepareException(String.format("entry \"%s\" failed to parse: %s"));
             }
         }
         return data;
@@ -285,27 +294,23 @@ public class ModelOperator {
         try {
             entries = new JSONObject(userInput);
         } catch (JSONException e) {
-            throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
-                    .entity("input failed to parse as JSON: " + e.getMessage()).build());
+            throw prepareException("input failed to parse as JSON: " + e.getMessage());
         }
 
         // Check format
         if (!entries.has("entries")) {
-            throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
-                    .entity("bad format: dataset should contain key 'entries'").build());
+            throw prepareException("bad format: dataset should contain key 'entries'");
         }
 
         // Get the user-provided names of entries
         List<String> entryNames = new ArrayList<>(entries.getJSONArray("entries").length());
         for (Object entryPtr : entries.getJSONArray("entries")) {
             if (!(entryPtr instanceof JSONObject)) {
-                throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
-                        .entity("bad format: entries does not contain JSON objects").build());
+                throw prepareException("bad format: entries does not contain JSON objects");
             }
             JSONObject entry = (JSONObject) entryPtr;
             if (!entry.has("name")) {
-                throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
-                        .entity("bad format: entry should contain key 'name'").build());
+                throw prepareException("bad format: entry should contain key 'name'");
             }
             entryNames.add(entry.getString("name"));
         }

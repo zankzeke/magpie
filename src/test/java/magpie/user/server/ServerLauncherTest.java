@@ -209,7 +209,7 @@ public class ServerLauncherTest {
                 new JSONObject().put("entries",
                         new JSONArray().put(new JSONObject().put("name", "NaCl"))
                                 .put(new JSONObject().put("name", "Al2O3"))).toString());
-        Response response = Target.path("model/delta_e/attributes").request().put(Entity.form(dataEntryForm));
+        Response response = Target.path("model/delta_e/attributes").request().post(Entity.form(dataEntryForm));
         assertEquals(200, response.getStatus());
 
         // Test the results
@@ -230,7 +230,7 @@ public class ServerLauncherTest {
                 new JSONObject().put("entries",
                         new JSONArray().put(new JSONObject().put("name", "NaCl"))
                                 .put(new JSONObject().put("name", "Al2O3"))).toString());
-        Response response = Target.path("model/delta_e/run").request().put(Entity.form(dataEntryForm));
+        Response response = Target.path("model/delta_e/run").request().post(Entity.form(dataEntryForm));
         assertEquals(200, response.getStatus());
 
         // Test the results

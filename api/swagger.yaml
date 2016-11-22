@@ -80,7 +80,7 @@ paths:
           description: No model by that name found
 
   /model/{name}/attributes:
-    put:
+    post:
       description: |
         Generate the attributes which serve as input into this model
       parameters:
@@ -108,7 +108,7 @@ paths:
           description: Some problem in running the attribute generation
 
   /model/{name}/run:
-    put:
+    post:
       description: |
         Generate the attributes and run this model
       parameters:
