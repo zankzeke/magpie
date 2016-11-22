@@ -209,7 +209,7 @@ public class ServerLauncherTest {
                 new JSONObject().put("entries",
                         new JSONArray().put(new JSONObject().put("name", "NaCl"))
                                 .put(new JSONObject().put("name", "Al2O3"))).toString());
-        Response response = Target.path("model/delta_e/attributes").request().post(Entity.form(dataEntryForm));
+        Response response = Target.path("model/delta_e/attributes").request().put(Entity.form(dataEntryForm));
         assertEquals(200, response.getStatus());
 
         // Test the results
@@ -230,7 +230,7 @@ public class ServerLauncherTest {
                 new JSONObject().put("entries",
                         new JSONArray().put(new JSONObject().put("name", "NaCl"))
                                 .put(new JSONObject().put("name", "Al2O3"))).toString());
-        Response response = Target.path("model/delta_e/run").request().post(Entity.form(dataEntryForm));
+        Response response = Target.path("model/delta_e/run").request().put(Entity.form(dataEntryForm));
         assertEquals(200, response.getStatus());
 
         // Test the results
@@ -239,7 +239,7 @@ public class ServerLauncherTest {
         assertTrue(output.has("units"));
         assertEquals(output.getString("units"), ServerLauncher.Models.get("delta_e").getUnits());
         assertEquals("NaCl", output.getJSONArray("entries").getJSONObject(0).getString("name"));
-        assertTrue(output.getJSONArray("data").getJSONObject(0).has("predictedValue"));
+        assertTrue(output.getJSONArray("entries").getJSONObject(0).has("predictedValue"));
 
         // Get the model status, to see if it tracked the model evaluation time
         response = Target.path("model/delta_e/info").request().get();

@@ -99,7 +99,7 @@ public class ModelOperator {
      * }
      * </p>
      */
-    @POST
+    @PUT
     @Produces("application/json")
     @Path("attributes")
     public String generateAttributes(@FormParam("entries") String userInput) {
@@ -148,7 +148,7 @@ public class ModelOperator {
      * }
      * </p>
      */
-    @POST
+    @PUT
     @Produces("application/json")
     @Path("run")
     public String runModel(@FormParam("entries") String userInput) {
