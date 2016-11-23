@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 
 /**
  * Perform searches that involve several different ML models.
@@ -68,7 +70,7 @@ public class SearchRunner {
     @POST
     @Produces("application/json")
     public String runSearch(@FormParam("search") String searchForm) {
-        // Parse the serach information
+        // Parse the search information
         JSONObject searchDefinition;
         try {
             searchDefinition = new JSONObject(searchForm);
@@ -77,6 +79,31 @@ public class SearchRunner {
                     + e.getMessage());
         }
 
+        // Launch thread for performing the search
+        Callable<String> thread = new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                return performSearch(searchDefinition);
+            }
+        };
+
+        Future<String> result = ServerLauncher.ThreadPool.submit(thread);
+
+        // Wait until it fails
+        try {
+            return result.get();
+        } catch (Exception e) {
+            throw ServerUtilityOperations.prepareException("search failed: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Function that prepares the actual search
+     *
+     * @param searchDefinition Search specification
+     * @return Result
+     */
+    protected String performSearch(JSONObject searchDefinition) {
         // Generate entries in search space
         MultiPropertyDataset data = getEntries(searchDefinition);
 
