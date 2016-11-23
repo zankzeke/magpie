@@ -237,7 +237,26 @@ definitions:
           Specifications for the steps of the search process
         items:
           type: object
-
+      entryRanker:
+        type: object
+        description: Specify how entries are ranked after the search
+        properties:
+          method:
+            type: string
+            description: Name of BaseEntryRanker to select best entries
+          number:
+            type: number
+            format: int32
+            description: Number of top entries to select
+          minimize:
+            type: boolean
+            description: Whether to maximize or minimize the entry ranker
+          options:
+            type: array
+            description: Options for the entry ranker method
+            items: 
+              type: string
+			
   SearchStepSpecification:
     type: object
     description: |
