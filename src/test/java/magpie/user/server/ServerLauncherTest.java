@@ -6,7 +6,6 @@ import magpie.data.materials.CrystalStructureDataset;
 import magpie.data.utilities.modifiers.NonZeroClassModifier;
 import magpie.models.BaseModel;
 import magpie.models.classification.WekaClassifier;
-import magpie.models.regression.GuessMeanRegression;
 import magpie.models.regression.WekaRegression;
 import magpie.user.server.operations.ServerInformationGetter;
 import magpie.utility.UtilityOperations;
@@ -57,7 +56,7 @@ public class ServerLauncherTest {
         new File("ms-data.obj").deleteOnExit();
         
         // Make a fake model for delta_e
-        BaseModel model = new GuessMeanRegression();
+        BaseModel model = new WekaRegression("trees.M5P", null);
         model.train(template);
         model.crossValidate(10, template);
         model.saveState("ms-deltae.obj");
@@ -273,5 +272,39 @@ public class ServerLauncherTest {
         assertEquals(200, response.getStatus());
         info = new JSONObject(response.readEntity(String.class));
         assertEquals(4, info.length());
+    }
+
+    @Test
+    public void testSearch() {
+        // Create search specification
+        JSONObject searchSpec = new JSONObject();
+        searchSpec.put("datasetType", "materials.CompositionDataset");
+        searchSpec.put("entryGenerator", new Object[]{"PhaseDiagramCompositionEntryGenerator", 1, 3,
+                "-crystal", 5, "Fe", "Na", "Cl", "O"});
+        searchSpec.put("steps", new JSONArray()
+                .put(new JSONObject().put("type", "model")
+                        .put("options", new JSONObject().put("name", "delta_e")))
+                .put(new JSONObject().put("type", "filter")
+                        .put("options", new JSONObject()
+                                .put("name", "AllMetalsFilter")
+                                .put("exclude", false)
+                                .put("options", new JSONArray())
+                        ))
+        );
+        searchSpec.put("entryRanker", new JSONObject()
+                .put("method", "PropertyRanker")
+                .put("number", 5)
+                .put("minimize", true)
+                .put("options", new Object[]{"delta_e", "SimpleEntryRanker"})
+        );
+
+        // Prepare the webquery
+        Form searchSpecForm = new Form("search", searchSpec.toString());
+        Response response = Target.path("search").request().post(Entity.form(searchSpecForm));
+        assertEquals(200, response.getStatus());
+        JSONObject result = new JSONObject(response.readEntity(String.class));
+        System.out.println(result.toString(2));
+        assertEquals(5, result.getJSONArray("chosenEntries").length());
+        assertEquals(1, result.getJSONObject("data").length());
     }
 }

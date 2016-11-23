@@ -1,11 +1,9 @@
 package magpie.user.server.operations;
 
-import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.user.server.ModelPackage;
 import magpie.user.server.ServerLauncher;
-import magpie.utility.UtilityOperations;
-import org.json.JSONArray;
+import magpie.user.server.ServerUtilityOperations;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -35,21 +33,6 @@ public class ModelOperator {
      * Package storing the model
      */
     private ModelPackage Model;
-
-    /**
-     * Prepare an Exception in a form that will get the CORS headers
-     * @param message Exception message
-     * @return Exception with the desired message
-     */
-    public static WebApplicationException prepareException(String message) {
-        return new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
-                .entity(message)
-                .header("Access-Control-Allow-Origin", "*")
-                .header("Access-Control-Allow-Headers", "origin, content-type, accept, authorization")
-                .header("Access-Control-Allow-Credentials", "true")
-                .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
-                .build());
-    }
 
     /**
      * Get the model used for this request
@@ -133,7 +116,7 @@ public class ModelOperator {
                 try {
                     data.generateAttributes();
                 } catch (Exception e) {
-                    throw prepareException("attribute generation failed: " + e.getMessage());
+                    throw ServerUtilityOperations.prepareException("attribute generation failed: " + e.getMessage());
                 }
             }
         };
@@ -147,7 +130,7 @@ public class ModelOperator {
         }
 
         // Assemble the output
-        JSONObject output = createDatasetJSON(entryNames, data);
+        JSONObject output = ServerUtilityOperations.createDatasetJSON(Model, entryNames, data);
         return output.toString();
     }
 
@@ -182,7 +165,7 @@ public class ModelOperator {
                     Model.runModel(data);
                     data.clearAttributes();
                 } catch (Exception e) {
-                    throw prepareException("attribute generation failed: " + e.getMessage());
+                    throw ServerUtilityOperations.prepareException("attribute generation failed: " + e.getMessage());
                 }
             }
         };
@@ -196,73 +179,8 @@ public class ModelOperator {
         }
 
         // Assemble the output
-        JSONObject output = createDatasetJSON(entryNames, data);
+        JSONObject output = ServerUtilityOperations.createDatasetJSON(Model, entryNames, data);
         return output.toString();
-    }
-
-    /**
-     * Turn a dataset into a JSON object. Follows the schema described in the Swagger API
-     *
-     * @param entryNames Names of entries, as strings
-     * @param data       Dataset to be converted
-     * @return Dataset as a JSON object
-     */
-    public JSONObject createDatasetJSON(List<String> entryNames, Dataset data) {
-        JSONObject output = new JSONObject();
-
-        // Put in model details
-        String[] classNames = Model.isClassifer() ? Model.getPossibleClasses() : null;
-        if (Model.isClassifer()) {
-            output.put("possibleClasses", classNames);
-            output.put("modelType", "classification");
-        } else {
-            output.put("units", Model.getUnits());
-            output.put("modelType", "regression");
-        }
-        output.put("property", Model.Property);
-
-        // Put in the attribute names, if present
-        if (data.NAttributes() > 0) {
-            output.put("attributes", data.getAttributeNames());
-        }
-
-        JSONArray entryArray = new JSONArray();
-        for (int e = 0; e < entryNames.size(); e++) {
-            JSONObject entryJSON = new JSONObject();
-            BaseEntry entry = data.getEntry(e);
-
-            // Get the entry data
-            entryJSON.put("name", entryNames.get(e));
-            entryJSON.put("parsedName", entry.toString());
-
-            // Add in the attributes, if present
-            if (entry.NAttributes() > 0) {
-                entryJSON.put("attributes", UtilityOperations.toJSONArray(entry.getAttributes()));
-            }
-
-            // If predicted values
-            if (entry.hasPrediction()) {
-                // Get the predictions
-                entryJSON.put("predictedValue", entry.getPredictedClass());
-                if (Model.isClassifer()) {
-                    // Text name of class
-                    entryJSON.put("predictedClass", classNames[(int) entry.getPredictedClass()]);
-
-                    // Class probabilities
-                    JSONObject probs = new JSONObject();
-                    double[] predProbs = entry.getClassProbilities();
-                    for (int cl = 0; cl < classNames.length; cl++) {
-                        probs.put(classNames[cl], predProbs[cl]);
-                    }
-                    entryJSON.put("classProbabilities", probs);
-                }
-            }
-
-            // Add it to the list
-            entryArray.put(entryJSON);
-        }
-        output.put("entries", entryArray);
-        return output;
     }
 
     /**
@@ -276,7 +194,7 @@ public class ModelOperator {
             try {
                 data.addEntry(entry);
             } catch (Exception e) {
-                prepareException(String.format("entry \"%s\" failed to parse: %s"));
+                ServerUtilityOperations.prepareException(String.format("entry \"%s\" failed to parse: %s"));
             }
         }
         return data;
@@ -294,23 +212,23 @@ public class ModelOperator {
         try {
             entries = new JSONObject(userInput);
         } catch (JSONException e) {
-            throw prepareException("input failed to parse as JSON: " + e.getMessage());
+            throw ServerUtilityOperations.prepareException("input failed to parse as JSON: " + e.getMessage());
         }
 
         // Check format
         if (!entries.has("entries")) {
-            throw prepareException("bad format: dataset should contain key 'entries'");
+            throw ServerUtilityOperations.prepareException("bad format: dataset should contain key 'entries'");
         }
 
         // Get the user-provided names of entries
         List<String> entryNames = new ArrayList<>(entries.getJSONArray("entries").length());
         for (Object entryPtr : entries.getJSONArray("entries")) {
             if (!(entryPtr instanceof JSONObject)) {
-                throw prepareException("bad format: entries does not contain JSON objects");
+                throw ServerUtilityOperations.prepareException("bad format: entries does not contain JSON objects");
             }
             JSONObject entry = (JSONObject) entryPtr;
             if (!entry.has("name")) {
-                throw prepareException("bad format: entry should contain key 'name'");
+                throw ServerUtilityOperations.prepareException("bad format: entry should contain key 'name'");
             }
             entryNames.add(entry.getString("name"));
         }

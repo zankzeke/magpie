@@ -1,9 +1,10 @@
 package magpie.data;
 
-import java.util.Arrays;
 import org.apache.commons.lang3.ArrayUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import java.util.Arrays;
 
 /**
  * Entry that can have multiple properties. Consider these properties as potential
@@ -34,6 +35,18 @@ public class MultiPropertyEntry extends BaseEntry {
     private double[][] PredictedProperty = new double[0][];
     /** Index of property being used as class variable. Equal to -1 if no property is being used. */
     private int TargetProperty = -1;
+
+    public MultiPropertyEntry() {
+    }
+
+    /**
+     * Create a new entry, given attributes
+     *
+     * @param attributes Attribute values
+     */
+    public MultiPropertyEntry(double[] attributes) {
+        setAttributes(attributes.clone());
+    }
 
     @Override
     public MultiPropertyEntry clone() {
@@ -123,12 +136,34 @@ public class MultiPropertyEntry extends BaseEntry {
         }
     }
 
+    @Override
+    public void setMeasuredClass(double x) {
+        if (usingPropertyAsClass()) {
+            setMeasuredProperty(TargetProperty, x);
+        } else {
+            super.setMeasuredClass(x);
+        }
+    }
+
     /**
-     * Get copy all measured properties. 
+     * Get copy all measured properties.
      * @return Clone of internal array of measured properties
      */
     public double[] getMeasuredProperties() {
         return MeasuredProperty.clone();
+    }
+
+    /**
+     * Define the values of all measured properties of this entry. Simply use Double.NaN
+     * for all properties that have not been measured.
+     * <p>This command will automatically reset the predicted properties, so use with caution.
+     *
+     * @param newValues Values of all measured properties
+     */
+    public void setMeasuredProperties(double[] newValues) {
+        MeasuredProperty = newValues.clone();
+        PredictedProperty = new double[newValues.length][];
+        Arrays.fill(PredictedProperty, null);
     }
     
     /**
@@ -148,14 +183,23 @@ public class MultiPropertyEntry extends BaseEntry {
             return super.getPredictedClass();
         }
     }
-    
+
+    @Override
+    public void setPredictedClass(double x) {
+        if (usingPropertyAsClass()) {
+            setPredictedProperty(TargetProperty, x);
+        } else {
+            super.setPredictedClass(x);
+        }
+    }
+
     @Override
     public double[] getClassProbilities() {
         if (usingPropertyAsClass()) {
             if (PredictedProperty[TargetProperty] == null) {
                 return null;
             }
-            return PredictedProperty[TargetProperty].length > 1 ? 
+            return PredictedProperty[TargetProperty].length > 1 ?
                     PredictedProperty[TargetProperty] : null;
         } else {
             return super.getClassProbilities();
@@ -163,7 +207,7 @@ public class MultiPropertyEntry extends BaseEntry {
     }
 
     /**
-     * Get the predicted properties for an instance. If the property has not been predicted, 
+     * Get the predicted properties for an instance. If the property has not been predicted,
      *  returns Double.NaN.
      * @param index Index of property to retrieve
      * @return Predicted property
@@ -183,7 +227,7 @@ public class MultiPropertyEntry extends BaseEntry {
             return (double) max;
         }
     }
-    
+
     /**
      * Get the predicted class probabilities for a certain property.
      * If the property has not been predicted, returns null.
@@ -199,14 +243,25 @@ public class MultiPropertyEntry extends BaseEntry {
     }
 
     /**
-     * Look up which property is being used as the class variable. Returns -1 if 
+     * Look up which property is being used as the class variable. Returns -1 if
      * the class variable is something else.
      * @return Target property
      */
     public int getTargetProperty() {
         return TargetProperty;
     }
-    
+
+    /**
+     * Define which property to use as the class variable. Set to -1 when using some other variable.
+     *
+     * @param index Index of property to use
+     */
+    public void setTargetProperty(int index) {
+        if (index >= NProperties())
+            throw new IllegalArgumentException("Entry only has " + NProperties() + " defined. Target property cannot be " + index);
+        TargetProperty = index;
+    }
+
     /**
      * @return Whether a property is being used as the class variable.
      */
@@ -225,7 +280,7 @@ public class MultiPropertyEntry extends BaseEntry {
 	}
         return ! Double.isNaN(getMeasuredProperty(index));
     }
-    
+
     /**
      * Whether an specific property has any predicted value
      * @param index Index of property to test
@@ -234,7 +289,7 @@ public class MultiPropertyEntry extends BaseEntry {
     public boolean hasPredictedProperty(int index) {
         return ! Double.isNaN(getPredictedProperty(index));
     }
-
+    
     @Override
     public boolean hasMeasurement() {
         if (usingPropertyAsClass()) {
@@ -243,7 +298,7 @@ public class MultiPropertyEntry extends BaseEntry {
             return super.hasMeasurement();
         }
     }
-
+    
     @Override
     public boolean hasPrediction() {
         if (usingPropertyAsClass()) {
@@ -258,7 +313,7 @@ public class MultiPropertyEntry extends BaseEntry {
         if (usingPropertyAsClass()) {
             return hasPropertyClassProbabilities(TargetProperty);
         } else {
-            return super.hasClassProbabilities(); 
+            return super.hasClassProbabilities();
         }
     }
 
@@ -268,25 +323,24 @@ public class MultiPropertyEntry extends BaseEntry {
      * @return Whether it has class probabilities
      */
     public boolean hasPropertyClassProbabilities(int index) {
-        return PredictedProperty[index] != null ?
-                PredictedProperty[index].length > 1 : false;
+        return PredictedProperty[index] != null && PredictedProperty[index].length > 1;
     }
-    
+
     @Override
     public void deleteMeasuredClass() {
         if (usingPropertyAsClass()) {
             setMeasuredProperty(TargetProperty, Double.NaN);
         } else {
-            super.deleteMeasuredClass(); 
+            super.deleteMeasuredClass();
         }
     }
-    
+
     @Override
     public void deletePredictedClass() {
         if (usingPropertyAsClass()) {
             setPredictedProperty(TargetProperty, null);
         } else {
-            super.deletePredictedClass(); 
+            super.deletePredictedClass();
         }
     }
 
@@ -299,27 +353,6 @@ public class MultiPropertyEntry extends BaseEntry {
         }
     }
 
-    @Override
-    public void setMeasuredClass(double x) {
-        if (usingPropertyAsClass()) {
-            setMeasuredProperty(TargetProperty, x);
-        } else {
-            super.setMeasuredClass(x);
-        }
-    }
-
-    /**
-     * Define the values of all measured properties of this entry. Simply use Double.NaN 
-     * for all properties that have not been measured. 
-     * <p>This command will automatically reset the predicted properties, so use with caution.
-     * @param newValues Values of all measured properties
-     */
-    public void setMeasuredProperties(double[] newValues) {
-        MeasuredProperty = newValues.clone();
-        PredictedProperty = new double[newValues.length][];
-        Arrays.fill(PredictedProperty, null);
-    }
-
     /**
      * Set the measured value of a specific property of this entry. Use Double.NaN if it
      * has not been measured (though I am not sure why you would do this).
@@ -329,16 +362,7 @@ public class MultiPropertyEntry extends BaseEntry {
     public void setMeasuredProperty(int index, double newValue) {
         MeasuredProperty[index] = newValue;
     }
-
-    @Override
-    public void setPredictedClass(double x) {
-        if (usingPropertyAsClass()) {
-            setPredictedProperty(TargetProperty, x); 
-        } else {
-            super.setPredictedClass(x);
-        }
-    }
-
+    
     /**
      * Directly set the predicted value of a property.
      * @param index Index of property
@@ -353,7 +377,7 @@ public class MultiPropertyEntry extends BaseEntry {
             PredictedProperty[index] = new double[]{newValue};
         }
     }
-    
+
     /**
      * Directly set the probabilities of an entry existing in one of several classes.
      * @param index Index of property
@@ -362,16 +386,6 @@ public class MultiPropertyEntry extends BaseEntry {
      */
     public void setPredictedProperty(int index, double[] newValues) {
         PredictedProperty[index] = newValues != null ? newValues.clone() : null;
-    }
-
-    /**
-     * Define which property to use as the class variable. Set to -1 when using some other variable.
-     * @param index Index of property to use
-     */
-    public void setTargetProperty(int index) {
-        if (index >= NProperties())
-            throw new IllegalArgumentException("Entry only has " + NProperties() + " defined. Target property cannot be " + index);
-        TargetProperty = index;
     }
 
     /**

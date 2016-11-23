@@ -60,7 +60,16 @@ import java.util.concurrent.Executors;
  *
  * <p>This code uses a REST interface. Eventually, we may provide a wrapper for this API in other languages. There will
  * at least be a few examples of webpages using this interface.</p>
- * 
+ *
+ * <p>To do list:</p>
+ *
+ * <ol>
+ *     <li>Enforce maximum dataset size</li>
+ *     <li>Allow the dataset used to parse entries be different than that used to run it
+ *     (e.g., parse crystal structure, run based on composition)</li>
+ *     <li>Create a class that stores datasets, and can use them in seraches / send them to users</li>
+ * </ol>
+ *
  * @author Logan Ward
  */
 public class ServerLauncher {
@@ -87,7 +96,6 @@ public class ServerLauncher {
      */
     public static int ThreadCount;
 
-    
     /**
      * Handle input passed to the server. See class documentation for format
      * @param args Input 

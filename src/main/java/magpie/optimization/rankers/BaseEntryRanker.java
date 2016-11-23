@@ -5,6 +5,9 @@ import magpie.data.Dataset;
 import magpie.optimization.algorithms.OptimizationHelper;
 import magpie.utility.interfaces.Options;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * This is a template for classes that rank entries based on some sort of objective 
  * function. When implementing this class, you only need to provide the objective 
@@ -145,4 +148,25 @@ abstract public class BaseEntryRanker implements java.lang.Cloneable, Options {
 	 * @param data Data to use as training set
 	 */
 	abstract public void train(Dataset data);
+
+    /**
+     * Sort entries in a dataset according to ranking
+     *
+     * @param data Dataset to be sorted
+     */
+    public void sortByRanking(Dataset data) {
+        // Get ranks for each entry
+        int[] rankEntries = rankEntries(data);
+
+        // Get list of entries
+        List<BaseEntry> entries = data.getEntries();
+        List<BaseEntry> newEntryOrder = new ArrayList<>(entries.size());
+        for (int entryID : rankEntries) {
+            newEntryOrder.add(entries.get(entryID));
+        }
+
+        // Reset the order
+        data.clearData();
+        data.addEntries(newEntryOrder);
+    }
 }
