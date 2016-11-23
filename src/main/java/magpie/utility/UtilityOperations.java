@@ -199,12 +199,9 @@ public class UtilityOperations {
         return String.format("%d days, %02d hours, %02d minutes, %02d.%03d seconds",
                 TimeUnit.MILLISECONDS.toDays(time),
                 TimeUnit.MILLISECONDS.toHours(time) - 24 * TimeUnit.MILLISECONDS.toDays(time),
-                TimeUnit.MILLISECONDS.toMinutes(time) - 60 * TimeUnit.MILLISECONDS.toHours(time)
-                        - 24 * TimeUnit.MILLISECONDS.toDays(time),
-                TimeUnit.MILLISECONDS.toSeconds(time) - 60 * TimeUnit.MILLISECONDS.toMinutes(time)
-                        - 60 * TimeUnit.MILLISECONDS.toHours(time) - 24 * TimeUnit.MILLISECONDS.toDays(time),
-                time - 1000 * TimeUnit.MILLISECONDS.toSeconds(time) - 60 * TimeUnit.MILLISECONDS.toMinutes(time)
-                        - 60 * TimeUnit.MILLISECONDS.toHours(time) - 24 * TimeUnit.MILLISECONDS.toDays(time)
+                TimeUnit.MILLISECONDS.toMinutes(time) - 60 * TimeUnit.MILLISECONDS.toHours(time),
+                TimeUnit.MILLISECONDS.toSeconds(time) - 60 * TimeUnit.MILLISECONDS.toMinutes(time),
+                time - 1000 * TimeUnit.MILLISECONDS.toSeconds(time)
         );
     }
 }
