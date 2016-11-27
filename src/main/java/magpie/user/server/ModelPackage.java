@@ -47,6 +47,10 @@ public class ModelPackage {
     protected AtomicLong NumberEvaluated = new AtomicLong(0);
     /** How long this model has been run for, in milliseconds */
     protected AtomicLong RunTime = new AtomicLong(0);
+    /**
+     * Maximum mumber of entries to run, overrules {@linkplain ServerLauncher#MaxNumEntries}
+     */
+    protected Integer MaxNumEntries = null;
 
     /**
      * Initialize model package
@@ -93,6 +97,15 @@ public class ModelPackage {
     }
 
     /**
+     * Get the maximum number of entries this model is allowed to run.
+     *
+     * @return Maximum for this model, if defined, or the global maximum
+     */
+    public int getMaxNumEntries() {
+        return MaxNumEntries == null ? ServerLauncher.MaxNumEntries : MaxNumEntries;
+    }
+
+    /**
      * Run the model stored in this package.
      *
      * <p>Synchronized because some ML algorithms (e.g., ANNs in Weka) do not handle concurrent execution</p>
@@ -100,9 +113,17 @@ public class ModelPackage {
      * @param data Dataset to be run, attributes will also be computed
      */
     public synchronized void runModel(Dataset data) throws Exception {
+        // Check if dataset is too big
+        if (data.NEntries() > getMaxNumEntries()) {
+            throw new IllegalArgumentException("Dataset is too large: " + data.NEntries() + " > " + getMaxNumEntries());
+        }
+
+        // Run the mode
         long startTime = System.currentTimeMillis();
         data.generateAttributes();
         Model.run(data);
+
+        // Record model running statistics
         RunTime.addAndGet(System.currentTimeMillis() - startTime);
         NumberRuns.incrementAndGet();
         NumberEvaluated.addAndGet(data.NEntries());

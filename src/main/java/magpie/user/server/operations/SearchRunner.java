@@ -18,10 +18,7 @@ import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
@@ -71,7 +68,7 @@ public class SearchRunner {
     @Produces("application/json")
     public String runSearch(@FormParam("search") String searchForm) {
         // Parse the search information
-        JSONObject searchDefinition;
+        final JSONObject searchDefinition;
         try {
             searchDefinition = new JSONObject(searchForm);
         } catch (Exception e) {
@@ -357,8 +354,19 @@ public class SearchRunner {
         } catch (Exception e) {
             throw ServerUtilityOperations.prepareException("no such dataset type: " + searchDefinition.get("datasetType").toString());
         }
+
+        // Generate the entries iteratively, so that we
         MultiPropertyDataset data = (MultiPropertyDataset) dataObj;
-        generator.addEntriesToDataset(data);
+        int pos = 0;
+        Iterator<BaseEntry> iter = generator.iterator();
+        while (iter.hasNext()) {
+            data.addEntry(iter.next());
+            if (pos++ == ServerLauncher.MaxNumEntries) {
+                throw ServerUtilityOperations.prepareException("reached maximum number of entries: "
+                        + ServerLauncher.MaxNumEntries);
+            }
+        }
+
         return data;
     }
 }

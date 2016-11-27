@@ -4,10 +4,11 @@
         <link rel="stylesheet" href="style.css" type="text/css" media="screen" />
         <script src="https://code.jquery.com/jquery-3.1.0.min.js"
                 integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s=" crossorigin="anonymous"></script>
+        <script src="jquery.js"/>
         <script>
             $(document).ready(function () {
                 // Get the URL for the Magpie server
-                var magpieURL = "http://josquin.northwestern.edu:5340/";
+                var magpieURL = "http://localhost:4581/";
 
                 // Load in the models
                 $.ajax({
@@ -48,7 +49,8 @@
 
                 $('#submitButton').click(function () {
                     // Get the compositions
-                    var compositions = $('#comps').attr('value').split(" ");
+                    var compositions = $('#comps')[0].value.split(" ");
+                    console.log(compositions);
 
                     // Make it into a dataset object
                     var data = {entries: []};
@@ -116,7 +118,7 @@
                                     var entry = result['entries'][ind];
                                     var td = document.createElement("td");
                                     if (result.modelType == 'regression') {
-                                        td.innerHTML = entry['predictedValue'];
+                                        td.innerHTML = entry['predictedValue'].toExponential(3);
                                     } else {
                                         var classProb = entry['classProbabilities'][entry['predictedClass']] * 100;
                                         td.innerHTML = entry['predictedClass']

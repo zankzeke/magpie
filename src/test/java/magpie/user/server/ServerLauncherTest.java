@@ -138,13 +138,17 @@ public class ServerLauncherTest {
         fp.println("author: Logan Ward");
         fp.println("citation: None");
         fp.println("notes: Simple model created to demonstrate formation energy prediction");
+        fp.println("maxEntries: 100");
         fp.close();
         new File("ms-model.yml").deleteOnExit();
     }
 
     @Before
     public void launchServer() throws Exception {
-        ServerLauncher.main(new String[]{"-port", "4234", "-models", "ms-model.yml"});
+        ServerLauncher.main(new String[]{"-port", "4234",
+                "-models", "ms-model.yml",
+                "-maxEntries", "1000"
+        });
 
         Client c = ClientBuilder.newClient();
         Target = c.target("http://127.0.0.1:4234");
@@ -159,6 +163,7 @@ public class ServerLauncherTest {
     public void testLaunch() throws Exception {
         assertNotNull(ServerLauncher.Server);
         assertTrue(ServerLauncher.Server.isStarted());
+        assertEquals(100, ServerLauncher.Models.get("delta_e-crystal").getMaxNumEntries());
     }
 
     @Test

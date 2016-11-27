@@ -31,7 +31,7 @@ import java.util.concurrent.Executors;
  * on port + 1.
  * <br><b>-models &lt;path&gt;</b>: Path to file describing models to be served.
  * This file should be formatted in YAML and follow the following structure:
- * 
+ *
  * <div style="padding: 10px 0 0 20px;">
  *     This YAML file should be partitioned into several separate documents, which each describe a different model and
  *     are separated by lines of '---'.
@@ -48,23 +48,22 @@ import java.util.concurrent.Executors;
  *         <li><b>citation</b> Citation for the model</li>
  *         <li><b>author</b> Name of author of the model</li>
  *         <li><b>notes</b> Longer description of the model</li>
+ *         <li><b>maxEntries</b> Maximum number of entries that can be run by a single query</li>
  *     </ul>
  *
  *     <p>Feel free to use HTML formatting in the YAML file. This information will likely be rendered by a web browser</p>
  * </div>
- * 
- * 
- * <p>Example: java -jar Magpie.jar -server -model volume volume.obj -data data.obj
+ *
+ * <br><b>-maxEntries &lt;path&gt;</b>Maximum number of entries that this server will run for a single request
  * 
  * <p><b>Client Implementation Guide</b>
  *
- * <p>This code uses a REST interface. Eventually, we may provide a wrapper for this API in other languages. There will
- * at least be a few examples of webpages using this interface.</p>
+ * <p>This code uses a REST interface. Eventually, we may provide a wrapper for this API in other languages. There
+ * are a few example webpages using this interface in the Magpie repository.</p>
  *
  * <p>To do list:</p>
  *
  * <ol>
- *     <li>Enforce maximum dataset size</li>
  *     <li>Allow the dataset used to parse entries be different than that used to run it
  *     (e.g., parse crystal structure, run based on composition)</li>
  *     <li>Create a class that stores datasets, and can use them in seraches / send them to users</li>
@@ -95,6 +94,10 @@ public class ServerLauncher {
      * Number of allowed threads
      */
     public static int ThreadCount;
+    /**
+     * Maximum mumber of entries to run
+     */
+    public static int MaxNumEntries = 100000;
 
     /**
      * Handle input passed to the server. See class documentation for format
@@ -112,6 +115,9 @@ public class ServerLauncher {
                     break;
                 case "-models":
                     readInformationFile(args[++pos]);
+                    break;
+                case "-maxentries":
+                    MaxNumEntries = Integer.parseInt(args[++pos]);
                     break;
                 default:
                     throw new Exception("Unknown tag: " + tag);
@@ -161,6 +167,9 @@ public class ServerLauncher {
             modelPackage.Author = modelData.get("author").toString();
             modelPackage.ModelCitation = modelData.get("citation").toString();
             modelPackage.Notes = modelData.get("notes").toString();
+            if (modelData.containsKey("maxEntries")) {
+                modelPackage.MaxNumEntries = (Integer) modelData.get("maxEntries");
+            }
 
             // Store the model
             Models.put(modelName, modelPackage);
