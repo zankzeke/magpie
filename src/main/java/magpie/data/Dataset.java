@@ -890,7 +890,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      */
     public Map<BaseEntry,List<BaseEntry>> getUniqueEntries() {
         // Loop through entries, creating a map of entry to all duplicates
-        Map<BaseEntry, List<BaseEntry>> unique = new TreeMap<>();
+        Map<BaseEntry, List<BaseEntry>> unique = new HashMap<>();
         for (BaseEntry entry : Entries) {
             List<BaseEntry> dups = unique.get(entry);
             

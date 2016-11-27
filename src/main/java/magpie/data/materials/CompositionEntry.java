@@ -1,17 +1,17 @@
 package magpie.data.materials;
 
-import java.text.DecimalFormat;
 import magpie.data.MultiPropertyEntry;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.regex.*;
 import magpie.data.materials.util.LookupData;
 import org.apache.commons.math3.stat.StatUtils;
 import org.json.JSONObject;
+
+import java.text.DecimalFormat;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Stores several properties about a compound and its composition. Can store information regarding
@@ -21,6 +21,10 @@ import org.json.JSONObject;
  * @version 0.1
  */
 public class CompositionEntry extends MultiPropertyEntry {
+    /**
+     * Whether to print composition in HTML Format
+     */
+    public boolean HTMLFormat = false;
     /** Names of each element */
     protected String[] ElementNames = LookupData.ElementNames;
     /** Rank of each element (used in display order) */
@@ -31,14 +35,12 @@ public class CompositionEntry extends MultiPropertyEntry {
     protected double[] Fraction;
     /** Number of atoms in cell (used to convert when printing) */
     protected double NumberInCell = Double.NEGATIVE_INFINITY;
-    /** Whether to print composition in HTML Format */
-    public boolean HTMLFormat = false;
     
     /**
      * Allows the creation of arbitrary constructors for superclasses.
      */
-    protected CompositionEntry() {};
-    
+    protected CompositionEntry() {}
+
     /** 
      * Make a new instance by parsing the composition of an object, provided by a string.
      * <p>First splits using the regex <code>[A-Z][^A-Z]</code> to separate each component of the alloy. 
@@ -74,22 +76,53 @@ public class CompositionEntry extends MultiPropertyEntry {
         }
         rectifyEntry(true);
     }
-    
+
+    /**
+     * Given the element numbers (probably Z-1) and fractions, create an entry
+     *
+     * @param Element Numbers of element in ElementList
+     * @param Amount  Amount of each element present
+     * @throws java.lang.Exception
+     */
+    public CompositionEntry(int[] Element, double[] Amount) throws Exception {
+        setComposition(Element, Amount, true);
+    }
+
+    /**
+     * Print out the number of atoms in a formula unit for each element given its fraction
+     *
+     * @param fraction       Fractions to be printed
+     * @param NInFormulaUnit Number of atoms in a formula unit
+     * @return Result formatted as a string
+     */
+    static public String[] printNumber(double[] fraction, double NInFormulaUnit) {
+        DecimalFormat format = new DecimalFormat("#.###");
+        String[] output = new String[fraction.length];
+        for (int i = 0; i < fraction.length; i++) {
+            double expanded = fraction[i] * NInFormulaUnit;
+            if (Math.abs(expanded - Math.round(expanded)) < 0.0001)
+                output[i] = (int) expanded == 1 ? "" : String.format("%d", (int) expanded);
+            else
+                output[i] = format.format(expanded);
+        }
+        return output;
+    }
+
     /**
      * Parse string containing a composition. Supports parentheses and addition compounds
-     * (ex: Na<sub>2</sub>CO<sub>3</sub>-10H<sub>2</sub>O). Note, will 
+     * (ex: Na<sub>2</sub>CO<sub>3</sub>-10H<sub>2</sub>O). Note, will
      * not propertly parse addition compounds inside parentheses (ex:
      * Na<sub>2</sub>(CO<sub>3</sub>-10H<sub>2</sub>O)<sub>1</sub>).
-     * 
+     *
      * @param composition String describing a composition
      * @return Map of element ID (Z-1) to amount
-     * @throws Exception 
+     * @throws Exception
      */
-    private Map<Integer, Double> parseComposition(String composition) 
+    private Map<Integer, Double> parseComposition(String composition)
             throws Exception {
         // Check for a guest structure (ex: Al2O3-2H20)
         int startGuest = composition.indexOf("-");
-        int pos = composition.indexOf(183); 
+        int pos = composition.indexOf(183);
         if (pos != -1 && (pos < startGuest || startGuest == -1)) {
             startGuest = pos;
         }
@@ -193,23 +226,23 @@ public class CompositionEntry extends MultiPropertyEntry {
             int endHost = startGuest;
             pos = startGuest + 1;
             String mult = "";
-            while (pos < composition.length() && 
+            while (pos < composition.length() &&
                     (Character.isDigit(composition.charAt(pos)) ||
                     composition.charAt(pos) == '.')) {
                 mult += composition.charAt(pos++);
             }
             startGuest = pos;
             double guestMult = mult.isEmpty() ? 1.0 : Double.parseDouble(mult);
-            
+
             // Split compound
             String hostPart = composition.substring(0, endHost);
             String guestPart = composition.substring(startGuest);
-            
+
             // Compute them separately
             Map<Integer, Double> hostComp = parseComposition(hostPart),
                     guestComp = parseComposition(guestPart);
             combineCompositions(hostComp, guestComp, guestMult);
-            
+
             return hostComp;
         }
     }
@@ -226,7 +259,7 @@ public class CompositionEntry extends MultiPropertyEntry {
             Integer elem = entrySet.getKey();
             Double amount = entrySet.getValue();
             Double curAmount = totalComp.get(elem);
-            
+
             // If totalComp contains this element
             if (curAmount != null) {
                 double newAmount = curAmount + amount * multiplier;
@@ -241,7 +274,7 @@ public class CompositionEntry extends MultiPropertyEntry {
      * Given a string of elements and amounts, compute fractions of each element.
      * @param composition Composition as a string
      * @return Map of element ID (Z-1) to amount
-     * @throws Exception 
+     * @throws Exception
      */
     private Map<Integer, Double> parseElementAmounts(String composition) throws Exception {
         // Add up all the constituents
@@ -251,16 +284,16 @@ public class CompositionEntry extends MultiPropertyEntry {
         Map<Integer, Double> compMap = new TreeMap<>();
         while (compMatcher.find()) {
             String component = compMatcher.group();
-            
+
             // Get the element information
-            Matcher elemMatcher = elemPattern.matcher(component); 
+            Matcher elemMatcher = elemPattern.matcher(component);
             if (! elemMatcher.find()) throw new Error("Something has gone horribly wrong!");
             String element = elemMatcher.group();
             if (element.equals("D") || element.equals("T")) element = "H";// Special case for D/T
             Integer elementNumber = Arrays.asList(ElementNames).indexOf(element);
             if (elementNumber == -1)
                 throw new Exception("Element " + element + " not recognized");
-            
+
             // Get the amount of this element
             Matcher fracMatcher = fracPattern.matcher(component);
             Double elementFraction = 1.0;
@@ -272,43 +305,33 @@ public class CompositionEntry extends MultiPropertyEntry {
                     throw new Exception("Element amount " + fraction + " not a valid number.");
                 }
             }
-            
+
             // Skip if fraction is zero
             if (elementFraction == 0) {
                 continue;
             }
-            
+
             // Add (or update the value)
             if (compMap.containsKey(elementNumber)) {
                 Double newAmount = compMap.get(elementNumber) + elementFraction;
                 compMap.put(elementNumber, newAmount);
-            } else 
+            } else
                 compMap.put(elementNumber, elementFraction);
         }
         return compMap;
     }
-
-    /**
-     * Given the element numbers (probably Z-1) and fractions, create an entry
-     * @param Element Numbers of element in ElementList
-     * @param Amount Amount of each element present
-     * @throws java.lang.Exception
-     */
-    public CompositionEntry(int[] Element, double[] Amount) throws Exception {
-        setComposition(Element, Amount, true);
-    }
-
+    
 	/**
 	 * Set the composition of this entry.
-     * 
+     *
      * <p>Checks to make sure all elements have positive amounts.
-	 * @param elements Elements in sample (listed by index 
-	 * in {@linkplain LookupData#ElementNames})
+     * @param elements Elements in sample (listed by index
+     * in {@linkplain LookupData#ElementNames})
 	 * @param amount Amount of each element
      * @param toSort Whether to store elements in sorted order
      * @throws java.lang.Exception
-	 */
-	final protected void setComposition(int[] elements, double[] amount, 
+     */
+    final protected void setComposition(int[] elements, double[] amount,
             boolean toSort) throws Exception {
         // Get a full list of the non-zero elements
         Map<Integer, Double> comp = new TreeMap<>();
@@ -316,7 +339,7 @@ public class CompositionEntry extends MultiPropertyEntry {
             if (amount[e] <= 0) {
                 continue;
             }
-            
+
             // Add to comp map
             if (comp.containsKey(elements[e])) {
                 comp.put(elements[e], comp.get(elements[e]) + amount[e]);
@@ -324,7 +347,7 @@ public class CompositionEntry extends MultiPropertyEntry {
                 comp.put(elements[e], amount[e]);
             }
         }
-        
+
         // Set the information
 		this.Element = new int[comp.size()];
 		this.Fraction = new double[comp.size()];
@@ -334,13 +357,11 @@ public class CompositionEntry extends MultiPropertyEntry {
             Fraction[pos] = elem.getValue();
             pos++;
         }
-            
+
         // Call for composition to be normalized
 		rectifyEntry(toSort);
 	}
-    
-    
-    
+
     @Override@SuppressWarnings("CloneDeclaresCloneNotSupported")
     public CompositionEntry clone() {
         CompositionEntry x = (CompositionEntry) super.clone();
@@ -356,29 +377,29 @@ public class CompositionEntry extends MultiPropertyEntry {
     public String[] getElementNameList() {
         return ElementNames;
     }
-
+    
     /**
      * @return Order in which elements listed during printing
      */
     public int[] getSortingOrder() {
         return SortingOrder;
     }
-    
-    
+
     /**
      * @return List of elements contained in an entry
      */
-    public int[] getElements() { 
-        return Element.clone(); 
+    public int[] getElements() {
+        return Element.clone();
     }
+
     /**
      * @return Fractions of each element in array in same order as {@link #getElements()}
      */
     public double[] getFractions() {
-        return Fraction.clone(); 
-    }    
+        return Fraction.clone();
+    }
 
-    /** 
+    /**
      * Return the fraction of a certain element found in an entry
      * @param elem Abbreviation of element
      * @return Fraction of that element present in this entry
@@ -389,7 +410,8 @@ public class CompositionEntry extends MultiPropertyEntry {
                 return getElementFraction(i);
         return 0;
     }
-    /** 
+    
+    /**
      * Return the fraction of a certain element found in an entry
      * @param element Index of element (usually: AtomicNumber - 1)
      * @return Fraction of that element present in this entry
@@ -405,7 +427,7 @@ public class CompositionEntry extends MultiPropertyEntry {
         if (A_obj instanceof CompositionEntry && B_obj instanceof CompositionEntry) {
             CompositionEntry A = (CompositionEntry) A_obj;
             CompositionEntry B = (CompositionEntry) B_obj;
-            // If A has more elements, it is greater. 
+            // If A has more elements, it is greater.
             if (A.Element.length != B.Element.length)
                 return (A.Element.length > B.Element.length) ? 1 : -1;
             // Check which has greater element fractions
@@ -416,32 +438,41 @@ public class CompositionEntry extends MultiPropertyEntry {
                     return (A.Fraction[i] > B.Fraction[i]) ? 1 : -1;
             // We have concluded they are equal
             return 0;
-        } else 
+        } else
             return 0;
     }
     
-    @Override public int hashCode() {
-        if (Element.length > 0)  return (int) Arrays.hashCode(Element);
-        else return 0;
+    @Override
+    public int hashCode() {
+        if (Element.length > 0) {
+            return Arrays.hashCode(Element) ^ Arrays.hashCode(Fraction);
+
+        } else {
+            return 0;
+        }
     }
     
     @Override public boolean equals(Object other) {
         if (other instanceof CompositionEntry) {
             CompositionEntry obj = (CompositionEntry) other;
-            if (obj.Element.length != Element.length ) { return false; }
-            return (java.util.Arrays.equals(Element, obj.Element) && 
+            if (obj.Element.length != Element.length) {
+                return false;
+            }
+            return (java.util.Arrays.equals(Element, obj.Element) &&
                     java.util.Arrays.equals(Fraction, obj.Fraction));
         } else return false;
     }
-    
-    /** 
+
+    // Feature calculation methods
+
+    /**
      * Makes sure this entry is in a proper format. <B>Must be run from constructor</B>
      * <p>Performs the following operations:
      * <ul>
-     * <li>Optional: Ensure Element and Fraction are sorted according to the order 
+     * <li>Optional: Ensure Element and Fraction are sorted according to the order
      * listed in {@linkplain #SortingOrder}.</li>
      * <li>Ensure that the sum of {@linkplain #Fraction} is equal to 1.</li>
-     * <li>Set {@linkplain #NumberInCell} is equal to the original 
+     * <li>Set {@linkplain #NumberInCell} is equal to the original
      * sum of {@linkplain #Fraction}.</li>
      * </ul>
      * @param toSort Whether to sort elements in "Sorting order"
@@ -449,7 +480,7 @@ public class CompositionEntry extends MultiPropertyEntry {
     final public void rectifyEntry(boolean toSort) {
         // Simple bubble sort (we are dealing with small lists)
         if (toSort) {
-            int n=Element.length, i, new_n, i_temp; 
+            int n =Element.length, i, new_n, i_temp;
             double d_temp;
             do {
                 new_n=0;
@@ -462,27 +493,27 @@ public class CompositionEntry extends MultiPropertyEntry {
                 n = new_n;
             } while (n != 0);
         }
-        
+
         // Normalize fraction, if it has not been already
         NumberInCell = StatUtils.sum(Fraction);
         for (int i=0; i<Fraction.length; i++) Fraction[i] /= NumberInCell;
     }
-        
-    // Feature calculation methods
+
     /** Calculate the alloy mean of a property
      * @param Lookup Lookup table of elemental properties
      * @return Alloy mean of that property
      */
     public double getMean(double[] Lookup) {
-        double mean=0;
-        for (int i=0; i<Element.length; i++) 
+        double mean = 0;
+        for (int i=0; i<Element.length; i++)
             mean+=Lookup[Element[i]]*Fraction[i];
         return mean;
     }
+    
     /** Calculate maximum difference between the properties of two elements that
      * are present in this entry
      * @param Lookup Lookup table of elemental properties
-     * @return Maximum difference between 
+     * @return Maximum difference between
      */
     public double getMaxDifference(double[] Lookup) {
         double min=Lookup[Element[0]], max=Lookup[Element[0]];
@@ -509,9 +540,9 @@ public class CompositionEntry extends MultiPropertyEntry {
      * @param mean Mean as computed using "getMean"
      * @return Average deviation of property from mean
      */
-    public double getAverageDeviation(double[] Lookup, double mean){
-        double x=0;
-        for (int i=0; i<Element.length; i++) 
+    public double getAverageDeviation(double[] Lookup, double mean) {
+        double x = 0;
+        for (int i=0; i<Element.length; i++)
             x+=Fraction[i]*Math.abs(Lookup[Element[i]]-mean);
         return x;
     }
@@ -522,8 +553,8 @@ public class CompositionEntry extends MultiPropertyEntry {
      * @return Maximum of the property amongst all elements in the composition
      */
     public double getMaximum(double[] Lookup) {
-        double x=Lookup[Element[0]];
-        for (int i=1; i<Element.length; i++) 
+        double x = Lookup[Element[0]];
+        for (int i=1; i<Element.length; i++)
             if (Lookup[Element[i]] > x) x = Lookup[Element[i]];
         return x;
     }
@@ -534,8 +565,8 @@ public class CompositionEntry extends MultiPropertyEntry {
      * @return Minimum of the property amongst all elements in the compound
      */
     public double getMinimum(double[] Lookup) {
-        double x=Lookup[Element[0]];
-        for (int i=1; i<Element.length; i++) 
+        double x = Lookup[Element[0]];
+        for (int i=1; i<Element.length; i++)
             if (Lookup[Element[i]] < x) x = Lookup[Element[i]];
         return x;
     }
@@ -550,8 +581,8 @@ public class CompositionEntry extends MultiPropertyEntry {
         // Special case
         if (Element.length == 1) {
             return Lookup[Element[0]];
-        } 
-        
+        }
+
         boolean[] isMost = new boolean[Element.length];
         double maxValue = -1;
         // Find the most prevalent element(s)
@@ -565,7 +596,7 @@ public class CompositionEntry extends MultiPropertyEntry {
         // Return the average
         double output = 0;
         double count = 0;
-        for (int i=0; i<isMost.length; i++) 
+        for (int i=0; i<isMost.length; i++)
             if (isMost[i]){
                 output += Lookup[Element[i]];
                 count++;
@@ -597,26 +628,7 @@ public class CompositionEntry extends MultiPropertyEntry {
             output+=ElementNames[Element[i]];
             if (Numbers[i].length() > 0) output+="<sub>" + Numbers[i] + "</sub>";
         }
- 
-        return output;
-    }  
-    
-    /**
-     * Print out the number of atoms in a formula unit for each element given its fraction
-     * @param fraction Fractions to be printed
-     * @param NInFormulaUnit Number of atoms in a formula unit
-     * @return Result formatted as a string
-     */
-    static public String[] printNumber(double[] fraction, double NInFormulaUnit) {
-        DecimalFormat format = new DecimalFormat("#.###");
-        String[] output = new String[fraction.length];
-        for (int i=0; i<fraction.length; i++) {
-            double expanded = fraction[i] * NInFormulaUnit;
-            if (Math.abs(expanded - Math.round(expanded)) < 0.0001)
-                output[i] = (int) expanded == 1 ? "" : String.format("%d", (int) expanded);
-            else 
-                output[i] = format.format(expanded);
-        }
+
         return output;
     }
 
