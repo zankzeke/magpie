@@ -18,7 +18,7 @@ import org.apache.commons.math3.exception.OutOfRangeException;
  * 
  * <usage><p><b>Usage</b>: &lt;number> &lt;method> [&lt;options...>]
  * <br><pr><i>number</i>: Number of top-performing attributes to select
- * <br><pr><i>method</i>: Name of a {@linkplain BaseAttributeEvaluator} class used to rank attributes. ("?" to print available options)
+ * <br><pr><i>method</i>: Name of a {@linkplain BaseAttributeEvaluator} class used to rank attributes.
  * <br><pr><i>options...</i>: Options for the attribute evaluator (unique to each method)</usage>
  * 
  * @author Logan Ward
@@ -36,11 +36,6 @@ public class BestIndividualSelector extends BaseAttributeSelector {
         String[] Options = CommandHandler.convertCommandToString(OptionsObj);
         try {
             NToSelect = Integer.parseInt(Options[0]);
-            if (Options[1].equalsIgnoreCase("?")) {
-                System.out.println("Available Attribute Evaluators:");
-                CommandHandler.printImplmentingClasses(BaseAttributeEvaluator.class, false);
-                return;
-            }
             String Method = Options[1];
             List<Object> MethodOptions = OptionsObj.subList(2, OptionsObj.size());
             Evaluator = (BaseAttributeEvaluator) CommandHandler.instantiateClass(

@@ -17,8 +17,8 @@ import magpie.user.CommandHandler;
  * and number of elite candidates held in the breeding pool as well.
  *
  * <usage><p><b>Usage</b>: &lt;Crossover Function> &lt;Mutation Function> [-weight &lt;weight>] [-mutprob &lt;mutprob>] [-prev &lt;prev>] [-elite &lt;elite>]
- * <br><pr><i>Mutation Function</i>: Function used to perform mutation operations. Type "?" for available options
- * <br><pr><i>Crossover Function</i>: Function used to perform cross-over. Type "?" for available options
+ * <br><pr><i>Mutation Function</i>: Function used to perform mutation operations.
+ * <br><pr><i>Crossover Function</i>: Function used to perform cross-over.
  * <br><pr><i>weight</i>: How much weight to apply to better-ranking entries (default: 10)
  * <br><pr><i>mutprob</i>: Probability that a candidate will be mutated after crossover (default: 0.1)
  * <br><pr><i>prev</i>: How many previous generations to include in breeding pool (default: 1)
@@ -67,15 +67,6 @@ public class GeneticAlgorithm extends BaseOptimizer {
         String[] Options = CommandHandler.convertCommandToString(OptionsObj);
         if (Options.length < 2) {
             throw new Exception(printUsage());
-        }
-        // Load in the MutationFunction
-        if (Options[0].equals("?")) {
-            System.out.println(CommandHandler.
-                    printImplmentingClasses(BaseMutationFunction.class, false));
-        }
-        if (Options[1].equals("?")) {
-            System.out.println(CommandHandler.
-                    printImplmentingClasses(BaseCrossoverFunction.class, false));
         }
         // Load in Options
         for (int i = 0; i < 2; i++) {

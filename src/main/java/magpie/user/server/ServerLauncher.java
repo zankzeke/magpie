@@ -1,23 +1,22 @@
 
 package magpie.user.server;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
+import magpie.Magpie;
 import magpie.data.Dataset;
 import magpie.models.BaseModel;
-import magpie.user.server.thrift.MagpieServer;
-import magpie.user.server.thrift.MagpieServerHandler;
 import magpie.utility.WekaUtility;
-import org.apache.thrift.protocol.TJSONProtocol;
-import org.apache.thrift.transport.TServerSocket;
-import org.apache.thrift.server.*;
-import org.apache.thrift.transport.TServerTransport;
-import org.apache.thrift.transport.TTransportException;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.servlets.CrossOriginFilter;
+import org.glassfish.grizzly.http.server.HttpServer;
+import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.yaml.snakeyaml.Yaml;
+
+import java.io.FileInputStream;
+import java.net.URI;
+import java.util.Date;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Main class for launching a Magpie server. 
@@ -31,51 +30,75 @@ import org.eclipse.jetty.servlets.CrossOriginFilter;
  * you would use with Python client) starts on this server, HTTP server will start
  * on port + 1.
  * <br><b>-models &lt;path&gt;</b>: Path to file describing models to be served.
- * This file must follow the following format:
- * 
+ * This file should be formatted in YAML and follow the following structure:
+ *
  * <div style="padding: 10px 0 0 20px;">
- * This file should contain a list of entries describing how to run each model,
- * and information necessary for someone to properly use it. Each model should
- * be described by an entry in the following format. For longer descriptions, it
- * is advised to use HTML format.
- * <p>entry &lt;name&gt; // Unique name used to describe this model
- * <div style="padding: 0 0 0 20px;">
- * &lt;model path&gt; // Path to model to evaluated
- * &lt;dataset path&gt; // Path to dataset used to generate attributes
- * <br>property &lt;description&gt; // Short description of the property being predicted
- * <br>units &lt;path&gt; // Define the units of this model
- * <br>training &lt;description&gt; // Description of training set
- * <br>author &lt;name&gt; // Contact information for author
- * <br>citation &lt;info&gt; // Information for how to properly cite this model
- * <br>description &lt;words&gt; // Short description of model
- * <br>notes &lt;words&gt; // Longer description of model
+ *     This YAML file should be partitioned into several separate documents, which each describe a different model and
+ *     are separated by lines of '---'.
+ *
+ *     <p>Each document should contain the following fields:</p>
+ *     <ul>
+ *         <li><b>name</b> Name for this model</li>
+ *         <li><b>modelPath</b> Path to the model file</li>
+ *         <li><b>datasetPath</b> Path to the dataset</li>
+ *         <li><b>description</b> Short description of model</li>
+ *         <li><b>property</b> Name of property being modeled, or a short description</li>
+ *         <li><b>units</b> (Optional) Units for the property</li>
+ *         <li><b>training</b> Short description of the training set</li>
+ *         <li><b>citation</b> Citation for the model</li>
+ *         <li><b>author</b> Name of author of the model</li>
+ *         <li><b>notes</b> Longer description of the model</li>
+ *         <li><b>maxEntries</b> Maximum number of entries that can be run by a single query</li>
+ *     </ul>
+ *
+ *     <p>Feel free to use HTML formatting in the YAML file. This information will likely be rendered by a web browser</p>
  * </div>
- * 
- * </div>
- * 
- * 
- * <p>Example: java -jar Magpie.jar -server -model volume volume.obj -data data.obj
+ *
+ * <br><b>-maxEntries &lt;path&gt;</b>Maximum number of entries that this server will run for a single request
  * 
  * <p><b>Client Implementation Guide</b>
- * 
- * <p>This code uses <a href="http://thrift.apache.org/">Apache Thrift</a> to 
- * define the interface. There are several different commands available through
- * this API, which are described in the "magpie.thrift" file included with this
- * software package. An example for a client that uses the JavaScript interface
- * and an example Python client are provided.
- * 
+ *
+ * <p>This code uses a REST interface. Eventually, we may provide a wrapper for this API in other languages. There
+ * are a few example webpages using this interface in the Magpie repository.</p>
+ *
+ * <p>To do list:</p>
+ *
+ * <ol>
+ *     <li>Allow the dataset used to parse entries be different than that used to run it
+ *     (e.g., parse crystal structure, run based on composition)</li>
+ *     <li>Create a class that stores datasets, and can use them in seraches / send them to users</li>
+ * </ol>
+ *
  * @author Logan Ward
  */
 public class ServerLauncher {
     /** Port on which to listen */
     public static int ListenPort = 4581;
-    /** Socket server */
-    public static TServer SocketServer;
-    /** HTTP server */
-    public static Server HTTPServer;
-    /** Tool used to handle requests */
-    public static MagpieServerHandler Handler = new MagpieServerHandler();
-    
+    /**
+     * List of models available to this program
+     */
+    public static Map<String, ModelPackage> Models = new TreeMap<>();
+    /**
+     * Server currently being used
+     */
+    public static HttpServer Server = null;
+    /**
+     * Time server was launched
+     */
+    public static Date StartDate;
+    /**
+     * Executor used to prevent too many complex calculations at once.
+     */
+    public static ExecutorService ThreadPool;
+    /**
+     * Number of allowed threads
+     */
+    public static int ThreadCount;
+    /**
+     * Maximum mumber of entries to run
+     */
+    public static int MaxNumEntries = 100000;
+
     /**
      * Handle input passed to the server. See class documentation for format
      * @param args Input 
@@ -88,12 +111,13 @@ public class ServerLauncher {
             switch (tag) {
                 case "-port":
                     ListenPort = Integer.parseInt(args[++pos]);
-                    System.out.println("Set listen ports:");
-                    System.out.println("\tSocket port: " + ListenPort);
-                    System.out.println("\tHTTPClient port: " + (ListenPort + 1));
+                    System.out.println("Set port: " + ListenPort);
                     break;
-                case "-model":
+                case "-models":
                     readInformationFile(args[++pos]);
+                    break;
+                case "-maxentries":
+                    MaxNumEntries = Integer.parseInt(args[++pos]);
                     break;
                 default:
                     throw new Exception("Unknown tag: " + tag);
@@ -105,115 +129,50 @@ public class ServerLauncher {
     /**
      * Given model information file, configure the handler
      * @param path Path to model information file
-     * @throws Exception 
-     * @see MagpieServer
+     * @throws Exception
      */
     public static void readInformationFile(String path) throws Exception {
         // Make sure Weka models are available
         WekaUtility.importWekaHome();
-        
-        // Open up the reader
-        BufferedReader reader = new BufferedReader(new FileReader(path));
-        
-        // Read in model information
-        String line = "";
-        while (true) {
-            if (! line.toLowerCase().startsWith("entry ")) {
-                line = reader.readLine();
-            }
-            if (line == null) {
-                break;
-            }
-            String[] words = line.split("[ \t]");
-            if (words.length == 0) {
-                continue;
-            }
-            if (! words[0].equalsIgnoreCase("entry")) {
-                continue;
-            }
-            
-            // Get the name of this model
-            String name = words[1];
-            System.out.println("Creating model: " + name);
-            
-            // Read in model and dataset
-            line = reader.readLine();
-            if (line == null) {
-                throw new Exception("Format error: Missing line for model path");
-            }
-            System.out.println("\tReading in model from: " + line);
-            BaseModel model;
-            try {
-                model = BaseModel.loadState(line);
-            } catch (Exception e) {
-                System.err.println("Model failed to read: " + e.getLocalizedMessage());
-                continue;
-            }
-            
-            line = reader.readLine();
-            if (line == null) {
-                throw new Exception("Format error: Missing line for dataset path");
-            }
-            System.out.println("\tReading in dataset from: " + line);
-            Dataset data;
-            try {
-                data = Dataset.loadState(line).emptyClone();
-            } catch (Exception e) {
-                System.err.println("Dataset failed to read: " + e.getLocalizedMessage());
-                continue;
-            }
-            
-            // Create the information holder
-            ModelPackage modelInfo = new ModelPackage(data, model);
-            
-            // Read in other stuff
-            line = reader.readLine();
-            while (line != null && ! line.toLowerCase().startsWith("entry ")) {
-                words = line.split("[ \t]");
-                if (words.length == 1) {
-                    line = reader.readLine();
-                    continue;
-                }
-                switch (words[0]) {
-                    case "property":
-                        modelInfo.Property = line.replaceFirst("property", "").trim();
-                        System.out.println("\tProperty: " + modelInfo.Property);
-                        break;
-                    case "units":
-                        modelInfo.Units = line.replaceFirst("units", "").trim();
-                        System.out.println("\tUnits: " + modelInfo.Units);
-                        break;
-                    case "author":
-                        modelInfo.Author = line.replaceFirst("author", "").trim();
-                        System.out.println("\tAuthor: " + modelInfo.Author);
-                        break;
-                    case "citation":
-                        modelInfo.Citation = line.replaceFirst("citation", "").trim();
-                        System.out.println("\tCitation: " + modelInfo.Citation);
-                        break;
-                    case "description":
-                        modelInfo.Description = line.replaceFirst("description", "").trim();
-                        System.out.println("\tdescription: " + modelInfo.Description);
-                        break;
-                    case "training":
-                        modelInfo.TrainingSet = line.replaceFirst("training", "").trim();
-                        System.out.println("\tTraining set: " + modelInfo.TrainingSet);
-                        break;
-                    case "notes":
-                        modelInfo.Notes = line.replaceFirst("notes", "").trim();
-                        System.out.println("\tNotes: " + modelInfo.Notes);
-                        break;
-                    default:
-                        System.out.println("Unrecognized property: " + words[0]);
-                }
-                line = reader.readLine();
-            }
-            
-            // Add in model to handler
-            Handler.addModel(name, modelInfo);
 
-            // If at end of file, break
-            if (line == null) break;
+        // Clear the list of models
+        Models.clear();
+
+        // Parse the input file
+        Yaml yaml = new Yaml();
+        FileInputStream fp = new FileInputStream(path);
+        for (Object modelDataObj : yaml.loadAll(fp)) {
+            Map<String, Object> modelData = (Map) modelDataObj;
+
+            // Get the name of the model
+            String modelName = modelData.get("name").toString();
+
+            // Get the path to the model and dataset
+            String modelPath = modelData.get("modelPath").toString();
+            String dataPath = modelData.get("datasetPath").toString();
+
+            // Read in the files
+            Dataset dataset = Dataset.loadState(dataPath);
+            dataset = dataset.emptyClone();
+            BaseModel model = BaseModel.loadState(modelPath);
+
+            // Read both to generate model package
+            ModelPackage modelPackage = new ModelPackage(dataset, model);
+
+            // Read in the other information
+            modelPackage.Description = modelData.get("description").toString();
+            modelPackage.Property = modelData.get("property").toString();
+            modelPackage.setUnits(modelData.containsKey("units") ? modelData.get("units").toString() : "None");
+            modelPackage.TrainingSet = modelData.get("training").toString();
+            modelPackage.Author = modelData.get("author").toString();
+            modelPackage.ModelCitation = modelData.get("citation").toString();
+            modelPackage.Notes = modelData.get("notes").toString();
+            if (modelData.containsKey("maxEntries")) {
+                modelPackage.MaxNumEntries = (Integer) modelData.get("maxEntries");
+            }
+
+            // Store the model
+            Models.put(modelName, modelPackage);
         }
     }
     
@@ -231,68 +190,28 @@ public class ServerLauncher {
 
     /**
      * Given the current settings, start the Magpie server
-     * @throws TTransportException
      * @throws Exception 
      */
-    public static void startServer() throws TTransportException, Exception {
-        // Create the processor
-        MagpieServer.Processor processor = new MagpieServer.Processor(Handler);
-        
-        // Initialize the server
-        TServerTransport trans = new TServerSocket(ListenPort);
-        SocketServer = new TThreadPoolServer(new TThreadPoolServer.Args(trans)
-                .processor(processor));
-        
-        // Initialize HTTP Server
-        HTTPServer = new Server(ListenPort + 1);
-        
-        ServletContextHandler handler = new ServletContextHandler(ServletContextHandler.SESSIONS);
-        handler.setContextPath("/");
-        
-        FilterHolder filter = new FilterHolder();
-        filter.setInitParameter("allowedOrigins", "*");
-        filter.setFilter(new CrossOriginFilter());
-        handler.addFilter(filter, "/*", null);
-        
-        HTTPServer.setHandler(handler);
-        TServlet tServlet;
-        tServlet = new TServlet(processor, new TJSONProtocol.Factory());
-        handler.addServlet(new ServletHolder(tServlet), "/*");
-        HTTPServer.start();
-        
-        // Fork server to the background
-        Thread thr = new Thread(new Runnable() {
+    public static void startServer() throws Exception {
+        // Make the HTTP server
+        final ResourceConfig cfg = new ResourceConfig().packages("magpie.user.server");
+        Server = GrizzlyHttpServerFactory.createHttpServer(URI.create("http://0.0.0.0:" + ListenPort), cfg);
+
+        // Add hook to shutdown Server
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             @Override
             public void run() {
-                SocketServer.serve();
+                Server.shutdownNow();
             }
-        });
-        thr.start();
-        
-        // System status message
-        System.out.println("Started servers:");
-        System.out.println("\tSocket w/ TBinaryProtocol: " + ListenPort);
-        System.out.println("\tHTTPServer w/ TJSONProtocol: " + (ListenPort + 1));
-    }
-    
-    /**
-     * Stop the servers
-     * @throws Exception 
-     */
-    public static void stopServer() throws Exception {
-        SocketServer.stop();
-        HTTPServer.stop();
-    }
-    
-    /**
-     * Check if the servers are running
-     * @return Whether they are running
-     */
-    public static boolean isRunning() {
-        if (SocketServer == null || HTTPServer == null) {
-            return false;
-        } else {
-            return SocketServer.isServing() && HTTPServer.isStarted();
-        }
+        }));
+
+        // Create the thread pool for running models, etc.
+        ThreadPool = Executors.newFixedThreadPool(Magpie.NThreads);
+        ThreadCount = Magpie.NThreads;
+        Magpie.NThreads = 1; // Prevent any other parallel operations
+
+        // Launch it
+        Server.start();
+        StartDate = new Date();
     }
 }

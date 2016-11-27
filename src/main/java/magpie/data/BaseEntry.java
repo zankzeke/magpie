@@ -1,11 +1,14 @@
 package magpie.data;
 
+import magpie.utility.UtilityOperations;
+import org.apache.commons.lang3.ArrayUtils;
+import org.json.JSONObject;
+
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.regex.*;
-import org.apache.commons.lang3.ArrayUtils;
-import org.json.JSONObject;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * This class is designed to store all information related to an entry in a Dataset
@@ -87,6 +90,14 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
     }
     
     /**
+     * Sets attributes for this entry
+     * @param attributes List of attributes (same order as {@linkplain Dataset#AttributeName})
+     */
+    public void setAttributes(double[] attributes) {
+        AttributeList = attributes.clone();
+    }
+
+    /**
      * Retrieve a certain attribute for this entry
      * @param index Index of attribute to retrieve
      * @return Value of specified attribute
@@ -94,7 +105,7 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
     public double getAttribute(int index) {
         return AttributeList[index];
     }
-    
+
     /**
      * Set a certain attribute for this entry
      * @param index Index of attribute to set
@@ -102,14 +113,6 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
      */
     public void setAttribute(int index, double value) {
         AttributeList[index] = value;
-    }
-
-    /**
-     * Sets attributes for this entry
-     * @param attributes List of attributes (same order as {@linkplain Dataset#AttributeName})
-     */
-    public void setAttributes(double[] attributes) {
-        AttributeList = attributes.clone();
     }
     
     /** 
@@ -169,7 +172,7 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
     
     @Override public int hashCode() {
         if (AttributeList.length > 0) {
-            return (int) Arrays.hashCode(AttributeList);
+            return Arrays.hashCode(AttributeList);
         } else {
             return 1;
         }
@@ -210,19 +213,31 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
         predicted = false;
     }
 
-    /** 
+    /**
+     * Get the measured class variable
+     *
+     * @return Measured class
+     */
+    public double getMeasuredClass() {
+        return Class;
+    }
+
+    /**
      * Set the measured class variable
      * @param x Measured class
      */
     public void setMeasuredClass(double x){
         this.Class = x; measured=true;
     }
-    /** 
-     * Get the measured class variable
-     * @return Measured class
-     */
-    public double getMeasuredClass() { return Class; }
 
+    /**
+     * Get the predicted class variable
+     *
+     * @return Predicted class
+     */
+    public double getPredictedClass() {
+        return PredictedClass; }
+    
     /** Set the predicted class variable
      * @param x Predicted class
      */
@@ -230,12 +245,6 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
         PredictedClass = x; predicted=true;
         ClassProbabilites=null;
     }
-    
-    /**
-     * Get the predicted class variable
-     * @return Predicted class
-     */
-    public double getPredictedClass() { return PredictedClass; }
     
     /** 
      * Set the predicted probability of a entry existing in each class
@@ -286,7 +295,7 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
         JSONObject output = new JSONObject();
         
         // Set the attribute and class values
-        output.put("attributes", AttributeList);
+        output.put("attributes", AttributeList != null ? UtilityOperations.toJSONArray(AttributeList) : new double[0]);
         
         JSONObject classVals = new JSONObject();
         classVals.put("measured", hasMeasurement() ? getMeasuredClass() : null);

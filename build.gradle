@@ -37,34 +37,29 @@ buildscript {
 cobertura {
     coverageFormats = [ 'xml' ]
     coverageIgnoreTrivial = true
-    coverageExcludes = [ '.*autogen.*' ]
 }
 
 // Dependency list
 dependencies {
-    compile name: 'commons-collections-3.2.1'
-    compile name: 'commons-lang3-3.1'
+    // General dependencies
+    compile group: 'commons-collections', name: 'commons-collections', version: '3.2.2'
+    compile group: 'commons-io', name: 'commons-io', version: '2.5'
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.1'
     compile group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
     compile group: 'org.json', name: 'json', version: '20160810'
-    compile name: 'commons-io-2.4'
-    compile name: 'expr'
-    compile name: 'guava-16.0.1'
-    compile name: 'javassist'
-    compile name: 'jetty-http-9.2.10.v20150310'
-    compile name: 'jetty-io-9.2.10.v20150310'
-    compile name: 'jetty-security-9.2.10.v20150310'
-    compile name: 'jetty-server-9.2.10.v20150310'
-    compile name: 'jetty-servlet-9.2.10.v20150310'
-    compile name: 'jetty-servlets-9.2.10.v20150310'
-    compile name: 'jetty-util-9.2.10.v20150310'
+    compile group: 'nz.ac.waikato.cms.weka', name: 'weka-dev', version: '3.7.13'
+    compile group: 'org.yaml', name: 'snakeyaml', version: '1.17'
+
+    // For the REST Server
+    compile 'org.glassfish.jersey.core:jersey-server:2.23.2'
+    compile 'org.glassfish.jersey.containers:jersey-container-grizzly2-http:2.23.2'
+
+    // For JUNIT
     testCompile 'junit:junit:4.12'
-    compile name: 'libthrift-0.9.2'
-    compile name: 'reflections-0.9.9-RC1'
-    compile name: 'servlet-api-3.1'
-    compile name: 'slf4j-api-1.7.6'
-    compile name: 'slf4j-nop-1.7.6'
-    compile name: 'weka'
+
+    // Custom libraries provided with Magpie
     compile name: 'Vassal'
+    compile name: 'expr'
 }
 
 // Distribution instructions

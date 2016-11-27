@@ -30,7 +30,6 @@ import magpie.user.CommandHandler;
  * <br><pr><i>classifier</i>: {@linkplain BaseModel} that fills {@linkplain AbstractClassifier}, used to make predictions
  * <br><pr><i>threshold</i>: Desired threshold for the objective function value
  * <br><pr><i>objective function</i>: {@link BaseEntryRanker} used to rank the entries based on their class variable.
- * ("?" to list all available options)
  * <br><pr><i>o.f. options</i>: Any options for the objective function</usage>
  * @author Logan Ward
  */
@@ -74,10 +73,6 @@ public class ClassificationRegression extends BaseRegression {
             NewClfr = (BaseModel) Options.get(0);
             setThreshold(Double.valueOf(Options.get(1).toString()));
             OFMethod = Options.get(2).toString();
-            if (OFMethod.equalsIgnoreCase("?")) {
-                System.out.println(CommandHandler.printImplmentingClasses(BaseEntryRanker.class, false));
-                return;
-            }
             OFOptions = Options.subList(3, Options.size());
         } catch (Exception e) {
             throw new IllegalArgumentException(printUsage());

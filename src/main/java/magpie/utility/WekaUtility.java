@@ -12,7 +12,6 @@ import magpie.user.CommandHandler;
 import magpie.utility.interfaces.Citation;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.reflections.Reflections;
 import weka.classifiers.AbstractClassifier;
 import weka.core.OptionHandler;
 import weka.core.TechnicalInformation;
@@ -36,11 +35,6 @@ abstract public class WekaUtility {
     static public AbstractClassifier instantiateWekaModel(String model_type, 
             String[] options) throws Exception {
         importWekaHome();
-        if (model_type.contains("?")) {
-            System.out.println("Available Weka Classifiers:");
-            System.out.println(printImplmentingClasses(AbstractClassifier.class, true));
-            return null;
-        }
         if (! model_type.startsWith("weka.classifiers.")) {
             model_type = "weka.classifiers." + model_type;
         }
@@ -70,19 +64,6 @@ abstract public class WekaUtility {
         
         // Reset output
         System.setErr(original);
-    }
-	
-	/**
-     * Print the names and options (if applicable) of all classes that are 
-     *  subtypes of a certain class.
-     * @param cls Superclass of all objects of interest
-     * @param printPackage Whether to print the package name as well
-     * @return List of names and options of all 
-     */
-    static public String printImplmentingClasses(Class cls, boolean printPackage) {
-        Reflections reflections = new Reflections("weka");
-        Set<Class<? extends Object>> allClasses = reflections.getSubTypesOf(cls);
-        return CommandHandler.printClassInformation(allClasses, printPackage);
     }
 
     /**

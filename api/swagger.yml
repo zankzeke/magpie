@@ -1,0 +1,420 @@
+swagger: '2.0'
+
+info:
+  version: "0.0.1"
+  title: Magpie REST API
+  description: The REST API used to interact with models hosted by a Magpie server
+
+paths:
+  /server/version:
+    get:
+      description: Get the version of the REST API
+      responses:
+        200:
+          description: Successful response
+
+  /server/status:
+    get:
+      description: |
+       Information about the server. Includes the versions of the software and API, available memory, and processor count
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Successful response
+
+  /model/{name}/info:
+    get:
+      description: |
+        Gets information about a model stored in the server
+      parameters:
+        - name: name
+          in: path
+          description: Name of model
+          required: true
+          type: number
+          format: int
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Successful response
+        404:
+          description: No model by that name found
+
+  /model/{name}/model:
+    get:
+      description: |
+        Get the model, serialized
+      parameters:
+        - name: name
+          in: path
+          description: Name of model
+          required: true
+          type: number
+          format: int
+      produces:
+        - application/octet-stream
+      responses:
+        200:
+          description: Successful response
+        404:
+          description: No model by that name found
+
+  /model/{name}/dataset:
+    get:
+      description: |
+        Get the dataset used to generate inputs for this model, serialized
+      parameters:
+        - name: name
+          in: path
+          description: Name of model
+          required: true
+          type: string
+      produces:
+        - application/octet-stream
+      responses:
+        200:
+          description: Successful response
+        404:
+          description: No model by that name found
+
+  /model/{name}/attributes:
+    post:
+      description: |
+        Generate the attributes which serve as input into this model
+      parameters:
+        - name: name
+          in: path
+          description: Name of model
+          required: true
+          type: string
+        - name: entries
+          in: formData
+          description: |
+            Entries to be processed as JSON file. Only key in JSON file is
+            "data," which contains the entries to be run written as strings
+          required: true
+          schema:
+            $ref: "#/definitions/Dataset"
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Successful response
+        405:
+          description: Some problem in running the attribute generation
+
+  /model/{name}/run:
+    post:
+      description: |
+        Generate the attributes and run this model
+      parameters:
+        - name: name
+          in: path
+          description: Name of model
+          required: true
+          type: string
+        - name: entries
+          in: formData
+          description: |
+            Entries to be processed as JSON file. Only key in JSON file is
+            "data," which contains the entries to be run written as strings
+          type: string
+          required: true
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Successful response
+        405:
+          description: Some problem in running the attribute generation
+
+  /models:
+    get:
+      description: |
+        Get information about all models matching a certain query
+      parameters:
+        - name: datasetType
+          in: query
+          description: Dataset used by model must be this type
+          type: string
+          required: false
+        - name: supportedDatasetType
+          in: query
+          description: |
+            Dataset used by model must support data of this type. For example, data
+            that is comptabile with a
+            [CrystalStructureDataset](http://oqmd.org/static/analytics/magpie/javadoc/magpie/data/materials/CrystalStructureDataset.html)
+            (i.e., has infomration about a crystal structure) is also compatible with a
+            [CompositionDataset](http://oqmd.org/static/analytics/magpie/javadoc/magpie/data/materials/CompositionDataset.html)
+          required: false
+          type: string
+      responses:
+        200:
+          description: Succesful response
+        400:
+          description: Some problem with query
+
+  /search:
+    post:
+      description: |
+        Run a search
+      produces:
+        - application/json
+      parameters:
+        - name: search
+          in: query
+          desciprition: Seach specification
+          schema:
+            $ref: "#/definitions/SearchSpecification"
+      responses:
+        200:
+          description: Successful response
+
+definitions:
+
+  Dataset:
+    type: object
+    description: |
+      Holds a collections of entries to be processed by, or that were generated by Magpie
+    properties:
+      entries:
+        type: array
+        items:
+          $ref: "#/definitions/Entry"
+
+  Entry:
+    type: object
+    description: |
+      A single entry in a dataset
+    properties:
+      name:
+        type: string
+        description: Name of the the entry
+      parsedName:
+        type: string
+        description: Name generated by Magpie, useful for debugging
+      attributes:
+        type: array
+        description: Inputs to the machine learning model
+        items:
+          type: number
+          format: double
+      predictedValue:
+        type: number
+        format: double
+        description: Predicted value, output of machine learning model
+      predictedClass:
+        type: string
+        description: For a classification model, name of predicted class
+      classProbabilities:
+        type: object
+        description: |
+          For a classification model, predicted probability of each class.
+          Keys are name of class, values are probabilities as number
+
+  ModelInformation:
+    type: object
+    description: Information about a model
+    properties:
+      property:
+        type: string
+        description: Property being predicted
+      modelType:
+        type: string
+        description: Whether this model is a regression or classification model
+      units:
+        type:
+          oneOf:
+            - string
+            - array
+        description: |
+          Units (string) or possible classes (array) if model is a regression or classification model, respectively
+        items:
+          type: string
+      trainingSetDescription:
+        type: string
+        description: Text describing the data used to train the model
+      trainingSetSize:
+        type: number
+        format: int32
+        description: Number of entries in training set
+      author:
+        type: string
+        description: Name of person(s) who created this model
+      citation:
+        type: string
+        description: |
+          Location of resource where one can find more information about a model, or to properly cite it
+      description:
+        type: string
+        description: Short description of model
+      notes:
+        type: string
+        description: Longer description of model
+      modelTrainedDate:
+        type: string
+        description: Date model was last trained
+      modelClass:
+        type: string
+        description: Name of the Magpie object used for creating the model
+      modelDetails:
+        type: string
+        description: Longer form description about the model, enough to recreate it
+      datasetClass:
+        type: string
+        description: Name of the Magpie object used for generating inputs to model
+      datasetDescription:
+        type: string
+        description: Longer form description about the dataset, enough to recreate it
+      modelStats:
+        type: object
+        description: Model performance on training set and during validation test
+        properties:
+          training:
+            type: object
+            description: Performance on training set
+            schema:
+              $ref: "#/defintiions/ModelPerformanceStats"
+          training:
+            type: object
+            description: Performance during validation test
+            schema:
+              $ref: "#/defintiions/ModelPerformanceStats"
+      usageStats:
+        type: object
+        description: Information about how much this model has been used
+        schema:
+          $ref: "#/definitions/ModelUsageStats"
+      suggestedCitations:
+        type: object
+        description: |
+          Suggested citations for model, based on what techniques are used by the ML model and used
+           to generate the representation
+
+  ModelPerformanceStats:
+    type: object
+    description: Data regarding the performance of the model in either training or cross-validation
+    properties:
+      method:
+        type: string
+        description: Method used for validation test
+
+
+  ModelUsageStats:
+    type: object
+    description: Data regarding how much the model has been used
+    properties:
+      numberTimesRun:
+        type: number
+        format: int64
+        description: Number of times model has been called by users
+      numberEntriesEvaluated:
+        type: number
+        format: int64
+        description: Number of entries that the model has evalauted
+      totalRunTime:
+        type: string
+        description: How much time it is taken to run the model, formatted to be human readable
+      totalRunTime:
+        type: number
+        format: int64
+        description: How much time it is taken to run the model, in milliseconds
+
+  SearchSpecification:
+    type: object
+    description: Defines the search scheme
+    properties:
+      datasetType:
+        type: string
+        description: |
+          Name of a Magpie Dataset object. Path relative to "magpie.data" package.
+          For example, CompositionDataset would be "materials.CompositionDataset"
+      entryGenerator:
+        type: array
+        description: |
+          Definition of method used to generate entries. First word is the name
+          of a BaseEntryGenerator class, relative to the "magpie.data.utilities.generators" package (e.g., "IonicCompoundGenerator"). The next
+          entries are optiosn for that class.
+        items:
+          type: string
+      steps:
+        type: array
+        description: |
+          Specifications for the steps of the search process
+        items:
+          type: object
+      entryRanker:
+        type: object
+        description: Specify how entries are ranked after the search
+        properties:
+          method:
+            type: string
+            description: Name of BaseEntryRanker to select best entries
+          number:
+            type: number
+            format: int32
+            description: Number of top entries to select
+          minimize:
+            type: boolean
+            description: Whether to maximize or minimize the entry ranker
+          options:
+            type: array
+            description: Options for the entry ranker method
+            items: 
+              type: string
+			
+  SearchStepSpecification:
+    type: object
+    description: |
+      Specification for a step in a search procedure using ML models.
+    properties:
+      type:
+        type: string
+        description: Type of the step. Could be "model" or "filter"
+      options:
+        type: object
+        description: Options for the model or filter.
+        oneOf:
+          - $ref: "#/definitions/ModelStepSpecification"
+          - $ref: "#/definitions/FilterStepSpecification"
+
+  ModelStepSpecification:
+    type: object
+    description: Specifying a search step that is running a model
+    properties:
+      name:
+        type: string
+        description: Name of the model to be run.
+
+  FilterStepSpecification:
+    type: object
+    description: Specifying a search step that is a filter
+    properties:
+      name:
+        type: string
+        description: Name of filter to be run
+      exclude:
+        type: boolean
+        description: Whether to exclude entries that pass the filter
+      options:
+        type: array
+        description: Options for the filter
+        items:
+          type: string
+
+  SearchResponse:
+    type: object
+    description: Response from a search query
+    properties:
+      chosenEntries:
+        type: array
+        description: Entries selected by the search
+        items:
+          type: string
+      data:
+        type: object
+        description: |
+          Collection of data for these entries. Keys are names of a model, values
+          are "Dataset" objects

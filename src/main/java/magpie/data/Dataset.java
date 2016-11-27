@@ -26,11 +26,11 @@ import weka.core.converters.ArffLoader;
 import javax.naming.OperationNotSupportedException;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
 
 import static magpie.user.CommandHandler.instantiateClass;
-import static magpie.user.CommandHandler.printImplmentingClasses;
 
 /**
  * Provides a basic storage container for data-mining tasks. Must be filled with
@@ -103,13 +103,12 @@ import static magpie.user.CommandHandler.printImplmentingClasses;
  * <br><pr><i>include|exclude</i>: Whether to include/exclude only entries that
  * pass the filter
  * <br><pr><i>method</i>: Filtering method. Name of a
- * {@linkplain BaseDatasetFilter} ("?" to print available methods)
+ * {@linkplain BaseDatasetFilter}
  * <br><pr><i>options...</i>: Options for the filter</command>
  *
  * <command><p>
  * <b>generate &lt;method&gt; [&gt;options&lt;]</b> - Generate new entries
- * <br><pr><i>method</i>: Name of a {@linkplain BaseEntryGenerator}. ("?" for
- * options)
+ * <br><pr><i>method</i>: Name of a {@linkplain BaseEntryGenerator}.
  * <br><pr><i>options</i>: Any options for the entry generator</command>
  * 
  * <command><p>
@@ -121,8 +120,7 @@ import static magpie.user.CommandHandler.printImplmentingClasses;
  *
  * <command><p>
  * <b>modify &lt;method> [&lt;options>]</b> - Modify the dataset
- * <br><pr><i>method</i>: How to modify dataset. Name of a
- * {@linkplain BaseDatasetModifier}. ("?" to print available methods)
+ * <br><pr><i>method</i>: How to modify dataset. Name of a {@linkplain BaseDatasetModifier}.
  * <br><pr><i>options</i>: Any options for the dataset</command>
  *
  * <command><p>
@@ -139,8 +137,7 @@ import static magpie.user.CommandHandler.printImplmentingClasses;
  * smallest objection function
  * <br><pr><i>measured|predicted</i>: Whether to use the measured or predicted
  * values when calculation
- * <br><pr><i>method</i>: Object function used to rank entries. Name of a
- * {@link BaseEntryRanker} ("?" for available methods)
+ * <br><pr><i>method</i>: Object function used to rank entries. Name of a {@link BaseEntryRanker}
  * <br><pr><i>options...</i>: Any options for the objective function</command>
  *
  * <command><p>
@@ -168,8 +165,7 @@ import static magpie.user.CommandHandler.printImplmentingClasses;
  * <command><p>
  * <b>attributes expanders add &lt;method> [&lt;options...>]</b> - Add an
  * attribute expander to be run after generating attributes
- * <br><pr><i>method</i>: How to expand attributes. Name of a
- * {@linkplain BaseAttributeExpander} ("?" to print available methods)
+ * <br><pr><i>method</i>: How to expand attributes. Name of a {@linkplain BaseAttributeExpander}
  * <br><pr><i>options...</i>: Any options for the expansion method These
  * expanders are designed to create new attributes based on existing
  * ones.</command>
@@ -185,8 +181,7 @@ import static magpie.user.CommandHandler.printImplmentingClasses;
  * <command><p>
  * <b>attributes generators add &lt;method> [&lt;options...>]</b> - Add a new
  * attribute generator to list of generators
- * <br><pr><i>method</i>: New generation method. Name of a
- * {@linkplain BaseAttributeGenerator} ("?" to print available methods)
+ * <br><pr><i>method</i>: New generation method. Name of a {@linkplain BaseAttributeGenerator}
  * <br><pr><i>options...</i>: Any options for the generator method These
  * expanders are designed to create new attributes tailored for a specific
  * application.</command>
@@ -206,8 +201,7 @@ import static magpie.user.CommandHandler.printImplmentingClasses;
  * <b>attributes rank &lt;number> &lt;method> [&lt;options...&gt;]</b> - Rank
  * attributes based on predictive power
  * <br><pr><i>number</i>: Number of top attributes to print
- * <br><pr><i>method</i>: Method used to rank attributes. Name of a
- * {@linkplain BaseAttributeEvaluator} ("?" to print available methods)
+ * <br><pr><i>method</i>: Method used to rank attributes. Name of a {@linkplain BaseAttributeEvaluator}
  * <br><pr><i>options...</i>: Options for the evaluation method.</command>
  *
  * <p>
@@ -547,7 +541,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     /**
      * Compute attributes that are specific to this class.
      *
-     * @throws Exception
+     * @throws Exception If attribute calculation fails
      */
     protected void calculateAttributes() throws Exception {
         throw new OperationNotSupportedException("Dataset does not support attribute generation");
@@ -567,7 +561,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * NOTE: This will not effect the number of attributes of each entry. Make
      * sure to update those if needed!
      *
-     * @param attributeNames
+     * @param attributeNames New names for each attribute
      */
     public void setAttributeNames(List<String> attributeNames) {
         AttributeName.clear();
@@ -877,7 +871,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * Remove all duplicate entries without any selection strategy
      */
     public void removeDuplicates() {
-        Set Filter = new HashSet<>(Entries);
+        Set<BaseEntry> Filter = new HashSet<>(Entries);
         Entries.clear();
         Entries.addAll(Filter);
     }
@@ -1982,16 +1976,18 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     /**
      * Save the state of this object using serialization
      * @param filename Path to output file
+     * @throws IOException
      */
-    public void saveState(String filename) {
+    public void saveState(String filename) throws IOException {
         UtilityOperations.saveState(this, filename);
     }
     
     /**
-     * Save a template of this dataset to disk using 
+     * Save a template of this dataset to disk using
+     * @throws IOException
      * @param filename Path to output file
      */
-    public void saveTemplate(String filename) {
+    public void saveTemplate(String filename) throws IOException {
         UtilityOperations.saveState(createTemplate(), filename);
     }
 
@@ -2110,10 +2106,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 }
                 // Get command
                 String method = command.get(1).toString();
-                if (method.equals("?")) {
-                    System.out.println(printImplmentingClasses(BaseDatasetModifier.class, false));
-                    return null;
-                }
+
                 // Get options
                 List<Object> options = command.subList(2, command.size());
                 
@@ -2146,10 +2139,6 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                         throw new Exception();
                     }
                     Method = command.get(2).toString();
-                    if (Method.equals("?")) {
-                        System.out.println(printImplmentingClasses(BaseDatasetFilter.class, false));
-                        return null;
-                    }
                     Options = command.subList(3, command.size());
                 } catch (Exception e) {
                     throw new Exception("Usage: <dataset> filter <exclude|include> <method> <options...>");
@@ -2167,11 +2156,6 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 List<Object> MethodOptions;
                 try {
                     Method = command.get(1).toString();
-                    if (Method.equalsIgnoreCase("?")) {
-                        System.out.println("Available Entry Generators");
-                        System.out.println(printImplmentingClasses(BaseEntryGenerator.class, false));
-                        return null;
-                    }
                     MethodOptions = command.subList(2, command.size());
                 } catch (Exception e) {
                     throw new Exception("Usage: generate <method> [<options...>]");
@@ -2226,10 +2210,6 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 }
                 // Get command
                 String Method = command.get(1).toString();
-                if (Method.equals("?")) {
-                    System.out.println(printImplmentingClasses(BaseDatasetModifier.class, false));
-                    return null;
-                }
                 // Get options
                 List<Object> Options = command.subList(2, command.size());
                 // Modify the Dataset
@@ -2263,12 +2243,6 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                     }
                     // Get Method and its options
                     Method = command.get(4).toString();
-                    if (Method.equalsIgnoreCase("?")) {
-                        System.out.println("Available EntryRankers:");
-                        System.out.println(printImplmentingClasses(
-                                BaseEntryRanker.class, false));
-                        return null;
-                    }
                     Options = command.subList(5, command.size());
                 } catch (Exception e) {
                     throw new Exception("Usage: <dataset> rank <number> <maximum|minimum> <measured|predicted> <method> [<options>]");
@@ -2371,10 +2345,6 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                         NumToPrint = Integer.parseInt(Command.get(1).toString());
                     }
                     Method = Command.get(2).toString();
-                    if (Method.equals("?")) {
-                        System.out.println(printImplmentingClasses(BaseAttributeEvaluator.class, false));
-                        return null;
-                    }
                     MethodOptions = Command.subList(3, Command.size());
                 } catch (Exception e) {
                     throw new IllegalArgumentException("Usage: <dataset> attributes rank <number> <method> [<method options...>]");
@@ -2408,10 +2378,6 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 List<Object> Options;
                 try {
                     Method = Command.get(1).toString();
-                    if (Method.equals("?")) {
-                        System.out.println(printImplmentingClasses(BaseAttributeExpander.class, false));
-                        return;
-                    }
                     Options = Command.subList(2, Command.size());
                 } catch (Exception e) {
                     throw new Exception("Usage: <dataset> expand <method> <options...>");
@@ -2452,10 +2418,6 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 List<Object> Options;
                 try {
                     Method = Command.get(1).toString();
-                    if (Method.equals("?")) {
-                        System.out.println(printImplmentingClasses(BaseAttributeGenerator.class, false));
-                        return;
-                    }
                     Options = Command.subList(2, Command.size());
                 } catch (Exception e) {
                     throw new Exception("Usage: <dataset> expand <method> <options...>");

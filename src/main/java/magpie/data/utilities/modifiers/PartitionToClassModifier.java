@@ -15,7 +15,6 @@ import magpie.user.CommandHandler;
  * 
  * <usage><p><b>Usage</b>: &lt;split method> [&lt;split options...>]
  * <br><pr><i>split method</i>: Name of {@linkplain BaseDatasetSplitter} used to partition data.
- * ("?" for available options).
  * <br><pr><i>split options...</i>: Any options for the splitter</usage>
  * @author Logan Ward
  */
@@ -30,10 +29,6 @@ public class PartitionToClassModifier extends BaseDatasetModifier {
         if (Options.isEmpty()) 
             throw new Exception(printUsage());
         splitMethod = Options.get(0).toString();
-        if (splitMethod.contains("?")) {
-            System.out.println(CommandHandler.printImplmentingClasses(BaseDatasetSplitter.class, false));
-            return;
-        }
         splitOptions = Options.subList(1, Options.size());
         setSplitter((BaseDatasetSplitter) CommandHandler.instantiateClass(
                 "data.utilities.splitters." + splitMethod, splitOptions));

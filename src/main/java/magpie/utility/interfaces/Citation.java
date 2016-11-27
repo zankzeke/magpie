@@ -1,7 +1,10 @@
 package magpie.utility.interfaces;
 
+import org.json.JSONObject;
+
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Objects;
 
 /**
  * Class used by {@linkplain Citable} to define a resource being cited.
@@ -94,6 +97,27 @@ public class Citation {
         this.Notes = notes;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Citation) {
+            Citation x = (Citation) obj;
+            if (!Objects.equals(x.Title, Title)) {
+                return false;
+            }
+            if (!x.Component.equals(Component)) {
+                return false;
+            }
+            return x.Type.equals(Type);
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return Component.hashCode() + Title.hashCode() + Type.hashCode();
+    }
+
     /**
      * Print out a description of this citation.
      *
@@ -142,5 +166,29 @@ public class Citation {
                     Component.getName(),
                     Type);
         }
+    }
+
+    /**
+     * Return citation into JSON. Detailed formatting should be in HTML format
+     *
+     * @return JSON object describing the citation
+     */
+    public JSONObject toJSON() {
+        JSONObject output = new JSONObject();
+
+        output.put("component", Component.getCanonicalName());
+        output.put("authors", Authors);
+        output.put("title", Title);
+        if (Location != null) {
+            output.put("url", Location.toString());
+        }
+        if (Type != null) {
+            output.put("type", Type);
+        }
+        if (Notes != null) {
+            output.put("notes", Notes);
+        }
+
+        return output;
     }
 }

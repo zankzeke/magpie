@@ -15,7 +15,7 @@ import weka.core.OptionHandler;
  * Use Weka to cluster data.
  * 
  * <usage><p><b>Usage</b>: &lt;method> [&lt;options...>]
- * <br><pr><i>method</i>: Method used to cluster data. Name of a Weka Clusterer ("?" for available methods)
+ * <br><pr><i>method</i>: Method used to cluster data.
  * <br><pr><i>options...</i>: Options for the clusterer</usage>
  * 
  * @author Logan Ward
@@ -68,11 +68,6 @@ public class WekaClusterer extends BaseClusterer {
         String Method, MethodOptions[] = null;
         try {
             Method = Options[0];
-            if (Method.contains("?")) {
-                System.out.println("Available Clusterers:");
-                System.out.println(WekaUtility.printImplmentingClasses(weka.clusterers.Clusterer.class, true));
-                return;
-            }
             if (Options.length > 1)
                 MethodOptions = Arrays.copyOfRange(Options, 1, Options.length);
             Clusterer = instantiateClusterer(Method, MethodOptions);
