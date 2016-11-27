@@ -93,7 +93,7 @@ public class RankingDuplicateResolver extends BaseDuplicateResolver {
         // Return result
         if (bestEntries.isEmpty()) {
             // objective function failed for each entry, just pick the first
-            return bestEntries.get(0);
+            return entries.get(0);
         }
         if (bestEntries.size() == 1) {
             return bestEntries.get(0);

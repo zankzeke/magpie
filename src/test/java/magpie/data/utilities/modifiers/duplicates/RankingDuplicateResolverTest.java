@@ -1,12 +1,15 @@
 package magpie.data.utilities.modifiers.duplicates;
 
-import java.util.LinkedList;
-import java.util.List;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
 import org.junit.Test;
-import static org.junit.Assert.*;
+
+import java.util.LinkedList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 /**
  *
@@ -18,11 +21,11 @@ public class RankingDuplicateResolverTest {
     public void testSimple() throws Exception {
         // Make a dataset
         Dataset data = new Dataset();
-        for (int i=0; i<6; i++) {
+        for (int i = 0; i < 8; i++) {
             data.addEntry(new BaseEntry());
         }
-        
-        data.addAttribute("x", new double[]{0,1,1,2,2,3});
+
+        data.addAttribute("x", new double[]{0, 1, 1, 2, 2, 3, 4, 4});
         
         data.getEntry(0).setMeasuredClass(0);
         data.getEntry(1).setMeasuredClass(1);
@@ -40,8 +43,8 @@ public class RankingDuplicateResolverTest {
         
         // Run it
         res.modifyDataset(data);
-        
-        assertEquals(4, data.NEntries());
+
+        assertEquals(5, data.NEntries());
         int entryID = data.getEntriesWriteAccess().indexOf(originalData.getEntry(0));
         assertEquals(0, data.getEntry(entryID).getMeasuredClass(), 1e-6);
         entryID = data.getEntriesWriteAccess().indexOf(originalData.getEntry(1));

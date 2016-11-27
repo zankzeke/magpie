@@ -17,6 +17,7 @@ public class BaseEntryTest {
         
         // Check the measured class
         assertFalse(entry.hasMeasurement());
+        assertTrue(Double.isNaN(entry.getMeasuredClass()));
         entry.setMeasuredClass(-1);
         assertTrue(entry.hasMeasurement());
         assertEquals(-1, entry.getMeasuredClass(), 1e-6);
@@ -26,6 +27,7 @@ public class BaseEntryTest {
         
         // Check the measured class
         assertFalse(entry.hasPrediction());
+        assertTrue(Double.isNaN(entry.getPredictedClass()));
         entry.setPredictedClass(-1);
         assertTrue(entry.hasPrediction());
         assertEquals(-1, entry.getPredictedClass(), 1e-6);

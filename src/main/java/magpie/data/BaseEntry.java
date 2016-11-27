@@ -216,10 +216,10 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
     /**
      * Get the measured class variable
      *
-     * @return Measured class
+     * @return Measured class, if known. NaN otherwise
      */
     public double getMeasuredClass() {
-        return Class;
+        return hasMeasurement() ? Class : Double.NaN;
     }
 
     /**
@@ -233,10 +233,11 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
     /**
      * Get the predicted class variable
      *
-     * @return Predicted class
+     * @return Predicted class, if known. NaN otherwise
      */
     public double getPredictedClass() {
-        return PredictedClass; }
+        return hasPrediction() ? PredictedClass : Double.NaN;
+    }
     
     /** Set the predicted class variable
      * @param x Predicted class
