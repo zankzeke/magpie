@@ -1,14 +1,14 @@
 package magpie.data.utilities.generators;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.CompositionEntry;
+
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Generate compositions of ionic compounds. For each compositions, it must 
@@ -78,6 +78,12 @@ public class IonicCompoundGenerator extends PhaseDiagramCompositionEntryGenerato
     }
 
     @Override
+    public void train(Dataset dataset) {
+        super.train(dataset);
+        setLookupData((CompositionDataset) dataset);
+    }
+
+    @Override
     public Iterator<BaseEntry> iterator() {
         final Iterator<BaseEntry> allIter = super.iterator();
         
@@ -124,11 +130,9 @@ public class IonicCompoundGenerator extends PhaseDiagramCompositionEntryGenerato
     @Override
     public void addEntriesToDataset(Dataset data) {
         if (! (data instanceof CompositionDataset)) {
-            throw new Error("Data must be a CompositionDataset");
+            throw new IllegalArgumentException("Data must be a CompositionDataset");
         }
-        LookupData = (CompositionDataset) data;
         super.addEntriesToDataset(data); 
     }
-    
     
 }

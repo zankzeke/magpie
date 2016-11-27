@@ -1,14 +1,15 @@
 
 package magpie.data.utilities.generators;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.data.MultiPropertyDataset;
 import magpie.data.MultiPropertyEntry;
 import magpie.utility.interfaces.Options;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Base for classes that generate new entries.
@@ -47,6 +48,15 @@ abstract public class BaseEntryGenerator implements Options, Iterable<BaseEntry>
             output.add(iter.next());
         }
         return output;
+    }
+
+    /**
+     * Define any settings based on a dataset
+     *
+     * @param dataset Dataset used to define entries
+     */
+    public void train(Dataset dataset) {
+        // Nothing by default
     }
     
     /**
