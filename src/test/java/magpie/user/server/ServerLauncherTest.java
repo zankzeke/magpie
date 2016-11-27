@@ -244,7 +244,7 @@ public class ServerLauncherTest {
         response = Target.path("model/delta_e/info").request().get();
         JSONObject info = new JSONObject(response.readEntity(String.class));
         assertEquals("Just a formation enthalpy model", info.get("description"));
-        assertEquals(1, info.get("numberTimesRun"));
+        assertEquals(1, info.getJSONObject("usageStats").get("numberTimesRun"));
         System.out.println(info.toString(2));
     }
 

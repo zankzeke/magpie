@@ -15,7 +15,7 @@
 			text-align: center;
 			margin: 10px 10px 10px 10px;
 		}
-		div.model-active {
+		div.modelActive {
 			background: blue;
 		}
 		label {
@@ -26,6 +26,209 @@
 			font-size: 1.1em;
 		}
 	</style>
+    <script>
+		$(document).ready(function() {
+			// Get the URL for the Magpie server
+			var magpieURL = "http://localhost:4581/";
+			var javadocURL = "http://oqmd.org/static/analytics/magpie/javadoc/";
+			var modelData = {};
+			
+			// Get reference to Magpie Javadoc
+			function getDocReference(className) {
+				console.log(className);
+				return "<a href=\"" + javadocURL + className.replace(/\./g,"/") + ".html\">" + className.replace("magpie.","") + "</a>"
+			}
+			
+			// Output model information
+			var getModelInfo = function(model) {
+				var myData = modelData[model];
+				
+				// Clear the previous results
+				var output = $("#modelInfoOutput");
+				output.html('');
+				
+				// Print out the header
+				var obj = document.createElement('h2');
+				obj.innerHTML = 'Model Information: ' + model;
+				output.append(obj);
+				
+				obj = document.createElement('p');
+				obj.innerHTML = myData['notes'];
+				output.append(obj);
+				
+				// Print out general information
+				obj = document.createElement('h3');
+				obj.innerHTML = 'General Information';
+				output.append(obj);
+				
+				obj = document.createElement('p');
+				obj.innerHTML ='<p>Data about what a model predicts, what it was trained on, who trained it,' +
+					'and other useful information';
+				output.append(obj);
+				
+				var appendLabel = function(label, info) {
+					var obj = document.createElement('label');
+					obj.innerHTML = label;
+					output.append(obj);
+					
+					output.append(info);
+					output.append('</br>');
+				}
+				
+				appendLabel('Property', myData['property']);
+				if (myData['modelType'] == 'regression') {
+					appendLabel('Units', myData['units']);
+				} else {
+					appendLabel('Possible Classes', myData['units'].join(", "));
+				}
+				appendLabel('Training Set', '<b>' + myData['trainingSetSize'] + ' Entries</b>: ' 
+					+ myData['trainingSetDescription']);
+				appendLabel('Training Time', myData['modelTrainedDate']);
+				appendLabel('Author', myData['author']);
+				appendLabel('Citation', myData['citation']);
+				
+				// Print out model validation data performance
+				if (myData['modelStats'].hasOwnProperty('validation')) {
+					obj = document.createElement('h3');
+					obj.innerHTML = 'Validation Data';
+					output.append(obj);
+				
+					obj = document.createElement('p');
+					obj.innerHTML ='<p>Statistics about model performance when tested on data outside of the training set.';
+					output.append(obj);
+					
+					// Print out validation method
+					var valData = myData['modelStats']['validation'];
+					appendLabel('Validation Method', valData['method']);
+					
+					output.append("</br>");
+					
+					// Print out validation stats
+					appendLabel('Test Size', valData['NEvaluated']);
+					if (myData['modelType'] == 'regression') {
+						appendLabel('R', valData['R'].toFixed(3));
+						appendLabel('&rho;', valData['Rho'].toFixed(3));
+						appendLabel('&tau;', valData['Tau'].toFixed(3));
+						appendLabel('MAE', valData['MAE'].toFixed(3) + ' ' + myData['units']);
+						appendLabel('RMSE', valData['RMSE'].toFixed(3) + ' ' + myData['units']);
+						if (valData.hasOwnProperty('MRE')) {
+							appendLabel('MRE', (valData['RMSE'] * 100).toFixed(2) + '%');
+						}
+					} else {
+						appendLabel('Number Correct', valData['NCorrect'].toFixed(0));
+						appendLabel('Accuracy', (valData['Accuracy'] * 100).toFixed(2) + "%");
+						appendLabel('Sensitivity', (valData['Sensitivity'] * 100).toFixed(2) + "%");
+						appendLabel('False Positive Rate', (valData['FPR'] * 100).toFixed(2) + "%");
+						appendLabel('Area under ROC', valData['ROCAUC'].toFixed(3));
+					}
+				}
+				
+				// Output model details
+				var obj = document.createElement('h3');
+				obj.innerHTML = 'Dataset Details';
+				output.append(obj);
+				
+				obj = document.createElement('p');
+				obj.innerHTML = myData['datasetDetails'];
+				output.append(obj);
+				
+				// Output model details
+				var obj = document.createElement('h3');
+				obj.innerHTML = 'Model Details';
+				output.append(obj);
+				
+				obj = document.createElement('p');
+				obj.innerHTML = myData['modelDetails'];
+				output.append(obj);
+				
+				// Output citation information
+				var obj = document.createElement('h3');
+				obj.innerHTML = 'Suggested Citations';
+				output.append(obj);
+				
+				obj = document.createElement('p');
+				obj.innerHTML = 'If you would like to describe the techniques behind this model, '
+					+ 'please consider citing the following work as well. The Java object that uses '
+					+ 'this technique and reason this work was cited is included, where possible.'
+				output.append(obj);
+				
+				$.each(myData['suggestedCitations']['model'].concat(myData['suggestedCitations']['dataset']),
+						function(ind,cit) {
+					appendLabel('Component', cit['component']);
+					if ( cit.hasOwnProperty('url') ) {
+						appendLabel('Title', "<a href=\"" + cit['url'] + "\">" + cit['title'] + '</a>');
+					} else {
+						appendLabel('Title', cit['title']);
+					}
+					appendLabel('Reason', cit['reason']);
+					output.append("</br>");
+				});
+				
+				// Add in usage information
+				var obj = document.createElement('h3');
+				obj.innerHTML = 'Usage Information';
+				output.append(obj);
+				
+				obj = document.createElement('p');
+				obj.innerHTML = 'Statistics about how often this model has been used since the server was started.'
+				output.append(obj);
+				
+				appendLabel('Times Run', myData['usageStats']['numberTimesRun']);
+				appendLabel('Entries Evalauted', myData['usageStats']['numberEntriesEvaluated']);
+				appendLabel('System Time Used', myData['usageStats']['totalRunTime']);
+				if (myData['usageStats']['totalRunTimeMilliseconds'] > 0) {
+					appendLabel('Evaluation Speed', (1000 * myData['usageStats']['numberEntriesEvaluated'] / 
+						myData['usageStats']['totalRunTimeMilliseconds']).toFixed(1) + ' entries/sec');
+				}
+			}
+			
+			$.ajax({
+				url: magpieURL + "models",
+				data: {'datasetType': 'materials.CompositionDataset'},
+				success: function (result) {
+					// Store the model data
+					modelData = result;
+				
+					// Clear the current table
+					$("#modelMenu").html("");
+
+					$.each(result, function (name, value) {
+						var model = document.createElement("div");
+						model.className = 'model';
+						model.id = name;
+						model.innerHTML = name;
+						$("#modelMenu").append(model);
+					});
+					
+					// Make all of them clickable
+					$(".model").click(function(event) {
+						$(".modelActive").toggleClass("modelActive");
+						$(this).toggleClass("modelActive");
+						getModelInfo($(this)[0].id);
+						var results = $("#modelInfoOutput");
+						results.html(results.html().replace(/(magpie.[A-z.]*)/gi, 
+							"<a class='magpieDoc' href='$1'>$1</a>"));
+						$(".magpieDoc").each(function(ind,link) {
+							var href = link.innerHTML;
+							href = javadocURL + href.replace(/\./g,"/") + ".html";
+							link.href = href;
+						})
+					});
+					
+					// If user requested, click an appropriate model
+					var req = location.search;
+					if (req.startsWith("?model=")) {
+						var model = req.replace("?model=", "");
+						var modelBox = document.getElementById(model);
+						if (modelBox !== null) {
+							modelBox.click();
+						}
+					}
+				}
+			});
+		});
+
+    </script>
 </head>
 <body>
 <div id="wrapper">
@@ -44,56 +247,6 @@
     
     <div id="modelInfoOutput">
     </div>
-
-    <!-- Script to load model info -->
-    <script src="thrift.js"></script>
-	<script src="utility.js"></script>
-    <script src="gen-js/MagpieServer.js"></script>
-    <script src="gen-js/magpie_types.js"></script>
-    <script>
-	    // Initialize Client
-	//    var transport = new Thrift.Transport("http://localhost:4582/");
-	    var transport = new Thrift.Transport("http://josquin.northwestern.edu:5343/");
-	    transport.open()
-	    var protocol  = new Thrift.TJSONProtocol(transport);
-	    var client    = new MagpieServerClient(protocol);
-
-	    // Get the model information
-	    var models = client.getModelInformation();
-	    
-	    // Make the table
-	    var output = "";
-	    for (name in models) {
-			output += '<div id="' + name + '" class="model">' + name + '</div>';
-	    }
-	    
-	    // Print it out
-	    modelMenu.innerHTML = output
-	    
-	    // Create function to output model info
-	    mi = function(model) {
-	    	modelInfo = models[model];
-			modelInfoOutput.innerHTML = "<h2>Model Information: " + model + "</h2>";
-			outputModelInfo(modelInfo, modelInfoOutput);
-	    };
-	    
-	    // Attach functions
-	    $(".model").click(function (event) {
-	    	$(".model-active").toggleClass("model-active");
-			$(this).toggleClass("model-active");
-			mi($(this)[0].id)
-	    });
-	    
-    
-    	// See if the user requested any model through URL
-    	var req = location.search;
-    	if (req.startsWith("?model=")) {
-    		model = req.replace("?model=", "")
-    		mi(model);
-    		document.getElementById(model).className += " model-active";
-    	}
-    	
-    </script>
 	
 </div>
 </body>

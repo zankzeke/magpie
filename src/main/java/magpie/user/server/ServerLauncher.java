@@ -159,7 +159,7 @@ public class ServerLauncher {
             modelPackage.setUnits(modelData.containsKey("units") ? modelData.get("units").toString() : "None");
             modelPackage.TrainingSet = modelData.get("training").toString();
             modelPackage.Author = modelData.get("author").toString();
-            modelPackage.Citation = modelData.get("citation").toString();
+            modelPackage.ModelCitation = modelData.get("citation").toString();
             modelPackage.Notes = modelData.get("notes").toString();
 
             // Store the model

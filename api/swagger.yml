@@ -214,6 +214,114 @@ definitions:
           For a classification model, predicted probability of each class.
           Keys are name of class, values are probabilities as number
 
+  ModelInformation:
+    type: object
+    description: Information about a model
+    properties:
+      property:
+        type: string
+        description: Property being predicted
+      modelType:
+        type: string
+        description: Whether this model is a regression or classification model
+      units:
+        type:
+          oneOf:
+            - string
+            - array
+        description: |
+          Units (string) or possible classes (array) if model is a regression or classification model, respectively
+        items:
+          type: string
+      trainingSetDescription:
+        type: string
+        description: Text describing the data used to train the model
+      trainingSetSize:
+        type: number
+        format: int32
+        description: Number of entries in training set
+      author:
+        type: string
+        description: Name of person(s) who created this model
+      citation:
+        type: string
+        description: |
+          Location of resource where one can find more information about a model, or to properly cite it
+      description:
+        type: string
+        description: Short description of model
+      notes:
+        type: string
+        description: Longer description of model
+      modelTrainedDate:
+        type: string
+        description: Date model was last trained
+      modelClass:
+        type: string
+        description: Name of the Magpie object used for creating the model
+      modelDetails:
+        type: string
+        description: Longer form description about the model, enough to recreate it
+      datasetClass:
+        type: string
+        description: Name of the Magpie object used for generating inputs to model
+      datasetDescription:
+        type: string
+        description: Longer form description about the dataset, enough to recreate it
+      modelStats:
+        type: object
+        description: Model performance on training set and during validation test
+        properties:
+          training:
+            type: object
+            description: Performance on training set
+            schema:
+              $ref: "#/defintiions/ModelPerformanceStats"
+          training:
+            type: object
+            description: Performance during validation test
+            schema:
+              $ref: "#/defintiions/ModelPerformanceStats"
+      usageStats:
+        type: object
+        description: Information about how much this model has been used
+        schema:
+          $ref: "#/definitions/ModelUsageStats"
+      suggestedCitations:
+        type: object
+        description: |
+          Suggested citations for model, based on what techniques are used by the ML model and used
+           to generate the representation
+
+  ModelPerformanceStats:
+    type: object
+    description: Data regarding the performance of the model in either training or cross-validation
+    properties:
+      method:
+        type: string
+        description: Method used for validation test
+
+
+  ModelUsageStats:
+    type: object
+    description: Data regarding how much the model has been used
+    properties:
+      numberTimesRun:
+        type: number
+        format: int64
+        description: Number of times model has been called by users
+      numberEntriesEvaluated:
+        type: number
+        format: int64
+        description: Number of entries that the model has evalauted
+      totalRunTime:
+        type: string
+        description: How much time it is taken to run the model, formatted to be human readable
+      totalRunTime:
+        type: number
+        format: int64
+        description: How much time it is taken to run the model, in milliseconds
+
   SearchSpecification:
     type: object
     description: Defines the search scheme

@@ -115,7 +115,7 @@ public class Citation {
 
     @Override
     public int hashCode() {
-        return Component.hashCode() ^ Title.hashCode() ^ Type.hashCode();
+        return Component.hashCode() + Title.hashCode() + Type.hashCode();
     }
 
     /**

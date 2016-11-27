@@ -4,7 +4,10 @@ import magpie.data.Dataset;
 import magpie.models.BaseModel;
 import magpie.models.classification.AbstractClassifier;
 import magpie.utility.UtilityOperations;
+import magpie.utility.interfaces.Citation;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -27,7 +30,7 @@ public class ModelPackage {
     /** Author of this model */
     public String Author = "Unspecified";
     /** Citation for this model */
-    public String Citation = "Unspecified";
+    public String ModelCitation = "Unspecified";
     /** Short description of this model */
     public String Description = "";
     /** Long form description of model */
@@ -172,16 +175,36 @@ public class ModelPackage {
         output.put("modelType", Model instanceof AbstractClassifier ? "classification" : "regression");
         output.put("units", Model instanceof AbstractClassifier ?
                 ((AbstractClassifier) Model).getClassNames() :
-                Property);
+                Units);
         output.put("trainingSetDescription", TrainingSet);
         output.put("trainingSetSize", Model.TrainingStats.NumberTested);
         output.put("author", Author);
-        output.put("citation", Citation);
+        output.put("citation", ModelCitation);
         output.put("description", Description);
         output.put("notes", Notes);
         output.put("modelTrainedDate", Model.getTrainTime().toString());
+        output.put("modelClass", Model.getClass().getCanonicalName());
         output.put("modelDetails", Model.printDescription(true));
-        output.put("datasetDetails", Model.printDescription(true));
+        output.put("datasetClass", Dataset.getClass().getCanonicalName());
+        output.put("datasetDetails", Dataset.printDescription(true));
+
+        // Add in suggested citations
+        JSONObject citations = new JSONObject();
+        JSONArray partCitations = new JSONArray();
+        for (Pair<String, Citation> toAdd : Model.getCitations()) {
+            JSONObject cit = toAdd.getValue().toJSON();
+            cit.put("reason", toAdd.getKey());
+            partCitations.put(cit);
+        }
+        citations.put("model", partCitations);
+        partCitations = new JSONArray();
+        for (Pair<String, Citation> toAdd : Dataset.getCitations()) {
+            JSONObject cit = toAdd.getValue().toJSON();
+            cit.put("reason", toAdd.getKey());
+            partCitations.put(cit);
+        }
+        citations.put("dataset", partCitations);
+        output.put("suggestedCitations", citations);
 
         // Add in the model statistics
         JSONObject stats = new JSONObject();
@@ -195,10 +218,12 @@ public class ModelPackage {
         output.put("modelStats", stats);
 
         // Output usage information
-        output.put("numberTimesRun", NumberRuns);
-        output.put("numberEntriesEvaluated", NumberEvaluated);
-        output.put("totalRunTime", UtilityOperations.millisecondsToString(RunTime.get()));
-        output.put("totalRunTimeMilliseconds", RunTime);
+        JSONObject usageData = new JSONObject();
+        usageData.put("numberTimesRun", NumberRuns);
+        usageData.put("numberEntriesEvaluated", NumberEvaluated);
+        usageData.put("totalRunTime", UtilityOperations.millisecondsToString(RunTime.get()));
+        usageData.put("totalRunTimeMilliseconds", RunTime);
+        output.put("usageStats", usageData);
 
         return output;
     }
