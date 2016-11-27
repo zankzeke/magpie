@@ -2,6 +2,7 @@ package magpie.data;
 
 import org.json.JSONObject;
 import org.junit.Test;
+
 import static org.junit.Assert.*;
 
 /**
@@ -43,7 +44,7 @@ public class BaseEntryTest {
         
         // Empty entry
         JSONObject j = e.toJSON();
-        assertArrayEquals((double[]) j.get("attributes"), e.getAttributes(), 1e-6);
+        assertEquals(e.NAttributes(), j.getJSONArray("attributes").length());
         assertEquals(j.getJSONObject("class").has("measured"), e.hasMeasurement());
         assertEquals(j.getJSONObject("class").has("predicted"), e.hasPrediction());
         assertEquals(j.getJSONObject("class").has("probabilities"), e.hasClassProbabilities());
@@ -51,8 +52,9 @@ public class BaseEntryTest {
         // Entry with some attributes
         e.addAttributes(new double[]{1.2, -3});
         j = e.toJSON();
-        
-        assertArrayEquals((double[]) j.get("attributes"), e.getAttributes(), 1e-6);
+
+        assertEquals(e.NAttributes(), j.getJSONArray("attributes").length());
+        assertEquals(j.getJSONArray("attributes").getDouble(0), e.getAttribute(0), 1e-6);
         assertEquals(j.getJSONObject("class").has("measured"), e.hasMeasurement());
         assertEquals(j.getJSONObject("class").has("predicted"), e.hasPrediction());
         assertEquals(j.getJSONObject("class").has("probabilities"), e.hasClassProbabilities());
@@ -61,13 +63,13 @@ public class BaseEntryTest {
         e.setMeasuredClass(0);
         e.setClassProbabilities(new double[]{0.1,0.9});
         j = e.toJSON();
-        
-        assertArrayEquals((double[]) j.get("attributes"), e.getAttributes(), 1e-6);
+
+        assertEquals(e.NAttributes(), j.getJSONArray("attributes").length());
+        assertEquals(j.getJSONArray("attributes").getDouble(0), e.getAttribute(0), 1e-6);
         assertEquals(j.getJSONObject("class").has("measured"), e.hasMeasurement());
         assertEquals(j.getJSONObject("class").getDouble("measured"), e.getMeasuredClass(), 1e-6);
         assertEquals(j.getJSONObject("class").has("predicted"), e.hasPrediction());
         assertEquals(j.getJSONObject("class").getDouble("predicted"), e.getPredictedClass(), 1e-6);
         assertEquals(j.getJSONObject("class").has("probabilities"), e.hasClassProbabilities());
     }
-    
 }

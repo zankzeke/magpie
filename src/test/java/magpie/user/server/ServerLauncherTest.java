@@ -1,23 +1,35 @@
 package magpie.user.server;
 
-import java.io.*;
-import java.util.*;
-
+import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
+import magpie.data.materials.CrystalStructureDataset;
 import magpie.data.utilities.modifiers.NonZeroClassModifier;
 import magpie.models.BaseModel;
 import magpie.models.classification.WekaClassifier;
-import magpie.models.regression.GuessMeanRegression;
-import magpie.user.server.thrift.Entry;
-import magpie.user.server.thrift.MagpieServer;
-import magpie.user.server.thrift.ModelInfo;
-import org.apache.thrift.protocol.TBinaryProtocol;
-import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.server.TServer;
-import org.apache.thrift.transport.TSocket;
-import org.apache.thrift.transport.TTransport;
-import org.junit.*;
+import magpie.models.regression.WekaRegression;
+import magpie.user.server.operations.ServerInformationGetter;
+import magpie.utility.UtilityOperations;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.Timeout;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Form;
+import javax.ws.rs.core.Response;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.*;
 
 /**
  * Run basic tests on Magpie Server
@@ -26,7 +38,12 @@ import org.junit.rules.Timeout;
 public class ServerLauncherTest {
     /** Timeout for test */
     @Rule
-    public Timeout globalTimeout = new Timeout(60000);
+    public Timeout globalTimeout = new Timeout(60, TimeUnit.SECONDS);
+
+    /**
+     * Client used to interact with test server
+     */
+    private WebTarget Target;
 
     public ServerLauncherTest() throws Exception {
         // Make a fake dataset
@@ -39,8 +56,9 @@ public class ServerLauncherTest {
         new File("ms-data.obj").deleteOnExit();
         
         // Make a fake model for delta_e
-        BaseModel model = new GuessMeanRegression();
+        BaseModel model = new WekaRegression("trees.M5P", null);
         model.train(template);
+        model.crossValidate(10, template);
         model.saveState("ms-deltae.obj");
         new File("ms-deltae.obj").deleteOnExit();
         
@@ -59,141 +77,239 @@ public class ServerLauncherTest {
         metal.train(template);
         metal.saveState("ms-metal.obj");
         new File("ms-metal.obj").deleteOnExit();
+
+        // Make a crystal structure dataset model
+        CrystalStructureDataset crystalDataset = new CrystalStructureDataset();
+        crystalDataset.importText("datasets/icsd-sample", null);
+        crystalDataset.setTargetProperty("delta_e", true);
+        crystalDataset.generateAttributes();
+
+        WekaRegression crystModel = new WekaRegression("trees.REPTree", null);
+        crystModel.train(crystalDataset, true);
+        crystModel.crossValidate(0.1, 5, crystalDataset, 1);
+
+        crystalDataset.saveState("crystalModel-data.obj");
+        new File("crystalModel-data.obj").deleteOnExit();
+        crystModel.saveState("crystalModel-model.obj");
+        new File("crystalModel-model.obj").deleteOnExit();
         
         // Create fake input file
-        PrintWriter fp = new PrintWriter("ms-model.info");
-        fp.println("entry delta_e");
-        fp.println("ms-deltae.obj");
-        fp.println("ms-data.obj");
-        fp.println("property &Delta;H");
-        fp.println("units eV/atom");
-        fp.println("author Logan Ward");
-        fp.println("citation None");
-        fp.println("notes Simple model created to demonstrate formation energy prediction");
-        fp.println("entry volume_pa");
-        fp.println("ms-volume.obj");
-        fp.println("ms-data.obj");
-        fp.println("entry ismetal");
-        fp.println("ms-metal.obj");
-        fp.println("ms-data.obj");
+        PrintWriter fp = new PrintWriter("ms-model.yml");
+        fp.println("---");
+        fp.println("name: delta_e");
+        fp.println("modelPath: ms-deltae.obj");
+        fp.println("datasetPath: ms-data.obj");
+        fp.println("description: Just a formation enthalpy model");
+        fp.println("property: '&Delta;H'");
+        fp.println("units: eV/atom");
+        fp.println("training: Some OQMD calculations");
+        fp.println("author: Logan Ward");
+        fp.println("citation: None");
+        fp.println("notes: Simple model created to demonstrate formation energy prediction");
+        fp.println("---");
+        fp.println("name: volume_pa");
+        fp.println("modelPath: ms-volume.obj");
+        fp.println("datasetPath: ms-data.obj");
+        fp.println("description: Just a specific volume model");
+        fp.println("training: Some OQMD calculations");
+        fp.println("property: V");
+        fp.println("units: Angstrom<sup>3</sup>atom");
+        fp.println("author: Logan Ward");
+        fp.println("citation: None");
+        fp.println("notes: Simple model created to demonstrate volume prediction");
+        fp.println("---");
+        fp.println("name: ismetal");
+        fp.println("modelPath: ms-metal.obj");
+        fp.println("datasetPath: ms-data.obj");
+        fp.println("description: Guesses whether a material is metallic or not");
+        fp.println("training: Some OQMD calculations");
+        fp.println("property: E<sub>g</sub> > 0");
+        fp.println("author: Logan Ward");
+        fp.println("citation: None");
+        fp.println("notes: Simple model that predicts whether an entry is a metal or not?");
+        fp.println("---");
+        fp.println("name: delta_e-crystal");
+        fp.println("modelPath: crystalModel-model.obj");
+        fp.println("datasetPath: crystalModel-data.obj");
+        fp.println("description: Just a formation enthalpy model, but now on crystal structures");
+        fp.println("property: '&Delta;H'");
+        fp.println("units: eV/atom");
+        fp.println("training: Some OQMD calculations");
+        fp.println("author: Logan Ward");
+        fp.println("citation: None");
+        fp.println("notes: Simple model created to demonstrate formation energy prediction");
+        fp.println("maxEntries: 100");
         fp.close();
-        new File("ms-model.info").deleteOnExit();
+        new File("ms-model.yml").deleteOnExit();
     }
-    
-    private MagpieServer.Client getClient() throws Exception {
-        TTransport t = new TSocket("127.0.0.1", 4581);
-        t.open();
-        TProtocol prot = new TBinaryProtocol(t);
-        MagpieServer.Client client = new MagpieServer.Client(prot);
-        return client;
-    }
-    
+
     @Before
     public void launchServer() throws Exception {
-        if (ServerLauncher.isRunning()) {
-            ServerLauncher.stopServer();
-        }
-        
-        List<String> args = new LinkedList<>();
-        args.add("-model");
-        args.add("ms-model.info");
-                
-        ServerLauncher.main(args.toArray(new String[0]));
+        ServerLauncher.main(new String[]{"-port", "4234",
+                "-models", "ms-model.yml",
+                "-maxEntries", "1000"
+        });
+
+        Client c = ClientBuilder.newClient();
+        Target = c.target("http://127.0.0.1:4234");
     }
-    
+
     @After
-    public void afterTest() throws Exception {
-        ServerLauncher.stopServer();
+    public void shutdownServer() throws Exception {
+        ServerLauncher.Server.shutdownNow();
     }
 
     @Test
-    public void testServerStarting() throws Exception {
-        Assert.assertTrue(ServerLauncher.HTTPServer.isStarted());
-    }
-    
-    @Test
-    public void testModelInfo() throws Exception {
-        MagpieServer.Client client = getClient();
-        
-        Map<String, ModelInfo> info = client.getModelInformation();
-        
-        Assert.assertEquals(3, info.size());
-        Assert.assertEquals("NonZero;Zero", info.get("ismetal").units);
-        Assert.assertTrue(info.get("volume_pa").valMethod.contains("10-fold"));
-        Assert.assertTrue(info.get("delta_e").valMethod.contains("Un"));
-        System.out.println(info.get("delta_e").trainTime);
-    }
-    
-    @Test
-    public void testEvaluateCommand() throws Exception {
-        MagpieServer.Client client = getClient();
-        List<Entry> entries = new LinkedList<>();
-        Entry newEntry = new Entry(); newEntry.name = "NaCl";
-        entries.add(newEntry);
-        newEntry = new Entry(); newEntry.name = "Mg3Al";
-        entries.add(newEntry);
-        newEntry = new Entry(); newEntry.name = "#!";
-        entries.add(newEntry);
-        List<String> props = new LinkedList<>();
-        props.add("delta_e");
-        List<Entry> output = client.evaluateProperties(entries, props);
-        Assert.assertEquals(3, output.size());
-        Assert.assertEquals(1, output.get(0).predictedProperties.size());
-        Assert.assertTrue(Double.isNaN(output.get(2).predictedProperties.get("delta_e")));
-    }
-	
-	@Test
-    public void testSingleObjectiveSearch() throws Exception {
-        MagpieServer.Client client = getClient();
-        List<Entry> output = client.searchSingleObjective(
-                "delta_e minimize SimpleEntryRanker",
-                "PhaseDiagramCompositionEntryGenerator 1 2 -alloy 2 Al Ni Zr",
-                20);
-        Assert.assertEquals(20, output.size());
-    }
-    
-    @Test
-    public void testMultiObjectiveSearch() throws Exception {
-        MagpieServer.Client client = getClient();
-        List<String> objs = new LinkedList<>();
-        objs.add("delta_e minimize SimpleEntryRanker");
-        objs.add("volume_pa minimize TargetEntryRanker 20.0");
-        List<Entry> output = client.searchMultiObjective(10.0, objs,
-                "PhaseDiagramCompositionEntryGenerator 1 2 -alloy 2 Al Ni Zr",
-                20);
-        Assert.assertEquals(20, output.size());
-    }
-    
-    @Test
-    public void testClassProbability() throws Exception {
-        MagpieServer.Client client = getClient();
-        
-        // Evaluate command
-        List<Entry> entries = new LinkedList<>();
-        Entry newEntry = new Entry();
-        newEntry.name = "NaCl";
-        entries.add(newEntry);
-        List<String> props = new LinkedList<>();
-        props.add("ismetal");
-        entries = client.evaluateProperties(entries, props);
-        Assert.assertEquals(1, entries.get(0).classProbs.size());
-        Assert.assertEquals(2, entries.get(0).classProbs.get("ismetal").size());
-        
-        // Single objective search
-        List<String> objs = new LinkedList<>();
-        objs.add("ismetal maximize ClassProbabilityRanker NonZero");
-        List<Entry> output = client.searchSingleObjective(objs.get(0),
-                "PhaseDiagramCompositionEntryGenerator 1 2 -alloy 2 Al Ni Zr",
-                20);
-        Assert.assertEquals(20, output.size());
-
-        // Multi objective search
-        objs.add("delta_e minimize SimpleEntryRanker");
-        output = client.searchMultiObjective(10.0, objs,
-                "PhaseDiagramCompositionEntryGenerator 1 3 -crystal 4 Al Ni Zr O",
-                20);
-        Assert.assertEquals(20, output.size());
-        Assert.assertEquals(2, output.get(0).classProbs.get("ismetal").size());
+    public void testLaunch() throws Exception {
+        assertNotNull(ServerLauncher.Server);
+        assertTrue(ServerLauncher.Server.isStarted());
+        assertEquals(100, ServerLauncher.Models.get("delta_e-crystal").getMaxNumEntries());
     }
 
+    @Test
+    public void testGetVersion() throws Exception {
+        String response = Target.path("/server/version").request().get(String.class);
+        assertEquals("0.0.1", response);
+    }
+
+    @Test
+    public void testServerStatus() throws Exception {
+        String response = Target.path("server/status").request().get(String.class);
+        JSONObject status = new JSONObject(response);
+        assertEquals(new ServerInformationGetter().getVersion(), status.get("apiVersion"));
+        System.out.println(status.toString(2));
+    }
+
+    @Test
+    public void testModelInformation() throws Exception {
+        // Get the info of an existing model
+        String response = Target.path("model/delta_e/info").request().get(String.class);
+        JSONObject info = new JSONObject(response);
+        assertEquals("Just a formation enthalpy model", info.get("description"));
+        System.out.println(info.toString(2));
+
+        // Test the 404
+        Response response2 = Target.path("model/nope/info").request().get();
+        assertEquals(404, response2.getStatus());
+    }
+
+    @Test
+    public void testModelOutput() throws Exception {
+        // Get the info of an existing model
+        byte[] response = Target.path("model/delta_e/model").request().get(byte[].class);
+        BaseModel model = (BaseModel) UtilityOperations.loadState(new ByteArrayInputStream(response));
+        assertEquals(ServerLauncher.Models.get("delta_e").Model.getTrainTime(), model.getTrainTime());
+
+        // Get the info of an existing model
+        response = Target.path("model/delta_e/dataset").request().get(byte[].class);
+        Dataset data = (Dataset) UtilityOperations.loadState(new ByteArrayInputStream(response));
+        assertEquals(ServerLauncher.Models.get("delta_e").Dataset.NAttributes(), data.NAttributes());
+    }
+
+    @Test
+    public void testGenerateAttributes() throws Exception {
+        // Get the info of an existing model
+        Form dataEntryForm = new Form("entries",
+                new JSONObject().put("entries",
+                        new JSONArray().put(new JSONObject().put("name", "NaCl"))
+                                .put(new JSONObject().put("name", "Al2O3"))).toString());
+        Response response = Target.path("model/delta_e/attributes").request().post(Entity.form(dataEntryForm));
+        assertEquals(200, response.getStatus());
+
+        // Test the results
+        JSONObject output = new JSONObject(response.readEntity(String.class));
+        System.out.println(output.toString(2));
+        assertTrue(output.has("attributes"));
+        assertTrue(Arrays.asList(ServerLauncher.Models.get("delta_e").Dataset.getAttributeNames()).equals(
+                output.getJSONArray("attributes").toList()));
+        assertEquals("NaCl", output.getJSONArray("entries").getJSONObject(0).getString("name"));
+        assertEquals(ServerLauncher.Models.get("delta_e").Dataset.NAttributes(),
+                output.getJSONArray("entries").getJSONObject(0).getJSONArray("attributes").length());
+    }
+
+    @Test
+    public void testRunClassifier() throws Exception {
+        // Get the info of an existing model
+        Form dataEntryForm = new Form("entries",
+                new JSONObject().put("entries",
+                        new JSONArray().put(new JSONObject().put("name", "NaCl"))
+                                .put(new JSONObject().put("name", "Al2O3"))).toString());
+        Response response = Target.path("model/delta_e/run").request().post(Entity.form(dataEntryForm));
+        assertEquals(200, response.getStatus());
+
+        // Test the results
+        JSONObject output = new JSONObject(response.readEntity(String.class));
+        System.out.println(output.toString(2));
+        assertTrue(output.has("units"));
+        assertEquals(output.getString("units"), ServerLauncher.Models.get("delta_e").getUnits());
+        assertEquals("NaCl", output.getJSONArray("entries").getJSONObject(0).getString("name"));
+        assertTrue(output.getJSONArray("entries").getJSONObject(0).has("predictedValue"));
+
+        // Get the model status, to see if it tracked the model evaluation time
+        response = Target.path("model/delta_e/info").request().get();
+        JSONObject info = new JSONObject(response.readEntity(String.class));
+        assertEquals("Just a formation enthalpy model", info.get("description"));
+        assertEquals(1, info.getJSONObject("usageStats").get("numberTimesRun"));
+        System.out.println(info.toString(2));
+    }
+
+    @Test
+    public void testModelQuery() throws Exception {
+        // Get all the models
+        Response response = Target.path("models").request().get();
+        assertEquals(200, response.getStatus());
+        JSONObject info = new JSONObject(response.readEntity(String.class));
+        assertEquals(4, info.length());
+
+        // Get only models that are based on a CompositionDataset
+        response = Target.path("models").queryParam("datasetType", "materials.CompositionDataset").request().get();
+        assertEquals(200, response.getStatus());
+        info = new JSONObject(response.readEntity(String.class));
+        assertEquals(3, info.length());
+
+        // Make sure it crashes if I give it a bad class name
+        response = Target.path("models").queryParam("datasetType", "materials.CompDataset").request().get();
+        assertEquals(400, response.getStatus());
+        System.out.println(response.readEntity(String.class));
+
+        // Get only models that, at least, support data that supports CompositionDataset.
+        response = Target.path("models").queryParam("supportsDatasetType", "materials.CompositionDataset").request().get();
+        assertEquals(200, response.getStatus());
+        info = new JSONObject(response.readEntity(String.class));
+        assertEquals(4, info.length());
+    }
+
+    @Test
+    public void testSearch() {
+        // Create search specification
+        JSONObject searchSpec = new JSONObject();
+        searchSpec.put("datasetType", "materials.CompositionDataset");
+        searchSpec.put("entryGenerator", new Object[]{"PhaseDiagramCompositionEntryGenerator", 1, 3,
+                "-crystal", 5, "Fe", "Na", "Cl", "O"});
+        searchSpec.put("steps", new JSONArray()
+                .put(new JSONObject().put("type", "model")
+                        .put("options", new JSONObject().put("name", "delta_e")))
+                .put(new JSONObject().put("type", "filter")
+                        .put("options", new JSONObject()
+                                .put("name", "AllMetalsFilter")
+                                .put("exclude", false)
+                                .put("options", new JSONArray())
+                        ))
+        );
+        searchSpec.put("entryRanker", new JSONObject()
+                .put("method", "PropertyRanker")
+                .put("number", 5)
+                .put("minimize", true)
+                .put("options", new Object[]{"delta_e", "SimpleEntryRanker"})
+        );
+
+        // Prepare the webquery
+        Form searchSpecForm = new Form("search", searchSpec.toString());
+        Response response = Target.path("search").request().post(Entity.form(searchSpecForm));
+        assertEquals(200, response.getStatus());
+        JSONObject result = new JSONObject(response.readEntity(String.class));
+        System.out.println(result.toString(2));
+        assertEquals(5, result.getJSONArray("chosenEntries").length());
+        assertEquals(1, result.getJSONObject("data").length());
+    }
 }

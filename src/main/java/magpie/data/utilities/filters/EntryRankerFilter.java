@@ -1,10 +1,11 @@
 package magpie.data.utilities.filters;
 
-import java.util.Arrays;
-import java.util.List;
 import magpie.data.Dataset;
 import magpie.optimization.rankers.BaseEntryRanker;
 import magpie.user.CommandHandler;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Filter entries based on ranking. Lets the user pick the number of entries to keep,
@@ -92,9 +93,9 @@ public class EntryRankerFilter extends BaseDatasetFilter {
     @Override
     protected boolean[] label(Dataset D) {
         if (Ranker.isUsingMeasured() && (! D.getEntry(0).hasMeasurement()))
-            throw new Error("Missing measured class.");
+            throw new RuntimeException("Missing measured class.");
         if (! Ranker.isUsingMeasured() && (! D.getEntry(0).hasPrediction()))
-            throw new Error("Missing predicted class.");
+            throw new RuntimeException("Missing predicted class.");
         
         boolean[] passes = new boolean[D.NEntries()];
         Arrays.fill(passes, false);

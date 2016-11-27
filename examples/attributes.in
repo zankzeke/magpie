@@ -21,7 +21,7 @@ data attributes generate
 data target delta_e
 
 // Print out 10 attributes with the best correlation coefficient
-data attributes rank 10 PearsonsCorrelationEvaluator
+data attributes rank 10 SpearmansCorrelationEvaluator
 
 // Generate a reduced list of attributes with an AttributeSelector
 selector = new attributes.selectors.WekaAttributeSelector -eval CfsSubsetEval -M -search BestFirst -D 1

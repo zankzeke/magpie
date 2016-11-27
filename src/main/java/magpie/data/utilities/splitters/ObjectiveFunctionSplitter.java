@@ -17,7 +17,7 @@ import magpie.user.CommandHandler;
  * <br><pr><i>above|below</i>: Whether class 0 consists of entries above/below a threshold
  * <br><pr><i>threshold</i>: Objective function value on which to split entries
  * <br><pr><i>objective function</i>: Name of {@link BaseEntryRanker} to use as objective
- * function ("?" for options)
+ * function
  * <br><pr><i>o.f. options</i>: Any options for the objective function</usage>
  * @author Logan Ward
  */
@@ -49,10 +49,6 @@ public class ObjectiveFunctionSplitter extends BaseDatasetSplitter {
                 throw new Exception();
             }
             setThreshold(Double.parseDouble(Options.get(1).toString()));
-            if (Options.get(2).toString().startsWith("?")) {
-                System.out.println(CommandHandler.printImplmentingClasses(BaseEntryRanker.class, false));
-                return;
-            }
             OFMethod = Options.get(2).toString();
             OFOptions = Options.subList(3, Options.size());
         } catch (Exception e) {

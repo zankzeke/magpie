@@ -1,16 +1,14 @@
 package magpie.models.regression;
 
-import java.util.ArrayList;
-import java.util.List;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
 import magpie.models.BaseModel;
 import magpie.models.BaseModelTest;
-import magpie.models.classification.WekaClassifier;
 import magpie.optimization.rankers.PropertyFormulaRanker;
-import org.junit.Test;
-import static org.junit.Assert.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -33,11 +31,8 @@ public class MultiObjectiveRegressionTest extends BaseModelTest {
         try {
             // Create options
             List options = new ArrayList();
-            options.add("?");
-            
-            model.setOptions(options);
-            
-            options.set(0, "PropertyFormulaRanker");
+
+            options.add("PropertyFormulaRanker");
             options.add("#{delta_e} / #{volume_pa}");
             
             model.setOptions(options);

@@ -17,7 +17,7 @@ import magpie.user.CommandHandler;
  *  the class variable. Class variable is defined by a {@link MultiObjectiveEntryRanker}.
  * 
  * <usage><p><b>Usage</b>: &lt;ranker method&gt; [&lt;ranker options...&gt;]
- * <br><pr><i>ranker method</i>: Multi-objective function ("?" for options)
+ * <br><pr><i>ranker method</i>: Multi-objective function
  * <br><pr><i>ranker options</i>: Any options for the objective function</usage>
  * 
  * <p><b><u>Implemented Commands:</u></b>
@@ -53,11 +53,6 @@ public class MultiObjectiveRegression extends BaseRegression {
         List<Object> rankerOptions;
         try {
             method = Options.get(0).toString();
-            if (method.equals("?")) {
-                System.out.println("Available multi-objective functions:");
-                System.out.println(CommandHandler.printImplmentingClasses(MultiObjectiveEntryRanker.class, false));
-                return;
-            }
             rankerOptions = Options.subList(1, Options.size());
         } catch (Exception e) {
             throw new IllegalArgumentException(printUsage());

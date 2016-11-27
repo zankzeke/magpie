@@ -1,10 +1,13 @@
 package magpie.statistics.performance;
 
+import magpie.data.Dataset;
+import org.apache.commons.math3.stat.StatUtils;
+import org.apache.commons.math3.stat.correlation.KendallsCorrelation;
+import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
+import org.apache.commons.math3.stat.correlation.SpearmansCorrelation;
+
 import java.util.Map;
 import java.util.TreeMap;
-import magpie.data.Dataset;
-import org.apache.commons.math3.stat.correlation.*;
-import org.apache.commons.math3.stat.StatUtils;
 
 /**
  * This class contains methods to calculate statistics about regression models.
@@ -90,8 +93,8 @@ public class RegressionStatistics extends BaseStatistics {
     @Override
     public Map<String, Double> getStatistics() {
         Map<String, Double> output = new TreeMap<>();
-        
-        output.put("NEvalauted", (double) NumberTested);
+
+        output.put("NEvaluated", (double) NumberTested);
         output.put("R", R);
         output.put("Rho", Rho);
         output.put("Tau", Tau);

@@ -1,16 +1,14 @@
 package magpie.statistics.performance;
 
-import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import magpie.data.Dataset;
 import magpie.utility.interfaces.Commandable;
 import magpie.utility.interfaces.Options;
 import magpie.utility.interfaces.Printable;
 import magpie.utility.interfaces.Savable;
 import org.apache.commons.math3.stat.StatUtils;
+
+import java.io.PrintWriter;
+import java.util.*;
 
 /**
  *
@@ -49,16 +47,47 @@ abstract public class BaseStatistics implements java.io.Serializable,
     public int NumberTested=0;  
     /** Receiver operating characteristic curve*/
     public double[][] ROC;
+    /**
+     * Area under receiver operating characteristic curve normalized such that 1.0
+     * is a perfect classifier and 0.0 is a perfectly-random classifier.
+     */
+    public double ROC_AUC;
     /** Measured value of class variable */
     protected double[] Measured;
     /** Predicted value of class variable */
     protected double[] Predicted;
-    
-    /** 
-     *  Area under receiver operating characteristic curve normalized such that 1.0
-     *  is a perfect classifier and 0.0 is a perfectly-random classifier. 
+
+    /**
+     * Integrate area between ROC curve and random guessing. Note that random guessing is
+     * defined by the line where FPR = Sensitivity.
+     * @param ROC Receiver operating characteristic curve data (see getROCCurve)
+     * @return Area between ROC Curve and random guessing normalized such that 1.0 is a
+     * perfect classifier and 0.0 is a perfectly-random classifier
      */
-    public double ROC_AUC;
+    public static double integrateROCCurve(double[][] ROC) {
+        double value = 0;
+        double last;
+
+        // Get strictly increasing list of values.
+        List<Double> FPR = new LinkedList<>();
+        List<Double> Sensitivity = new LinkedList<>();
+        FPR.add(ROC[0][1]);
+        Sensitivity.add(ROC[0][1]);
+        last = ROC[0][1];
+        for (int i = 0; i < ROC.length; i++) {
+            if (ROC[i][1] > last) {
+                FPR.add(ROC[i][1]);
+                Sensitivity.add(ROC[i][2]);
+                last = ROC[i][1];
+            } else if (ROC[i][1] == last)
+                Sensitivity.set(FPR.size() - 1, ROC[i][2]);
+        }
+        // Do simple trapizoid integration from the minimimum (0) to the max (1)
+        for (int i = 0; i < FPR.size() - 1; i++) {
+            value += (Sensitivity.get(i) + Sensitivity.get(i + 1)) / 2.0 * (FPR.get(i + 1) - FPR.get(i));
+        }
+        return (value - 0.5) / 0.5;
+    }
 
     @Override
     public void setOptions(List<Object> Options) throws Exception {
@@ -72,7 +101,7 @@ abstract public class BaseStatistics implements java.io.Serializable,
     
     @Override public Object clone() throws CloneNotSupportedException {
         BaseStatistics x = (BaseStatistics) super.clone();
-        x.NumberTested = NumberTested; 
+        x.NumberTested = NumberTested;
         x.ROC_AUC = ROC_AUC;
         if (ROC != null) {
             x.ROC = new double[ROC.length][];
@@ -81,17 +110,17 @@ abstract public class BaseStatistics implements java.io.Serializable,
         }
         return x;
     }
-    
-    /** 
+
+    /**
      * Generates statistics about the performance on a model.
      * @param Results Dataset containing both measured and predicted classes.
      */
     abstract public void evaluate(Dataset Results);
-    
-    /** 
+
+    /**
      * Generate the receiver operating characteristic curve based on the measured
      * and predicted variables for many instances.
-     * 
+     *
      * @param measured Measured class variable (is returned sorted)
      * @param predicted Predicted class variable (is returned sorted)
      * @param NSteps Number of steps in curve
@@ -104,7 +133,7 @@ abstract public class BaseStatistics implements java.io.Serializable,
         ROC[0][0] = min;
         ROC[NSteps+1][0] = max;
         ROC[NSteps+1][1]=1; ROC[NSteps+1][2]=1;
-        
+
         // Will step along fractions of the array
         double[] predicted_sorted = Arrays.copyOf(predicted, predicted.length);
         Arrays.sort(predicted_sorted);
@@ -121,40 +150,8 @@ abstract public class BaseStatistics implements java.io.Serializable,
             ROC[i][1]= N > 0 ? FP/N : 1.0; // False positive rate
             ROC[i][2]= P > 0 ? TP/P : 0.0; // Sensitivity
         }
-        
+
         ROC_AUC = integrateROCCurve(ROC);
-    }
-    
-    /** 
-     * Integrate area between ROC curve and random guessing. Note that random guessing is
-     * defined by the line where FPR = Sensitivity.
-     * @param ROC Receiver operating characteristic curve data (see getROCCurve)
-     * @return Area between ROC Curve and random guessing normalized such that 1.0 is a 
-     * perfect classifier and 0.0 is a perfectly-random classifier
-     */
-    public static double integrateROCCurve(double[][] ROC) {
-        double value = 0;
-        double last;
-        
-        // Get strictly increasing list of values. 
-        List<Double> FPR = new LinkedList<>();
-        List<Double> Sensitivity = new LinkedList<>();
-        FPR.add(ROC[0][1]);
-        Sensitivity.add(ROC[0][1]);
-        last = ROC[0][1];
-        for (int i = 0; i < ROC.length; i++) {
-            if (ROC[i][1] > last) {
-                FPR.add(ROC[i][1]);
-                Sensitivity.add(ROC[i][2]);
-                last = ROC[i][1];
-            } else if (ROC[i][1] == last) 
-                Sensitivity.set(FPR.size()-1, ROC[i][2]);
-        }
-        // Do simple trapizoid integration from the minimimum (0) to the max (1)
-        for (int i = 0; i < FPR.size() - 1; i++) {
-            value += (Sensitivity.get(i) + Sensitivity.get(i + 1)) / 2.0 * (FPR.get(i + 1) - FPR.get(i));
-        }
-        return (value - 0.5) / 0.5;
     }
     
     /** 
@@ -257,4 +254,21 @@ abstract public class BaseStatistics implements java.io.Serializable,
      * @return Map of statistic name to value.
      */
     abstract public Map<String, Double> getStatistics();
+
+    /**
+     * Get statistics, except for values that are NaNs or infinite
+     *
+     * @return
+     */
+    public Map<String, Double> getStatisticsNoNaNs() {
+        Map<String, Double> output = getStatistics();
+        Iterator<Map.Entry<String, Double>> iter = output.entrySet().iterator();
+        while (iter.hasNext()) {
+            Map.Entry<String, Double> next = iter.next();
+            if (Double.isNaN(next.getValue()) || Double.isInfinite(next.getValue())) {
+                iter.remove();
+            }
+        }
+        return output;
+    }
 }

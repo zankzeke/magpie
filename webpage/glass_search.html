@@ -16,7 +16,84 @@
                 background: green;
             }
         </style>
-        <script src="jquery.js"></script>
+        <script src="https://code.jquery.com/jquery-3.1.0.min.js"
+                integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s=" crossorigin="anonymous"></script>
+		<script>
+			$(document).ready(function() {
+				var magpieURL = "http://localhost:4581/";
+			
+				$('#submitButton').click(function() {
+					// Get the numbers of elements
+					var elems = $(".element-selected").map(function() { return this.id }).get();
+					if (elems.length > 10) {
+						$('#results').html('<b>ERROR</b>: Select fewer than 10 elements.');
+						return;
+					}
+					
+					// Get the maximum dataset count
+					var maxCount = $("#order")[0].value;
+					
+					// Prepare the search specification
+					var generatorType = ['PhaseDiagramCompositionEntryGenerator', 1, maxCount, '-alloy', 5.0];
+					
+					var searchSpec = {
+						'datasetType': 'materials.CompositionDataset',
+						'entryGenerator': generatorType.concat(elems),
+						'steps': [
+							{'type': 'model', 'options': {'name': 'gfa'}}
+						],
+						'entryRanker': {
+							'method': 'PropertyRanker',
+							'number': 10,
+							'minimize': false,
+							'options': ['gfa', 'ClassProbabilityRanker', 'AM']
+						}
+					}
+					
+					$("#results").html("<p>Running calculation...</p>");
+					
+					// Run the search
+					$.ajax({
+						url: magpieURL + "search",
+						method: 'POST',
+						crossDomain: true,
+						data: {'search': JSON.stringify(searchSpec)},
+						success: function(result) {
+							// Make a table
+							var table = document.createElement('table');
+							var tHead = document.createElement('thead');
+							tHead.innerHTML = '<tr><th>Composition</th><th>P(GFA)(%)</th></tr>';
+							table.appendChild(tHead);
+							
+							// Add entries to it
+							var tBody = document.createElement('tbody');
+							var entries = result['data']['gfa']['entries'];
+							$.each(entries, function(ind, entry) {
+								var tr = document.createElement('tr');
+								var td = document.createElement('td');
+								td.innerHTML = result['chosenEntries'][ind];
+								tr.appendChild(td);
+								
+								// Get the probabilities
+								var prob = entry['classProbabilities']['AM'] * 100;
+								td = document.createElement('td');
+								td.innerHTML = prob.toFixed(2);
+								tr.appendChild(td);
+								
+								tBody.appendChild(tr);
+							});
+							table.appendChild(tBody);
+							
+							$('#results').html(table);
+						},
+						error: function(result) {
+							console.log(result);
+							$("#results").html("<p><b>ERROR</b> Calculation failed. See console");
+						}
+					});
+				});
+			});
+		</script>
     </head>
     <body>
         <div id="wrapper">
@@ -34,7 +111,7 @@
             <p>Select which elements to include.
             <form id="userinput">
                 Maximum number of components:
-                <select id="order">
+                <select id="order" value="2">
                     <option value="2">2</option>
                     <option value="3">3</option>
                     <option value="4">4</option>
@@ -212,7 +289,7 @@
                         <td><button id="No" class="element-nope">No</button></td>
                     </tr>
                 </table>
-                <button type="button" name="submit" id="button">Search!</button>
+                <button type="button" name="submit" id="submitButton">Search!</button>
             </form>
 
             <h2>Results</h2>
@@ -230,103 +307,6 @@
                     event.preventDefault();
                 })
             </script>
-
-            <!-- Script to run prediction software -->
-            <script src="thrift.js"></script>
-            <script src="gen-js/MagpieServer.js"></script>
-            <script src="gen-js/magpie_types.js"></script>
-            <script src="utility.js"></script>
-            <script>
-            // Initialize Client
-            // var transport = new Thrift.Transport("http://localhost:4582/");
-            var transport = new Thrift.Transport("http://josquin.northwestern.edu:5343/");
-            transport.open()
-            var protocol = new Thrift.TJSONProtocol(transport);
-            var client = new MagpieServerClient(protocol);
-
-            var callback = function (result) {
-                // Store result
-                var entries = result; 
-
-                // Initialize table
-                results.innerHTML = "<p>";
-                var tbl = document.createElement("table");
-                var tbody = document.createElement("tbdy");
-                tbl.appendChild(tbody);
-
-                // Create header   
-                var tr = document.createElement("tr");
-                var td = document.createElement("th");
-                td.innerHTML = "Composition";
-                tr.appendChild(td);
-                td = document.createElement("th");
-                td.innerHTML = "P(Can Form Glass) (&#37;)";
-                tr.appendChild(td);
-                tbody.appendChild(tr);
-
-                // Output table
-                for (i in entries) {
-                    // Store composition
-                    tr = document.createElement("tr");
-                    td = document.createElement("td");
-                    td.innerHTML = entries[i].name
-                    tr.appendChild(td)
-
-                    // Store probability
-                    td = document.createElement("td");
-                    p = entries[i].classProbs['landolt-gfa'][0] * 100
-                    td.innerHTML = p.toPrecision(3)
-                    tr.appendChild(td)
-
-                    tbody.appendChild(tr)
-                }
-
-                // Close table
-                results.appendChild(tbl);
-                results.innerHTML += "</p>"
-            }
-
-            // Script to run prediction software
-            function runGFASearch() {
-                // Get list of elements, compile into string
-                elem_list = $(".element-selected").map(function() { return this.id }).get()
-                var elems = ""
-                for (x in elem_list) {
-                    elems += " " + elem_list[x]
-                }
-
-                // Get desired order
-                var maxOrder = document.getElementById("order").value;
-
-                // Error check: Are enough elements provided
-                if (elem_list.length < maxOrder) {
-                    results.innerHTML = "<p><b>ERROR</b> Must selected at least " + maxOrder + " elements";
-                    return;
-                }
-                if (elem_list.length >= 10) {
-                    results.innerHTML = "<p><b>ERROR</b> Web app only supports fewer than 10 elements."
-                    + "<br>If you are interested in running a larger search, please contact the Wolverton group.";
-                    return;
-                }
-
-                // Print status message
-                results.innerHTML = "<p>Computing...</p>";
-
-                try {
-                    client.searchSingleObjective("landolt-gfa maximize ClassProbabilityRanker AM", 
-                        "PhaseDiagramCompositionEntryGenerator 1 " + maxOrder + " -alloy 10.0 " + elems,
-                        10, callback)
-                } catch (ouch) {
-                    results.innerHTML = "<p>"
-                    results.innerHTML += ouch.why
-                }
-            }
-
-            // Set up listener
-            document.getElementById("button").addEventListener('click', runGFASearch, false);
-
-            // Map pressing enter key to "submit" button
-            document.onkeydown = function(evt) { if (evt.keyCode === 13) runGFASearch() }
             </script>
 
         </div>

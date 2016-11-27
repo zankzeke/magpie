@@ -15,9 +15,9 @@ import weka.core.OptionHandler;
  * Encapsulates Weka's ASSearch routines for attribute selection.
  * 
  * <usage><p><b>Usage</b>: [-eval &lt;eval method> [&lt;eval options...>]] [-search &lt;search method> [&lt;search options...>]]
- * <br><pr><i>eval method</i>: How to evaluate attributes. Name of a Weka ASEvalution class ("?" for available options)
+ * <br><pr><i>eval method</i>: How to evaluate attributes. Name of a Weka ASEvalution class
  * <br><pr><i>eval options...</i>: Any options for the attribute evaluator.
- * <br><pr><i>search method</i>: How to search for optimal set. Name of a Weka ASSearch class ("?" for available options)
+ * <br><pr><i>search method</i>: How to search for optimal set. Name of a Weka ASSearch class
  * <br><pr><i>eval options...</i>: Any options for the searcher</usage>
  * 
  * @author Logan Ward
@@ -64,11 +64,6 @@ public class WekaAttributeSelector extends BaseAttributeSelector {
             if (evalStart != -1) {
                 set_evaluator = true;
                 EvalType = Options[evalStart + 1];
-                if (EvalType.contains("?")) {
-                    System.out.println("Available Weka ASEvaluation classes:");
-                    System.out.println(WekaUtility.printImplmentingClasses(ASEvaluation.class, true));
-                    return;
-                }
                 int End = evalStart < searchStart ? searchStart : Options.length;
                 EvalOptions = Arrays.copyOfRange(Options, evalStart + 2, End);
             }
@@ -77,11 +72,6 @@ public class WekaAttributeSelector extends BaseAttributeSelector {
             if (searchStart != -1) {
                 set_searcher = true;
                 SearcherType = Options[searchStart + 1];
-                if (SearcherType.contains("?")) {
-                    System.out.println("Available Weka ASSearch classes:");
-                    System.out.println(CommandHandler.printImplmentingClasses(ASSearch.class, true));
-                    return;
-                }
                 int End = searchStart < evalStart ? evalStart : Options.length;
                 SearcherOptions = Arrays.copyOfRange(Options, searchStart + 2, End);
             }

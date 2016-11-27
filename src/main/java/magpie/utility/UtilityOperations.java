@@ -1,19 +1,14 @@
 package magpie.utility;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import magpie.Magpie;
+import org.json.JSONArray;
+
+import java.io.*;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import magpie.Magpie;
-import vassal.Vassal;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This is only a class full of useful static methods. 
@@ -29,28 +24,49 @@ public class UtilityOperations {
     public static Object loadState(String filename) throws Exception {
         Object output;
         FileInputStream fp = new FileInputStream(filename);
-        ObjectInputStream in = new ObjectInputStream(fp);
-        output = in.readObject();
-        in.close();
+        output = loadState(fp);
         fp.close();
         return output;
     }
-    
+
+    /**
+     * Read in a Magpie object from a stream
+     *
+     * @param input Input stream
+     * @return Object stored in the stream
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
+    public static Object loadState(InputStream input) throws IOException, ClassNotFoundException {
+        Object output;
+        ObjectInputStream in = new ObjectInputStream(input);
+        output = in.readObject();
+        in.close();
+        return output;
+    }
+
     /**
      * Use serialization to save object state to file
      * @param obj Object to be serialized and saved
      * @param filename Desired filename
      */
-    public static void saveState(Object obj, String filename) {
-        try {
-            FileOutputStream fp = new FileOutputStream(filename);
-            ObjectOutputStream out = new ObjectOutputStream(fp);
-            out.writeObject(obj);
-            out.close();
-            fp.close();
-        } catch (IOException i) {
-            throw new Error(i);
-        }
+    public static void saveState(Object obj, String filename) throws IOException {
+        FileOutputStream fp = new FileOutputStream(filename);
+        saveState(obj, fp);
+        fp.close();
+    }
+
+    /**
+     * Use serialization to save object state to an output stream
+     *
+     * @param obj    Output
+     * @param output Output stream
+     * @throws IOException
+     */
+    public static void saveState(Object obj, OutputStream output) throws IOException {
+        ObjectOutputStream out = new ObjectOutputStream(output);
+        out.writeObject(obj);
+        out.close();
     }
 
     /**
@@ -60,29 +76,9 @@ public class UtilityOperations {
     public static void printRunTime(long start_time) {
         System.out.printf("Elapsed time: %.3f s\n", (double) (System.currentTimeMillis() - start_time) / 1000.0);
     }
-    
-    /**
-     * Randomly select number from a list of a certain length
-     * @param Length Numbers will range from [0,Length)
-     * @param ToSelect Number to select
-     * @return Array of length ToSelect that is randomly populated (no duplicates)
-     */
-    public int[] getRandomList(int Length, int ToSelect) {
-        // Shuffle an ascending list
-        ArrayList<Integer> total = new ArrayList<>(Length);
-        for (int i=0; i<Length; i++) total.add(i);
-        Collections.shuffle(total);
-        
-        // Retrive a shortened segment
-        int[] output = new int[ToSelect];
-        for (int i=0; i<ToSelect; i++)
-            output[i] = total.get(i);
-        return output;
-    }
 
- 
     /**
-     * Determine whether a string represents an integer. Thanks to 
+     * Determine whether a string represents an integer. Thanks to
      *  <a href="http://stackoverflow.com/questions/237159/whats-the-best-way-to-check-to-see-if-a-string-represents-an-integer-in-java">
      *  StackOverflow</a>
      * @param str String containing a single word
@@ -111,7 +107,7 @@ public class UtilityOperations {
         }
         return true;
     }
-    
+
     /**
      * Given the path of a path relative to the Magpie jar, find the actual path.
      * @param toFind Relative path to file or directory (e.g. "py/lasso.py")
@@ -125,7 +121,7 @@ public class UtilityOperations {
         } catch (URISyntaxException e) {
             // Nothing
         }
-        
+
         // Get a list of paths over which to search
         List<File> toSearch = new ArrayList<>();
         toSearch.add(new File(".")); // Current directory
@@ -136,7 +132,7 @@ public class UtilityOperations {
             toSearch.add(magpiePath.getParentFile()); // One directory down from Magpie
             toSearch.add(magpiePath.getParentFile().getParentFile()); // Two directories down from Magpie
         }
-        
+
         // Look in these directories
         for (File path : toSearch) {
             File guess = new File(path, toFind);
@@ -160,7 +156,7 @@ public class UtilityOperations {
         for (int n=0; n<nPartitions; n++) {
             output.add(new ArrayList(toSplit.size() / nPartitions + 1));
         }
-        
+
         // Iterate over all entries in the list to split
         int pos = 0;
         Iterator<T> iter = toSplit.iterator();
@@ -168,5 +164,44 @@ public class UtilityOperations {
             output.get(pos++ % nPartitions).add(iter.next());
         }
         return output;
+    }
+
+    /**
+     * Convert an array of doubles into a JSON array.
+     *
+     * <p>Changes in NaN or inf values into strings (JSON doesn't support these as numbers</p>
+     * @param array Array to be converted
+     * @return Array as JSON
+     */
+    public static JSONArray toJSONArray(double[] array) {
+        JSONArray output = new JSONArray();
+
+        for (double x : array) {
+            if (Double.isNaN(x)) {
+                output.put("NaN");
+            } else if (Double.isInfinite(x)) {
+                output.put(x < 0 ? "-inf" : "inf");
+            } else {
+                output.put(x);
+            }
+        }
+
+        return output;
+    }
+
+    /**
+     * Print a time, stored in milliseconds, into a human-readable string.
+     *
+     * @param time Time in milliseconds
+     * @return Time as a human readable string
+     */
+    public static String millisecondsToString(long time) {
+        return String.format("%d days, %02d hours, %02d minutes, %02d.%03d seconds",
+                TimeUnit.MILLISECONDS.toDays(time),
+                TimeUnit.MILLISECONDS.toHours(time) - 24 * TimeUnit.MILLISECONDS.toDays(time),
+                TimeUnit.MILLISECONDS.toMinutes(time) - 60 * TimeUnit.MILLISECONDS.toHours(time),
+                TimeUnit.MILLISECONDS.toSeconds(time) - 60 * TimeUnit.MILLISECONDS.toMinutes(time),
+                time - 1000 * TimeUnit.MILLISECONDS.toSeconds(time)
+        );
     }
 }
