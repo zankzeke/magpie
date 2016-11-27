@@ -1,13 +1,14 @@
 package magpie.data.utilities.modifiers.duplicates;
 
-import java.util.ArrayList;
-import java.util.List;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.data.MultiPropertyEntry;
 import magpie.optimization.rankers.BaseEntryRanker;
 import magpie.optimization.rankers.SimpleEntryRanker;
 import magpie.user.CommandHandler;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Use a ranking algorithm to determine which duplicate to pick. If there are multiple
@@ -90,6 +91,10 @@ public class RankingDuplicateResolver extends BaseDuplicateResolver {
         }
         
         // Return result
+        if (bestEntries.isEmpty()) {
+            // objective function failed for each entry, just pick the first
+            return bestEntries.get(0);
+        }
         if (bestEntries.size() == 1) {
             return bestEntries.get(0);
         } else {

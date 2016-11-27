@@ -446,7 +446,6 @@ public class CompositionEntry extends MultiPropertyEntry {
     public int hashCode() {
         if (Element.length > 0) {
             return Arrays.hashCode(Element) ^ Arrays.hashCode(Fraction);
-
         } else {
             return 0;
         }
