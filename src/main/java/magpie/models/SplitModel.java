@@ -1,13 +1,16 @@
 package magpie.models;
 
-import magpie.models.interfaces.MultiModel;
-import java.util.*;
-import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.data.utilities.splitters.BaseDatasetSplitter;
+import magpie.models.interfaces.MultiModel;
 import magpie.models.utility.MultiModelUtility;
 import magpie.user.CommandHandler;
+import magpie.utility.interfaces.Citable;
+import magpie.utility.interfaces.Citation;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.lang3.tuple.Pair;
+
+import java.util.*;
 
 /**
  * Abstract class for a model that splits the dataset and trains
@@ -31,7 +34,7 @@ import org.apache.commons.lang3.math.NumberUtils;
  *
  * <command><p><b>submodel set generic $&lt;model></b> - Define a model template to use for all submodels
  * <br><pr><i>model</i>: An instance of {@linkplain BaseModel}.
- * Note: Do not use this command for {@linkplain CompositeRegression} unless each
+ * Note: Do not use this command for {@linkplain magpie.models.regression.CompositeRegression} unless each
  * model automatically uses a different random number seed. Otherwise, each
  * submodel will be identical.</command>
  *
@@ -116,19 +119,19 @@ abstract public class SplitModel extends BaseModel implements MultiModel {
      */
     @Override
     public int NModels() { return Model.size(); }
-    
-    /** 
+
+    @Override
+    public BaseModel getGenericModel() {
+        return GenericModel;
+    }
+
+    /**
      * Set the model template
      * @param x Template model (will be cloned)
      */
     @Override
     public void setGenericModel(BaseModel x) {
-        GenericModel = (BaseModel) x.clone();
-    }
-
-    @Override
-    public BaseModel getGenericModel() {
-        return GenericModel;
+        GenericModel = x.clone();
     }
     
     @Override
@@ -294,5 +297,25 @@ abstract public class SplitModel extends BaseModel implements MultiModel {
             default:
                 return super.runCommand(Command);
         }
+    }
+
+    @Override
+    public List<Pair<String, Citation>> getCitations() {
+        Set<Pair<String, Citation>> allCitations = new HashSet<>();
+
+        // Collect all reasons for all citations
+        for (BaseModel model : Model) {
+            allCitations.addAll(model.getCitations());
+        }
+
+        // Combine them into the output
+        List<Pair<String, Citation>> output = new ArrayList<>(allCitations);
+
+        // Add in citations for clusterer
+        if (Partitioner instanceof Citable) {
+            output.addAll(((Citable) Partitioner).getCitations());
+        }
+
+        return new ArrayList<>(output);
     }
 }
