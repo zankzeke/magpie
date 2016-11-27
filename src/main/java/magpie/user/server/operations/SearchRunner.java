@@ -355,8 +355,12 @@ public class SearchRunner {
             throw ServerUtilityOperations.prepareException("no such dataset type: " + searchDefinition.get("datasetType").toString());
         }
 
-        // Generate the entries iteratively, so that we
+
         MultiPropertyDataset data = (MultiPropertyDataset) dataObj;
+        // Train the generator
+        generator.train(data);
+
+        // Generate the entries iteratively, so that we
         int pos = 0;
         Iterator<BaseEntry> iter = generator.iterator();
         while (iter.hasNext()) {
