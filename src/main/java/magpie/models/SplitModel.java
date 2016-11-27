@@ -309,7 +309,8 @@ abstract public class SplitModel extends BaseModel implements MultiModel {
         }
 
         // Combine them into the output
-        List<Pair<String, Citation>> output = new ArrayList<>(allCitations);
+        List<Pair<String, Citation>> output = new ArrayList<>(super.getCitations());
+        output.addAll(allCitations);
 
         // Add in citations for clusterer
         if (Partitioner instanceof Citable) {
