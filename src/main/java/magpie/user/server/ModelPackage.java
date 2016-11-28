@@ -63,6 +63,27 @@ public class ModelPackage {
     }
 
     /**
+     * @return Number of times model has been run
+     */
+    public long getNumberRuns() {
+        return NumberRuns.get();
+    }
+
+    /**
+     * @return Number of entries that were evaluated
+     */
+    public long getNumberEntriesEvaluated() {
+        return NumberEvaluated.get();
+    }
+
+    /**
+     * @return Milliseconds Magpie has spent evalauting this model
+     */
+    public long getRunTime() {
+        return RunTime.get();
+    }
+
+    /**
      * Get whether model is a classification model
      *
      * @return

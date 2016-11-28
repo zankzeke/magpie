@@ -1,0 +1,93 @@
+
+<html>
+<head>
+	<title>Magpie Status</title>
+	<link rel="stylesheet" href="style.css" type="text/css" media="screen" />
+	<script src="jquery.js"></script>
+	<style>
+		div.model {
+			font-size: 20px;
+			width: 30%; height: 40px;
+			line-height: 40px;
+			background: gray;
+			color: white;
+			display: inline-block;
+			text-align: center;
+			margin: 10px 10px 10px 10px;
+		}
+		div.modelActive {
+			background: blue;
+		}
+		label {
+			color: black;
+			font-weight: bold;
+			display: inline-block;
+			width: 20%;
+			font-size: 1.1em;
+		}
+	</style>
+    <script>
+		$(document).ready(function() {
+			// Get the URL for the Magpie server
+			var magpieURL = "http://localhost:4581/";
+			
+			// Function for making prettier output
+			var appendLabel = function(output, label, info) {
+				var obj = document.createElement('label');
+				obj.innerHTML = label;
+				output.append(obj);
+				
+				output.append(info);
+				output.append('</br>');
+			}
+				
+			$.ajax({
+				url: magpieURL + "server/status",
+				success: function (result) {
+					// Clear the current table
+					var statOutput = $("#serverStatus");
+					statOutput.html("");
+
+					appendLabel(statOutput, 'Magpie Version', result['magpieVersion']);
+					appendLabel(statOutput, 'API Version', result['apiVersion']);
+					
+					statOutput.append('</br>');
+					appendLabel(statOutput, 'Server Started', result['startDate']);
+					appendLabel(statOutput, 'Uptime', result['uptime']);
+					
+					statOutput.append('</br>');
+					appendLabel(statOutput, 'Available Processors', result['availableProcessors']);
+					appendLabel(statOutput, 'Allowed Processors', result['allowedProcessors']);
+					
+					statOutput.append('</br>');
+					appendLabel(statOutput, 'Maximum Memory', (result['availableMemory'] / 1024 / 1024 / 1024 ).toFixed(3) + " GiB");
+					appendLabel(statOutput, 'Used Memory ', (result['usedMemory'] / 1024 / 1024 / 1024).toFixed(3) + " GiB (" + (result['usedMemory']/result['availableMemory'] * 100).toFixed(1) + " %)");
+					
+					statOutput.append('</br>');
+					appendLabel(statOutput, 'Times Models Run', result["usageTimesRun"]);
+					appendLabel(statOutput, 'Entries Evaluated', result["usageEntriesEvaluated"]);
+					appendLabel(statOutput, 'Evaluation Time', result["usageRunTime"]);
+				},
+				error: function(result) {
+					console.log(result);
+				}
+			});
+		});
+
+    </script>
+</head>
+<body>
+<div id="wrapper">
+    <div id="header">
+        <h1>Magpie Server Status</h1>
+    </div>
+    <p>Information about the status of the Magpie server at this port
+
+    <div id="serverStatus">
+        <p>Server not running.</p>
+    </div>
+	
+</div>
+</body>
+</html>
+

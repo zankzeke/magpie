@@ -1,5 +1,6 @@
 package magpie.user.server.operations;
 
+import magpie.user.server.ModelPackage;
 import magpie.user.server.ServerLauncher;
 import magpie.utility.UtilityOperations;
 import org.json.JSONObject;
@@ -51,6 +52,21 @@ public class ServerInformationGetter {
         output.put("allowedProcessors", ServerLauncher.ThreadCount);
         output.put("availableMemory", runtime.maxMemory());
         output.put("freeMemory", runtime.freeMemory());
+        output.put("usedMemory", runtime.maxMemory() - runtime.freeMemory());
+
+        // Get usage information
+        long nInvoked = 0;
+        long nEvaluated = 0;
+        long totalTime = 0;
+        for (ModelPackage model : ServerLauncher.Models.values()) {
+            nInvoked += model.getNumberRuns();
+            nEvaluated += model.getNumberEntriesEvaluated();
+            totalTime += model.getRunTime();
+        }
+        output.put("usageTimesRun", nInvoked);
+        output.put("usageEntriesEvaluated", nEvaluated);
+        output.put("usageRunTimeMilliseconds", totalTime);
+        output.put("usageRunTime", UtilityOperations.millisecondsToString(totalTime));
 
         return output.toString();
     }
