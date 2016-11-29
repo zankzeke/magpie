@@ -145,7 +145,18 @@ public class ServerLauncher {
             Map<String, Object> modelData = (Map) modelDataObj;
 
             // Get the name of the model
+            if (! modelData.containsKey("name")) {
+                throw new RuntimeException("model description file missing name tag");
+            }
             String modelName = modelData.get("name").toString();
+
+            // Check for the required tags
+            for (String tag : new String[]{"description", "property", "training",
+                    "author", "citation", "notes", "modelPath", "datasetPath"}) {
+                if (! modelData.containsKey(tag)) {
+                    throw new RuntimeException(modelName + " description missing tag: " + tag);
+                }
+            }
 
             // Get the path to the model and dataset
             String modelPath = modelData.get("modelPath").toString();
