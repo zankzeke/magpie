@@ -2162,6 +2162,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 }
                 BaseEntryGenerator generator = (BaseEntryGenerator) instantiateClass("data.utilities.generators." + Method, MethodOptions);
                 int initialCount = this.NEntries();
+                generator.train(this);
                 generator.addEntriesToDataset(this);
                 System.out.println(String.format("\tGenerated %d new entries with a %s. Total Count: %s",
                         NEntries() - initialCount, Method, NEntries()));
