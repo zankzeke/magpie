@@ -32,7 +32,7 @@
 
                             // Add in the model name
                             td = document.createElement("td");
-                            td.innerHTML = '<a>' + name + '</a>';
+                            td.innerHTML = '<a href="models.html?model=' + name + '">' + name + '</a>';
                             newRow.appendChild(td);
 
                             // Add in the model description
@@ -49,7 +49,6 @@
                 $('#submitButton').click(function () {
                     // Get the compositions
                     var compositions = $('#comps')[0].value.split(" ");
-                    console.log(compositions);
 
                     // Make it into a dataset object
                     var data = {entries: []};
