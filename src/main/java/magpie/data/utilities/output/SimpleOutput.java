@@ -1,15 +1,16 @@
 package magpie.data.utilities.output;
 
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.optimization.rankers.BaseEntryRanker;
 import magpie.user.CommandHandler;
 import org.apache.commons.lang3.ArrayUtils;
+
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Print the name and measured class values of each attribute. Optionally, you 
@@ -156,8 +157,7 @@ public class SimpleOutput extends BaseDatasetOutput {
         if (Ranker != null) {
             fp.format(String.format("%%%ds  ", Math.max(4, NDigits)), "Rank");
         }
-        fp.format(String.format("%%-%ds   Measured  Predicted", EntryLength),
-                "Entry");
+        fp.format(String.format("%%-%ds   Measured  Predicted", EntryLength), "Entry");
         fp.println();
         
         // If ranking, secretly print the entries
@@ -195,12 +195,10 @@ public class SimpleOutput extends BaseDatasetOutput {
            fp.format(String.format("%%%ds", EntryLength), entry.toString());
            
            // Print measured class, or None
-           fp.format("  %9s", entry.hasMeasurement() ? String.format("%9g", entry.getMeasuredClass())
-                   : "None");
+            fp.format("  %9s", entry.hasMeasurement() ? String.format("%9g", entry.getMeasuredClass()) : "None");
            
            // Print predicted class, or None
-           fp.format("  %9s", entry.hasPrediction() ? String.format("%9g", entry.getPredictedClass())
-                   : "None");
+            fp.format("  %9s", entry.hasPrediction() ? String.format("%9g", entry.getPredictedClass()) : "None");
            
            fp.println();
         }

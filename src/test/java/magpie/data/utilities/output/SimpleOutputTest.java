@@ -1,14 +1,18 @@
 package magpie.data.utilities.output;
 
+import magpie.data.BaseEntry;
+import magpie.data.Dataset;
+import magpie.data.materials.CompositionDataset;
+import org.junit.Test;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.LinkedList;
 import java.util.List;
-import magpie.data.BaseEntry;
-import magpie.data.Dataset;
-import org.junit.Test;
-import static org.junit.Assert.*;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  *
@@ -117,5 +121,23 @@ public class SimpleOutputTest {
         assertTrue(fp.readLine() == null);
         fp.close();
     }
-    
+
+    @Test
+    public void testMultiPropertyDataset() throws Exception {
+        // Read in simple
+        CompositionDataset data = new CompositionDataset();
+        data.importText("datasets/small_set.txt", null);
+
+        data.setTargetProperty("delta_e", true);
+
+        // Rank by delta_e
+        List<Object> command = new LinkedList<>();
+        command.add("rank");
+        command.add(10);
+        command.add("minimize");
+        command.add("measured");
+        command.add("SimpleEntryRanker");
+
+        data.runCommand(command);
+    }
 }

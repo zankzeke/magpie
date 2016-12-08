@@ -2221,9 +2221,9 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
             break;
             case "rank": {
                 // Usage: <number> <max|min> <meas|pred> <method> <options...>
-                boolean measured = true;
-                boolean maximize = true;
-                int numberToPrint = -1;
+                boolean measured;
+                boolean maximize;
+                int numberToPrint;
                 String Method;
                 List<Object> Options;
                 try {
@@ -2253,8 +2253,8 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 ranker.setMaximizeFunction(maximize);
                 ranker.setUseMeasured(measured);
                 ranker.train(this);
-                
-                // Make outputter
+
+                // Make outputer
                 SimpleOutput output = new SimpleOutput();
                 output.setRanker(ranker);
                 output.setNToPrint(numberToPrint);

@@ -12,10 +12,7 @@ import magpie.utility.WekaUtility;
 import magpie.utility.interfaces.*;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InvalidClassException;
-import java.io.ObjectInputStream;
+import java.io.*;
 import java.util.*;
 
 /**
@@ -212,6 +209,10 @@ public class CommandHandler {
             }
             System.out.println();
         }
+
+        // Reset standard error and standard out
+        System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
+        System.setErr(new PrintStream(new FileOutputStream(FileDescriptor.err)));
 
         try {
             // Go through each possible command syntax
