@@ -95,8 +95,7 @@ paths:
             Entries to be processed as JSON file. Only key in JSON file is
             "data," which contains the entries to be run written as strings
           required: true
-          schema:
-            $ref: "#/definitions/Dataset"
+          type: string
       produces:
         - application/json
       responses:
@@ -164,10 +163,11 @@ paths:
         - application/json
       parameters:
         - name: search
+          type: string
           in: query
-          desciprition: Seach specification
-          schema:
-            $ref: "#/definitions/SearchSpecification"
+          required: true
+          description: |
+            Search specification, should follow "#/definitions/SearchSpecification"
       responses:
         200:
           description: Successful response
@@ -226,7 +226,6 @@ definitions:
         description: Whether this model is a regression or classification model
       units:
         type:
-          oneOf:
             - string
             - array
         description: |
@@ -273,20 +272,11 @@ definitions:
         description: Model performance on training set and during validation test
         properties:
           training:
-            type: object
-            description: Performance on training set
-            schema:
-              $ref: "#/defintiions/ModelPerformanceStats"
-          training:
-            type: object
-            description: Performance during validation test
-            schema:
-              $ref: "#/defintiions/ModelPerformanceStats"
+            $ref: "#/definitions/ModelPerformanceStats"
+          validation:
+            $ref: "#/definitions/ModelPerformanceStats"
       usageStats:
-        type: object
-        description: Information about how much this model has been used
-        schema:
-          $ref: "#/definitions/ModelUsageStats"
+        $ref: "#/definitions/ModelUsageStats"
       suggestedCitations:
         type: object
         description: |
@@ -295,16 +285,14 @@ definitions:
 
   ModelPerformanceStats:
     type: object
-    description: Data regarding the performance of the model in either training or cross-validation
     properties:
       method:
         type: string
         description: Method used for validation test
 
-
   ModelUsageStats:
     type: object
-    description: Data regarding how much the model has been used
+    description: Information about how much this model has been used
     properties:
       numberTimesRun:
         type: number
@@ -317,7 +305,7 @@ definitions:
       totalRunTime:
         type: string
         description: How much time it is taken to run the model, formatted to be human readable
-      totalRunTime:
+      totalRunTimeMilliseconds:
         type: number
         format: int64
         description: How much time it is taken to run the model, in milliseconds
@@ -375,10 +363,7 @@ definitions:
         description: Type of the step. Could be "model" or "filter"
       options:
         type: object
-        description: Options for the model or filter.
-        oneOf:
-          - $ref: "#/definitions/ModelStepSpecification"
-          - $ref: "#/definitions/FilterStepSpecification"
+        description: Either a ModelStepSpecification or a FilterStepSpecification
 
   ModelStepSpecification:
     type: object

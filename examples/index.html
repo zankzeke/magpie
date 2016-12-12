@@ -2,11 +2,21 @@
 <head>
 	<title>Magpie Examples</title>
 	<link rel="stylesheet" href="../doc/style.css" type="text/css" media="screen" />
+	<script>
+	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+	
+	  ga('create', 'UA-58301729-2', 'auto');
+	  ga('send', 'pageview');
+	
+	</script>
 </head>
 <body>
 <div id="wrapper">
 	<div class="footer">
-		<center><a href="../doc/index.html">Manual Home</a></center>	
+		<center><a href="../doc/index.html">Manual Home</a></center>
 	</div>
 	<center><h1>Magpie Examples</h1></center>
 	<p>These examples highlight some of the main capabilities of Magpie. Before reviewing them, you may want to review how to install Magpie and read Magpie commands in the main part of the <a href="../doc/index.html">manual</a>. If you have already installed it, each of these examples can be run by calling:</p>
@@ -28,7 +38,7 @@
 	<p>Demonstrates the Clustering-Ranking-Modeling method of <a href="http://pubs.acs.org/doi/abs/10.1021/cm403727z">Meredig and Wolverton</a>. First, this script separates data into 4 subsets using KMeans++ clustering. Then, it trains a quadratic model for dilute-limit solution energies in zirconia using on the attribute that best models that property for each subset.</p>
 
 	<h2><b><a href="csp.in">csp.in</a></b></h2>
-	<p>Uses the Data-Mining Structure Prediction (DMSP) method of  <a href="http://www.nature.com/nmat/journal/v5/n8/full/nmat1691.html">Fisher <i>et al</i></a> to predict the most-likely crystal structures of two example compounds: Na<sub>5</sub>Pb<sub>2</sub> and Al<sub>2</sub>NiCu.</p>
+	<p>Uses the Data-Mining Structure Prediction (DMSP) method of  <a href="http://www.nature.com/nmat/journal/v5/n8/full/nmat1691.html">Fischer <i>et al</i></a> to predict the most-likely crystal structures of two example compounds: Na<sub>5</sub>Pb<sub>2</sub> and Al<sub>2</sub>NiCu.</p>
 
 	<h2><b><a href="optimization.in">optimization.in</a></b></h2>
 	<p>Demonstrates an optimization algorithm that employs two regression models to find the maximum of the function:</p>
@@ -39,7 +49,7 @@
 
 	<h2><b><a href="simple-neural-network.in">simple-neural-network.in</a></b></h2>
 	<p>Uses a neural network model to predict the formation energy of a few compounds. Before constructing the model, adjusts attributes and class variable to exist on the same range.</p>
-        
+
         <h2><b><a href="scikit-learn.in">scikit-learn.in</a></b></h2>
         <p>Uses a RandomForest model from <a href="http://scikit-learn.org/stable/">scikit-learn</a> to predict the formation energies of a small set of compounds.</p>
 
