@@ -1,0 +1,22 @@
+// Script for running the ML model created in the 
+//   first part of the tutorial
+
+// Load in the dataset, which includes all of the information
+//   needed to generate the attributes
+search = load delta_e-data.obj
+
+// Generate the compositions of ternary ionic compounds
+search generate IonicCompoundGenerator 3 3 10 Li Fe Ni Zr O S
+
+// Compute attributes
+search attributes generate
+
+// Run the model
+model = load delta_e-model.obj 
+model run $search
+
+// Save the results in stats format
+save search predicted-compounds stats
+
+// Rank entries from largest to smallest formation enthalpy
+search rank 10 minimum predicted SimpleEntryRanker
