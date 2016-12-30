@@ -1,0 +1,109 @@
+<html>
+<head>
+	<title>Magpie Installation</title>
+	<link rel="stylesheet" href="style.css" type="text/css" media="screen" />
+</head>
+<body>
+<div id="wrapper">
+	<div class="footer" style="text-align: center">
+		<center><a href="index.html">Manual Home</a></center>	
+	</div>
+
+	<h1>Building Magpie</h1>
+
+	<p>The recommended route for installing Magpie is to download the latest version from Bitbucket and compile it yourself.
+	While this may require installing additional software, it comes with the advantage that it will be much easier to update
+	Magpie as new features are added. This guide will walk you through the installation process</p>
+
+	<h2>Required Software</h2>
+
+	<p>Building Magpie from the latest Bitbucket version requires two pieces of software: git and Java Development
+		Kit (JDK).</p>
+
+	<h3>Linux</h3>
+
+	<p>If you are running Ubuntu Linux, installing the required software can be accomplished by installing the "git" and
+		"openjdk-7-jdk" packages (although I would recommend "openjdk-8-jdk" or later, if available). There are likely
+		analogous packages on other Linux distributions.</p>
+
+	<h3>Windows</h3>
+
+	<p>JDK can be installed by downloading and using the installer available from
+		<a href="http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html">Oracle</a>.
+		After running the installer, verify that the JAVA_HOME environmental variable points to your
+		<a href="https://confluence.atlassian.com/doc/setting-the-java_home-variable-in-windows-8895.html">new
+		installation of JDK</a>. Otherwise, you will get an error about Gradle being unable to find "tools.jar" when
+		trying to compile Magpie.
+	</p>
+
+	<p>There are many ways to install Git for Windows. Of these, I would recommend installing the command line
+	version from <a href="https://git-scm.com/downloads">git-scm.com</a> if you want to follow along with this tutorial.
+	However, there are versions of git with GUIs that integrate with Bitbucket (such as
+	<a href="https://www.sourcetreeapp.com/">SourceTree</a>), which you might prefer.</p>
+
+	<h3>Mac</h3>
+
+	<p>
+		Installing JDK on OS X can be accomplished by following a guide from <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/install/mac_jdk.html">Oracle</a>.
+		There is also a guide for installing <a href="https://git-scm.com/book/en/v2/Getting-Started-Installing-Git">Git on OS X.</a>
+		As of now, there have not been any issues reported with respect to compiling Magpie on Mac. If you run into problems,
+		please <a href="https://bitbucket.org/wolverton/magpie/issues">post an issue on the Bitbucket</a> so that this guide
+		can be updated with a resolution to this issue.
+	</p>
+
+	<h2>Downloading and Updating Magpie</h2>
+
+	<p>
+		The source code for Magpie, documentation (including this installation guide), and all of the data required to
+		generate representations for materials is stored in a git repository on Bitbucket. The first step to building Magpie
+		is to create a create a copy of this repository that can be easily synced with Bitbucket as new changes are made
+		by "cloning" it with git. Cloning can be accomplished by invoking a single command from the command line
+	</p>
+
+	<div style="text-align: center">
+		<code>git clone https://bitbucket.org/wolverton/magpie.git</code>
+	</div>
+
+	<p>
+		The clone command will create a new directory named "magpie" in the folder in which you called git. This directory
+		contains all of the files shown online at Bitbucket, as well as a folder named ".git" that contains the version
+		history for Magpie and the information needed to connect with Bitbucket and update Magpie. Once the Magpie is cloned,
+		it can be updated again by calling <code>git update</code> from within the Magpie folder. If you call <code>git log</code>
+		after updating, you can see descriptions of what was changed and by whom.
+	</p>
+
+	<h2>Compiling Magpie with Gradle</h2>
+
+	<p>
+		The preferred method for compiling Magpie is to use Gradle. Gradle is a build tool that automates downloading
+		the libraries required by Magpie, compiling the source code, and other important tasks. You will need an internet
+		connection when running Gradle for it to function properly.
+	</p>
+
+	<p>
+		The only step to compiling the JAR file for Magpie is to invoke Gradle by calling <code>./gradlew jar</code>
+		from the command line within the Magpie folder. For Windows users, replace "./gradlew" with "gradlew" for this
+		command and all subsequent times Gradle is called. If this is your first time running Gradle on your computer, gradlew
+		will download Gradle itself (gradlew is just a wrapper) and all of the plugins used in the "build.gradle" script
+		provided with Magpie. The "jar" command will cause Gradle to download all of the libraries used by Magpie, compile
+		the code, and create a directory named "dist" that contains Magpie.jar and all of the supporting files. If you update
+		Magpie with <code>git pull</code>, you will need to rerun this step to bring Magpie up to date.
+	</p>
+
+	<p>
+		To make sure that your copy of Magpie is working properly, call <code>java -jar dist/Magpie.jar examples/simple-model.in</code>
+		to run an example script. For Windows users, replace the <code>/</code>s with <code>\</code>s. If you want to be
+		further sure that Magpie is running properly, run tests for Magpie by calling <code>./gradlew test</code>. Gradle
+		will then run several hundred tests that check whether a majority of the methods implementing in Magpie are working as expected.
+		The tests that are most likely to fail are the ones that test the Scikit-learn functionality. If these fail, you may need
+		to either install Scikit-learn on your system or run <code>make-models.py</code> in <code>test-files</code> to create
+		pkl files compatible with your version of Scikit-learn. If there are other tests that fail, please contact the
+		developers.
+	</p>
+
+	<p>
+		The API documentation for Magpie can also be generated with Magpie using Gradle. Calling <code>./gradlew javadoc</code>
+		will generate documentation for Magpie in the "javadoc" folder.
+	</p>
+</div>
+</html>

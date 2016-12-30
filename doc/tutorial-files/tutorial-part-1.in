@@ -1,0 +1,40 @@
+// This example script trains a Weka-based model on the 
+//  formation energies of a small set of compounds
+
+// Load in a dataset of compounds
+data = new data.materials.CompositionDataset
+data import ./datasets/small_set.txt
+
+// Get only the ground-state instances of each compound
+data duplicates RankingDuplicateResolver minimize PropertyRanker energy_pa SimpleEntryRanker
+
+// Set formation energy as property to be modeled
+data target delta_e
+
+// Define settings for the attribute generators
+data attributes properties directory ./lookup-data/
+data attributes properties add set general
+
+// Generate attributes (input for the ML model)
+data attributes generate
+
+//  Save the data file as a CSV file
+save data delta_e csv
+
+// Create the ML model
+model = new models.regression.WekaRegression weka.classifiers.trees.REPTree & 
+		-M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0
+
+// Train it and print out the training statistics
+model train $data
+print model training stats
+
+// Perform cross-validation and print out the cross-validation stats
+model crossvalidate $data 10 
+print model validation stats
+
+// Save the model and dataset template
+save model delta_e-model 
+save data delta_e-data template
+
+exit

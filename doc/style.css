@@ -153,6 +153,11 @@ a:hover
 	color:#999;
 }
 
+h1
+{
+	text-align: center;
+}
+
 h2
 {
 	font-weight:normal;
