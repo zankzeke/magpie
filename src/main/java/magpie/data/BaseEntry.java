@@ -1,5 +1,6 @@
 package magpie.data;
 
+import com.sun.deploy.util.ArrayUtil;
 import magpie.utility.UtilityOperations;
 import org.apache.commons.lang3.ArrayUtils;
 import org.json.JSONObject;
@@ -153,7 +154,8 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
         return copy;
     }
     
-    @Override public int compare(Object A_obj, Object B_obj) {
+    @Override
+    public int compare(Object A_obj, Object B_obj) {
         if (A_obj instanceof BaseEntry && B_obj instanceof BaseEntry) {
             BaseEntry A = (BaseEntry) A_obj, B = (BaseEntry) B_obj;
             // If A has more features, it is greater. 
@@ -168,7 +170,8 @@ public class BaseEntry implements java.lang.Cloneable, java.io.Serializable,
         } else return 0;
     }
     
-    @Override public int compareTo(Object B) { return compare(this, B); }
+    @Override
+    final public int compareTo(Object B) { return compare(this, B); }
     
     @Override public int hashCode() {
         if (AttributeList.length > 0) {

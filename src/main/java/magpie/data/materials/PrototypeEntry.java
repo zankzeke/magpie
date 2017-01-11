@@ -18,8 +18,10 @@ import org.apache.commons.math3.stat.StatUtils;
 import org.json.JSONObject;
 
 /**
- * Entry in a {@linkplain PrototypeCompositionDataset}. Stores which elements are on
+ * Entry in a {@linkplain PrototypeDataset}. Stores which elements are on
  *  each site, and the corresponding composition.
+ *
+ *  <p>To Do: Improve the compare / equality to account for prototypes with equivalent sites (ex: ABC == BAC, ABC != ACB)</p>
  *  
  * @author Logan Ward
  * @version 0.1
@@ -31,7 +33,7 @@ public class PrototypeEntry extends CompositionEntry {
     protected CompositionEntry[] SiteComp;
 
     /**
-     * Create a new PrototypeEntry. See {@linkplain PrototypeCompositionDataset}
+     * Create a new PrototypeEntry. See {@linkplain PrototypeDataset}
      * @param SiteInfo Information about each site in prototype crystal
      * @param Composition String describing elements on each site
 	 * @throws Exception If parse fails
@@ -68,7 +70,7 @@ public class PrototypeEntry extends CompositionEntry {
 
     /**
      * Create a Prototype entry without specifying composition. These must be defined
-     *  later for the entry to be usable (by using {@linkplain #setSiteComposition(int, magpie.data.oqmd.CompositionEntry) })
+     *  later for the entry to be usable (by using {@linkplain #setSiteComposition(int, magpie.data.materials.CompositionEntry) })
      * @param SiteInfo Information about each site in prototype crystalm
      */
     public PrototypeEntry(PrototypeSiteInformation SiteInfo) {
@@ -189,7 +191,7 @@ public class PrototypeEntry extends CompositionEntry {
 
     @Override
     public int hashCode() {
-        int hash = 7;
+        int hash = 7 * super.hashCode();
         hash = 89 * hash + Objects.hashCode(this.SiteInfo);
         hash = 89 * hash + Arrays.deepHashCode(this.SiteComp);
         return hash;

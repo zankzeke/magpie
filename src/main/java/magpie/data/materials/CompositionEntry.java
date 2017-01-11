@@ -15,15 +15,18 @@ import java.util.regex.Pattern;
 
 /**
  * Stores several properties about a compound and its composition. Can store information regarding
- * multiple properties of the material represented by the composition. 
+ * multiple properties of the material represented by the composition.
+ *
+ * <p>Equality is computed based on the composition, and the attributes. In most cases, entries with the same
+ * composition will have the same attributes. However, one may introduce properties as attributes
+ * {@linkplain magpie.attributes.generators.PropertyAsAttributeGenerator}, which can cause entries witht the same
+ * composition to have different attributes.</p>
  *
  * @author Logan Ward
  * @version 0.1
  */
 public class CompositionEntry extends MultiPropertyEntry {
-    /**
-     * Whether to print composition in HTML Format
-     */
+    /** Whether to print composition in HTML Format */
     public boolean HTMLFormat = false;
     /** Names of each element */
     protected String[] ElementNames = LookupData.ElementNames;
@@ -423,7 +426,8 @@ public class CompositionEntry extends MultiPropertyEntry {
         return 0;
     }
     
-    @Override public int compare(Object A_obj, Object B_obj) {
+    @Override
+    public int compare(Object A_obj, Object B_obj) {
         if (A_obj instanceof CompositionEntry && B_obj instanceof CompositionEntry) {
             CompositionEntry A = (CompositionEntry) A_obj;
             CompositionEntry B = (CompositionEntry) B_obj;
@@ -437,29 +441,29 @@ public class CompositionEntry extends MultiPropertyEntry {
                 } else if (A.Fraction[i] != B.Fraction[i])
                     return (A.Fraction[i] > B.Fraction[i]) ? 1 : -1;
             // We have concluded they are equal
-            return 0;
+            return super.compare(A, B);
         } else
             return 0;
     }
     
     @Override
     public int hashCode() {
-        if (Element.length > 0) {
-            return Arrays.hashCode(Element) ^ Arrays.hashCode(Fraction);
-        } else {
-            return 0;
-        }
+        return Arrays.hashCode(Element) ^ Arrays.hashCode(Fraction) ^ super.hashCode();
     }
     
-    @Override public boolean equals(Object other) {
+    @Override
+    public boolean equals(Object other) {
         if (other instanceof CompositionEntry) {
             CompositionEntry obj = (CompositionEntry) other;
             if (obj.Element.length != Element.length) {
                 return false;
             }
             return (java.util.Arrays.equals(Element, obj.Element) &&
-                    java.util.Arrays.equals(Fraction, obj.Fraction));
-        } else return false;
+                    java.util.Arrays.equals(Fraction, obj.Fraction)) &&
+                    super.equals(obj);
+        } else {
+            return false;
+        }
     }
 
     // Feature calculation methods

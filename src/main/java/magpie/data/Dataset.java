@@ -916,7 +916,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         Map<BaseEntry,List<BaseEntry>> allEntries = getUniqueEntries();
         
         // Remove entries where the size is only 1
-        Map<BaseEntry,List<BaseEntry>> output = new TreeMap<>();
+        Map<BaseEntry,List<BaseEntry>> output = new HashMap<>();
         for (Map.Entry<BaseEntry,List<BaseEntry>> entry : allEntries.entrySet()) {
             if (entry.getValue().size() > 1) {
                 output.put(entry.getKey(), entry.getValue());

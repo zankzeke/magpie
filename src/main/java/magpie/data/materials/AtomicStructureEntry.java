@@ -107,18 +107,27 @@ public class AtomicStructureEntry extends CompositionEntry {
     public boolean equals(Object other) {
         if (other instanceof AtomicStructureEntry) {
             AtomicStructureEntry you = (AtomicStructureEntry) other;
-            return Structure.equals(you.Structure);
+            return Structure.equals(you.Structure) && super.equals(other);
         }
         return false;
     }
 
     @Override
-    public int compareTo(Object B) {
+    public int compare(Object A, Object B) {
         if (B instanceof AtomicStructureEntry) {
             AtomicStructureEntry Bobj = (AtomicStructureEntry) B;
+            AtomicStructureEntry Aobj = (AtomicStructureEntry) A;
+
             // First: Check for equality
-            if (equals(Bobj)) return 0;
-            // Second: Extreme measures
+            if (Aobj.equals(Bobj)) return 0;
+
+            // Second: Check the composition / attributes
+            int superComp = super.compare(Aobj, Bobj);
+            if (superComp != 0) {
+                return superComp;
+            }
+
+            // Third: Extreme measures
             if (Structure.nAtoms() != Bobj.Structure.nAtoms()) {
                 return Integer.compare(Structure.nAtoms(), Bobj.Structure.nAtoms());
             }
@@ -146,8 +155,14 @@ public class AtomicStructureEntry extends CompositionEntry {
                 }
             }
             throw new Error("These entries were supposed to be unequal");
+        } else {
+            return super.compare(A, B);
         }
-        return super.compareTo(B); 
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode() ^ Structure.hashCode();
     }
 
     /**

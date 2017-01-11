@@ -112,7 +112,7 @@ public class LassoAttributeSelectorTest {
     }
     
     @Test
-    public void testCiations() throws Exception {
+    public void testCitations() throws Exception {
         // Make the selector
         LassoAttributeSelector lasso = new LassoAttributeSelector();
         

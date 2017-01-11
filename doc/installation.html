@@ -13,12 +13,11 @@
 
 	<p>The recommended route for installing Magpie is to download the latest version from Bitbucket and compile it yourself.
 	While this may require installing additional software, it comes with the advantage that it will be much easier to update
-	Magpie as new features are added. This guide will walk you through the installation process</p>
+	Magpie as new features are added. This guide will walk you through the installation process.</p>
 
 	<h2>Required Software</h2>
 
-	<p>Building Magpie from the latest Bitbucket version requires two pieces of software: git and Java Development
-		Kit (JDK).</p>
+	<p>Building Magpie from the latest Bitbucket version requires installing git and the Java Development Kit (JDK).</p>
 
 	<h3>Linux</h3>
 
@@ -47,8 +46,8 @@
 		Installing JDK on OS X can be accomplished by following a guide from <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/install/mac_jdk.html">Oracle</a>.
 		There is also a guide for installing <a href="https://git-scm.com/book/en/v2/Getting-Started-Installing-Git">Git on OS X.</a>
 		As of now, there have not been any issues reported with respect to compiling Magpie on Mac. If you run into problems,
-		please <a href="https://bitbucket.org/wolverton/magpie/issues">post an issue on the Bitbucket</a> so that this guide
-		can be updated with a resolution to this issue.
+		please <a href="https://bitbucket.org/wolverton/magpie/issues">post an issue on the Bitbucket</a> so the developers know
+		to update the guide with a resolution to your issue.
 	</p>
 
 	<h2>Downloading and Updating Magpie</h2>
@@ -56,8 +55,8 @@
 	<p>
 		The source code for Magpie, documentation (including this installation guide), and all of the data required to
 		generate representations for materials is stored in a git repository on Bitbucket. The first step to building Magpie
-		is to create a create a copy of this repository that can be easily synced with Bitbucket as new changes are made
-		by "cloning" it with git. Cloning can be accomplished by invoking a single command from the command line
+		is to clone this repository, which makes it easy to sync with Bitbucket as new changes are made.
+		Cloning can be accomplished by invoking a single command from the command line
 	</p>
 
 	<div style="text-align: center">
@@ -68,7 +67,7 @@
 		The clone command will create a new directory named "magpie" in the folder in which you called git. This directory
 		contains all of the files shown online at Bitbucket, as well as a folder named ".git" that contains the version
 		history for Magpie and the information needed to connect with Bitbucket and update Magpie. Once the Magpie is cloned,
-		it can be updated again by calling <code>git update</code> from within the Magpie folder. If you call <code>git log</code>
+		it can be updated again by calling <code>git pull</code> from within the Magpie folder. If you call <code>git log</code>
 		after updating, you can see descriptions of what was changed and by whom.
 	</p>
 
@@ -77,7 +76,7 @@
 	<p>
 		The preferred method for compiling Magpie is to use Gradle. Gradle is a build tool that automates downloading
 		the libraries required by Magpie, compiling the source code, and other important tasks. You will need an internet
-		connection when running Gradle for it to function properly.
+		connection when running Gradle for it to function&nbsp;properly.
 	</p>
 
 	<p>
@@ -94,7 +93,7 @@
 		To make sure that your copy of Magpie is working properly, call <code>java -jar dist/Magpie.jar examples/simple-model.in</code>
 		to run an example script. For Windows users, replace the <code>/</code>s with <code>\</code>s. If you want to be
 		further sure that Magpie is running properly, run tests for Magpie by calling <code>./gradlew test</code>. Gradle
-		will then run several hundred tests that check whether a majority of the methods implementing in Magpie are working as expected.
+		will then run several hundred tests that check whether a majority of the methods implemented in Magpie are working as expected.
 		The tests that are most likely to fail are the ones that test the Scikit-learn functionality. If these fail, you may need
 		to either install Scikit-learn on your system or run <code>make-models.py</code> in <code>test-files</code> to create
 		pkl files compatible with your version of Scikit-learn. If there are other tests that fail, please contact the

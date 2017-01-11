@@ -1,10 +1,17 @@
 package magpie.data.materials;
 
+import magpie.attributes.generators.PropertyAsAttributeGenerator;
+import magpie.data.BaseEntry;
+import magpie.data.Dataset;
 import magpie.utility.DistinctPermutationGenerator;
 import magpie.utility.MathUtils;
 import org.apache.commons.math3.util.CombinatoricsUtils;
 import org.json.JSONObject;
 import org.junit.Test;
+
+import java.util.List;
+import java.util.Map;
+
 import static org.junit.Assert.*;
 
 /**
@@ -205,6 +212,25 @@ public class CompositionEntryTest {
             assertArrayEquals(goldFracs, newEntry.getFractions(), 1e-6);
         }
     }
+
+    @Test
+    public void testComapreWithAttributes() throws Exception {
+        CompositionEntry entryA = new CompositionEntry("Al");
+        CompositionEntry entryB = new CompositionEntry("Al");
+
+        // Check that they are equal
+        assertEquals(entryA, entryB);
+        assertEquals(0, entryA.compareTo(entryB));
+        assertEquals(entryA.hashCode(), entryB.hashCode());
+
+        // Check that they are not equal when adding attribute
+        entryA.addAttribute(-1);
+        entryB.addAttribute(1);
+
+        assertNotEquals(entryA, entryB);
+        assertNotEquals(0, entryA.compareTo(entryB));
+        assertNotEquals(entryA.hashCode(), entryB.hashCode());
+    }
     
     @Test
     public void testCompare() throws Exception {
@@ -212,15 +238,40 @@ public class CompositionEntryTest {
         data.importText("datasets/small_set.txt", null);
         
         // Check each entry
+        checkCompare(data);
+        Map<BaseEntry, List<BaseEntry>> duplicates = data.getDuplicates();
+
+        // Add in energy_pa as an attribute, make sure the compare doesn't get affected
+        PropertyAsAttributeGenerator gen = new PropertyAsAttributeGenerator();
+        gen.addProperty("energy_pa");
+        gen.addAttributes(data);
+
+        assertEquals(1, data.NAttributes());
+
+        // Make sure that number of duplicates has changed
+        assertNotEquals(duplicates.size(), data.getDuplicates().size());
+        checkCompare(data);
+    }
+
+    /**
+     * Check that the comparison scheme is working for all of the entries
+     * @param data
+     */
+    protected void checkCompare(Dataset data) {
         for (int e1=0; e1<data.NEntries(); e1++) {
             for (int e2=e1+1; e2<data.NEntries(); e2++) {
                 assertEquals(data.getEntry(e1).compareTo(data.getEntry(e2)),
                         -1 * data.getEntry(e2).compareTo(data.getEntry(e1)));
                 assertEquals(0, data.getEntry(e1).compareTo(data.getEntry(e1)));
+                if (data.getEntry(e1).compareTo(data.getEntry(e2)) == 0) {
+                    assertEquals(data.getEntry(e1).hashCode(),
+                            data.getEntry(e2).hashCode());
+                    assertTrue(data.getEntry(e1).equals(data.getEntry(e2)));
+                }
             }
         }
     }
-    
+
     @Test
     public void testJSON() throws Exception {
         CompositionEntry entry = new CompositionEntry("AlNi");
