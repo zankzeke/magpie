@@ -1,6 +1,5 @@
 package magpie.data;
 
-import com.sun.deploy.util.ArrayUtil;
 import magpie.utility.UtilityOperations;
 import org.apache.commons.lang3.ArrayUtils;
 import org.json.JSONObject;

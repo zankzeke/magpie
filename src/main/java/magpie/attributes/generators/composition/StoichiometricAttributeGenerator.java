@@ -1,6 +1,5 @@
 package magpie.attributes.generators.composition;
 
-import java.util.*;
 import magpie.attributes.generators.BaseAttributeGenerator;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
@@ -10,6 +9,8 @@ import magpie.utility.interfaces.Citable;
 import magpie.utility.interfaces.Citation;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+
+import java.util.*;
 
 /**
  * Generate attributes based on stoichiometry of material. Includes attributes
@@ -66,7 +67,7 @@ public class StoichiometricAttributeGenerator extends BaseAttributeGenerator
         if (norm == 0) {
             return; // Already included by default
         } else if (norm == 1) {
-            throw new Exception("L1 norm is always 1. Useless as attribute");
+            throw new IllegalArgumentException("L1 norm is always 1. Useless as attribute");
         } 
         PNorms.add(norm);
     }
