@@ -1,5 +1,5 @@
 apply plugin: 'java'
-apply plugin: 'cobertura'
+apply plugin: 'jacoco'
 apply plugin: 'com.github.kt3k.coveralls'
 
 // Java 8 _requires_ conforming HTML for the Javadoc
@@ -28,15 +28,16 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'net.saliman:gradle-cobertura-plugin:2.3.2'
         classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.7.1'
     }
 }
 
 // Parameters for the coverage test
-cobertura {
-    coverageFormats = [ 'xml' ]
-    coverageIgnoreTrivial = true
+jacocoTestReport {
+    reports {
+        xml.enabled = true // coveralls plugin depends on xml format report
+        html.enabled = true
+    }
 }
 
 // Dependency list
