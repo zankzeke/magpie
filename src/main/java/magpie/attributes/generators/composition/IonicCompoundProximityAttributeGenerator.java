@@ -7,7 +7,7 @@ import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.CompositionEntry;
-import magpie.data.utilities.filters.CompositionSetDistanceFilter;
+import magpie.data.utilities.filters.CompositionDistanceFilter;
 import magpie.utility.tools.IonicCompoundFinder;
 
 /**
@@ -31,7 +31,7 @@ import magpie.utility.tools.IonicCompoundFinder;
  * 
  * @author Logan Ward
  * @see IonicCompoundFinder
- * @see CompositionSetDistanceFilter#computeDistance(magpie.data.materials.CompositionEntry, magpie.data.materials.CompositionEntry, int) 
+ * @see CompositionDistanceFilter#computeDistance(CompositionEntry, CompositionEntry, int)
  */
 public class IonicCompoundProximityAttributeGenerator extends 
         BaseAttributeGenerator {
@@ -110,7 +110,7 @@ public class IonicCompoundProximityAttributeGenerator extends
                 if (ionicCompounds.isEmpty()) {
                     newAttrs[0] = entry.getElements().length;
                 } else {
-                    newAttrs[0] = CompositionSetDistanceFilter.computeDistance(
+                    newAttrs[0] = CompositionDistanceFilter.computeDistance(
                             entry, 
                             ionicCompounds.get(0),
                             1);

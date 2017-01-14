@@ -6,6 +6,8 @@ import magpie.Magpie;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.CompositionEntry;
 import org.junit.Test;
+import weka.core.Instance;
+
 import static org.junit.Assert.*;
 
 /**
@@ -16,61 +18,27 @@ public class CompositionSetDistanceFilterTest {
 
     @Test
     public void test() throws Exception {
-        // Test binary distance
-        assertEquals(0.0, 
-                CompositionSetDistanceFilter.computeDistance(
-                        new CompositionEntry("Fe"),
-                        new CompositionEntry("Fe"), -1),
-                1e-6);
-        assertEquals(0.0, 
-                CompositionSetDistanceFilter.computeDistance(
-                        new CompositionEntry("Fe"),
-                        new CompositionEntry("Fe"), 0),
-                1e-6);
-        assertEquals(0.0, 
-                CompositionSetDistanceFilter.computeDistance(
-                        new CompositionEntry("Fe"),
-                        new CompositionEntry("Fe"), 2),
-                1e-6);
-        assertEquals(0.5, 
-                CompositionSetDistanceFilter.computeDistance(
-                        new CompositionEntry("FeO"),
-                        new CompositionEntry("Fe"), -1),
-                1e-6);
-        assertEquals(2.0, 
-                CompositionSetDistanceFilter.computeDistance(
-                        new CompositionEntry("FeO"),
-                        new CompositionEntry("Fe"), 0),
-                1e-6);
-        assertEquals(Math.sqrt(0.5), 
-                CompositionSetDistanceFilter.computeDistance(
-                        new CompositionEntry("FeO"),
-                        new CompositionEntry("Fe"), 2),
-                1e-6);
-        
         // Test distance from set
         List<CompositionEntry> entrySet = new ArrayList<>();
         entrySet.add(new CompositionEntry("NaCl"));
         entrySet.add(new CompositionEntry("Fe"));
         entrySet.add(new CompositionEntry("FeO"));
-        assertEquals(0, CompositionSetDistanceFilter.computeDistance(entrySet,
-                new CompositionEntry("Fe"), 0), 1e-6);
-        assertEquals(2.0, CompositionSetDistanceFilter.computeDistance(entrySet,
-                new CompositionEntry("Fe2O3"), 0), 1e-6);
-        assertEquals(0.1, CompositionSetDistanceFilter.computeDistance(entrySet,
-                new CompositionEntry("Fe2O3"), -1), 1e-6);
-        assertEquals(Math.sqrt(0.02), CompositionSetDistanceFilter.computeDistance(entrySet,
-                new CompositionEntry("Fe2O3"), 2), 1e-6);
+
+        // Make the filterer
+        CompositionSetDistanceFilter filter = new CompositionSetDistanceFilter();
+        filter.setUseManhattan();
+        filter.addCompositions(entrySet);
+        assertEquals(0, filter.computeDistance(new CompositionEntry("Fe")), 1e-6);
+        filter.setUseEuclidean();
+        assertEquals(Math.sqrt(2 * Math.pow(0.1, 2)), filter.computeDistance(new CompositionEntry("Fe2O3")), 1e-6);
         
         CompositionDataset toMeasureFrom = new CompositionDataset();
         toMeasureFrom.addEntries(entrySet);
         
         // Create filter
-        CompositionSetDistanceFilter filter = new CompositionSetDistanceFilter();
-        
         List<Object> options = new ArrayList<>();
         options.add(toMeasureFrom);
-        options.add(2);
+        options.add("-euclidean");
         options.add(0.2);
         
         filter.setOptions(options);
@@ -100,6 +68,18 @@ public class CompositionSetDistanceFilterTest {
         for (int i=0; i<serialLabels.length; i++) {
             assertTrue(serialLabels[i] == parallelLabels[i]);
         }
+    }
+
+    @Test
+    public void testEntryConversion() throws Exception {
+        // Test the conversion of entry to Weka instance
+        Instance inst = CompositionSetDistanceFilter.convertCompositionToInstance(new CompositionEntry("H"));
+        assertEquals(1.0, inst.value(0), 1e-6);
+
+        inst = CompositionSetDistanceFilter.convertCompositionToInstance(new CompositionEntry("UH3"));
+        assertEquals(0.75, inst.value(0), 1e-6);
+        assertEquals(0, inst.value(1), 1e-6);
+        assertEquals(0.25, inst.value(91), 1e-6);
     }
     
 }

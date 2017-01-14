@@ -47,8 +47,6 @@ public class LinearCorrectedRegressionTest extends BaseModelTest {
         // Get MAE
         RegressionStatistics s1 = (RegressionStatistics) sub.TrainingStats;
         RegressionStatistics s2 = (RegressionStatistics) model.TrainingStats;
-        s1.savePerformanceData("data_uncorrected.csv");
-        s2.savePerformanceData("data_corrected.csv");
         assertTrue(s1.MAE - s2.MAE > -1e-6);
     }
     

@@ -6,7 +6,7 @@ import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.CompositionEntry;
-import magpie.data.utilities.filters.CompositionSetDistanceFilter;
+import magpie.data.utilities.filters.CompositionDistanceFilter;
 import magpie.optimization.algorithms.OptimizationHelper;
 import magpie.utility.EqualSumCombinations;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -244,7 +244,7 @@ public class APEAttributeGenerator extends BaseAttributeGenerator {
             // Compute the distance of our cluser to each of those clusters
             double[] distances = new double[closestClusters.size()];
             for (int i=0; i<distances.length; i++) {
-                distances[i] = CompositionSetDistanceFilter.computeDistance(entry, 
+                distances[i] = CompositionDistanceFilter.computeDistance(entry,
                         closestClusters.get(i), 2);
             }
             
@@ -640,7 +640,7 @@ public class APEAttributeGenerator extends BaseAttributeGenerator {
         PriorityQueue<CompositionEntry> queue = new PriorityQueue<>(nClosest + 1, new Comparator<CompositionEntry>() {
             @Override
             public int compare(CompositionEntry o1, CompositionEntry o2) {
-                return Double.compare(CompositionSetDistanceFilter.computeDistance(targetFinal, o2, pFinal), CompositionSetDistanceFilter.computeDistance(targetFinal, o1, pFinal));
+                return Double.compare(CompositionDistanceFilter.computeDistance(targetFinal, o2, pFinal), CompositionDistanceFilter.computeDistance(targetFinal, o1, pFinal));
             }
         });
         for (CompositionEntry other : otherCompositions) {

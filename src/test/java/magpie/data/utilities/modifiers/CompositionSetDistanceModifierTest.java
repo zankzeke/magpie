@@ -33,7 +33,7 @@ public class CompositionSetDistanceModifierTest {
         
         List<Object> options = new ArrayList<>();
         options.add(comparisonSet);
-        options.add(2);
+        options.add("-euclidean");
         
         mdfr.setOptions(options);
         
@@ -68,8 +68,8 @@ public class CompositionSetDistanceModifierTest {
         
         assertEquals(3, mdfr.Compositions.size());
         
-        // Recompute P=-1 norm
-        mdfr.setP(-1);
+        // Recompute P= norm
+        mdfr.setUseManhattan(true);
         
         mdfr.transform(toMeasure);
         
@@ -82,7 +82,7 @@ public class CompositionSetDistanceModifierTest {
         assertTrue(toMeasure.getEntry(0).hasPredictedProperty(0));
         
         // Check property values
-        assertEquals(0.05, toMeasure.getEntry(0).getMeasuredProperty(0), 1e-6);
+        assertEquals(0.1, toMeasure.getEntry(0).getMeasuredProperty(0), 1e-6);
     }
     
     @Test

@@ -1,66 +1,76 @@
 package magpie.data.utilities.modifiers;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
+
 import magpie.Magpie;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.CompositionEntry;
 import magpie.data.utilities.filters.CompositionSetDistanceFilter;
+import weka.Run;
 
 /**
  * Compute the distance of composition from those in a user-supplied dataset,
  * store as a property. Distance is defined as the minimum distance of a
  * composition from the composition of any entry in another dataset.
  *
- * <p>
- * Name of the new property is compdistance
+ * <p>Name of the new property is compdistance</p>
+ *
+ * <p>Note: Euclidean distance is much faster than Manhattan. Weka's algorithms for fast neighbor search are 
+ *  not designed to work with Manhattan distance.</p>
  *
  * <usage><p>
- * <b>Usage</b>: $&lt;dataset&gt; &lt;p norm&gt;
+ * <b>Usage</b>: $&lt;dataset&gt; &lt;-manhattan|-euclidean&gt;
  * <br><pr><i>dataset</i>: {@linkplain CompositionDataset} from which to measure
  * distance
- * <br><pr><i>p norm</i>: P norm to use when computing distance</usage>
+ * <br><pr><i>-manhattan</i>: Compute Manhattan distance
+ * <br><pr><i>-euclidean</i>: Compute Euclidean distance</usage>
  *
  * @author Logan Ward
  * @see CompositionSetDistanceFilter
  */
 public class CompositionSetDistanceModifier extends BaseDatasetModifier {
-
-    /**
-     * Set of compositions to consider
-     */
+    /** Set of compositions to compute distance from */
     protected final Set<CompositionEntry> Compositions = new TreeSet<>();
-    /**
-     * P-norm to use when computing distance (default: 2)
-     */
-    private int P = 2;
+    /** Whether to use Manhattan distance (vs Euclidean) */
+    protected boolean UseManhattan = false;
 
     @Override
     public void setOptions(List<Object> Options) throws Exception {
         CompositionDataset data;
-        int norm;
+        boolean manhattan;
         try {
             data = (CompositionDataset) Options.get(0);
-            norm = Integer.parseInt(Options.get(1).toString());
+            String distChoice = Options.get(1).toString().toLowerCase();
+            if (distChoice.startsWith("-man")) {
+                manhattan = true;
+            } else if (distChoice.startsWith("-euclid")) {
+                manhattan = false;
+            } else {
+                throw new IllegalArgumentException();
+            }
         } catch (Exception e) {
             throw new Exception(printUsage());
         }
 
         // Set options
         setCompositions(data);
-        setP(norm);
+        setUseManhattan(manhattan);
     }
 
     @Override
     public String printUsage() {
-        return "Usage: $<compositions> <p norm>";
+        return "Usage: $<compositions> <-manhattan|-euclidean>";
+    }
+
+    /**
+     * Set whether to use Manhattan (vs Euclidean) distance
+     * @param manhattan Desired setting
+     */
+    public void setUseManhattan(boolean manhattan) {
+        UseManhattan = manhattan;
     }
 
     /**
@@ -109,19 +119,6 @@ public class CompositionSetDistanceModifier extends BaseDatasetModifier {
         }
     }
 
-    /**
-     * Set the p-norm to use when computing distance between compositions.
-     *
-     * @param P Desired p norm. Use -1 for <i>L<sub>inf</sub></i> norm.
-     * @throws Exception If p &lt; 0 && p != -1.
-     */
-    public void setP(int P) throws Exception {
-        if (P < 0 && P != -1) {
-            throw new Exception("P must be greater than 0");
-        }
-        this.P = P;
-    }
-
     @Override
     protected void modifyDataset(Dataset Data) {
         if (!(Data instanceof CompositionDataset)) {
@@ -135,51 +132,46 @@ public class CompositionSetDistanceModifier extends BaseDatasetModifier {
             p.addProperty("compdistance");
         }
 
-        // Check if large enough to consider parallelization
-        if (p.NEntries() > 2000 && Magpie.NThreads > 1) {
-            // Split the dataset for threading
-            Dataset[] threads = Data.splitForThreading(Magpie.NThreads);
+        // Split the dataset for threading
+        Dataset[] threads = Data.splitForThreading(Data.NEntries() > 10 ? Magpie.NThreads : 1);
 
-            // Parallel run over the entries
-            ExecutorService service = Executors.newFixedThreadPool(Magpie.NThreads);
-            for (final Dataset part : threads) {
-                Runnable thread = new Runnable() {
-                    @Override
-                    public void run() {
-                        for (BaseEntry ptr : part.getEntries()) {
-                            CompositionEntry e = (CompositionEntry) ptr;
-                            double x = CompositionSetDistanceFilter.computeDistance(Compositions, e, P);
-                            if (propID == -1) {
-                                e.addProperty(x, x);
-                            } else {
-                                e.setMeasuredProperty(propID, x);
-                                e.setPredictedProperty(propID, x);
-                            }
+        // Parallel run over the entries
+        ExecutorService service = Executors.newFixedThreadPool(Magpie.NThreads);
+        List<Future> futures = new ArrayList<>(Magpie.NThreads);
+        for (final Dataset part : threads) {
+            Runnable thread = new Runnable() {
+                @Override
+                public void run() {
+                    // Create a local copy of the used to compute distances
+                    CompositionSetDistanceFilter filter = new CompositionSetDistanceFilter();
+                    filter.addCompositions(Compositions);
+                    filter.setUseManhattan(UseManhattan);
+
+                    for (BaseEntry ptr : part.getEntries()) {
+                        CompositionEntry e = (CompositionEntry) ptr;
+                        double x = filter.computeDistance(e);
+                        if (propID == -1) {
+                            e.addProperty(x, x);
+                        } else {
+                            e.setMeasuredProperty(propID, x);
+                            e.setPredictedProperty(propID, x);
                         }
                     }
-                };
-                service.submit(thread);
-            }
-
-            // Wait for results
-            service.shutdown();
-            try {
-                service.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
-            } catch (InterruptedException i) {
-                throw new Error(i);
-            }
-        } else {
-            // Run it serially
-            for (BaseEntry ptr : p.getEntries()) {
-                CompositionEntry e = (CompositionEntry) ptr;
-                double x = CompositionSetDistanceFilter.computeDistance(Compositions, e, P);
-                if (propID == -1) {
-                    e.addProperty(x, x);
-                } else {
-                    e.setMeasuredProperty(propID, x);
-                    e.setPredictedProperty(propID, x);
                 }
+            };
+            futures.add(service.submit(thread));
+        }
+
+        // Wait for results
+        service.shutdown();
+
+        // Make sure each thread finishes
+        try {
+            for (Future future : futures) {
+                future.get();
             }
+        } catch (InterruptedException | ExecutionException i) {
+            throw new RuntimeException(i);
         }
     }
 
