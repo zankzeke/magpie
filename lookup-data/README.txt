@@ -1,5 +1,7 @@
 Information about elemental property lookup tables. Most of this data was taken from Mathematica's elemental property data (sources described at http://reference.wolfram.com/mathematica/note/ElementDataSourceInformation.html). Modifications and, when not from Mathematica, original sources are listed.
 
+Abbreviations.table
+	This is the abbreviations for each element, provided for convenience of interpreting the other lookup tables
 AtomicVolume.table
     Property: Volume of an atom of each element
     Units: A^3 / atom
