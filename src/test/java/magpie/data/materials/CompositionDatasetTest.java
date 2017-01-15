@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import magpie.data.materials.util.LookupData;
 import magpie.data.materials.util.PropertyLists;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -128,5 +129,124 @@ public class CompositionDatasetTest {
                 CompositionDataset.loadState(file.getPath());
         assertNotSame(data.OxidationStates, dataCopy.OxidationStates);
         assertNotSame(data.ElementNames, dataCopy.ElementNames);
+    }
+    
+    @Test
+    public void testBinaryLookup() throws Exception {
+        CompositionDataset data = new CompositionDataset();
+        double[][] table = data.getPairPropertyLookupTable("B2Volume");
+        assertEquals(11.113600, LookupData.readPairTable(table, "Nb", "O"), 1e-6);
+        assertEquals(11.113600, LookupData.readPairTable(table, "O", "Nb"), 1e-6);
+        assertEquals(30.408400, LookupData.readPairTable(table, "Ag", "Ac"), 1e-6);
+    }
+    
+    @Test
+    public void testManageProperties() throws Exception {
+        CompositionDataset data = new CompositionDataset();
+        
+        // Test changing the directory
+        assertEquals("./lookup-data", data.DataDirectory);
+        
+        List<Object> cmd = new LinkedList<>();
+        cmd.add("attributes");
+        cmd.add("properties");
+        cmd.add("directory");
+        cmd.add("lookup");
+        cmd.add("data");
+        
+        data.runCommand(cmd);
+        assertEquals("lookup data", data.DataDirectory);
+        
+        // Test adding a set of elemental propeties
+        cmd.set(2, "add");
+        cmd.set(3, "set");
+        cmd.set(4, "radii");
+        
+        data.runCommand(cmd);
+        assertEquals(PropertyLists.getPropertySet("radii").length,
+                data.ElementalProperties.size());
+        
+        // Test adding a few more properties
+        cmd.set(2, "add");
+        cmd.set(3, "A");
+        cmd.set(4, "B");
+        
+        data.runCommand(cmd);
+        assertEquals(PropertyLists.getPropertySet("radii").length + 2,
+                data.ElementalProperties.size());
+        
+        // Make sure it doesn't add things twice
+        data.runCommand(cmd);
+        assertEquals(PropertyLists.getPropertySet("radii").length + 2,
+                data.ElementalProperties.size());
+        
+        // Test removal
+        cmd.set(2, "remove");
+        cmd.set(3, "B");
+        cmd.remove(4);
+        data.runCommand(cmd);
+        assertEquals(PropertyLists.getPropertySet("radii").length + 1,
+                data.ElementalProperties.size());
+        assertFalse(data.ElementalProperties.contains("B"));
+        
+        // Test adding pair property
+        cmd.set(2, "pair");
+        cmd.set(3, "add");
+        cmd.add("B");
+        cmd.add("A");
+        data.runCommand(cmd);
+        assertEquals(2, data.ElementPairProperties.size());
+        assertTrue(data.ElementPairProperties.contains("B"));
+        
+        // Test adding pair property
+        cmd.set(3, "remove");
+        cmd.remove(5);
+        data.runCommand(cmd);
+        assertEquals(1, data.ElementPairProperties.size());
+        assertFalse(data.ElementPairProperties.contains("B"));
+        
+        // Make sure get operations do not allow write access
+        List<String> temp = data.getElementalProperties();
+        assertEquals(data.ElementalProperties, temp);
+        temp.clear();
+        assertFalse(data.ElementalProperties.isEmpty());
+        
+        temp = data.getElementPairProperties();
+        assertEquals(data.ElementPairProperties, temp);
+        temp.clear();
+        assertFalse(data.ElementPairProperties.isEmpty());
+    }
+    
+    @Test
+    public void testGeneratePairProperty() throws Exception {
+        CompositionDataset data = new CompositionDataset();
+        
+        // Make the ratio of atomic number
+        List<Object> cmd = new LinkedList<>();
+        cmd.add("attributes");
+        cmd.add("properties");
+        cmd.add("pair");
+        cmd.add("add");
+        cmd.add("difference");
+        cmd.add("AtomicWeight");
+        
+        data.runCommand(cmd);
+        
+        assertEquals(1, data.PairPropertyData.size());
+        assertTrue(data.PairPropertyData.containsKey("difference_AtomicWeight"));
+        
+        double[][] table = data.PairPropertyData.get("difference_AtomicWeight");
+        double[] lookup = data.getPropertyLookupTable("AtomicWeight");
+        assertEquals(Math.abs(lookup[14]-lookup[62]), 
+                LookupData.readPairTable(table, 62, 14), 1e-6);
+        
+        // Same thing, but with ratios
+        cmd.set(4, "ratio");
+        data.runCommand(cmd);
+        
+        table = data.PairPropertyData.get("ratio_AtomicWeight");
+        lookup = data.getPropertyLookupTable("AtomicWeight");
+        assertEquals(Math.abs(lookup[14]/lookup[62]), 
+                LookupData.readPairTable(table, 62, 14), 1e-6);
     }
 }

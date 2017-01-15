@@ -1,6 +1,8 @@
 package magpie.data.materials.util;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -12,7 +14,9 @@ import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.Collections;
+import java.util.Map;
 import magpie.data.materials.CompositionDataset;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * Holds data that any {@linkplain CompositionDataset} needs to lookup.
@@ -59,6 +63,15 @@ abstract public class LookupData {
 	 * Ionization energies of each element
 	 */
 	static public double[][] IonizationEnergies = null;
+    
+    /**
+     * Properties of a pair of elements. Key is the name of the property,
+     * value is a triangular matrix where [i][j] is the property of element
+     * element Z=i+1 and Z=j+1. Ex: [1][2] is the property of He-Li. Unknown values
+     * are stored as {@linkplain Double#NaN}
+     */
+    static public SortedMap<String,double[][]> ElementPairProperties = 
+            Collections.synchronizedSortedMap(new TreeMap<String,double[][]>());
 
     /**
      * Load in an elemental property lookup table
@@ -85,6 +98,94 @@ abstract public class LookupData {
         } catch (IOException e) {
             throw new Exception("Property " + property + " failed to read due to " + e);
         }
+    }
+    
+    /**
+     * Load in a binary property table
+     * @param dataDir Directory containing property lookup data
+     * @param property Name of property
+     * @return 2D triangular array containing property data
+     * @throws Exception 
+     */
+    public static double[][] loadPairPropertyTable(String dataDir, 
+            String property) throws Exception {
+        // Open up the file
+        File file = new File(new File(dataDir, "pair"), property + ".table");
+        if (! file.isFile()) {
+            throw new FileNotFoundException("No lookup file not found for " + property);
+        }
+        
+        // Open the file
+        BufferedReader fp = new BufferedReader(new FileReader(file));
+        
+        // Initialize output
+        double[][] output = new double[ElementNames.length][];
+        for (int row=0; row<ElementNames.length; row++) {
+            output[row] = new double[row];
+        }
+        
+        // Read it in
+        while (true) {
+            String line = fp.readLine();
+            
+            // If null, done reading from this file
+            if (line == null) {
+                break;
+            }
+            
+            // Check that this line has the required input size
+            String[] words = line.split("\\s+");
+            if (words.length < 3) {
+                continue;
+            }
+            
+            // Read in the line
+            int elemA = ArrayUtils.indexOf(ElementNames, words[0]);
+            int elemB = ArrayUtils.indexOf(ElementNames, words[1]);
+            if (elemA == ArrayUtils.INDEX_NOT_FOUND || 
+                    elemB == ArrayUtils.INDEX_NOT_FOUND) {
+                continue;
+            }
+            try {
+                double value = Double.parseDouble(words[2]);
+                output[Math.max(elemA, elemB)][Math.min(elemA, elemB)] = value;
+            } catch (NumberFormatException e) {
+            }
+        }
+        return output;
+    }
+    
+    /**
+     * Helper function for reading from a binary property lookup table
+     * @param table Table to be read
+     * @param elemA Symbol of one element
+     * @param elemB Symbol of a second element
+     * @return Property, {@linkplain Double#NaN} if not found
+     */
+    static public double readPairTable(double[][] table, String elemA, String elemB) {
+        // Parse element names
+        int elemAVal = ArrayUtils.indexOf(ElementNames, elemA);
+        if (elemAVal == ArrayUtils.INDEX_NOT_FOUND) {
+            throw new IllegalArgumentException("No such element: " + elemA);
+        }
+        int elemBVal = ArrayUtils.indexOf(ElementNames, elemB);
+        if (elemBVal == ArrayUtils.INDEX_NOT_FOUND) {
+            throw new IllegalArgumentException("No such element: " + elemB);
+        }
+        
+        // Lookup table
+        return LookupData.readPairTable(table, elemAVal, elemBVal);
+    }
+    
+    /**
+     * Helper function for reading from a binary property lookup table
+     * @param table Table to be read
+     * @param elemA Index of one element
+     * @param elemB Index of a second element
+     * @return Property, {@linkplain Double#NaN} if not found
+     */
+    static public double readPairTable(double[][] table, int elemA, int elemB) {
+        return table[Math.max(elemA, elemB)][Math.min(elemA, elemB)];
     }
     
     /**

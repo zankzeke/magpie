@@ -175,19 +175,6 @@ public class CompositionDataset extends MultiPropertyDataset {
     }
 
     @Override
-    public CompositionDataset createTemplate() {
-        CompositionDataset data = (CompositionDataset) super.createTemplate();
-        
-        // Ensure links with LookupData are broken
-        if (LookupData.OxidationStates != null) {
-            data.OxidationStates = LookupData.OxidationStates;
-        }
-        data.PropertyData = new TreeMap<>(PropertyData);
-        
-        return data;
-    }
-
-    @Override
     public CompositionEntry getEntry(int index) {
         return (CompositionEntry) super.getEntry(index);
     }
@@ -401,13 +388,41 @@ public class CompositionDataset extends MultiPropertyDataset {
      */
     public double[][] getOxidationStates() {
         if (OxidationStates == null) {
-            if (LookupData.OxidationStates != null) {
-                OxidationStates = LookupData.OxidationStates;
-            } else {
-                OxidationStates = LookupData.readOxidationStates(DataDirectory);
-            }
-        }
+            readOxidationStates();
+        }   
         return OxidationStates;
+    }
+
+    /**
+     * Reads in a data file that contains known oxidation states for each
+     * element. List should be contained in a file named OxidationStates.table
+     */
+    protected void readOxidationStates() {
+        // Open the file for reading
+        Path datafile = Paths.get(DataDirectory);
+        BufferedReader is;
+        try {
+            is = Files.newBufferedReader(
+                    datafile.resolve("OxidationStates.table"), Charset.forName("US-ASCII"));
+
+            // Read the file
+            int i, j; // Counters
+            OxidationStates = new double[ElementNames.length][];
+            for (i = 0; i < ElementNames.length; i++) {
+                String[] States = is.readLine().split(" ");
+                if (States[0].isEmpty()) {
+                    OxidationStates[i] = new double[0];
+                } else {
+                    OxidationStates[i] = new double[States.length];
+                    for (j = 0; j < OxidationStates[i].length; j++) {
+                        OxidationStates[i][j] = Double.parseDouble(States[j]);
+                    }
+                }
+            }
+            is.close();
+        } catch (IOException | NumberFormatException e) {
+            throw new Error("Oxidation states failed to read due to " + e);
+        }
     }
     
     /**
