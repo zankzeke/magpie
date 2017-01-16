@@ -9,4 +9,9 @@ B2BondLength.table
 B2Volume.table
 	Volume of a B2 unit cell composed of a certain pair of elements
 	Units: Angstrom^3/atom
+	Source: OQMD
+Miedema.table
+	Mixing enthalpy for elements from Miedema's model for binary liquids
+	Units: kJ/mol
+	Source: Takeuchi, Inoue. Mat Trans. 46 (2005), 2817.
 
