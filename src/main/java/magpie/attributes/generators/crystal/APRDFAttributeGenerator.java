@@ -149,7 +149,7 @@ public class APRDFAttributeGenerator extends BaseAttributeGenerator
             Cell strc = ((AtomicStructureEntry) entry).getStructure();
             
             // Prepare the APRDF tool
-            tool.analyzeStructre(strc);
+            tool.analyzeStructure(strc);
             
             // Loop through each property
             int pos = 0;

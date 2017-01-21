@@ -138,7 +138,7 @@ public class PRDFRegression extends StructureKRRBasedRegression {
         PairDistanceAnalysis pda = new PairDistanceAnalysis();
         pda.setCutoffDistance(Cutoff);
         try {
-            pda.analyzeStructre(strc);
+            pda.analyzeStructure(strc);
         } catch (Exception e) {
             throw new Error(e);
         }

@@ -188,7 +188,7 @@ public class AtomicStructureEntry extends CompositionEntry {
     public VoronoiCellBasedAnalysis computeVoronoiTessellation() throws Exception {
         if (Voronoi == null) {
             Voronoi = new VoronoiCellBasedAnalysis(false);
-            Voronoi.analyzeStructre(Structure);
+            Voronoi.analyzeStructure(Structure);
         } else if (! Voronoi.tessellationIsConverged()) {
             throw new Exception("Tessellation did not converge");
         }
