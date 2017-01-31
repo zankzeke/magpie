@@ -220,6 +220,9 @@ public class CompositionDatasetTest {
     @Test
     public void testGeneratePairProperty() throws Exception {
         CompositionDataset data = new CompositionDataset();
+
+        // Clear the pair property list (in case it is still set from previous test)
+        data.PairPropertyData.clear();
         
         // Make the ratio of atomic number
         List<Object> cmd = new LinkedList<>();

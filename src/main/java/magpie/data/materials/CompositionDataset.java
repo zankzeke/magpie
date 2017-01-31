@@ -16,10 +16,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.SortedMap;
+import java.util.*;
 
 /**
  * This class stores entries that describe a material based solely on its
@@ -198,6 +195,20 @@ public class CompositionDataset extends MultiPropertyDataset {
     public CompositionDataset emptyClone() {
         CompositionDataset x = (CompositionDataset) super.emptyClone();
         x.ElementNames = ElementNames.clone();
+        return x;
+    }
+
+    @Override
+    public CompositionDataset createTemplate() {
+        CompositionDataset x = (CompositionDataset) super.createTemplate();
+
+        // Make a local copy of the lookup tables
+        x.PairPropertyData = new TreeMap<>(PairPropertyData);
+        x.PropertyData = new TreeMap<>(PropertyData);
+        if (OxidationStates != null) {
+            x.OxidationStates = OxidationStates.clone();
+        }
+
         return x;
     }
 
@@ -505,43 +516,11 @@ public class CompositionDataset extends MultiPropertyDataset {
      */
     public double[][] getOxidationStates() {
         if (OxidationStates == null) {
-            readOxidationStates();
-        }   
+            OxidationStates = LookupData.readOxidationStates(DataDirectory);
+        }
         return OxidationStates;
     }
 
-    /**
-     * Reads in a data file that contains known oxidation states for each
-     * element. List should be contained in a file named OxidationStates.table
-     */
-    protected void readOxidationStates() {
-        // Open the file for reading
-        Path datafile = Paths.get(DataDirectory);
-        BufferedReader is;
-        try {
-            is = Files.newBufferedReader(
-                    datafile.resolve("OxidationStates.table"), Charset.forName("US-ASCII"));
-
-            // Read the file
-            int i, j; // Counters
-            OxidationStates = new double[ElementNames.length][];
-            for (i = 0; i < ElementNames.length; i++) {
-                String[] States = is.readLine().split(" ");
-                if (States[0].isEmpty()) {
-                    OxidationStates[i] = new double[0];
-                } else {
-                    OxidationStates[i] = new double[States.length];
-                    for (j = 0; j < OxidationStates[i].length; j++) {
-                        OxidationStates[i][j] = Double.parseDouble(States[j]);
-                    }
-                }
-            }
-            is.close();
-        } catch (IOException | NumberFormatException e) {
-            throw new Error("Oxidation states failed to read due to " + e);
-        }
-    }
-    
     /**
      * Whether a composition can form a neutral compound assuming each element
      * takes only a single oxidation state.
