@@ -25,23 +25,32 @@ model = new models.classification.SplitClassifier
 // Define how to partition the data
 model splitter AllMetalsSplitter
 
-// Set each sub-model to be a REPTree
-submodel = new models.classification.WekaClassifier trees.REPTree
-model submodel set generic $submodel
+// Create the algorithm to be used for each partition of the larger, SplitClassifier
+leaf = new models.classification.WekaClassifier trees.REPTree
+
+// Define the algorithm stored in "leaf" as the algorithm for all partitions
+//  created by "model". In this case, the model creates two partitions:
+//    "purely metallic" and  "contains nonmetal"
+model submodel set generic $leaf
 timer elapsed
+// We could also set the algorithms used to model these two partitions separately with:
+//   > model submodel set 0 $leaf
+//   > model submodel set 1 $leaf
+// This is equivalent to the following code, which sets all partitions to use the same algorithm
+
 
 // Evaluate predictive ability and speed of single model 
 echo "Running single model"
 timer start train
-submodel train $train_data
+leaf train $train_data
 timer elapsed train
 timer start run
-submodel validate $run_data
+leaf validate $run_data
 timer elapsed run
-print submodel validation stats
+print leaf validation stats
 
 // Evaluate predictive ability and speed of split model
-echo "Running single model"
+echo "Running split model"
 timer start train
 model train $train_data
 timer elapsed train
