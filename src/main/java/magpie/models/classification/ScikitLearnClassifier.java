@@ -188,8 +188,8 @@ public class ScikitLearnClassifier extends BaseClassifier implements ExternalMod
         
         // Start the process
         ScikitServer = new ProcessBuilder("python", 
-                scriptFile.getCanonicalPath())
-                .start();
+                scriptFile.getCanonicalPath(),
+                "-classifier").start();
         
         // Launch the server
         Port = ExternalModelUtility.initializeServer(this, Debug);

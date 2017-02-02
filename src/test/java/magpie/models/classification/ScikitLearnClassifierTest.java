@@ -23,8 +23,24 @@ public class ScikitLearnClassifierTest extends BaseClassifierTest {
         }
         return model;
     }
-    
 
+    @Test
+    public void testModelTypeMismatch() throws Exception {
+        boolean failed = false;
+
+        // Load in a classifier
+        ScikitLearnClassifier model = new ScikitLearnClassifier();
+        model.readModel(new FileInputStream("test-files/sklearn-linreg.pkl"));
+
+        // Try to run the model
+        try {
+            model.train(getData());
+        } catch (Exception e) {
+            failed = true;
+        }
+
+        assertTrue(failed);
+    }
     
     
 }

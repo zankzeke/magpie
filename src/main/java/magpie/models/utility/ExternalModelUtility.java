@@ -98,28 +98,34 @@ public class ExternalModelUtility {
      * @param model Model being operated on
      * @param debug Whether to print standard out, or ignore it
      * @return Port number
-     * @throws NumberFormatException
-     * @throws IOException
+     * @throws Exception
      */
     public static int initializeServer(final ExternalModel model,
-            boolean debug) throws NumberFormatException, IOException {
+            boolean debug) throws Exception {
+        // Launch the process
         Process server = model.getProcess();
+
+        // Make sure to pipe stderr from subprocess to stderr of Magpie
         ExternalModelUtility.startReader(server.getErrorStream(), System.err);
+
+        // Send the model to the subprocess
         model.writeModel(server.getOutputStream());
         server.getOutputStream().close();
-        BufferedReader fo = new BufferedReader(new InputStreamReader(server.getInputStream()));
-        String[] words = fo.readLine().split(" ");
-        int port = Integer.parseInt(words[words.length - 1]);
-        if (!model.serverIsRunning()) {
-            BufferedReader fe = new BufferedReader(new InputStreamReader(server.getErrorStream()));
-            String line = fe.readLine();
-            while (line != null) {
-                System.err.println(line);
-                line = fe.readLine();
-            }
-            throw new RuntimeException("Server failed to start");
+
+        // Get the port number
+        int port;
+        try {
+            BufferedReader fo = new BufferedReader(new InputStreamReader(server.getInputStream()));
+            String[] words = fo.readLine().split(" ");
+            port = Integer.parseInt(words[words.length - 1]);
+        } catch (Exception e) {
+            throw new Exception("Server failed to start. Check the subprocess stderr, which should have printed");
         }
+
+        // If in debug mode, write the subprocess stdout to Magpie stdout
         ExternalModelUtility.startReader(server.getInputStream(), debug ? System.out : null);
+
+        // Make sure the subprocess is killed when Magpie shuts down
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             @Override
             public void run() {

@@ -188,8 +188,8 @@ public class ScikitLearnRegression extends BaseRegression implements ExternalMod
         
         // Start the process
         ScikitServer = new ProcessBuilder("python", 
-                scriptFile.getCanonicalPath())
-                .start();
+                scriptFile.getCanonicalPath(),
+                "-regressor").start();
         
         // Launch the server
         Port = ExternalModelUtility.initializeServer(this, Debug);

@@ -1,13 +1,60 @@
+#
+# Server used by Magpie to run machine learning models
+#  written in Python. The model must follow the style 
+#  of scikit-learn models:
+#    fit(X, y)  <- Train the model
+#    predict(X) <- Evaluate model
+#    predict_proba(X) <- Evaluate model, generate class probabilities
+#
+# This server is launched by feeding in a pickle object
+#  describing the model via stdin. A server is then started
+#  with a port number between 5482 and 5582, and the chosen
+#  value is preinted to stdout. 
+#
+# Once the server is launched, external software can communicate
+#  with it over sockets. The first line of each message should
+#  be a command word, followed by appropriate data for the command
+#  Full details of the syntax are specified in the Magpie javadoc
+#  for `magpie.models.utility.MultiModelUtility`
+#
+# This program also takes a few command line arguments
+#   -classifier <- Check whether the model is a classifier (i.e.,
+#                   that it supports: predict_proba)
+#   -regressor <- Check whether the model is not a classifier
+#
+# Author: Logan Ward
+# Date:   2 Feb 2017
+
 import cPickle as pickle
 from sys import argv, stdin, stdout, stderr
 import socket
 import array
+import sys
 
+# Useful variables to change
 startPort = 5482; # First port to check
 endPort = 5582; # Last port to check
+verifyClassifier = None # Whether to crash if model is a classifier or not
+
+# Check for command line arguments
+if len(sys.argv) > 1:
+    pos = 1
+    while pos < len(sys.argv):
+        action = sys.argv[pos].lower()
+        if action == '-classifier':
+            verifyClassifier = True
+        elif action == '-regressor':
+            verifyClassifier = False
+        else:
+            raise Exception("Command not recognized: " + action)
+        pos += 1
 
 # Load in model from standard in
 model = pickle.load(stdin)
+
+# If desired, verify that it is a classifier
+if verifyClassifier is not None and hasattr(model, 'predict_proba') != verifyClassifier:
+    raise Exception("Supplied model is not a %s!"%('classifier' if verifyClassifier else 'regressor'))
 
 # Find a socket
 port = startPort;

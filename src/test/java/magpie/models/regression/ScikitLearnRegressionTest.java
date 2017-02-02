@@ -49,4 +49,22 @@ public class ScikitLearnRegressionTest extends BaseModelTest {
         double[] model2Vals = data.getPredictedClassArray();
         Assert.assertArrayEquals(model1Vals, model2Vals, 1e-6);
     }
+
+    @Test
+    public void testModelTypeMismatch() throws Exception {
+        boolean failed = false;
+
+        // Load in a classifier
+        ScikitLearnRegression model = new ScikitLearnRegression();
+        model.readModel(new FileInputStream("test-files/sklearn-gbc.pkl"));
+
+        // Try to run the model
+        try {
+            model.train(getData());
+        } catch (Exception e) {
+            failed = true;
+        }
+
+        Assert.assertTrue(failed);
+    }
 }
