@@ -31,7 +31,7 @@ import org.apache.commons.math3.util.CombinatoricsUtils;
  * Each subset is rated by measuring which can be used to train a model with the
  * highest score in cross-validation. For regression models, the subset with the 
  * lowest RMSE is selected and the model with the highest accuracy is used for 
- * classification models.
+ * classification models.</p>
  * 
  * <usage><p><b>Usage</b>: $&lt;model&gt; [-min_size &lt;min&gt;]
  * [-max_size &lt;max&gt;] [-k_fold &lt;k&gt;] | [-random_cv &lt;test_frac&gt;
@@ -44,7 +44,7 @@ import org.apache.commons.math3.util.CombinatoricsUtils;
  * <pr><br><i>n_repeat</i>: Use  random split CV for validation: Number of times to repeat test
  * By default, class uses 10-fold CV. Can specify only one option of "-k_fold"
  * (for k-fold CV), -random_cv (for multiple test/train set splits), and "-train"
- * (for using training set score).</usage>
+ * (for using training set score).</p></usage>
  * 
  * @author Logan Ward
  */
@@ -365,8 +365,17 @@ public class ExhaustiveAttributeSelector extends BaseAttributeSelector {
      * @param data Dataset being used to train attribute selector
      */
     protected void setCombinationIterator(final Dataset data) {
+        // Throw an meaningful error
+        if (data.NAttributes() < MaxSubsetSize) {
+            throw new RuntimeException("Input dataset has fewer attributes than maximum subset size");
+        }
+        if (data.NAttributes() < MinSubsetSize) {
+            throw new RuntimeException("Input dataset has fewer attributes than minimum subset size");
+        }
+        
         // Initialize the iterator
         final int curSize = MinSubsetSize;
+        final int maxSize = MaxSubsetSize;
         final Iterator<int[]> curCombinations = 
                 CombinatoricsUtils.combinationsIterator(data.NAttributes(), curSize);
         
@@ -376,7 +385,7 @@ public class ExhaustiveAttributeSelector extends BaseAttributeSelector {
 
             @Override
             public boolean hasNext() {
-                return CurSize < MaxSubsetSize || CurCombinations.hasNext();
+                return CurSize < maxSize || CurCombinations.hasNext();
             }
 
             @Override
