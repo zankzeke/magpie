@@ -880,4 +880,26 @@ public class DatasetTest {
         assertEquals(obj.getJSONArray("entries").length(), 
                 data.NEntries());
     }
+
+    @Test
+    public void testSubtract() throws Exception {
+        // Make two datasets
+        Dataset dataA = new Dataset();
+        dataA.addEntry(new BaseEntry());
+        dataA.addAttribute("x", new double[]{1.0});
+
+        Dataset dataB = dataA.clone();
+        dataB.addEntry(new BaseEntry("2.0"));
+
+        // Compute C=B-A
+        List<Object> command = new LinkedList<>();
+        command.add("subtract");
+        command.add(dataA);
+
+        Dataset dataC = dataB.clone();
+        dataC.runCommand(command);
+
+        assertEquals(1, dataC.NEntries());
+        assertEquals(2.0, dataC.getEntry(0).getAttribute(0), 1e-6);
+    }
 }

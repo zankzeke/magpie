@@ -60,18 +60,6 @@ import static magpie.user.CommandHandler.instantiateClass;
  * 
  * <command><p><b>add &lt;entries...&gt;</b> - Add entries to a dataset
  * <br><pr><i>entries...</i>: Strings describing entries to be added</command>
- *
- * <command><p><b>combine $&lt;dataset&gt;</b> - Add entries from another dataset
- * <br><pr><i>dataset</i>: Dataset to combine with this dataset</command>
- * 
- * <command><p><b>add $&lt;dataset&gt; [-force]</b> - Add entries from another dataset
- * <br><pr><i>dataset</i>: Dataset to be merged with this one
- * <br><pr><i>-force</i>: Optional: Whether to force merge if attributes / classes /
- * properties are different
- * <br>If attributes, classes, or properties are different, attributes and class values 
- * in new entries (i.e., those from the other dataset) will be deleted and properties
- * will be merged
- * </command>
  * 
  * <command><p><b>add $&lt;dataset&gt; [-force]</b> - Add entries from another dataset
  * <br><pr><i>dataset</i>: Dataset to be merged with this one
@@ -128,6 +116,10 @@ import static magpie.user.CommandHandler.instantiateClass;
  * <br><pr><i>filename</i>: Name of file to import data from
  * <br><pr><i>options...</i>: Any options used when parsing this dataset
  * (specific to type of Dataset)</command>
+ *
+ * <command><p><b>subtract $&lt;data&gt;</b> - Subtract another dataset from this one
+ * <br><pr><i>data</i>: Data to be subtracted from this dataset</p>
+ * After this operation, this dataset will only contain entries not in <i>data</i></command>
  *
  * <command><p>
  * <b>rank &lt;number> &lt;maximum|minimum> &lt;measured|predicted> &lt;method>
@@ -845,7 +837,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
         
         // If they are, and force is not true: Fail
         if (! ((attrSame && classSame) || forceMerge)) {
-            throw new Exception("Datasets are not identical and merge not forced");
+            throw new IllegalArgumentException("Datasets are not identical and merge not forced");
         }
         
         // Add in the entries
@@ -996,15 +988,18 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * <p>Entries are not cloned when during combination.
      * 
      * <p>If you are looking to add entries from another dataset, also consider
-     * using {@linkplain #addEntries(magpie.data.Dataset, boolean) }.
+     * using {@linkplain #addEntries(magpie.data.Dataset, boolean) }. This function
+     * will clone each entry of the dataset so that the two datasets can be treated
+     * as completely independent after the merge.
+     *
      * @param d Dataset to be added
      */
     public void combine(Dataset d) {
         if (d.NAttributes() != NAttributes()) {
-            throw new Error("Data set has wrong number of features");
+            throw new IllegalArgumentException("Data set has wrong number of features");
         }
         if (d.NClasses() != NClasses()) {
-            throw new Error("Data set has wrong number of classes");
+            throw new IllegalArgumentException("Data set has wrong number of classes");
         }
         Entries.addAll(d.Entries);
     }
@@ -1039,9 +1034,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * @param data Second dataset
      */
     public void subtract(Dataset data) {
-        TreeSet<BaseEntry> TempSet = new TreeSet<>(Entries);
-        TempSet.removeAll(data.Entries);
-        Entries = new ArrayList(TempSet);
+        Entries.removeAll(data.Entries); // (Probably) Slower than converting to a set, but ensures order is preserved
     }
 
     /**
@@ -1261,7 +1254,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      */
     public Dataset getRandomSplit(double fraction, long seed, boolean stratified) {
         if (fraction > 1 || fraction < 0) {
-            throw new RuntimeException("Fraction must be between 0 and 1");
+            throw new IllegalArgumentException("Fraction must be between 0 and 1");
         }
         int to_new = (int) Math.floor((double) NEntries() * fraction);
         return getRandomSplit(to_new, seed, stratified);
@@ -1275,7 +1268,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      */
     public Dataset getRandomSubset(int number) {
         if (number < 0 || number > NEntries()) {
-            throw new RuntimeException("Number must be positive, and less than the size of the set");
+            throw new IllegalArgumentException("Number must be positive, and less than the size of the set");
         }
 
         // Create a list of which entries to move over
@@ -2086,19 +2079,6 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 } else {
                     throw new Exception("Usage: clone [-empty]");
                 }
-            case "combine": {
-                try {
-                    if (command.size() != 2) {
-                        throw new Exception();
-                    }
-                    Dataset other = (Dataset) command.get(1);
-                    combine(other);
-                    System.out.format("\tAdded %d entries. New size: %d\n", 
-                            other.NEntries(), NEntries());
-                } catch (Exception e) {
-                    throw new Exception("Usage: combine $<other dataset>");
-                }
-            } break;
             case "duplicates": {
                 // Usage: <method> <options...>
                 if (command.size() < 2) {
@@ -2280,8 +2260,25 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                 }
                 return output;
             }
+            case "subtract": {
+                // Usage: subtract $<dataset>
+                Dataset data;
+                try {
+                    if (command.size() != 2) {
+                        throw new IllegalArgumentException();
+                    }
+                    data = (Dataset) command.get(1);
+                } catch (Exception e) {
+                    throw new IllegalArgumentException("Usage: subtract $<dataset>");
+                }
+
+                // Run the subtraction
+                int originalSize = NEntries();
+                subtract(data);
+                System.out.format("\tRemoved %d entries. New size: %d\n", originalSize - NEntries(), NEntries());
+            } break;
             default:
-                throw new Exception("ERROR: Dataset command not recognized: " + Action);
+                throw new IllegalArgumentException("ERROR: Dataset command not recognized: " + Action);
         }
         return null;
     }
