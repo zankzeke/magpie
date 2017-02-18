@@ -15,18 +15,10 @@ import magpie.user.CommandHandler;
  * @author Logan Ward
  * @version 0.1
  */
-public class ClassFilter extends BaseDatasetFilter {
+public class ClassFilter extends ComparisonOperatorFilter {
     /** Whether to use measured class variable */
 	protected boolean UseMeasured = false;
-    /** Threshold value */
-    protected double Threshold = 0.0;
-    /** Should entries with Feature==Threshold be kept? */
-    protected boolean Equal = true;
-    /** Should entries with Feature &lt; Threshold be kept? */
-    protected boolean GreaterThan = true;
-    /** Should entries with Feature &gt; Threshold be kept? */
-    protected boolean LessThan = true;
-    
+
     @Override
     public void setOptions(List<Object> OptionsObj) throws Exception {
         String[] Options = CommandHandler.convertCommandToString(OptionsObj);
@@ -42,38 +34,7 @@ public class ClassFilter extends BaseDatasetFilter {
         return "Usage: <measured|predicted> <Criteria> <Threshold>";
     }
 
-	/** 
-	 * Set the comparison threshold.
-	 * @param Threshold Desired threshold
-	 */
-	public void setThreshold(double Threshold) {
-		this.Threshold = Threshold;
-	}
-    
-	/**
-	 * Define comparison operator. Can be &gt;, le, eq, "!=", and such.
-	 * @param operator Desired operator
-	 */
-	public void setComparisonOperator(String operator) throws Exception {
-		 switch(operator.toLowerCase()) {
-            case "eq": case "=": case "==":
-                Equal = true; GreaterThan = false; LessThan = false; break;
-            case "ne": case "!=": case "~=": case "<>":
-                Equal = false; GreaterThan = true; LessThan = true; break;
-            case "gt": case ">":
-                Equal = false; GreaterThan = true; LessThan = false; break;
-            case "ge": case ">=": case "=>":
-                Equal = true; GreaterThan = true; LessThan = false; break;
-            case "lt": case "<":
-                Equal = false; GreaterThan = false; LessThan = true; break;
-            case "le": case "<=": case "=<":
-                Equal = true; GreaterThan = false; LessThan = true; break;
-            default:
-                throw new Exception("Criteria \"" + operator + "\" not recognized.");
-        }
-	}
-
-	/**
+    /**
 	 * Set whether to use the measured class variable.
 	 * @param value Desired setting
 	 */
@@ -101,24 +62,6 @@ public class ClassFilter extends BaseDatasetFilter {
         catch (NumberFormatException e) { throw new Exception("Error parsing Threshold: " + e); }
 		
 		setComparisonOperator(Criteria);
-    }
-    
-    /**
-     * Evaluate the filtering criteria on each member of an array
-     * @param value Values to be tested
-     * @return Boolean indicating whether they pass the criteria
-     */
-    protected boolean[] testCriteria(double[] value) {
-        boolean[] passes = new boolean[value.length]; // Starts out false
-        for (int i=0; i < passes.length; i++) {
-            if (Equal && value[i] == Threshold)
-                passes[i] = true;
-            else if (GreaterThan && value[i] > Threshold) 
-                passes[i] = true;
-            else if (LessThan && value[i] < Threshold) 
-                passes[i] = true;
-        }
-        return passes;
     }
 
     @Override
