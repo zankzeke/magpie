@@ -55,7 +55,7 @@ public class ContainsElementFilter extends BaseDatasetFilter {
     }
 
     @Override
-    protected boolean[] label(Dataset D) {
+    public boolean[] label(Dataset D) {
         // Check input data
         if (! (D instanceof CompositionDataset))
             throw new Error("Dataset must be a CompositionDataset");

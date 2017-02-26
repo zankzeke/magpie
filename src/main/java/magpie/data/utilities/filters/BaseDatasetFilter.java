@@ -59,7 +59,7 @@ abstract public class BaseDatasetFilter implements java.io.Serializable, Options
      * @param D Dataset to be labeled
      * @return A list of booleans marking whether an entry passes
      */
-    abstract protected boolean[] label(Dataset D);
+    public abstract boolean[] label(Dataset D);
     
     /**
      * Label entries in parallel. 

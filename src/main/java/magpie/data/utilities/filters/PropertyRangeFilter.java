@@ -65,7 +65,7 @@ public class PropertyRangeFilter extends BaseDatasetFilter {
 
     
     @Override
-    protected boolean[] label(Dataset D) {
+    public boolean[] label(Dataset D) {
         if (! (D instanceof MultiPropertyDataset)) {
             throw new Error("Data must extend MultiPropertyDataset");
         }

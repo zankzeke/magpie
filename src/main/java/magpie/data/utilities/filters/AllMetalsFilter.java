@@ -41,7 +41,7 @@ public class AllMetalsFilter extends BaseDatasetFilter {
     }
 
     @Override
-    protected boolean[] label(Dataset D) {
+    public boolean[] label(Dataset D) {
         boolean allMetals[] = new boolean[D.NEntries()];
         if (! (D.getEntry(0) instanceof CompositionEntry)) 
             throw new Error("Entries must be an instance of CompositionEntry");

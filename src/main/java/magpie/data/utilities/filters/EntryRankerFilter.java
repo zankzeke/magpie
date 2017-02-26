@@ -91,7 +91,7 @@ public class EntryRankerFilter extends BaseDatasetFilter {
     }
 
     @Override
-    protected boolean[] label(Dataset D) {
+    public boolean[] label(Dataset D) {
         if (Ranker.isUsingMeasured() && (! D.getEntry(0).hasMeasurement()))
             throw new RuntimeException("Missing measured class.");
         if (! Ranker.isUsingMeasured() && (! D.getEntry(0).hasPrediction()))

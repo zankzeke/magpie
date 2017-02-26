@@ -65,7 +65,7 @@ public class ClassFilter extends ComparisonOperatorFilter {
     }
 
     @Override
-    protected boolean[] label(Dataset D) {
+    public boolean[] label(Dataset D) {
         double[] data = UseMeasured ? D.getMeasuredClassArray() : D.getPredictedClassArray();
         return testCriteria(data);
     }

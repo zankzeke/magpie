@@ -114,7 +114,7 @@ public class BestInAlloySystemFilter extends BaseDatasetFilter {
     }
 
     @Override
-    protected boolean[] label(Dataset D) {
+    public boolean[] label(Dataset D) {
         // Check to make sure this is a CompositionDataset
         if (! (D instanceof CompositionDataset)) {
             throw new Error("Data is not a CompositionDataset");

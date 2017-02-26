@@ -187,7 +187,7 @@ public class CompositionSetDistanceFilter extends BaseDatasetFilter implements C
     }    
 
     @Override
-    protected boolean[] label(Dataset D) {
+    public boolean[] label(Dataset D) {
         if (! (D instanceof CompositionDataset)) {
             throw new Error("Data must be a CompositionDataset");
         }

@@ -48,7 +48,7 @@ public class IQROutlierFilter extends BaseDatasetFilter {
     }
 
 	@Override
-	protected boolean[] label(Dataset D) {
+    public boolean[] label(Dataset D) {
         if (Double.isNaN(ICQ)) {
             throw new RuntimeException("Filter hasn't been trained");
         }

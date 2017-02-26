@@ -24,7 +24,7 @@ import org.apache.commons.lang3.ArrayUtils;
 public class PhaseDiagramExclusionFilter extends ContainsElementFilter {
 
     @Override
-    protected boolean[] label(Dataset D) {
+    public boolean[] label(Dataset D) {
         // Check input data
         if (! (D instanceof CompositionDataset))
             throw new Error("Dataset must be a CompositionDataset");

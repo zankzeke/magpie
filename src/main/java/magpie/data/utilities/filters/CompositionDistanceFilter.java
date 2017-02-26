@@ -1,6 +1,5 @@
 package magpie.data.utilities.filters;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -112,7 +111,7 @@ public class CompositionDistanceFilter extends BaseDatasetFilter {
     }
 
     @Override
-    protected boolean[] label(Dataset D) {
+    public boolean[] label(Dataset D) {
         if (! (D instanceof CompositionDataset)) {
             throw new Error("Data must be a CompositionDataset.");
         }

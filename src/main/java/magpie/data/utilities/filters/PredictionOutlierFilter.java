@@ -71,7 +71,7 @@ public class PredictionOutlierFilter extends BaseDatasetFilter {
     }
 
     @Override
-    protected boolean[] label(Dataset D) {
+    public boolean[] label(Dataset D) {
         return RobustUtility.isOutlier(D, K);
     }
 

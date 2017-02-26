@@ -33,7 +33,8 @@ public class RegressionErrorFilter extends BaseDatasetFilter {
         return "Usage: <threshold>";
     }
     
-    @Override protected boolean[] label(Dataset D) {
+    @Override
+    public boolean[] label(Dataset D) {
         if (! (D.getEntry(0).hasMeasurement() && D.getEntry(0).hasPrediction()))
             throw new Error("Dataset must have both measured and predicted classes");
         boolean[] output = new boolean[D.NEntries()];

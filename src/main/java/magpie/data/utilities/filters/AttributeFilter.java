@@ -59,7 +59,7 @@ public class AttributeFilter extends ComparisonOperatorFilter {
 
 
     @Override
-    protected boolean[] label(Dataset D) {
+    public boolean[] label(Dataset D) {
         int attributeID = D.getAttributeIndex(TargetAttribute);
         if (attributeID == -1)
             throw new Error("Attribute " + TargetAttribute + " not found in Dataset");

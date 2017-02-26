@@ -100,7 +100,7 @@ public class MultiFilter extends BaseDatasetFilter {
 	}
 
 	@Override
-	protected boolean[] label(Dataset D) {
+    public boolean[] label(Dataset D) {
 		boolean[] output = Filters.get(0).label(D);
 		if (Filters.get(0).toExclude()) {
 			negate(output);

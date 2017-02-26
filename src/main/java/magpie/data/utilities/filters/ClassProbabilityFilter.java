@@ -70,7 +70,7 @@ public class ClassProbabilityFilter extends BaseDatasetFilter {
     }
 
     @Override
-    protected boolean[] label(Dataset D) {
+    public boolean[] label(Dataset D) {
         if (D.NClasses() == 1) {
             throw new Error("Data must have multiple classes");
         }

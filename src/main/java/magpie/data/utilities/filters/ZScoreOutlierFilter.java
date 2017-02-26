@@ -168,7 +168,7 @@ public class ZScoreOutlierFilter extends BaseDatasetFilter {
     }
 
     @Override
-    protected boolean[] label(Dataset D) {
+    public boolean[] label(Dataset D) {
         // Check if trained
         if (! Trained) {
             throw new RuntimeException("Filter not yet trained!");
