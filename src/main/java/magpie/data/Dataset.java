@@ -377,7 +377,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      *
      * @param expander New expander
      */
-    public void addAttribueExpander(BaseAttributeExpander expander) {
+    public void addAttributeExpander(BaseAttributeExpander expander) {
         Expanders.add(expander);
     }
 
@@ -393,7 +393,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      *
      * @return List of attribute expanders
      * @see
-     * #addAttribueExpander(magpie.attributes.expanders.BaseAttributeExpander)
+     * #addAttributeExpander(magpie.attributes.expanders.BaseAttributeExpander)
      */
     public List<BaseAttributeExpander> getAttributeExpanders() {
         return new LinkedList<>(Expanders);
@@ -416,7 +416,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      *
      * @param generator New generator
      */
-    public void addAttribueGenerator(BaseAttributeGenerator generator) {
+    public void addAttributeGenerator(BaseAttributeGenerator generator) {
         Generators.add(generator);
     }
 
@@ -431,7 +431,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * Get a copy of the list of currently-employed attribute generators.
      *
      * @return List of attribute expanders
-     * @see Dataset#addAttribueGenerator(BaseAttributeGenerator)
+     * @see Dataset#addAttributeGenerator(BaseAttributeGenerator)
      */
     public List<BaseAttributeGenerator> getAttributeGenerators() {
         return new LinkedList<>(Generators);
@@ -2381,7 +2381,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                     throw new Exception("Usage: <dataset> expand <method> <options...>");
                 }
                 BaseAttributeExpander expander = (BaseAttributeExpander) instantiateClass("attributes.expanders." + Method, Options);
-                addAttribueExpander(expander);
+                addAttributeExpander(expander);
                 System.out.println("\tAdded a " + Method + " to list of attribute expanders");
                 break;
             case "clear":
@@ -2421,7 +2421,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
                     throw new Exception("Usage: <dataset> expand <method> <options...>");
                 }
                 BaseAttributeGenerator generator = (BaseAttributeGenerator) instantiateClass("attributes.generators." + Method, Options);
-                addAttribueGenerator(generator);
+                addAttributeGenerator(generator);
                 System.out.println("\tAdded a " + Method + " to list of attribute generators");
                 break;
             case "clear":

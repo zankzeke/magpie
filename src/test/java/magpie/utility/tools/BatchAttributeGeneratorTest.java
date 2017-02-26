@@ -1,11 +1,5 @@
 package magpie.utility.tools;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
 import magpie.Magpie;
 import magpie.attributes.generators.element.ElementalPropertyAttributeGenerator;
 import magpie.data.BaseEntry;
@@ -14,9 +8,17 @@ import magpie.data.materials.CrystalStructureDataset;
 import magpie.data.materials.ElementDataset;
 import magpie.data.utilities.generators.CombinatorialSubstitutionGenerator;
 import org.junit.Test;
-import static org.junit.Assert.*;
 import vassal.data.Atom;
 import vassal.data.Cell;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  *
@@ -37,7 +39,7 @@ public class BatchAttributeGeneratorTest {
         
         // Define attribute generator
         data.clearAttributeGenerators();
-        data.addAttribueGenerator(new ElementalPropertyAttributeGenerator());
+        data.addAttributeGenerator(new ElementalPropertyAttributeGenerator());
         
         data.addElementalProperty("Number");
         

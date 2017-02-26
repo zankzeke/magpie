@@ -1,14 +1,6 @@
 
 package magpie.data;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import magpie.Magpie;
 import magpie.attributes.expanders.CrossExpander;
 import magpie.attributes.generators.BaseAttributeGenerator;
@@ -18,8 +10,14 @@ import magpie.models.regression.WekaRegression;
 import org.apache.commons.lang3.ArrayUtils;
 import org.json.JSONObject;
 import org.junit.Test;
-import static org.junit.Assert.*;
 import weka.core.Instances;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.util.*;
+
+import static org.junit.Assert.*;
 
 /**
  *
@@ -80,7 +78,7 @@ public class DatasetTest {
         assertEquals(1, clone.NAttributes());
         
         // Add attributes to original, make sure clone unaffected
-        data.addAttributes(Arrays.asList(new String[]{"y","z"}));
+        data.addAttributes(Arrays.asList("y", "z"));
         assertEquals(2, data.NEntries());
         assertEquals(3, data.NAttributes());
         assertEquals(1, clone.NEntries());
@@ -290,7 +288,7 @@ public class DatasetTest {
         assertEquals(1, gens.size());
         
         // Add in an expander
-        data.addAttribueExpander(new CrossExpander());
+        data.addAttributeExpander(new CrossExpander());
         
         // Run the command
         command.set(2, "run");
@@ -323,7 +321,7 @@ public class DatasetTest {
     public void testSetAttributes() {
         // Create dataset
         Dataset data = new Dataset();
-        data.setAttributeNames(Arrays.asList(new String[]{"x","y"}));
+        data.setAttributeNames(Arrays.asList("x", "y"));
         assertEquals(2, data.NAttributes());
         assertEquals("x", data.getAttributeName(0));
         assertArrayEquals(new String[]{"x","y"}, data.getAttributeNames());

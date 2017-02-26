@@ -10,11 +10,8 @@ import magpie.utility.tools.OxidationStateGuesser;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.IOException;
 import java.io.LineNumberReader;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
@@ -172,20 +169,20 @@ public class CompositionDataset extends MultiPropertyDataset {
             StoichiometricAttributeGenerator sgen = new StoichiometricAttributeGenerator();
             sgen.addPNorm(2); sgen.addPNorm(3); 
             sgen.addPNorm(5); sgen.addPNorm(7); sgen.addPNorm(10);
-            addAttribueGenerator(sgen);
+            addAttributeGenerator(sgen);
             
             // Add elemental property generator
             ElementalPropertyAttributeGenerator pgen;
             pgen = new ElementalPropertyAttributeGenerator();
-            addAttribueGenerator(pgen);
+            addAttributeGenerator(pgen);
             
             // Add valence shell attributes
             ValenceShellAttributeGenerator vgen = new ValenceShellAttributeGenerator();
-            addAttribueGenerator(vgen);
+            addAttributeGenerator(vgen);
             
             // Add ionicity attributes
             IonicityAttributeGenerator igen = new IonicityAttributeGenerator();
-            addAttribueGenerator(igen);
+            addAttributeGenerator(igen);
         } catch (Exception e) {
             throw new Error(e);
         }

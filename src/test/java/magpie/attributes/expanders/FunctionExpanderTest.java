@@ -1,6 +1,5 @@
 package magpie.attributes.expanders;
 
-import java.util.*;
 import magpie.Magpie;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
@@ -10,6 +9,10 @@ import magpie.utility.interfaces.Citation;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
+
+import java.util.LinkedList;
+import java.util.List;
+
 import static org.junit.Assert.*;
 
 /**
@@ -50,7 +53,7 @@ public class FunctionExpanderTest {
         // Create attributes that are the square of every attribute
         FunctionExpander expdr = new FunctionExpander();
         expdr.addNewFunction("#{x}^2");
-        data.addAttribueExpander(expdr);
+        data.addAttributeExpander(expdr);
         Dataset originalData = data.clone();
         
         // Get serial result

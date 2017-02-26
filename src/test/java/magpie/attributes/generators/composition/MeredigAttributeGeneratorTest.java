@@ -1,12 +1,14 @@
 package magpie.attributes.generators.composition;
 
-import java.util.List;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.CompositionEntry;
 import magpie.utility.interfaces.Citation;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
-import static org.junit.Assert.*;
+
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  *
@@ -22,9 +24,9 @@ public class MeredigAttributeGeneratorTest {
         
         // Set generators
         data.clearAttributeGenerators();
-        data.addAttribueGenerator(new ElementFractionAttributeGenerator());
-        data.addAttribueGenerator(new MeredigAttributeGenerator());
-        data.addAttribueGenerator(new ValenceShellAttributeGenerator());
+        data.addAttributeGenerator(new ElementFractionAttributeGenerator());
+        data.addAttributeGenerator(new MeredigAttributeGenerator());
+        data.addAttributeGenerator(new ValenceShellAttributeGenerator());
         
         // Create attributes
         data.generateAttributes();
