@@ -13,6 +13,9 @@ pipelines:
           - cd test-files
           - python make_models.py
           - cd ..
+          
+          # Set the Coveralls variables
+          - set CI_BRANCH=$BITBUCKET_BRANCH
 
           # Build the software
           - ./gradlew build test jacocoTestReport coveralls
