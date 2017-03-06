@@ -1,6 +1,6 @@
 # Magpie #
 
-[![Build Status](https://drone.io/bitbucket.org/wolverton/magpie/status.png)](https://drone.io/bitbucket.org/wolverton/magpie/latest) [![Coverage Status](https://coveralls.io/repos/wolverton/magpie/badge.svg?branch=master&service=bitbucket)](https://coveralls.io/bitbucket/wolverton/magpie?branch=master) [![Statistics](https://www.openhub.net/p/wolverton_magpie/widgets/project_thin_badge.gif)](https://www.openhub.net/p/wolverton_magpie) 
+[![Coverage Status](https://coveralls.io/repos/wolverton/magpie/badge.svg?branch=master&service=bitbucket)](https://coveralls.io/bitbucket/wolverton/magpie?branch=master) [![Statistics](https://www.openhub.net/p/wolverton_magpie/widgets/project_thin_badge.gif)](https://www.openhub.net/p/wolverton_magpie) 
 
 Magpie, the Materials-Agnostic Platform for Informatics and Exploration, is designed to simplify the use of machine learning to predict properties of materials. 
 
