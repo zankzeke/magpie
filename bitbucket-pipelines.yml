@@ -3,7 +3,7 @@
 # Only use spaces to indent your .yml configuration.
 # -----
 # You can specify a custom docker image from Docker Hub as your build environment.
-image: jupyter/all-spark-notebook
+image: wardlt/openjdk-and-sklearn
 
 pipelines:
   default:
@@ -13,6 +13,15 @@ pipelines:
           - cd test-files
           - python make_models.py
           - cd ..
+          
+          # Set the Coveralls variables
+          - set CI_BRANCH=$BITBUCKET_BRANCH
 
           # Build the software
-          - ./gradlew build test 
+          - ./gradlew build test jacocoTestReport coveralls
+          
+          # Make the documentation
+          - ./gradlew javadoc
+          - cd doc
+          - python generate-command-autodoc.py ../javadoc
+          - if [ $? -ne 0 ]; then echo "Auto-doc failed."; exit 1; fi
