@@ -66,7 +66,7 @@ public class FilterSplitter extends BaseDatasetSplitter {
 
     @Override
     public List<String> getSplitNames() {
-        return Arrays.asList(new String[]{"PassesFilter", "DidNotPassFilter"});
+        return Arrays.asList("PassesFilter", "DidNotPassFilter");
     }
 
     @Override

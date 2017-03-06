@@ -1,12 +1,13 @@
 package magpie.data;
 
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import magpie.data.utilities.output.PropertiesOutput;
 import org.apache.commons.lang3.ArrayUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Dataset that can store multiple properties for each entry. User can define the names
@@ -261,6 +262,14 @@ public class MultiPropertyDataset extends Dataset {
         }
     }
 
+    @Override
+    public void setClassNames(String[] newClassNames) {
+        super.setClassNames(newClassNames);
+        if (TargetProperty != -1) {
+            setPropertyClasses(TargetProperty, newClassNames);
+        }
+    }
+
     /**
      * Retrieve the name of a certain property.
      * @param index Index of property to look up
@@ -277,15 +286,15 @@ public class MultiPropertyDataset extends Dataset {
     public int getTargetPropertyIndex() {
         return TargetProperty;
     }
-    
+
     /**
      * @return Whether a property is being used as the class variable.
      */
     public boolean usingPropertyAsClass() {
-        return TargetProperty == -1;
+        return TargetProperty != -1;
     }
 
-    /** 
+    /**
      * Lookup what target property is being used.
      * @return Name of property being used as class variable. "None" if no property is being used.
      */
@@ -296,7 +305,7 @@ public class MultiPropertyDataset extends Dataset {
             return "None";
         }
     }
-    
+
     /**
      * Lookup the index of a property. Returns -1 if no property by that name exists
      * @param name Name of property
@@ -304,14 +313,6 @@ public class MultiPropertyDataset extends Dataset {
      */
     public int getPropertyIndex(String name) {
         return PNames.indexOf(name);
-    }
-
-    @Override
-    public void setClassNames(String[] newClassNames) {
-        super.setClassNames(newClassNames);
-        if (TargetProperty != -1) {
-            setPropertyClasses(TargetProperty, newClassNames);
-        }
     }
 
     /** 
@@ -631,7 +632,6 @@ public class MultiPropertyDataset extends Dataset {
      * Given the line describing property names in the input file, read in property
      * names and possible classes.
      * @param line Line describing property names
-     * @see CompositionDataset
      */
     protected void importPropertyNames(String line) {
         // Clear out current property data

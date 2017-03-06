@@ -1,22 +1,14 @@
 package magpie.data.materials.util;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import magpie.data.materials.CompositionDataset;
+import org.apache.commons.lang3.ArrayUtils;
+
+import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.Collections;
-import java.util.Map;
-import magpie.data.materials.CompositionDataset;
-import org.apache.commons.lang3.ArrayUtils;
+import java.util.*;
 
 /**
  * Holds data that any {@linkplain CompositionDataset} needs to lookup.

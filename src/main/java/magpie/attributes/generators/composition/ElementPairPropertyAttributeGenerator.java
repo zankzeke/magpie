@@ -1,8 +1,5 @@
 package magpie.attributes.generators.composition;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import magpie.attributes.generators.BaseAttributeGenerator;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
@@ -10,6 +7,10 @@ import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.CompositionEntry;
 import magpie.data.materials.util.LookupData;
 import org.apache.commons.math3.stat.StatUtils;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Attributes based on properties of constituent binary systems. Computes the minimum,

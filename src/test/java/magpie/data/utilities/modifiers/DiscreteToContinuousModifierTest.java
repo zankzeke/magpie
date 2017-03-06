@@ -1,12 +1,14 @@
 package magpie.data.utilities.modifiers;
 
-import java.util.ArrayList;
-import java.util.List;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.data.MultiPropertyDataset;
 import magpie.data.MultiPropertyEntry;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.Assert.*;
 
 /**
@@ -137,6 +139,25 @@ public class DiscreteToContinuousModifierTest {
         
         assertFalse(data.getEntry(3).hasMeasuredProperty(0));
         assertFalse(data.getEntry(3).hasPredictedProperty(0));
+
+        // Run again, and make sure the property count does not change
+        mdfr.transform(data);
+        assertEquals(2, data.NProperties());
+        for (BaseEntry e : data.getEntries()) {
+            assertEquals(2, ((MultiPropertyEntry) e).NProperties());
+        }
+
+        assertEquals(1, data.getEntry(0).getMeasuredClass(), 1e-6);
+        assertEquals(1, data.getEntry(0).getPredictedClass(), 1e-6);
+
+        assertFalse(data.getEntry(1).hasMeasurement());
+        assertEquals(0.45, data.getEntry(1).getPredictedClass(), 1e-6);
+
+        assertEquals(0, data.getEntry(2).getMeasuredClass(), 1e-6);
+        assertEquals(0.01, data.getEntry(2).getPredictedClass(), 1e-6);
+
+        assertFalse(data.getEntry(3).hasMeasurement());
+        assertFalse(data.getEntry(3).hasPrediction());
     }
     
     @Test

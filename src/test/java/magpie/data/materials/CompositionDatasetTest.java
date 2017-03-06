@@ -1,14 +1,16 @@
 package magpie.data.materials;
 
+import magpie.data.materials.util.LookupData;
+import magpie.data.materials.util.PropertyLists;
+import org.junit.Test;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import magpie.data.materials.util.LookupData;
-import magpie.data.materials.util.PropertyLists;
-import org.junit.Test;
+
 import static org.junit.Assert.*;
 
 /**
