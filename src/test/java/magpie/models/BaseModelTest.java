@@ -1,22 +1,23 @@
 package magpie.models;
 
-import java.util.LinkedList;
 import magpie.Magpie;
-import magpie.statistics.performance.BaseStatistics;
-import magpie.statistics.performance.ClassificationStatistics;
-import magpie.statistics.performance.RegressionStatistics;
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.CompositionEntry;
 import magpie.data.materials.PrototypeDataset;
 import magpie.data.materials.PrototypeEntry;
 import magpie.data.materials.util.PrototypeSiteInformation;
-import magpie.models.interfaces.ExternalModel;
 import magpie.models.regression.AbstractRegressionModel;
 import magpie.models.regression.GuessMeanRegression;
+import magpie.statistics.performance.BaseStatistics;
+import magpie.statistics.performance.ClassificationStatistics;
+import magpie.statistics.performance.RegressionStatistics;
 import org.apache.commons.math3.util.Combinations;
-import org.junit.After;
 import org.junit.Test;
+
+import java.util.LinkedList;
+import java.util.List;
+
 import static org.junit.Assert.*;
 
 /**
@@ -184,6 +185,15 @@ public class BaseModelTest {
         
         model1.done();
         model2.done();
+
+        // Test the command line tool
+        List<Object> command = new LinkedList<>();
+        command.add("clone");
+
+        BaseModel model3 = (BaseModel) model1.runCommand(command);
+
+        assertNotSame(model1, model3);
+        assertNotSame(model2, model3);
     }
     
     @Test

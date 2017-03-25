@@ -37,6 +37,8 @@ import java.util.concurrent.*;
  * </ul>
  * 
  * <p><b><u>Implemented Commands:</u></b>
+ *
+ * <command><p><b>clone</b> - Create a copy of this model</command>
  * 
  * <command><p><b>train $&lt;dataset&gt;</b> - Train model using measured class values 
  * <br><pr><i>dataset</i>: Dataset used to train this model</command>
@@ -735,6 +737,12 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         }
         String Action = command.get(0).toString().toLowerCase();
         switch (Action) {
+            case "clone": {
+                if (command.size() != 1) {
+                    throw new IllegalArgumentException("Usage: clone");
+                }
+                return clone();
+            }
             case "filter": {
                 // Usage: filter [exclude|include] <filter name> <filter options...>
                 boolean exclude;
@@ -753,7 +761,6 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                     // Get filter name / options
                     filterName = command.get(2).toString();
                     filterOptions = command.subList(3, command.size());
-                    
                 } catch (Exception e) {
                     throw new IllegalArgumentException("Usage: filter [exclude|include] <filter name> <options...>");
                 }
