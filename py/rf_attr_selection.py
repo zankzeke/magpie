@@ -1,4 +1,6 @@
+from __future__ import print_function
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
+from sklearn.preprocessing import Imputer
 import pandas as pd
 import numpy as np
 import sys
@@ -58,7 +60,7 @@ if __name__ == '__main__':
         elif sys.argv[pos] == '-regression':
             is_classifier = False
         else:
-            print >>sys.stderr, '[ERROR] Unrecognized command line argument: ', sys.argv[pos]
+            print('[ERROR] Unrecognized command line argument: ', sys.argv[pos], file=sys.stderr)
         pos += 1
 
     # Get the mode used to perform attribute selection
@@ -69,7 +71,19 @@ if __name__ == '__main__':
 
     # Get the data
     columns = sys.stdin.readline().split(",")
-    data = np.genfromtxt(sys.stdin, delimiter=",")
+    data = np.genfromtxt(sys.stdin.buffer, delimiter=",", dtype=np.float32)
+
+    # Get rid of infinite values by marking them as missing
+    data[np.isinf(data)] = np.nan
+    
+    # Impute the missing values on the dataset
+    imputer = Imputer()
+    imputer.fit(data)
+    if any(np.isnan(imputer.statistics_)):
+        print('[Status] Imputation failed for some attributes. Assigning them a constant value of 0')
+        imputer.statistics_ = np.array([ 0 if np.isnan(x) else x for x in imputer.statistics_ ])
+    data = imputer.transform(data)
+    print(any(np.isnan(data.flatten())), any(np.isinf(data.flatten())))
         
     # Decide the steps used for the attribute selection
     steps = np.logspace(np.log10(num_attr), np.log10(len(columns)), num_steps, endpoint=False)
@@ -90,13 +104,13 @@ if __name__ == '__main__':
         new_attr_ids = [x[0] for x in ranked_attrs[:target_attr]]
         new_attrs = [columns[c] for c in new_attr_ids]
         if len(new_attr_ids) < 15:
-            print "[Status] Downselected to %d. Selected attributes: %s"%(target_attr, " ".join(new_attrs))
+            print("[Status] Downselected to %d. Selected attributes: %s"%(target_attr, " ".join(new_attrs)))
         else:
-            print "[Status] Downselected to %d. Top 15 selected attributes: %s"%(target_attr, " ".join(new_attrs[:15]))
+            print("[Status] Downselected to %d. Top 15 selected attributes: %s"%(target_attr, " ".join(new_attrs[:15])))
         
         # Update the dataset and attribute list
         new_attr_ids.append(-1)
         columns = new_attrs
         data = data[:,new_attr_ids]
         
-    print "[Answer]", " ".join(columns)
+    print("[Answer]", " ".join(columns))

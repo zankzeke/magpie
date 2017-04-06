@@ -1,3 +1,4 @@
+from __future__ import print_function
 """Simple API interface for Magpie server
 
 Allows users to run simle commands on a Magpie server,
@@ -69,15 +70,15 @@ m = magpie.MagpieServer(args.url)
 # Run the appropriate action
 if args.action == 'version':
     # Print out the API version
-    print "Magpie API Version:", m.api_version()
+    print("Magpie API Version:", m.api_version())
 elif args.action == 'models':
     model_info = m.models()
     
     # Print out the model information
-    for model,info in model_info.iteritems():
-        print >>out, "Model:", model
+    for model,info in model_info.items():
+        print("Model:", model, file=out)
         for opt in args.options:
-            print >>out, "\t%s:"%opt, info.get(opt, 'No such option')
+            print("\t%s:"%opt, info.get(opt, 'No such option'), file=out)
 elif args.action == 'run':
     # Get models to run
     models = args.options
@@ -97,7 +98,7 @@ elif args.action == 'run':
         model_info = dict([(model,m.get_model_info(model)) for model in models])
     
         # Add in the results
-        for model,result in results.iteritems():
+        for model,result in results.items():
             # Make a column header
             label = '%s:'%model if len(models) > 1 else ''
             label += model_info[model]['property']
@@ -112,7 +113,7 @@ elif args.action == 'run':
         output.to_string(out, index=False)
     elif args.format == 'csv':
         # Add in the results
-        for model,result in results.iteritems():
+        for model,result in results.items():
             if len(models) > 1:
                 # Add model name to names
                 result.columns = ['%s:%s'%(model,c) for c in result.columns]
@@ -132,10 +133,10 @@ elif args.action == 'attributes':
     output = pd.DataFrame(entries, columns=['Entry'])
     
     # Combine the attributes
-    for model,result in results.iteritems():
+    for model,result in results.items():
         # Add new attributes to the output dataframe
         curcols = set(output.columns)
-        colstokeep = filter(lambda x: not x in curcols, result.columns[1:])
+        colstokeep = [x for x in result.columns[1:] if not x in curcols]
         output = output.join(result[colstokeep])
     
     if args.format == 'human':

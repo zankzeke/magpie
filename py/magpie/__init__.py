@@ -1,3 +1,4 @@
+from __future__ import print_function
 import pandas as pd
 import json
 import sys
@@ -56,7 +57,7 @@ class MagpieServer:
         
         # Check whether it agrees with version of this wrapper
         if _api_version != v:
-            print >>sys.stderr, "API version of Magpie server different than wrapper: %s!=%s"%(_api_version, v)
+            print("API version of Magpie server different than wrapper: %s!=%s"%(_api_version, v), file=sys.stderr)
         
         return v
         
@@ -129,7 +130,7 @@ class MagpieServer:
         # Generate the output dataframe
         results = r.json()
         if reg:
-            return pd.DataFrame(zip(entries,[x['predictedValue'] for x in results['entries']]),
+            return pd.DataFrame(list(zip(entries,[x['predictedValue'] for x in results['entries']])),
                 columns=['Entry']+['%s (%s)'%(model_info['property'], model_info['units'])])
         else:
             # Get probabilities
@@ -138,7 +139,7 @@ class MagpieServer:
             for c in classes:
                 probs.append([e['classProbabilities'][c] for e in results['entries']])
             
-            return pd.DataFrame(zip(entries,[x['predictedValue'] for x in results['entries']],
-                    [x['predictedClass'] for x in results['entries']], *probs),
+            return pd.DataFrame(list(zip(entries,[x['predictedValue'] for x in results['entries']],
+                    [x['predictedClass'] for x in results['entries']], *probs)),
                     columns=['Entry']+['Class','ClassName']+['P(%s)'%c for c in classes])
         

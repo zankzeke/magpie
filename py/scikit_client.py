@@ -1,3 +1,4 @@
+from __future__ import print_function
 import socket
 from sys import argv
 import pickle
@@ -22,30 +23,30 @@ X = [[x, 1/(x+1), x+4, x*x] for x in range(100)]
 y = [x[0] * 2 + x[0] * x[0] for x in X]
 
 # Send in training data
-print >>fo, "train"
-print >>fo, len(y)
+print("train", file=fo)
+print(len(y), file=fo)
 fo.flush()
 for xi,yi in zip(X,y):
-	print >>fo, yi, " ".join([str(xij) for xij in xi])
+	print(yi, " ".join([str(xij) for xij in xi]), file=fo)
 fo.flush()
 
 # Receive model
 model_compressed = fi.read()
-print "Compressed size:", len(model_compressed)
+print("Compressed size:", len(model_compressed))
 model_string = bz2.decompress(model_compressed)
-print "Decompressed size:", len(model_string)
+print("Decompressed size:", len(model_string))
 
 # Save the compressed model (debugging purposes)
 fp = open('model.compressed', 'w')
 import binascii
-print >>fp, binascii.hexlify(model_compressed)
+print(binascii.hexlify(model_compressed), file=fp)
 fp.close()
 
 # Unpickle the model
 model = pickle.loads(model_string);
 model_compressed = None
 model_string = None
-print model
+print(model)
 
 # Close up
 fo.close()
@@ -54,10 +55,10 @@ s.close()
 
 # Make another call to run the model
 s, fo, fi = connect(port)
-print >>fo, "run"
-print >>fo, len(X)
+print("run", file=fo)
+print(len(X), file=fo)
 for xi in X:
-	print >>fo, " ".join(str(xij) for xij in xi)
+	print(" ".join(str(xij) for xij in xi), file=fo)
 fo.flush()
 y_pred_socket = [ float(fi.readline()) for i in range(len(X)) ]
 y_pred_here = model.predict(X)
@@ -69,4 +70,4 @@ s.close()
 
 # Check difference
 error = mean([ abs(i-j) for i,j in zip(y_pred_socket, y_pred_here) ])
-print "Difference between here & server:", error
+print("Difference between here & server:", error)

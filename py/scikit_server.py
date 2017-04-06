@@ -1,3 +1,4 @@
+from __future__ import print_function
 #
 # Server used by Magpie to run machine learning models
 #  written in Python. The model must follow the style 
@@ -25,7 +26,7 @@
 # Author: Logan Ward
 # Date:   2 Feb 2017
 
-import cPickle as pickle
+import pickle as pickle
 from sys import argv, stdin, stdout, stderr
 import socket
 import array
@@ -67,7 +68,7 @@ while port <= endPort:
         continue
     break
 ss.listen(0) # Only allow one connection
-print "[Status] Listening on port:", port
+print("[Status] Listening on port:", port)
 stdout.flush();
 
 def trainModel(fi, fo):
@@ -86,7 +87,7 @@ def trainModel(fi, fo):
     
     # Get the number of rows
     nRows = int(fi.readline())
-    print "[Status] Recieving %d training entries"%nRows
+    print("[Status] Recieving %d training entries"%nRows)
     
     # Read in the data
     X = []
@@ -100,11 +101,11 @@ def trainModel(fi, fo):
         y.append(temp[0])
     
     # Train model
-    print "[Status] Training model"
+    print("[Status] Training model")
     model.fit(X,y)
     
     # Send model to client as compressed model
-    print "[Status] Sending model back to client"
+    print("[Status] Sending model back to client")
     pickle.dump(model, fo)
 
 def runModel(fi, fo):
@@ -121,7 +122,7 @@ def runModel(fi, fo):
     
     # Receive data
     nRows = int(fi.readline())
-    print "[Status] Receiving %d entries to run"%nRows
+    print("[Status] Receiving %d entries to run"%nRows)
     X = []
     y = []
     for i in range(nRows):
@@ -132,20 +133,20 @@ def runModel(fi, fo):
         X.append(x)
     
     # Compute
-    print "[Status] Running model"
+    print("[Status] Running model")
     if hasattr(model, 'predict_proba'):
         y = model.predict_proba(X)
     else:
         y = model.predict(X)
     
     # Send back
-    print "[Status] Sending results back to client"
+    print("[Status] Sending results back to client")
     if hasattr(model, 'predict_proba'):
         for yi in y:
-            print >>fo, ' '.join([ str(c) for c in yi])
+            print(' '.join([ str(c) for c in yi]), file=fo)
     else:
         for yi in y:
-            print >>fo, yi
+            print(yi, file=fo)
 
 while 1:
     (client, address) = ss.accept()
@@ -158,9 +159,9 @@ while 1:
     elif "run" in command:
         runModel(fi, fo)
     elif "type" in command:
-        print >>fo, model
+        print(model, file=fo)
     elif "exit" in command:
-        print "[Status] Stopping server"
+        print("[Status] Stopping server")
         exit()
     fi.close()
     fo.close()
