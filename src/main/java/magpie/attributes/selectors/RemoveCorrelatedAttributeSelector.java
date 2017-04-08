@@ -146,7 +146,7 @@ public class RemoveCorrelatedAttributeSelector extends BaseAttributeSelector {
         for (int a1ind = 0; a1ind < order.length; a1ind++) {
             int a1 = order[a1ind];
             if (!isSelected[a1]) {
-                break; // Skip if it has already been removed
+                continue; // Skip if it has already been removed
             }
 
             // Get the values for this attribute
@@ -156,7 +156,7 @@ public class RemoveCorrelatedAttributeSelector extends BaseAttributeSelector {
             for (int a2ind = a1ind + 1; a2ind < order.length; a2ind++) {
                 int a2 = order[a2ind];
                 if (!isSelected[a2]) {
-                    break; // Skip if it has already been removed
+                    continue; // Skip if it has already been removed
                 }
 
                 // Get the values for this attribute
