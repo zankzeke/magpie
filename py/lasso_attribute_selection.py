@@ -102,7 +102,12 @@ if __name__ == '__main__':
 
     # Get the data
     columns = sys.stdin.readline().split(",")
-    data = np.genfromtxt(sys.stdin.buffer, delimiter=",")
+    if sys.version_info[0] == 2:
+        data = np.genfromtxt(sys.stdin, delimiter=",")
+    elif sys.version_inf[0] == 3:
+        data = np.genfromtxt(sys.stdin.buffer, delimiter=",")
+    else:
+	raise Exception('Unrecognized version of Python: %s'%str(sys.version_info))
     X = data[:,:-1]
     y = data[:,-1]
     del data # No longer needed in memory

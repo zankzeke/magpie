@@ -71,7 +71,12 @@ if __name__ == '__main__':
 
     # Get the data
     columns = sys.stdin.readline().split(",")
-    data = np.genfromtxt(sys.stdin.buffer, delimiter=",", dtype=np.float32)
+    if sys.version_info[0] == 2:
+        data = np.genfromtxt(sys.stdin, delimiter=",")
+    elif sys.version_inf[0] == 3:
+        data = np.genfromtxt(sys.stdin.buffer, delimiter=",")
+    else:
+	raise Exception('Unrecognized version of Python: %s'%str(sys.version_info))
 
     # Get rid of infinite values by marking them as missing
     data[np.isinf(data)] = np.nan
