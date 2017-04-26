@@ -1,9 +1,9 @@
 from __future__ import print_function
-from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
-from sklearn.preprocessing import Imputer
-import pandas as pd
+
 import numpy as np
 import sys
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
+from sklearn.preprocessing import Imputer
 
 #
 #  Iterative attribute selection using RandomForest
@@ -73,10 +73,10 @@ if __name__ == '__main__':
     columns = sys.stdin.readline().split(",")
     if sys.version_info[0] == 2:
         data = np.genfromtxt(sys.stdin, delimiter=",", dtype=np.float32)
-    elif sys.version_inf[0] == 3:
+    elif sys.version_info[0] == 3:
         data = np.genfromtxt(sys.stdin.buffer, delimiter=",", dtype=np.float32)
     else:
-	raise Exception('Unrecognized version of Python: %s'%str(sys.version_info))
+        raise Exception('Unrecognized version of Python: %s' % str(sys.version_info))
 
     # Get rid of infinite values by marking them as missing
     data[np.isinf(data)] = np.nan

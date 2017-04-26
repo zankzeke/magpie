@@ -1,15 +1,21 @@
 package magpie.attributes.generators.composition;
 
-import java.util.*;
 import magpie.attributes.generators.BaseAttributeGenerator;
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.CompositionEntry;
 
+import java.util.*;
+
 /**
  * Generate attributes based on elemental property statistics. Computes the mean,
  * maximum, minimum, range, mode, and mean absolute deviation of all elemental 
- * properties stored in {@linkplain CompositionDataset#ElementalProperties}. 
+ * properties stored in {@linkplain CompositionDataset#ElementalProperties}.
+ *
+ * <p>
+ *     If the value of an elemental property is missing for <i>any</i> element in a composition, the value of all attributes
+ *     for that composition will be set to Missing (i.e., NaN).
+ * </p>
  * 
  * <usage><p><b>Usage</b>: No options.</usage>
  * 
@@ -22,7 +28,7 @@ public class ElementalPropertyAttributeGenerator extends BaseAttributeGenerator 
     @Override
     public void setOptions(List<Object> Options) throws Exception {
         if (! Options.isEmpty()) {
-            throw new Exception(printUsage());
+            throw new IllegalArgumentException(printUsage());
         }
     }
 
@@ -40,6 +46,7 @@ public class ElementalPropertyAttributeGenerator extends BaseAttributeGenerator 
         CompositionDataset ptr = (CompositionDataset) data;
         
         // Create attribute names
+        int attributesPerProperty = 6;
         ElementalProperties = ptr.getElementalProperties();
         List<String> newNames = new ArrayList<>(ElementalProperties.size());
         for (String prop : ElementalProperties) {
@@ -51,6 +58,7 @@ public class ElementalPropertyAttributeGenerator extends BaseAttributeGenerator 
             newNames.add("most_" + prop);
         }
         ptr.addAttributes(newNames);
+        assert newNames.size() == attributesPerProperty * ElementalProperties.size();
 
         // Generate attributes for each entry
         Map<String,Set<String>> missingData = new TreeMap<>();
@@ -66,8 +74,10 @@ public class ElementalPropertyAttributeGenerator extends BaseAttributeGenerator 
 
                 // Check if any required lookup-data is missing;
                 int[] elems = entry.getElements();
+                boolean hasMissing = false;
                 for (int i = 0; i < elems.length; i++) {
                     if (Double.isNaN(lookup[elems[i]])) {
+                        hasMissing = true;
                         if (missingData.containsKey(prop)) {
                             missingData.get(prop).add(ptr.ElementNames[elems[i]]);
                         } else {
@@ -78,17 +88,23 @@ public class ElementalPropertyAttributeGenerator extends BaseAttributeGenerator 
                     }
                 }
 
-                // Calculate the mean
-                double mean = entry.getMean(lookup);
-                toAdd[count++] = mean;
+                // If there is missing data, all attributes should be
+                if (hasMissing) {
+                    Arrays.fill(toAdd, count, count + attributesPerProperty, Double.NaN);
+                    count += attributesPerProperty;
+                } else {
+                    // Calculate the mean
+                    double mean = entry.getMean(lookup);
+                    toAdd[count++] = mean;
 
-                // Calculate the maximum diff
-                toAdd[count++] = entry.getMaxDifference(lookup);
-                // Calculate the mean deviation
-                toAdd[count++] = entry.getAverageDeviation(lookup, mean);
-                toAdd[count++] = entry.getMaximum(lookup);
-                toAdd[count++] = entry.getMinimum(lookup);
-                toAdd[count++] = entry.getMost(lookup);
+                    // Calculate the maximum diff
+                    toAdd[count++] = entry.getMaxDifference(lookup);
+                    // Calculate the mean deviation
+                    toAdd[count++] = entry.getAverageDeviation(lookup, mean);
+                    toAdd[count++] = entry.getMaximum(lookup);
+                    toAdd[count++] = entry.getMinimum(lookup);
+                    toAdd[count++] = entry.getMost(lookup);
+                }
             }
 
             // Add attributes to entry
@@ -113,29 +129,29 @@ public class ElementalPropertyAttributeGenerator extends BaseAttributeGenerator 
 
     @Override
     public String printDescription(boolean htmlFormat) {
-        String output = getClass().getName() + (htmlFormat ? " " : ": ");
+        StringBuilder output = new StringBuilder(getClass().getName() + (htmlFormat ? " " : ": "));
         
         // Print out number of attributes
-        output += " (" + (ElementalProperties.size() * 6) + ") ";
+        output.append(" (").append(ElementalProperties.size() * 6).append(") ");
         
         // Print out description
-        output += "Minimum, mean, maximum, mode, range, and mean absolute deviation"
-                + " of " + ElementalProperties.size() + " elemental properties:\n";
+        output.append("Minimum, mean, maximum, mode, range, and mean absolute deviation" + " of ")
+                .append(ElementalProperties.size()).append(" elemental properties:\n");
         
         // Print out elemental properties
         if (htmlFormat) {
-            output += "<br>";
+            output.append("<br>");
         }
         boolean started = false;
         for (String prop : ElementalProperties) {
             if (started) {
-                output += ", ";
+                output.append(", ");
             }
-            output += prop;
+            output.append(prop);
             started = true;
         }
-        
-        return output;
+
+        return output.toString();
     }
     
 }
