@@ -1,15 +1,15 @@
 from __future__ import print_function
-from sklearn.linear_model import Lasso, lasso_path, LinearRegression
-from sklearn.linear_model.coordinate_descent import _alpha_grid
-from sklearn.cross_validation import cross_val_score, ShuffleSplit
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.metrics import mean_squared_error
-from sklearn.externals.joblib import Parallel, delayed
-from scipy.optimize import brentq
-import math
-import sys
+
 import itertools
 import numpy as np
+import sys
+from scipy.optimize import brentq
+from sklearn.cross_validation import cross_val_score, ShuffleSplit
+from sklearn.externals.joblib import Parallel, delayed
+from sklearn.linear_model import Lasso, LinearRegression
+from sklearn.linear_model.coordinate_descent import _alpha_grid
+from sklearn.metrics import mean_squared_error
+from sklearn.preprocessing import MinMaxScaler
 
 #
 # Implements the LASSO-based attribute selection procedure
@@ -104,10 +104,10 @@ if __name__ == '__main__':
     columns = sys.stdin.readline().split(",")
     if sys.version_info[0] == 2:
         data = np.genfromtxt(sys.stdin, delimiter=",")
-    elif sys.version_inf[0] == 3:
+    elif sys.version_info[0] == 3:
         data = np.genfromtxt(sys.stdin.buffer, delimiter=",")
     else:
-	raise Exception('Unrecognized version of Python: %s'%str(sys.version_info))
+        raise Exception('Unrecognized version of Python: %s' % str(sys.version_info))
     X = data[:,:-1]
     y = data[:,-1]
     del data # No longer needed in memory
