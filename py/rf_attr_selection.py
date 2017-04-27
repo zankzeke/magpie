@@ -72,9 +72,9 @@ if __name__ == '__main__':
     # Get the data
     columns = sys.stdin.readline().split(",")
     if sys.version_info[0] == 2:
-        data = np.genfromtxt(sys.stdin, delimiter=",")
+        data = np.genfromtxt(sys.stdin, delimiter=",", dtype=np.float32)
     elif sys.version_info[0] == 3:
-        data = np.genfromtxt(sys.stdin.buffer, delimiter=",")
+        data = np.genfromtxt(sys.stdin.buffer, delimiter=",", dtype=np.float32)
     else:
         raise Exception('Unrecognized version of Python: %s' % str(sys.version_info))
 
