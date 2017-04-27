@@ -34,7 +34,6 @@ from sys import stdin, stdout, stderr
 # Author: Logan Ward
 # Date:   2 Feb 2017
 
-print("Started", file=stderr)
 
 # Useful variables to change
 startPort = 5482  # First port to check
@@ -100,8 +99,8 @@ def trainModel(fi, fo):
     
     # Read in the data
     data = np.genfromtxt(fi, max_rows=nRows)
-    X = data[:, :-1]
-    y = data[:, -1]
+    X = data[:, 1:]
+    y = data[:, 0]
 
     # Train model
     print("[Status] Training model")

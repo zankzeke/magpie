@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import magpie.data.Dataset;
 import magpie.models.BaseModel;
 import magpie.models.BaseModelTest;
+import magpie.statistics.performance.RegressionStatistics;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -66,5 +67,21 @@ public class ScikitLearnRegressionTest extends BaseModelTest {
         }
 
         Assert.assertTrue(failed);
+    }
+
+    /**
+     * Verify that Magpie gives the exact same results as training this manually
+     * @throws Exception
+     */
+    @Test
+    public void testModelOutputs() throws Exception {
+        // Train a model on some sample datasets
+        Dataset data = new Dataset();
+        data.importText("datasets/simple-data.csv", null);
+        ScikitLearnRegression model = (ScikitLearnRegression) generateModel();
+        model.train(data);
+
+        // Verify that the MAE is equal to the results I got manually
+        Assert.assertEquals(0.59349613930720235, ((RegressionStatistics) model.TrainingStats).MAE, 1e-10);
     }
 }
