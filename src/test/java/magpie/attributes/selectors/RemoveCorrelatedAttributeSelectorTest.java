@@ -25,6 +25,7 @@ public class RemoveCorrelatedAttributeSelectorTest {
         options.add("-pearson");
         options.add(0.95);
 
+        System.out.println(sel.printUsage());
         sel.setOptions(options);
 
         // Test it
@@ -34,10 +35,18 @@ public class RemoveCorrelatedAttributeSelectorTest {
         assertTrue(selections.contains(1));
         assertTrue(selections.contains(3));
 
+        System.out.println(sel.printDescription(false));
+        assertEquals(sel.UseClass, sel.printDescription(false).contains("class variable"));
+        assertTrue(sel.printDescription(false).contains(sel.Measure.toString().toLowerCase()));
+
         // Turn off the use class, should return 0,3 as attributes
         options.remove(0);
 
+
         sel.setOptions(options);
+        System.out.println(sel.printDescription(false));
+        assertEquals(sel.UseClass, sel.printDescription(false).contains("class variable"));
+        assertTrue(sel.printDescription(false).contains(sel.Measure.toString().toLowerCase()));
 
         sel.train(data);
         selections = sel.getSelections();
@@ -57,6 +66,9 @@ public class RemoveCorrelatedAttributeSelectorTest {
         options.set(0, "-spearman");
         sel.setOptions(options);
         assertEquals(RemoveCorrelatedAttributeSelector.CorrelationMeasure.SPEARMAN, sel.Measure);
+        System.out.println(sel.printDescription(false));
+        assertEquals(sel.UseClass, sel.printDescription(false).contains("class variable"));
+        assertTrue(sel.printDescription(false).contains(sel.Measure.toString().toLowerCase()));
         sel.train(data);
 
         options.set(0, "-kendall");

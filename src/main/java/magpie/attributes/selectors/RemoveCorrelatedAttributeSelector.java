@@ -83,7 +83,7 @@ public class RemoveCorrelatedAttributeSelector extends BaseAttributeSelector {
 
     @Override
     public String printUsage() {
-        return null;
+        return "Usage: [-useclass] <-pearson|-spearman|-kendall> <threshold>";
     }
 
     /**
@@ -203,6 +203,24 @@ public class RemoveCorrelatedAttributeSelector extends BaseAttributeSelector {
                 throw new RuntimeException("Correlation method not implemented: " + Measure.toString());
         }
         return Math.abs(corr);
+    }
+
+    @Override
+    public String printDescription(boolean htmlFormat) {
+        StringBuilder output = new StringBuilder();
+
+        output.append("Reduces the number of correlated attributes by selecting only one of two interrelated attributes. ");
+        output.append("Specifically, this class searches for pairs attributes which have a ");
+        output.append(Measure.toString().toLowerCase());
+        output.append(String.format(" correlation coefficient whose absolve value is greater than %f and ", Threshold));
+
+        if (UseClass) {
+            output.append("selects the one that has the strongest correlation to the class variable.");
+        } else {
+            output.append("selects whichever one is listed first.");
+        }
+
+        return output.toString();
     }
 
     /**
