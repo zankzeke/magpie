@@ -1563,7 +1563,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * @throws RuntimeException If an entry is missing a measured value
      */
     public double[] getMeasuredClassArray() {
-        if (!Entries.isEmpty()) {
+        if (Entries.isEmpty()) {
             return new double[0];
         }
         double[] output = new double[NEntries()];
@@ -1587,7 +1587,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * @return 1D double array containing measured classes
      */
     public double[] getPredictedClassArray() {
-        if (!Entries.isEmpty()) {
+        if (Entries.isEmpty()) {
             return new double[0];
         }
         double[] output = new double[NEntries()];
@@ -1611,7 +1611,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * @return Probabilities of each entry being in each class
      */
     public double[][] getClassProbabilityArray() {
-        if (!Entries.isEmpty()) {
+        if (Entries.isEmpty()) {
             return new double[0][0];
         }
         double[][] output = new double[NEntries()][NClasses()];
