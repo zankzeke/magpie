@@ -77,7 +77,7 @@ public class ScikitLearnRegressionTest extends BaseModelTest {
     public void testModelOutputs() throws Exception {
         // Train a model on some sample datasets
         Dataset data = new Dataset();
-        data.importText("datasets/simple-data.csv", null);
+        data.importText("datasets/simple-data.txt", null);
         ScikitLearnRegression model = (ScikitLearnRegression) generateModel();
         model.train(data);
 
