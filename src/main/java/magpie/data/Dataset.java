@@ -1557,13 +1557,14 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
     }
 
     /**
-     * Output an array of the measured classes for each entry
+     * Output an array of the measured classes for each entry. Assumes that each
      *
      * @return 1D double array containing measured classes
+     * @throws RuntimeException If an entry is missing a measured value
      */
     public double[] getMeasuredClassArray() {
-        if (!Entries.iterator().next().hasMeasurement()) {
-            throw new Error("Entries have no measured class");
+        if (!Entries.isEmpty()) {
+            return new double[0];
         }
         double[] output = new double[NEntries()];
         int id = 0;
@@ -1573,7 +1574,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
             if (e.hasMeasurement()) {
                 output[id] = e.getMeasuredClass();
             } else {
-                throw new Error("Entry " + id + " does not have a measured class variable");
+                throw new RuntimeException("Entry " + id + " does not have a measured class variable");
             }
             id++;
         }
@@ -1586,8 +1587,8 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * @return 1D double array containing measured classes
      */
     public double[] getPredictedClassArray() {
-        if (!Entries.iterator().next().hasPrediction()) {
-            throw new RuntimeException("Entries have no predicted class");
+        if (!Entries.isEmpty()) {
+            return new double[0];
         }
         double[] output = new double[NEntries()];
         int id = 0;
@@ -1597,7 +1598,7 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
             if (e.hasPrediction()) {
                 output[id] = e.getPredictedClass();
             } else {
-                throw new Error("Entry " + id + " does not have a predicted class variable");
+                throw new RuntimeException("Entry " + id + " does not have a predicted class variable");
             }
             id++;
         }
@@ -1610,8 +1611,8 @@ public class Dataset extends java.lang.Object implements java.io.Serializable,
      * @return Probabilities of each entry being in each class
      */
     public double[][] getClassProbabilityArray() {
-        if (!Entries.iterator().next().hasPrediction()) {
-            throw new Error("Entries have no predicted class");
+        if (!Entries.isEmpty()) {
+            return new double[0][0];
         }
         double[][] output = new double[NEntries()][NClasses()];
         int id = 0;

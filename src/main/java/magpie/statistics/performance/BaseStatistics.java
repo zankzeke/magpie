@@ -113,9 +113,22 @@ abstract public class BaseStatistics implements java.io.Serializable,
 
     /**
      * Generates statistics about the performance on a model.
-     * @param Results Dataset containing both measured and predicted classes.
+     * @param results Dataset containing both measured and predicted classes.
      */
-    abstract public void evaluate(Dataset Results);
+    final public void evaluate(Dataset results) {
+        if (results.NEntries() == 0) {
+            throw new IllegalArgumentException("Results dataset is empty.");
+        }
+        evaluate_protected(results);
+    }
+
+    /**
+     * Internal method for acutally computing results. {@linkplain #evaluate(Dataset)} contains
+     * some error-checking code
+     *
+     * @param results Dataset to be evaluated
+     */
+    abstract protected void evaluate_protected(Dataset results);
 
     /**
      * Generate the receiver operating characteristic curve based on the measured

@@ -193,8 +193,8 @@ if __name__ == '__main__':
             return mean_squared_error(y, y_pred)
     else:
         def score(comb):
-            return -1 * np.mean(cross_val_score(final_model(), X[:,comb], y, 'mean_squared_error', \
-                cv=ShuffleSplit(len(y), n_iter=cv[1], test_size=cv[0], random_state=1)))
+            return -1 * np.mean(cross_val_score(final_model(), X[:, comb], y, 'neg_mean_squared_error', \
+                                                cv=ShuffleSplit(len(y), n_iter=cv[1], test_size=cv[0], random_state=1)))
 
     # Loop through all possible combinations
     best_score_of_all = float('inf')

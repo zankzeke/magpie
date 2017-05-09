@@ -1,12 +1,13 @@
 
 package magpie.statistics.performance;
 
-import java.util.Arrays;
-import java.util.List;
 import magpie.data.Dataset;
 import magpie.optimization.algorithms.OptimizationHelper;
 import magpie.user.CommandHandler;
 import org.apache.commons.math3.stat.StatUtils;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Statistics for the ability of a model to find entries with a class near a target value. 
@@ -154,7 +155,7 @@ public class TargetRegressionStatistics extends RegressionStatistics {
     }
 
     @Override
-    public void evaluate(Dataset Results) {
+    protected void evaluate_protected(Dataset Results) {
         Measured = Results.getMeasuredClassArray();
         Predicted = Results.getPredictedClassArray();
         for (int i=0; i<Measured.length; i++) {

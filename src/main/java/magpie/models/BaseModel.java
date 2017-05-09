@@ -136,7 +136,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
      *
      * @param filename Filename for input
      * @return Model stored in that file
-     * @throws java.lang.Exception
+     * @throws java.lang.Exception If parsing fails
      */
     public static BaseModel loadState(String filename) throws Exception {
         return (BaseModel) UtilityOperations.loadState(filename);
@@ -279,6 +279,13 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
         if (testFraction <= 0 || testFraction >= 1) {
             throw new IllegalArgumentException("Fraction must be between 0 and 1");
         }
+        if (testFraction * data.NEntries() < 1) {
+            throw new IllegalArgumentException(
+                    String.format("Test fraction too small given dataset set. %.2f%% of %d entries < 1",
+                            testFraction * 100,
+                            data.NEntries()
+                    ));
+        }
 
         // Get the random seed for each test
         Random random = new Random(seed);
@@ -348,10 +355,9 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
 
         // Collect the test results
         service.shutdown();
-        Iterator<Future<List<Dataset>>> resultIter = futures.iterator();
-        while (resultIter.hasNext()) {
+        for (Future<List<Dataset>> future : futures) {
             try {
-                List<Dataset> results = resultIter.next().get();
+                List<Dataset> results = future.get();
                 testResults.combine(results);
             } catch (ExecutionException | InterruptedException e) {
                 throw new RuntimeException(e);
@@ -613,8 +619,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
 
     @Override
     public String about() {
-        String Output = "Trained: " + trained + " - Validated: " + validated;
-        return Output;
+        return "Trained: " + trained + " - Validated: " + validated;
     }
     
     /**
@@ -829,7 +834,7 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
                 String Method; List<Object> Options;
                 try {
                     int pos = 1;
-                    while (true && pos < 3) {
+                    while (pos < 3) {
                         String word = command.get(pos).toString().toLowerCase();
                         if (word.equals("attributes")) {
                             doAttributes = true;
@@ -938,8 +943,8 @@ abstract public class BaseModel implements java.io.Serializable, java.lang.Clone
     
     /**
      * Run if done with a model, clears any external resources.
-     * 
-     * For example, closes the external server for {@linkplain External
+     *
+     * For example, closes the external server for {@linkplain ExternalModel}.
      */
     public void done() {
         if (this instanceof ExternalModel) {

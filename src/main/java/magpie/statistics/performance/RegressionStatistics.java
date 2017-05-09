@@ -27,10 +27,11 @@ public class RegressionStatistics extends BaseStatistics {
 	public double Rho;
 	/** Kendall's rank correlation coefficient */
 	public double Tau;
-    
-    @Override public void evaluate(Dataset Results) {
-        Measured = Results.getMeasuredClassArray();
-        Predicted = Results.getPredictedClassArray();
+
+    @Override
+    protected void evaluate_protected(Dataset results) {
+        Measured = results.getMeasuredClassArray();
+        Predicted = results.getPredictedClassArray();
         getStatistics(Measured, Predicted);        
     }
 

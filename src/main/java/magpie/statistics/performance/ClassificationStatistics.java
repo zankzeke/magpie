@@ -1,11 +1,12 @@
 package magpie.statistics.performance;
 
+import magpie.data.Dataset;
+import org.apache.commons.math3.stat.StatUtils;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import magpie.data.Dataset;
-import org.apache.commons.math3.stat.*;
 
 /**
  * <p>This class handles the calculation of statistics for classifiers. It implements the
@@ -15,11 +16,6 @@ import org.apache.commons.math3.stat.*;
  * @version 0.1
  */
 public class ClassificationStatistics extends BaseStatistics {
-    /** For binary cases: Probability below above which an entry has class = 0 */
-    protected double class_cutoff=0.5;
-    /** Whether class variable should be treated as discrete */
-    protected boolean discrete_class=false;
-    
     /** Number of entries assigned to the correct class */
     public int NumberCorrect;
     /** Fraction of entries assigned to correct class */
@@ -58,33 +54,42 @@ public class ClassificationStatistics extends BaseStatistics {
     public double F1;
     /** Names of classes (used when printing) */
     public String[] ClassNames;
-    
-    @Override 
-    public void evaluate(Dataset Data) {
+    /**
+     * For binary cases: Probability below above which an entry has class = 0
+     */
+    protected double class_cutoff = 0.5;
+    /**
+     * Whether class variable should be treated as discrete
+     */
+    protected boolean discrete_class = false;
+
+    @Override
+    protected void evaluate_protected(Dataset data) {
         // Store basic statistics
-        NumberTested = Data.NEntries(); NumberCorrect=0;
-        Measured = Data.getMeasuredClassArray();
-        Predicted = Data.getPredictedClassArray();
-        double[] predicted_discrete = applyClassCutoff(Predicted, Data.NClasses());
-        ClassNames = Data.getClassNames();
+        NumberTested = data.NEntries();
+        NumberCorrect = 0;
+        Measured = data.getMeasuredClassArray();
+        Predicted = data.getPredictedClassArray();
+        double[] predicted_discrete = applyClassCutoff(Predicted, data.NClasses());
+        ClassNames = data.getClassNames();
         
         // Build a contigency table
-        ContingencyTable = new int[Data.NClasses()][Data.NClasses()];
-        for (int i=0; i<Data.NEntries(); i++) {
+        ContingencyTable = new int[data.NClasses()][data.NClasses()];
+        for (int i = 0; i < data.NEntries(); i++) {
             ContingencyTable[(int)Measured[i]][(int)predicted_discrete[i]]++;
             if (Measured[i]==predicted_discrete[i])
                 NumberCorrect++;
         }
         FractionCorrect = (double) NumberCorrect / (double) NumberTested;
-        Kappa = 1 - (1-FractionCorrect) / (1-StatUtils.max(Data.getDistribution()));
+        Kappa = 1 - (1 - FractionCorrect) / (1 - StatUtils.max(data.getDistribution()));
         
         // Build a binary contingency table
-        if (Data.NClasses()==2)
+        if (data.NClasses() == 2)
             ConfusionMatrix = ContingencyTable;
         else {
             ConfusionMatrix = new int[2][2];
             int actual, pred;
-            for (int i=0; i<Data.NEntries(); i++) {
+            for (int i = 0; i < data.NEntries(); i++) {
                 actual = (Measured[i] == 0) ? 0 : 1;
                 pred = (predicted_discrete[i] == 0) ? 0 : 1;
                 ConfusionMatrix[pred][actual]++;
@@ -98,8 +103,8 @@ public class ClassificationStatistics extends BaseStatistics {
         FN = ConfusionMatrix[1][0];
         TN = ConfusionMatrix[1][1];
         Sensitivity = (double) TP/ (double) (TP+FN);
-        FPR = (double) FP/ (double) (FP+TN);
-        Accuracy = (double) (TP+TN) / (double) Data.NEntries();
+        FPR = (double) FP / (double) (FP + TN);
+        Accuracy = (double) (TP + TN) / (double) data.NEntries();
         Specificity = 1.0 - FPR;
         PPV = (double) TP / (double) (TP + FP);
         NPV = (double) TN / (double) (TN + FN);
@@ -113,33 +118,37 @@ public class ClassificationStatistics extends BaseStatistics {
             // Most probable cases have a probability of class 1 close to one
             double classprobs[][], ranking[]; 
             ranking = new double[NumberTested];
-            classprobs = Data.getClassProbabilityArray();
+            classprobs = data.getClassProbabilityArray();
             for (int i=0; i<NumberTested; i++)
                 ranking[i]=1.0-classprobs[i][0];
             getROCCurve(Measured, ranking, 50);
         } else {
-            double[] predicted_adj = Arrays.copyOf(Predicted, Data.NEntries());
+            double[] predicted_adj = Arrays.copyOf(Predicted, data.NEntries());
             for (int i=0; i<Measured.length; i++) 
                 if (predicted_adj[i] < 0) predicted_adj[i] = 0.0;
-                else if (predicted_adj[i] > Data.NClasses() - 1)
-                    predicted_adj[i] = Data.NClasses() - 1;
+                else if (predicted_adj[i] > data.NClasses() - 1)
+                    predicted_adj[i] = data.NClasses() - 1;
             getROCCurve(Measured, predicted_adj, 50);
         }
         ROC_AUC = integrateROCCurve(ROC);
     }
-    
-    /** 
-     * Set the class cutoff used when calculating statistics. 
+
+    /**
+     * @return Class cutoff used during discretization
+     */
+    public double getClassCutoff() {
+        return class_cutoff;
+    }
+
+    /**
+     * Set the class cutoff used when calculating statistics.
      * @param x Class cutoff (0 <= x <= 1)
      */
     public void setClassCutoff(double x) {
         this.class_cutoff = x;
     }
+
     /**
-     * @return Class cutoff used during discretization  
-     */
-    public double getClassCutoff() { return class_cutoff; }
-    /** 
      * @return Whether the class variable is discrete 
      */
     public boolean classIsDiscrete() { return discrete_class; }
