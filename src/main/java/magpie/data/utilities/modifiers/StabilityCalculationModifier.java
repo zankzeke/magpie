@@ -1,7 +1,14 @@
 package magpie.data.utilities.modifiers;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+import magpie.Magpie;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
@@ -81,7 +88,7 @@ public class StabilityCalculationModifier extends BaseDatasetModifier {
         CompositionDataset data = (CompositionDataset) ptr;
         
         // Check that energy property exists
-        int energyProp = data.getPropertyIndex(EnergyName);
+        final int energyProp = data.getPropertyIndex(EnergyName);
         if (energyProp == -1) {
             throw new Error("No such prorperty: " + EnergyName);
         }
@@ -96,9 +103,50 @@ public class StabilityCalculationModifier extends BaseDatasetModifier {
         }
         
         // Do GCLP for every entry
-        for (BaseEntry entryPtr : data.getEntries()) {
+        List<BaseEntry> entries = data.getEntries();
+        if (Magpie.NThreads == 1) {
+            processEntries(energyProp, stabProp, wasAdded, entries);
+        } else {
+            Dataset[] partitions = data.splitForThreading(Magpie.NThreads * 2);
+
+            // Make the thread pool
+            ExecutorService service = Executors.newFixedThreadPool(Magpie.NThreads);
+            List<Future> futures = new ArrayList<>(Magpie.NThreads * 2);
+
+            // Make the final variables for submitting to threads
+            final int finalStabProp = stabProp;
+            final boolean finalWasAdded = wasAdded;
+            for (Dataset partition : partitions) {
+                futures.add(service.submit(new Runnable() {
+                    @Override
+                    public void run() {
+                        processEntries(energyProp, finalStabProp, finalWasAdded, partition.getEntries());
+                    }
+                }));
+            }
+
+            // Wait until everything has finished
+            for (Future future : futures) {
+                try {
+                    future.get();
+                } catch (InterruptedException | ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+    }
+
+    /** Compute the stability for a list of entries
+     *
+     * @param energyProp Index of the property storing entry
+     * @param stabProp Index in which to store the stability measure
+     * @param wasAdded Whether a new property needs to get added to each entry
+     * @param entries List of entries to process
+     */
+    private void processEntries(int energyProp, int stabProp, boolean wasAdded, List<BaseEntry> entries) {
+        for (BaseEntry entryPtr : entries) {
             CompositionEntry entry = (CompositionEntry) entryPtr;
-            
+
             // Perform GCLP
             double hullEnergy;
             try {
@@ -107,22 +155,22 @@ public class StabilityCalculationModifier extends BaseDatasetModifier {
             } catch (Exception e) {
                 throw new Error(e);
             }
-            
+
             // Add property if needed
             if (wasAdded) {
                 entry.addProperty();
             }
-            
+
             // Compute stability
             if (entry.hasMeasuredProperty(energyProp)) {
-                entry.setMeasuredProperty(stabProp, 
+                entry.setMeasuredProperty(stabProp,
                         entry.getMeasuredProperty(energyProp) - hullEnergy);
             }
             if (entry.hasPredictedProperty(energyProp)) {
-                entry.setPredictedProperty(stabProp, 
+                entry.setPredictedProperty(stabProp,
                         entry.getPredictedProperty(energyProp) - hullEnergy);
             }
         }
     }
-    
+
 }
