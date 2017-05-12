@@ -4,7 +4,7 @@ import itertools
 import numpy as np
 import sys
 from scipy.optimize import brentq
-from sklearn.cross_validation import cross_val_score, ShuffleSplit
+from sklearn.model_selection import cross_val_score, ShuffleSplit
 from sklearn.externals.joblib import Parallel, delayed
 from sklearn.linear_model import Lasso, LinearRegression
 from sklearn.linear_model.coordinate_descent import _alpha_grid
@@ -54,7 +54,20 @@ from sklearn.preprocessing import MinMaxScaler
 #  Date: 14 April 2016
 #
 
-if __name__ == '__main__':
+# Utility functions
+def run_score(comb, score, **kwargs):
+    return (comb, score(comb, **kwargs))
+def score_train(comb, model, X, y, cv):
+    model = model()
+    X_sub = X[:,comb]
+    model.fit(X_sub,y)
+    y_pred = model.predict(X_sub)
+    return mean_squared_error(y, y_pred)
+def score_cv(comb, model, X, y, cv):
+    return -1 * np.mean(cross_val_score(model(), X[:,comb], y, scoring='neg_mean_squared_error', \
+                                        cv=ShuffleSplit(n_splits=cv[1], test_size=cv[0], random_state=1)))
+
+def run_lasso_selector():
     # Default parameters
     n_params_lasso = 16
     corr_downselect = None
@@ -176,35 +189,19 @@ if __name__ == '__main__':
         print("[Status] Downselected to %d loosely-correlated attributes: "%len(attr_ids), " ".join([ columns[x] for x in attr_ids ]))
         sys.stdin.flush()
 
-
     # Downsize the data arrays
     X = X[:, attr_ids]
     columns = [ columns[x] for x in attr_ids ]
     attr_ids = list(range(len(attr_ids)))
 
-    # Define method used to compute CV score
-    #  A function to return MSE given a combination of attributes
-    if cv is None:
-        def score(comb):
-            model = final_model()
-            X_sub = X[:,comb]
-            model.fit(X_sub,y)
-            y_pred = model.predict(X_sub)
-            return mean_squared_error(y, y_pred)
-    else:
-        def score(comb):
-            return -1 * np.mean(cross_val_score(final_model(), X[:, comb], y, 'neg_mean_squared_error', \
-                                                cv=ShuffleSplit(len(y), n_iter=cv[1], test_size=cv[0], random_state=1)))
-
     # Loop through all possible combinations
     best_score_of_all = float('inf')
     best_comb_of_all = None
     dim_range = list(range(1,max_dimensionality+1)) if get_best else [max_dimensionality]
+    score_func = score_cv if cv is not None else score_train
     for dim in dim_range:
-        def run_score(comb):
-            return (comb, score(comb))
         scores = Parallel(n_jobs=n_procs)([ \
-            delayed(run_score)(comb) \
+            delayed(run_score)(comb, score_func, model=final_model, X=X, y=y, cv=cv) \
             for comb in itertools.combinations(attr_ids, dim) \
         ])
         best_comb, best_score = min(scores, key=lambda x: x[1])
@@ -219,3 +216,5 @@ if __name__ == '__main__':
     print('[Answer]', " ".join([columns[c] for c in best_comb_of_all]))
     sys.stdin.flush()
 
+if __name__ == '__main__':
+    run_lasso_selector()
