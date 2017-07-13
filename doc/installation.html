@@ -17,13 +17,17 @@
 
 	<h2>Required Software</h2>
 
-	<p>Building Magpie from the latest Bitbucket version requires installing git and the Java Development Kit (JDK).</p>
+	<p>Building Magpie from the latest Bitbucket version requires installing git, the Java Development Kit (JDK), and (optionally) 
+	Python with a few libraries.</p>
 
 	<h3>Linux</h3>
 
 	<p>If you are running Ubuntu Linux, installing the required software can be accomplished by installing the "git" and
 		"openjdk-7-jdk" packages (although I would recommend "openjdk-8-jdk" or later, if available). There are likely
 		analogous packages on other Linux distributions.</p>
+		
+	<p>Some features of Magpie require Python with pandas, scikit-learn, numpy, and scipy to function. If you have "pip" installed
+	on your system, you can install these libraries with: <code>pip install pandas scikit-learn scipy numpy</code></p>
 
 	<h3>Windows</h3>
 
@@ -39,6 +43,10 @@
 	version from <a href="https://git-scm.com/downloads">git-scm.com</a> if you want to follow along with this tutorial.
 	However, there are versions of git with GUIs that integrate with Bitbucket (such as
 	<a href="https://www.sourcetreeapp.com/">SourceTree</a>), which you might prefer.</p>
+	
+	<p>The recommended route for installing Python and its required libraries on Windows is to install
+	<a href="https://conda.io/docs/install/quick.html#windows-miniconda-install">Conda</a> on your computer. With Conda, You 
+	can then install the required packages with: <code>conda install pandas scikit-learn scipy numpy</code></p>
 
 	<h3>Mac</h3>
 
@@ -49,6 +57,10 @@
 		please <a href="https://bitbucket.org/wolverton/magpie/issues">post an issue on the Bitbucket</a> so the developers know
 		to update the guide with a resolution to your issue.
 	</p>
+	
+	<p>The recommended route for installing the Python dependencies of Magpie, as with Windows, is to use 
+	<a href="https://conda.io/docs/install/quick.html#os-x-miniconda-install">Conda</a>. With Conda, you 
+	can then install the required packages with: <code>conda install pandas scikit-learn scipy numpy</code></p>
 
 	<h2>Downloading and Updating Magpie</h2>
 
