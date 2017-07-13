@@ -1,10 +1,11 @@
 package magpie.models.classification;
 
-import java.util.List;
-import magpie.statistics.performance.ClassificationStatistics;
 import magpie.data.Dataset;
 import magpie.models.BaseModel;
 import magpie.models.SplitModel;
+import magpie.statistics.performance.ClassificationStatistics;
+
+import java.util.List;
 
 /**
  * Model that uses several other models to model different parts of a dataset.
@@ -36,7 +37,6 @@ public class SplitClassifier extends SplitModel implements AbstractClassifier {
         ValidationStats = new ClassificationStatistics();
         TrainingStatsPtr = (ClassificationStatistics) TrainingStats;
         ValidationStatsPtr = (ClassificationStatistics) ValidationStats;
-        setClassDiscrete();
     }
 
     @Override
@@ -47,7 +47,7 @@ public class SplitClassifier extends SplitModel implements AbstractClassifier {
     @Override
     public void setModel(int index, BaseModel x) {
         if (! (x instanceof AbstractClassifier)) {
-            throw new Error("Model is not a classifier");
+            throw new IllegalArgumentException("Model is not a classifier");
         }
         super.setModel(index, x); //To change body of generated methods, choose Tools | Templates.
     }
@@ -55,7 +55,7 @@ public class SplitClassifier extends SplitModel implements AbstractClassifier {
     @Override
     public void setGenericModel(BaseModel x) {
         if (! (x instanceof AbstractClassifier)) {
-            throw new Error("Model is not a classifier");
+            throw new IllegalArgumentException("Model is not a classifier");
         }
         super.setGenericModel(x); //To change body of generated methods, choose Tools | Templates.
     }
@@ -68,28 +68,9 @@ public class SplitClassifier extends SplitModel implements AbstractClassifier {
     }
     
     @Override
-    public boolean classIsDiscrete() { return TrainingStatsPtr.classIsDiscrete(); }
-    @Override
-    final public void setClassDiscrete() { 
-        ValidationStatsPtr.setClassDiscrete();
-        TrainingStatsPtr.setClassDiscrete();
+    public int getNClasses() {
+        return NClasses;
     }
-    @Override
-    final public void setClassContinuous() { 
-        ValidationStatsPtr.setClassContinuous();
-        TrainingStatsPtr.setClassContinuous();
-    }
-    
-    @Override
-    public void setClassCutoff(double x) {
-        this.ValidationStatsPtr.setClassCutoff(x); 
-        this.TrainingStatsPtr.setClassCutoff(x);
-    }
-    @Override
-    public double getClassCutoff() { return ValidationStatsPtr.getClassCutoff(); }
-    
-    @Override
-    public int getNClasses() { return NClasses; };
 
     @Override
     public String[] getClassNames() {

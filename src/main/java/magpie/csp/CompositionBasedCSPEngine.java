@@ -1,12 +1,13 @@
 
 package magpie.csp;
 
-import java.util.List;
 import magpie.csp.diagramdata.PhaseDiagramStatistics;
 import magpie.data.materials.PrototypeDataset;
 import magpie.data.materials.PrototypeEntry;
 import magpie.data.materials.util.PrototypeSiteInformation;
 import magpie.models.classification.BaseClassifier;
+
+import java.util.List;
 
 /**
  * Use machine learning model trained on the composition of the entries.
@@ -49,7 +50,6 @@ public class CompositionBasedCSPEngine extends CSPEngine {
      */
     public void setClassifierTempate(BaseClassifier ClfrTempate) {
         this.ClfrTempate = ClfrTempate.clone();
-        this.ClfrTempate.setClassDiscrete();
     }
     
     @Override
@@ -57,7 +57,7 @@ public class CompositionBasedCSPEngine extends CSPEngine {
         
         // Create a copy of training data using the settings of our template
         BaseClassifier newClassifier = ClfrTempate.clone();
-        PrototypeDataset temp = (PrototypeDataset) datasetTemplate.emptyClone();
+        PrototypeDataset temp = datasetTemplate.emptyClone();
         PrototypeSiteInformation siteInfo = trainData.getSiteInfo();
         for (int i=0; i<siteInfo.NGroups(); i++) {
             siteInfo.setGroupIncludedInAttribute(i, false); // Ensure site IDs are not used

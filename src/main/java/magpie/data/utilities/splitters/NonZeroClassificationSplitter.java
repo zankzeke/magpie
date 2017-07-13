@@ -1,14 +1,15 @@
 package magpie.data.utilities.splitters;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.data.utilities.modifiers.NonZeroClassModifier;
 import magpie.models.BaseModel;
 import magpie.models.classification.AbstractClassifier;
 import magpie.models.classification.WekaClassifier;
+
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Split data based on whether an entry is likely to have a non-zero class variable.
@@ -91,10 +92,7 @@ public class NonZeroClassificationSplitter extends BaseDatasetSplitter {
         AbstractClassifier ptr = (AbstractClassifier) Clfr;
         while (iter.hasNext()) {
             BaseEntry entry = iter.next();
-            if (ptr.classIsDiscrete())
-                prob = entry.getClassProbilities()[0];
-            else
-                prob = entry.getPredictedClass();
+            prob = entry.getClassProbilities()[0];
             output[i] = prob > ProbabilityThreshold ? 0 : 1;
             i++;
         }

@@ -3,7 +3,6 @@ package magpie.statistics.performance;
 import magpie.data.Dataset;
 import org.apache.commons.math3.stat.StatUtils;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -52,16 +51,46 @@ public class ClassificationStatistics extends BaseStatistics {
     public double MCC;
     /** F1 Score */
     public double F1;
+    /**
+     * Log-loss
+     */
+    public double LogLoss;
     /** Names of classes (used when printing) */
     public String[] ClassNames;
+
     /**
-     * For binary cases: Probability below above which an entry has class = 0
+     * Takes a continuous class variable and converts it to discrete values that range between
+     * [0,nclass).
+     * @param x Array of continuous class variables to be adjusted
+     * @param n_classes Number of discrete classes known
+     * @return Class variables adjusted to exist only on integer values (see above)
      */
-    protected double class_cutoff = 0.5;
+    static public int[] discretize(double[] x, int n_classes) {
+        int[] y = new int[x.length];
+        for (int i = 0; i < x.length; i++)
+            if (x[i] < 0) y[i] = 0;
+            else if (x[i] > n_classes - 1) y[i] = n_classes - 1;
+            else {
+                y[i] = (int) Math.round(x[i]);
+            }
+        return y;
+    }
+
     /**
-     * Whether class variable should be treated as discrete
+     * Compute the log-loss for the classifier.
+     * @param trueLabels True labels for these predictions
+     * @param probabilites Probability of membership in each class
+     * @return Mean log loss over all entries
      */
-    protected boolean discrete_class = false;
+    static protected double computeLogLoss(int[] trueLabels, double[][] probabilites) {
+        double output = 0;
+        for (int i = 0; i < trueLabels.length; i++) {
+            int label = trueLabels[i];
+            double prob = probabilites[i][label];
+            output += Math.log(Math.max(prob, 1e-12)) / trueLabels.length;
+        }
+        return -1 * output;
+    }
 
     @Override
     protected void evaluate_protected(Dataset data) {
@@ -70,19 +99,20 @@ public class ClassificationStatistics extends BaseStatistics {
         NumberCorrect = 0;
         Measured = data.getMeasuredClassArray();
         Predicted = data.getPredictedClassArray();
-        double[] predicted_discrete = applyClassCutoff(Predicted, data.NClasses());
+        int[] predicted_discrete = discretize(Predicted, data.NClasses());
         ClassNames = data.getClassNames();
-        
+
         // Build a contigency table
         ContingencyTable = new int[data.NClasses()][data.NClasses()];
         for (int i = 0; i < data.NEntries(); i++) {
-            ContingencyTable[(int)Measured[i]][(int)predicted_discrete[i]]++;
-            if (Measured[i]==predicted_discrete[i])
+            ContingencyTable[(int) Measured[i]][predicted_discrete[i]]++;
+            if (Measured[i] == predicted_discrete[i]) {
                 NumberCorrect++;
+            }
         }
         FractionCorrect = (double) NumberCorrect / (double) NumberTested;
         Kappa = 1 - (1 - FractionCorrect) / (1 - StatUtils.max(data.getDistribution()));
-        
+
         // Build a binary contingency table
         if (data.NClasses() == 2)
             ConfusionMatrix = ContingencyTable;
@@ -95,7 +125,7 @@ public class ClassificationStatistics extends BaseStatistics {
                 ConfusionMatrix[pred][actual]++;
             }
         }
-        
+
         // Use it to generate other statistics
         // See: http://en.wikipedia.org/wiki/Receiver_operating_characteristic
         TP = ConfusionMatrix[0][0];
@@ -112,74 +142,22 @@ public class ClassificationStatistics extends BaseStatistics {
         MCC = (double) (TP*TN - FP*FN) / Math.sqrt((double) (TP+FN)*(FP+TN)
                 *(TP+FP)*(FN+TN));
         F1 = (double) (2 * TP) / (double) (2*TP + FP + FN);
-        
+
+        // Compute the log-loss
+        double[][] classProbs = data.getClassProbabilityArray();
+        LogLoss = computeLogLoss(discretize(Measured, data.NClasses()), classProbs);
+
         // Calculate the reciever-operating characteristic curve
-        if (classIsDiscrete()) {
-            // Most probable cases have a probability of class 1 close to one
-            double classprobs[][], ranking[]; 
-            ranking = new double[NumberTested];
-            classprobs = data.getClassProbabilityArray();
-            for (int i=0; i<NumberTested; i++)
-                ranking[i]=1.0-classprobs[i][0];
-            getROCCurve(Measured, ranking, 50);
-        } else {
-            double[] predicted_adj = Arrays.copyOf(Predicted, data.NEntries());
-            for (int i=0; i<Measured.length; i++) 
-                if (predicted_adj[i] < 0) predicted_adj[i] = 0.0;
-                else if (predicted_adj[i] > data.NClasses() - 1)
-                    predicted_adj[i] = data.NClasses() - 1;
-            getROCCurve(Measured, predicted_adj, 50);
-        }
+        double ranking[];
+        ranking = new double[NumberTested];
+        for (int i = 0; i < NumberTested; i++)
+            ranking[i] = 1.0 - classProbs[i][0];
+        getROCCurve(Measured, ranking, 50);
         ROC_AUC = integrateROCCurve(ROC);
     }
 
-    /**
-     * @return Class cutoff used during discretization
-     */
-    public double getClassCutoff() {
-        return class_cutoff;
-    }
-
-    /**
-     * Set the class cutoff used when calculating statistics.
-     * @param x Class cutoff (0 <= x <= 1)
-     */
-    public void setClassCutoff(double x) {
-        this.class_cutoff = x;
-    }
-
-    /**
-     * @return Whether the class variable is discrete 
-     */
-    public boolean classIsDiscrete() { return discrete_class; }
-    /** Set that the class variable is discrete */
-    public void setClassDiscrete() { discrete_class = true; }
-    /** Set that the class variable is continuous */
-    public void setClassContinuous() { discrete_class = false; }
-    
-    /** Takes a continuous class variable and converts it to discrete values that range between
-     * [0,nclass). For an instance in x that ranges between 0 and  <code>nclasses-1</code>, the following rule 
-     * is applied: <br>
-     * <p><code> x[i]-floor(x[i]) > cutoff ? ceil(x[i]) : floor(x[i]) </code></p>
-     * <p>If that value is below 0, it is set to be zero. And, correspondingly, if it is greater than 
-     * <code>nclasses-1</code> it is set to <code>nclasses-1</code>. The cutoff is 
-     * taken from the instance of the ClassificationStatistics.</p>
-     * @param x Array of continuous class variables to be adjusted
-     * @param nclasses Number of discrete classes known
-     * @return Class variables adjusted to exist only on integer values (see above)
-     */
-    public double[] applyClassCutoff(double[] x, int nclasses) {
-        double[] y = new double[x.length];
-        for (int i=0; i<x.length; i++)
-            if (x[i]<0) y[i]=0;
-            else if (x[i]>nclasses-1) y[i]=(double) nclasses - 1;
-            else {
-                y[i] = x[i]%1>class_cutoff ? Math.ceil(x[i]) : Math.floor(x[i]);
-            }
-        return y;
-    }
-    
-    @Override public Object clone() throws CloneNotSupportedException {
+    @Override
+    public Object clone() throws CloneNotSupportedException {
         ClassificationStatistics x = (ClassificationStatistics) super.clone();
         x.Accuracy = Accuracy;
         if (ConfusionMatrix != null) {
@@ -194,6 +172,7 @@ public class ClassificationStatistics extends BaseStatistics {
         x.FractionCorrect = FractionCorrect; x.Kappa = Kappa;
         x.MCC = MCC; x.NPV = NPV; x.NumberCorrect = NumberCorrect;
         x.PPV = PPV;
+        x.LogLoss = LogLoss;
         return x;
     }
     
@@ -209,6 +188,7 @@ public class ClassificationStatistics extends BaseStatistics {
                 +String.format("FDR: %.4f\n", FDR)
                 +String.format("MCC: %.4f\n", MCC)
                 +String.format("F1: %.4f\n", F1)
+                + String.format("Log-loss: %.4f\n", LogLoss)
                 +String.format("ROC AUC: %.4f\n", ROC_AUC);
         return out;
     }
@@ -228,6 +208,7 @@ public class ClassificationStatistics extends BaseStatistics {
         output.put("FDR", FDR);
         output.put("MCC", MCC);
         output.put("F1", F1);
+        output.put("LogLoss", LogLoss);
         output.put("ROCAUC", ROC_AUC);
         
         return output;

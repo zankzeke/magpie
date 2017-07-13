@@ -1,17 +1,19 @@
 
 package magpie.models.classification;
 
+import magpie.csp.diagramdata.OnTheFlyPhaseDiagramStatistics;
+import magpie.csp.diagramdata.PhaseDiagramStatistics;
+import magpie.data.BaseEntry;
+import magpie.data.Dataset;
+import magpie.data.materials.PrototypeDataset;
+import magpie.data.materials.PrototypeEntry;
+import magpie.utility.interfaces.Savable;
+import org.apache.commons.math3.stat.StatUtils;
+
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.PrintWriter;
-import java.util.*;
-import magpie.data.*;
-import magpie.data.materials.PrototypeDataset;
-import magpie.data.materials.PrototypeEntry;
-import magpie.csp.diagramdata.OnTheFlyPhaseDiagramStatistics;
-import magpie.csp.diagramdata.PhaseDiagramStatistics;
-import magpie.utility.interfaces.Savable;
-import org.apache.commons.math3.stat.StatUtils;
+import java.util.List;
 
 /**
  * Predict whether instance of a prototype structure will be a member of one of 
@@ -120,9 +122,10 @@ public class CumulantExpansionClassifier extends BaseClassifier implements Savab
     @Override
     protected void train_protected(Dataset TrainData) {
         if (!(TrainData instanceof PrototypeDataset)) {
-            throw new Error("Data must be a PrototypeDataset");
+            throw new IllegalArgumentException("Data must be a PrototypeDataset");
         }
         PrototypeDataset data = (PrototypeDataset) TrainData;
+
         // Get cumulants for each class
         ClassProbability = TrainData.getDistribution();
         Cumulants = new double[ClassProbability.length][][];
@@ -138,7 +141,7 @@ public class CumulantExpansionClassifier extends BaseClassifier implements Savab
     @Override
     public void run_protected(Dataset TrainData) {
         if (!(TrainData instanceof PrototypeDataset)) {
-            throw new Error("Data must be a PrototypeDataset");
+            throw new IllegalArgumentException("Data must be a PrototypeDataset");
         }
         
         // Calculate probability for each entry being in each class

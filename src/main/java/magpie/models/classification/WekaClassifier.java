@@ -1,8 +1,7 @@
 package magpie.models.classification;
 
-import java.util.List;
-import magpie.models.interfaces.WekaModel;
 import magpie.data.Dataset;
+import magpie.models.interfaces.WekaModel;
 import magpie.user.CommandHandler;
 import magpie.utility.WekaUtility;
 import magpie.utility.interfaces.Citable;
@@ -10,6 +9,8 @@ import magpie.utility.interfaces.Citation;
 import org.apache.commons.lang3.tuple.Pair;
 import weka.classifiers.AbstractClassifier;
 import weka.core.Instances;
+
+import java.util.List;
 
 /**
  * Classifier that uses algorithms from Weka. To use this class, simply provide 
@@ -50,7 +51,7 @@ public class WekaClassifier extends BaseClassifier implements WekaModel, Citable
     public WekaClassifier() throws Exception {
         super();
         setModel("rules.ZeroR", null);
-    };
+    }
 
     @Override
     public void setOptions(List OptionsObj) throws Exception {
@@ -114,8 +115,8 @@ public class WekaClassifier extends BaseClassifier implements WekaModel, Citable
     @Override public String toString() { return Model.toString(); }
 
     @Override protected void train_protected(Dataset TrainingData) {
-        try { 
-            Instances wekadata = TrainingData.transferToWeka(true, classIsDiscrete());
+        try {
+            Instances wekadata = TrainingData.transferToWeka(true, true);
             Model.buildClassifier(wekadata); 
             TrainingData.restoreAttributes(wekadata);
         }
@@ -125,20 +126,13 @@ public class WekaClassifier extends BaseClassifier implements WekaModel, Citable
     }
            
     @Override public void run_protected(Dataset TestData) {
-        try { 
-            Instances wekadata = TestData.transferToWeka(true, classIsDiscrete());
-            if (classIsDiscrete()) {
-                double[][] probs = new double[TestData.NEntries()][TestData.NClasses()];
-                for (int i=0; i<wekadata.numInstances(); i++) {
-                    probs[i]=Model.distributionForInstance(wekadata.instance(i));
-                }
-                TestData.setClassProbabilities(probs);
-            } else {
-                double[] prediction = new double [TestData.NEntries()];
-                for (int i=0; i<wekadata.numInstances(); i++) 
-                    prediction[i]=Model.classifyInstance(wekadata.instance(i));
-                TestData.setPredictedClasses(prediction);
+        try {
+            Instances wekadata = TestData.transferToWeka(true, true);
+            double[][] probs = new double[TestData.NEntries()][TestData.NClasses()];
+            for (int i = 0; i < wekadata.numInstances(); i++) {
+                probs[i] = Model.distributionForInstance(wekadata.instance(i));
             }
+            TestData.setClassProbabilities(probs);
             TestData.restoreAttributes(wekadata);
         } catch (Exception e) { 
             System.err.println("Error when training WekaClassifier:");
