@@ -13,7 +13,7 @@ data attributes generate
 selector = new attributes.selectors.WekaAttributeSelector -eval CfsSubsetEval -M -search BestFirst -D 1
 
 // Create a simple clusterer using Weka
-clusterer = new cluster.WekaClusterer SimpleKMeans -N 2 -I 500 -P
+clusterer = new cluster.WekaClusterer SimpleKMeans -N 2 -I 500 
 clusterer selector $selector
 
 // Train this cluster on the full dataset
