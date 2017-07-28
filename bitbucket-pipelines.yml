@@ -20,6 +20,9 @@ pipelines:
           # Build the software
           - ./gradlew build test jacocoTestReport coveralls
           
+          # Run the tests
+          - ls examples/*.in | xargs -n 1 java -jar dist/Magpie.jar
+          
           # Make the documentation
           - ./gradlew javadoc
           - cd doc
