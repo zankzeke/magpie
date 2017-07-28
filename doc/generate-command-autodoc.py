@@ -124,18 +124,8 @@ printClassSummary(fp, classes)
 for cls in classes: 
 	HTMLRenderer.writeDocumentationFile(docDir, cls, lib)
 
-## Print Optimization Classes
-print >>fp, "<h2>Optimizers</h2>"
-print >>fp, "<p>Optimization algorithms are designed to quickly locate optimal candidates out of a large space "
-print >>fp, "of possibilities.</p>"
-
-classes = lib.getCompleteSubclasses("BaseOptimizer")
-printClassSummary(fp, classes)
-for cls in classes: 
-	HTMLRenderer.writeDocumentationFile(docDir, cls, lib)
-
 	
-## Print Optimization Classes
+## Print Crystal Structure Predictors
 print >>fp, "<h2>Crystal Structure Predictors</h2>"
 print >>fp, "<p>Crystal structure prediction algorithms are used to predict which crystal structure "
 print >>fp, "is most probable out of a list of known prototypes to be stable at a certain composition.</p>"
