@@ -8,6 +8,8 @@ image: wardlt/openjdk-and-sklearn
 pipelines:
   default:
     - step:
+        caches:
+          - gradle
         script:
           # Update the sklearn models
           - cd test-files
