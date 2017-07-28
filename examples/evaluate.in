@@ -3,7 +3,7 @@
 //  using a Weka-based model
 
 // Load in dataset
-data = new data.materials.CompositionDatasetExperimental
+data = new data.materials.CompositionDataset
 data import datasets/small_set.txt
 data attributes properties add set general
 data attributes generate
