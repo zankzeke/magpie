@@ -406,9 +406,9 @@ public class MultiPropertyDataset extends Dataset {
      */
     public void setTargetProperty(int index, boolean keepUnmeasured) {
         if (index >= NProperties())
-            throw new Error("Invalided target property: Greater than number of properties.");
+            throw new RuntimeException("Invalided target property: Greater than number of properties.");
         if (NEntries() > 0 && index >= getEntry(0).NProperties())
-            throw new Error("Critical Error: Entries have fewer properties than Dataset!");
+            throw new RuntimeException("Critical Error: Entries have fewer properties than Dataset!");
         Iterator<BaseEntry> iter = Entries.iterator();
         TargetProperty = index;
         if (TargetProperty >= 0) {
