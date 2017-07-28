@@ -4,7 +4,7 @@ package magpie.attributes.evaluators;
 import java.util.Comparator;
 import java.util.List;
 import magpie.data.Dataset;
-import magpie.optimization.algorithms.OptimizationHelper;
+import magpie.utility.UtilityOperations;
 import org.apache.commons.lang3.ArrayUtils;
 
 /**
@@ -81,7 +81,7 @@ public class AreaUnderROCEvaluator extends BaseAttributeEvaluator {
         // Calculate AUC for each feature (see MATLAB's rankfeatures)
         for (int i=0; i<Data.NAttributes(); i++) {
             double[] feature = Data.getSingleAttributeArray(i);
-            int[] rank = OptimizationHelper.sortAndGetRanks(feature, true);
+            int[] rank = UtilityOperations.sortAndGetRanks(feature, true);
             double auc=0; int type0found=0;
             for (int j=0; j<Data.NEntries(); j++) 
                 if (class_array[rank[j]] == classID) 

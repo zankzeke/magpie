@@ -6,8 +6,8 @@ import java.io.IOException;
 import java.util.*;
 import magpie.data.materials.CompositionEntry;
 import magpie.data.materials.util.LookupData;
-import magpie.optimization.algorithms.OptimizationHelper;
 import magpie.utility.CartesianSumGenerator;
+import magpie.utility.UtilityOperations;
 import magpie.utility.interfaces.Commandable;
 import magpie.utility.interfaces.Options;
 
@@ -227,7 +227,7 @@ public class OxidationStateGuesser implements Commandable, Options,
                 }
             }
         }
-        int[] ranks = OptimizationHelper.sortAndGetRanks(rankVal, false);
+        int[] ranks = UtilityOperations.sortAndGetRanks(rankVal, false);
         List<int[]> output = new ArrayList<>(ranks.length);
         for (int rank : ranks) {
             output.add(possibleStates.get(rank));

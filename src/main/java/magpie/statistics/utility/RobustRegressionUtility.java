@@ -2,7 +2,7 @@ package magpie.statistics.utility;
 
 import java.util.Arrays;
 import magpie.data.Dataset;
-import magpie.optimization.algorithms.OptimizationHelper;
+import magpie.utility.UtilityOperations;
 import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.stat.StatUtils;
 
@@ -88,7 +88,7 @@ public class RobustRegressionUtility {
         double absoluteError[] = new double[Data.NEntries()];
         for (int i=0; i<absoluteError.length; i++)
             absoluteError[i] = Math.abs(error[i] - mean);
-        int[] rank = OptimizationHelper.sortAndGetRanks(absoluteError, false);
+        int[] rank = UtilityOperations.sortAndGetRanks(absoluteError, false);
         
         // Find at which point entries start becoming outliers. Method:
         //  1. Start at i = NEntries() * ( 1 - TestFraction )

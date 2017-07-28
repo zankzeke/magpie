@@ -1,7 +1,6 @@
 
 package magpie.models.regression;
 
-import java.util.LinkedList;
 import java.util.List;
 import magpie.data.Dataset;
 import magpie.data.utilities.modifiers.PartitionToClassModifier;
@@ -9,10 +8,10 @@ import magpie.data.utilities.splitters.ObjectiveFunctionSplitter;
 import magpie.models.BaseModel;
 import magpie.models.classification.AbstractClassifier;
 import magpie.models.classification.WekaClassifier;
-import magpie.optimization.algorithms.OptimizationHelper;
 import magpie.optimization.rankers.BaseEntryRanker;
 import magpie.optimization.rankers.SimpleEntryRanker;
 import magpie.user.CommandHandler;
+import magpie.utility.UtilityOperations;
 
 /**
  * Use a classification algorithm to perform regression. This method works by spliting
@@ -126,7 +125,7 @@ public class ClassificationRegression extends BaseRegression {
         getModifier().transform(splitData);
         // Get the maximum/minimum objective function
         double[] objFunEval = ObjFunction.runObjectiveFunction(TrainData);
-        int[] ranks = OptimizationHelper.sortAndGetRanks(objFunEval, false);
+        int[] ranks = UtilityOperations.sortAndGetRanks(objFunEval, false);
         MinObjFun = TrainData.getEntry(ranks[0]).getMeasuredClass();
         ObjFunRange = TrainData.getEntry(ranks[ranks.length-1]).getMeasuredClass() - MinObjFun;
         // Train the classifier on this data

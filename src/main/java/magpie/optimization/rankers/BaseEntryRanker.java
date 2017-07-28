@@ -2,7 +2,7 @@ package magpie.optimization.rankers;
 
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
-import magpie.optimization.algorithms.OptimizationHelper;
+import magpie.utility.UtilityOperations;
 import magpie.utility.interfaces.Options;
 
 import java.util.ArrayList;
@@ -103,7 +103,7 @@ abstract public class BaseEntryRanker implements java.lang.Cloneable, Options {
         // Run the objective function on each entry
         for (int i=0; i<Data.NEntries(); i++)
             Values[i] = objectiveFunction(Data.getEntry(i));
-        int[] rank = OptimizationHelper.sortAndGetRanks(Values, MaximizeFunction);
+        int[] rank = UtilityOperations.sortAndGetRanks(Values, MaximizeFunction);
         return rank;
     }
     

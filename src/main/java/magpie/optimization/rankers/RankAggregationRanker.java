@@ -5,8 +5,8 @@ import java.util.*;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
 import magpie.data.MultiPropertyDataset;
-import magpie.optimization.algorithms.OptimizationHelper;
 import magpie.user.CommandHandler;
+import magpie.utility.UtilityOperations;
 import org.apache.commons.math3.stat.StatUtils;
 
 /**
@@ -204,7 +204,7 @@ public class RankAggregationRanker extends MultiObjectiveEntryRanker {
         Values = RankAggregator.getAggregatedRanks(subLists);
         
         // Return results
-        return OptimizationHelper.sortAndGetRanks(Values, isMaximizing());
+        return UtilityOperations.sortAndGetRanks(Values, isMaximizing());
     }
 }
 
@@ -402,7 +402,7 @@ class RankAggregator {
         }
         
         // Rank by average rank from sublists
-        int[] startingRanks = OptimizationHelper.sortAndGetRanks(meanRank, false);
+        int[] startingRanks = UtilityOperations.sortAndGetRanks(meanRank, false);
         
         // Generate starting list
         List<Integer> output = new ArrayList<>(startingRanks.length);

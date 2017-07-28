@@ -2,8 +2,8 @@
 package magpie.statistics.performance;
 
 import magpie.data.Dataset;
-import magpie.optimization.algorithms.OptimizationHelper;
 import magpie.user.CommandHandler;
+import magpie.utility.UtilityOperations;
 import org.apache.commons.math3.stat.StatUtils;
 
 import java.util.Arrays;
@@ -188,7 +188,7 @@ public class TargetRegressionStatistics extends RegressionStatistics {
         
         // Find which entries are predicted to be closest to the target
         double[] predictedClone = Arrays.copyOf(predicted, predicted.length);
-        int[] rank = OptimizationHelper.sortAndGetRanks(predictedClone, false);
+        int[] rank = UtilityOperations.sortAndGetRanks(predictedClone, false);
         
         // Gradually step up window size
         double stepSize = predicted.length <= MaxCandidates ? 1.0 :

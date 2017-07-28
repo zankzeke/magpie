@@ -8,7 +8,6 @@ import magpie.attributes.selectors.BaseAttributeSelector;
 import magpie.cluster.BaseClusterer;
 import magpie.data.Dataset;
 import magpie.models.BaseModel;
-import magpie.optimization.BaseOptimizer;
 import magpie.utility.interfaces.Printable;
 
 /**
@@ -46,7 +45,7 @@ public class Workspace {
         Dataset x;
         Object ptr = getObject(Name);
         if (! (ptr instanceof Dataset) )
-            throw new Exception("ERROR: " + Name + " is not a Dataset");
+            throw new RuntimeException(Name + " is not a Dataset");
         x = (Dataset) ptr;
         return x;
     }
@@ -61,7 +60,7 @@ public class Workspace {
         BaseModel x;
         Object ptr = getObject(Name);
         if (! (ptr instanceof BaseModel) )
-            throw new Exception("ERROR: " + Name + " is not a Dataset");
+            throw new RuntimeException(Name + " is not a Dataset");
         x = (BaseModel) ptr;
         return x;
     }
@@ -76,7 +75,7 @@ public class Workspace {
         BaseAttributeSelector x;
         Object ptr = getObject(Name);
         if (! (ptr instanceof BaseAttributeSelector) )
-            throw new Exception("ERROR: " + Name + " is not an AttributeSelector");
+            throw new RuntimeException(Name + " is not an AttributeSelector");
         x = (BaseAttributeSelector) ptr;
         return x;
     }
@@ -91,23 +90,8 @@ public class Workspace {
         BaseClusterer x;
         Object ptr = getObject(Name);
         if (! (ptr instanceof BaseClusterer) )
-            throw new Exception("ERROR: " + Name + " is not an AttributeSelector");
+            throw new RuntimeException(Name + " is not an Clusterer");
         x = (BaseClusterer) ptr;
-        return x;
-    }
-    
-    /**
-     * Get an BaseClusterer out of the Workspace
-     * @param Name Name of BaseClusterer to be returned
-     * @return BaseAttributeSelector, if in set
-     * @throws Exception If Name is not in set, or not an BaseClusterer
-     */
-    public BaseOptimizer getOptimizer(String Name) throws Exception {
-        BaseOptimizer x;
-        Object ptr = getObject(Name);
-        if (! (ptr instanceof BaseOptimizer) )
-            throw new Exception("ERROR: " + Name + " is not an AttributeSelector");
-        x = (BaseOptimizer) ptr;
         return x;
     }
     

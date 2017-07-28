@@ -6,7 +6,6 @@ import java.util.Arrays;
 import java.util.List;
 import magpie.cluster.BaseClusterer;
 import magpie.data.Dataset;
-import magpie.optimization.algorithms.OptimizationHelper;
 import magpie.utility.UtilityOperations;
 import magpie.utility.interfaces.Printable;
 import org.apache.commons.math3.stat.StatUtils;
@@ -94,7 +93,7 @@ public class ClustererStatistics implements Serializable, Printable {
         }
         // Rank attributes accordining deviation between clusters 
         AttributePower = rankAttributes(Clusters);
-        AttributeRanks = OptimizationHelper.sortAndGetRanks(AttributePower, true);
+        AttributeRanks = UtilityOperations.sortAndGetRanks(AttributePower, true);
     }
     
     /**

@@ -7,8 +7,8 @@ import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.CompositionEntry;
 import magpie.data.utilities.filters.CompositionDistanceFilter;
-import magpie.optimization.algorithms.OptimizationHelper;
 import magpie.utility.EqualSumCombinations;
+import magpie.utility.UtilityOperations;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.math3.stat.StatUtils;
@@ -214,7 +214,7 @@ public class APEAttributeGenerator extends BaseAttributeGenerator {
             
             // If list of elements is greater than MaxNTypes, pick only the most prevalent
             if (curElems.length > MaxNTypes) {
-                int[] ranks = OptimizationHelper.sortAndGetRanks(entry.getFractions(), true);
+                int[] ranks = UtilityOperations.sortAndGetRanks(entry.getFractions(), true);
                 int[] newElems = new int[MaxNTypes];
                 for (int i=0; i<MaxNTypes; i++) {
                     newElems[i] = curElems[ranks[i]];
@@ -591,7 +591,7 @@ public class APEAttributeGenerator extends BaseAttributeGenerator {
     static public Pair<Integer, Integer> getClusterRange(double[] radii, 
             double packingThreshold) {
         // Get minimum and maximum radius
-        int[] rank = OptimizationHelper.sortAndGetRanks(radii.clone(), true);
+        int[] rank = UtilityOperations.sortAndGetRanks(radii.clone(), true);
         int biggestRadius = rank[0];
         int smallestRadius = rank[radii.length - 1];
         

@@ -1,7 +1,7 @@
 package magpie.attributes.selectors;
 
 import magpie.data.Dataset;
-import magpie.optimization.algorithms.OptimizationHelper;
+import magpie.utility.UtilityOperations;
 import org.apache.commons.math3.stat.correlation.KendallsCorrelation;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.commons.math3.stat.correlation.SpearmansCorrelation;
@@ -134,7 +134,7 @@ public class RemoveCorrelatedAttributeSelector extends BaseAttributeSelector {
             }
 
             // Sort from most to least correlated
-            order = OptimizationHelper.sortAndGetRanks(correlations, true);
+            order = UtilityOperations.sortAndGetRanks(correlations, true);
         } else {
             order = new int[Data.NAttributes()];
             for (int i = 0; i < order.length; i++) {
