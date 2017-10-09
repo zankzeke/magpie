@@ -12,11 +12,12 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import magpie.data.materials.CompositionEntry;
+import magpie.data.materials.util.LookupData;
 import magpie.utility.DistinctPermutationGenerator;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.math3.util.ArithmeticUtils;
+import org.apache.commons.math3.util.CombinatoricsUtils;
 
 /**
  * Calculate phase diagrams as requested. Stores a list of known compounds in 
@@ -30,7 +31,7 @@ public class OnTheFlyPhaseDiagramStatistics extends PhaseDiagramStatistics {
      * list to the index of the prototype structure of that compound. Uses a sorted
      * map so that one can lookup all compounds in a particular system quickly.
      */
-    private List<SortedMap<Pair<int[],double[]>, Integer>> compoundLookup;
+    private List<SortedMap<Pair<int[],double[]>, Integer>> CompoundLookup;
     /**
      * Copy of {@linkplain #CommonCompositions} used to enable faster lookup from
      * {@linkplain #getCompositionIndex(double[])}.
@@ -42,7 +43,8 @@ public class OnTheFlyPhaseDiagramStatistics extends PhaseDiagramStatistics {
      */
     private final Comparator<double[]> CompositionComparatorCopy;
     /**
-     * Stores the possible choices of elements when running {@linkplain #getCompoundVector(int[]) }
+     * Stores the possible choices of elements when running {@linkplain #getCompoundVector(int[]) }.
+     *   Cached to avoid re-generating it
      */
     private final List<List<int[]>> ElemChoices = new ArrayList<>(6);
 
@@ -50,10 +52,7 @@ public class OnTheFlyPhaseDiagramStatistics extends PhaseDiagramStatistics {
         this.CompositionComparatorCopy = new Comparator<double[]>() {
             @Override
             public int compare(double[] comp1, double[] comp2) {
-                int c = Integer.compare(comp1.length, comp2.length);
-                if (c != 0) {
-                    return c;
-                }
+                int c;
                 for (int i = 0; i < comp1.length; i++) {
                     c = Double.compare(comp1[i], comp2[i]);
                     if (c != 0) {
@@ -66,19 +65,17 @@ public class OnTheFlyPhaseDiagramStatistics extends PhaseDiagramStatistics {
     }
 
     @Override
-    @SuppressWarnings("Convert2Diamond") // LW 7May14: Somehow my compiler balks on compoundLookup.add(new TreeMap<Pair<int[],double[]>, Integer>(compoundSorter));
     protected void processCompounds(Map<CompositionEntry, String> compounds) {
-        // --> Copy the common compositions
+        // --> Copy the common compositions, for fast lookup
         CommonCompositionCopy = new ArrayList<>(CommonCompositions.size());
         for (Pair<double[], List<String>> pair : CommonCompositions) {
                 CommonCompositionCopy.add(pair.getKey());
         }
+
         // --> Create an appropriate sorted map
-        Comparator compoundSorter = new Comparator() {
+        Comparator compoundSorter = new Comparator<Pair<int[], double[]>>() {
             @Override
-            public int compare(Object o1, Object o2) {
-                Pair<int[], double[]> A = (Pair<int[], double[]>) o1;
-                Pair<int[], double[]> B = (Pair<int[], double[]>) o2;
+            public int compare(Pair<int[],double[]> A, Pair<int[],double[]> B) {
                 // First, sort by element list
                 int c;
                 for (int i=0; i<A.getKey().length; i++) {
@@ -93,10 +90,11 @@ public class OnTheFlyPhaseDiagramStatistics extends PhaseDiagramStatistics {
                 return 0;
             }
         };
+
         // --> Create lookup tables for unary, binary, ..., NComponent-ary compounds
-        compoundLookup = new ArrayList<>(NComponents);
+        CompoundLookup = new ArrayList<>(NComponents);
         for (int i=1; i<=NComponents; i++) {
-            compoundLookup.add(new TreeMap<Pair<int[],double[]>, Integer>(compoundSorter));
+            CompoundLookup.add(new TreeMap<Pair<int[],double[]>, Integer>(compoundSorter));
         }
         
         // --> Add each compound to the appropriate lookup table
@@ -104,22 +102,26 @@ public class OnTheFlyPhaseDiagramStatistics extends PhaseDiagramStatistics {
             // Sort the elements in appropriate order
             CompositionEntry composition = entry.getKey();
             int[] elems = composition.getElements();
-            double[] frac = composition.getFractions();
+            double[] fracs = composition.getFractions();
+
             // Skip if more components than NComponents
             if (elems.length > NComponents) continue;
+
             // Sort such that elements are in ascending order
-            orderComposition(elems, frac);
+            orderComposition(elems, fracs);
+
             // Round composition such that it is *exactly* equal to the nearest bin
             //  in CommonCompositions. Also, match the prototype with that bin
             String prototype = entry.getValue();
-            int prototypeID = roundCompositionAndMatchStructure(frac, prototype);
+            int prototypeID = roundCompositionAndMatchStructure(fracs, prototype);
+
             // Add to the appropriate map
-            compoundLookup.get(elems.length - 1).put(new ImmutablePair<>(elems, frac), prototypeID);
+            CompoundLookup.get(elems.length - 1).put(new ImmutablePair<>(elems, fracs), prototypeID);
         }
     }
 
     /**
-     * Round a compound such that it's composition exactly equals that of a common
+     * Round a compound such that its composition exactly equals that of a common
      *   composition (from {@linkplain #CommonCompositions}. Store the name of its prototype in that composition's list (if
      *   not already there), return the index of the prototype in that list
      * @param frac Atomic fractions of elements in the compound (will be rounded
@@ -129,10 +131,11 @@ public class OnTheFlyPhaseDiagramStatistics extends PhaseDiagramStatistics {
      *  composition
      */
     private int roundCompositionAndMatchStructure(double[] frac, String prototype) {
-        double[] key = extendComposition(frac);
+        double[] key = createLookupKey(frac);
         
         // --> Find the composition bin closest to the key
         int compositionIndex = getClosestBin(key);
+        key = CommonCompositions.get(compositionIndex).getLeft();
         
         // --> For that bin, see if it contains the name of this compound's prototype
         int prototypeIndex = CommonCompositions.get(compositionIndex).getValue().indexOf(prototype);
@@ -142,39 +145,9 @@ public class OnTheFlyPhaseDiagramStatistics extends PhaseDiagramStatistics {
         }
         
         // --> Round "frac" so that it precisely matches the bin
-        key = CommonCompositions.get(compositionIndex).getLeft();
-        System.arraycopy(key, 0, frac, 0, frac.length);
-        for (int i=frac.length + 1; i<key.length; i++) {
-            if (key[i] > MinDistance) {
-                throw new Error("Implemenation Error: " + frac.length + "-component compound " +
-                        " matched to a " + key.length + "-component composition");
-            }
-        }
-        return prototypeIndex;
-    }
+        System.arraycopy(key, 1, frac, 0, frac.length);
 
-    /**
-     * Ensure that a composition is sorted such that elements are listed in ascending
-     *  order by atomic number.
-     * @param elems Elements present in sample  
-     * @param frac Fractions of each element present
-     */
-     void orderComposition(int[] elems, double[] frac) {
-        if (elems.length < 2) return;
-        boolean notDone = true;
-        double tempF; int tempE;
-        while (notDone) {
-            notDone = false;
-            for (int i=1; i<elems.length; i++) {
-                if (elems[i] < elems[i-1]) {
-                    notDone = true;
-                    tempE = elems[i];
-                    elems[i] = elems[i-1]; elems[i-1] = tempE;
-                    tempF = frac[i];
-                    frac[i] = frac[i-1]; frac[i-1] = tempF;
-                }
-            }
-        }
+        return prototypeIndex;
     }
 
     @Override
@@ -183,13 +156,15 @@ public class OnTheFlyPhaseDiagramStatistics extends PhaseDiagramStatistics {
         int[] output = new int[CommonCompositions.size()];
         
         // --> For each number of constituents, get known compounds
-        double[] fracs = new double[sites.length];
+        double[] key = new double[sites.length + 1];
         for (int nc=1; nc <= NComponents; nc++) {
             int[] elemList = new int[nc];
             int[] matchOrder = new int[nc];
             
             // Generate possible choices for this element
             if (ElemChoices.size() < nc) {
+                // Only needs to be done once. Creates a list of lists with all constituent unary, binary, ... systems
+                //  Ex: For a quaternary ABCD, ElemChoices contains [A, B, C, D], [AB, ...], ... , [ABCD]
                 int[] elemChoice = new int[nc];
                 for (int i=1; i<nc; i++) elemChoice[i] = i;
                 List<int[]> temp = new LinkedList<>();
@@ -201,13 +176,14 @@ public class OnTheFlyPhaseDiagramStatistics extends PhaseDiagramStatistics {
                 ElemChoices.add(temp);
             }
             
-            // For each permuation of nc elements from sites
+            // For each permutation of nc elements from sites
             for (int[] elemChoice : ElemChoices.get(nc-1)) {
                 // Get compounds with these elements
                 for (int i=0; i<elemChoice.length; i++) elemList[i] = sites[elemChoice[i]];
                 Arrays.sort(elemList);
                 SortedMap<Pair<int[], double[]>, Integer> compounds = 
                         getCompoundsInSystem(elemList);
+
                 // Determine how the order of elements in these compounds matches
                 //  up with the requested phase diagram (defined by the order of sites)
                 for (int i=0; i<elemList.length; i++) {
@@ -220,14 +196,18 @@ public class OnTheFlyPhaseDiagramStatistics extends PhaseDiagramStatistics {
                 for (Map.Entry<Pair<int[], double[]>, Integer> compound : compounds.entrySet()) {
                     // Get the composition of this compound
                     double[] unorderedFrac = compound.getKey().getValue();
-                    Arrays.fill(fracs, 0.0);
+
+                    // Create the lookup key
+                    Arrays.fill(key, 0.0);
+                    key[0] = compound.getKey().getKey().length;
                     for (int i=0; i<nc; i++)
-                        fracs[matchOrder[i]] = unorderedFrac[i];
-                    int compositionID = getCompositionIndex(fracs);
-                    if (compositionID == -1) {
-                        throw new Error("Implementation Error: Somehow, the composition corresponding to a compound was not found!");
+                        key[matchOrder[i]+1] = unorderedFrac[i];
+                    int compositionID = getCompositionIndex(key);
+                    if (compositionID < 0) {
+                        throw new RuntimeException("Implementation Error: Somehow, the composition corresponding to a compound was not found!");
                     }
-                    // Mark the appropriate point in the output as the protoype ID
+
+                    // Mark the appropriate point in the output as the prototype ID
                     //  of the corresponding compound
                     output[compositionID] = compound.getValue() + 1;
                 }
@@ -251,7 +231,7 @@ public class OnTheFlyPhaseDiagramStatistics extends PhaseDiagramStatistics {
     
     /**
      * Get all compounds within a certain system. Since we know the sorting order of
-     *   {@linkplain #compoundLookup}, this can be accomplished rather quickly.
+     *   {@linkplain #CompoundLookup}, this can be accomplished rather quickly.
      * @param elemList List of elements that define this system. Will be sorted
      *  so that elemList is in the same order as the key of all entries in the 
      *  output map. (Those are probably sorted by atomic number)
@@ -260,7 +240,7 @@ public class OnTheFlyPhaseDiagramStatistics extends PhaseDiagramStatistics {
     private SortedMap<Pair<int[], double[]>, Integer> getCompoundsInSystem(int[] elemList) {
         // --> Get all compounds with elemList.length # of constituents
         SortedMap<Pair<int[], double[]>, Integer> allCompounds = 
-                compoundLookup.get(elemList.length - 1);
+                CompoundLookup.get(elemList.length - 1);
         // --> Get all entries in this system
         int[] elemListStart = elemList.clone();
         int[] elemListEnd = elemList.clone(); elemListEnd[elemListEnd.length - 1]++;
@@ -270,44 +250,48 @@ public class OnTheFlyPhaseDiagramStatistics extends PhaseDiagramStatistics {
 
     @Override
     protected void calculateStructureProbabilities() {
-        // --> Initialize tally arrays
+        // Initialize tally arrays. This stores in how many phase diagrams each prototype appears
         long[][] prototypeHitCount = new long[CommonCompositions.size()][];
         for (int i = 0; i < CommonCompositions.size(); i++) {
             prototypeHitCount[i] = new long[CommonCompositions.get(i).getRight().size()];
         }
+
         // --> For each known compound, increment the corresponding hit count
         //  for its prototype ID in *all* corresponding compositions
-        int[] permutation = new int[NComponents]; // Generate all possible arrangemts of elements
+        // Example: A binary compound AlNu appears in (113-2) other ternary, such as Al-Ni-He
+        //   And, for each ternary there are 6 permutations
+        int[] permutation = new int[NComponents]; // Generate all possible arrangements of elements
         for (int i=1; i<NComponents; i++) permutation[i] = i;
         Set<int[]> permutations = DistinctPermutationGenerator.generatePermutations(permutation);
-        double[] temp = new double[NComponents];
-        for (SortedMap<Pair<int[],double[]>,Integer> compounds : compoundLookup) {
+        double[] temp = new double[NComponents+1];
+        for (SortedMap<Pair<int[],double[]>,Integer> compounds : CompoundLookup) {
             for (Map.Entry<Pair<int[], double[]>, Integer> compound : compounds.entrySet()) {
                 Pair<int[], double[]> comp = compound.getKey();
                 
-                // For compounds with less than NCompoments constituents,
+                // For compounds with less than NComponents constituents,
                 //  how many different values can the other constituents take on;
                 long nDiagrams = 1;
                 for (int i=comp.getLeft().length; i<NComponents; i++) {
-                    nDiagrams *= (long) (NElements - i);
+                    nDiagrams *= (long) (LookupData.ElementNames.length - i);
                 }
-                nDiagrams /= ArithmeticUtils.factorial(NComponents - comp.getLeft().length);
+                nDiagrams /= CombinatoricsUtils.factorial(NComponents - comp.getLeft().length);
                 
-                // For each arrangment (add compounds)
+                // For each arrangement (add compounds)
                 Integer prototypeID = compound.getValue();
-                double[] fracs = extendComposition(comp.getRight());
+                double[] key = createLookupKey(comp.getRight());
                 for (int[] p : permutations) {
-                    for (int i=0; i<NComponents; i++) temp[i] = fracs[p[i]];
+                    temp[0] = key[0];
+                    for (int i=0; i<NComponents; i++) temp[i+1] = key[p[i]+1];
                     int compositionID = getClosestBin(temp);
                     prototypeHitCount[compositionID][prototypeID] += nDiagrams;
                 }
             }
         }
         
-        // --> Calcualte corresponding probability of seeing each prototype (or nothing) at each composition
+        // --> Calculate corresponding probability of seeing each prototype (or nothing) at each composition
         long nPhaseDiagrams = 1;
         for (int i=0; i < NComponents; i++) {
-            nPhaseDiagrams *= (long) (NElements - i);
+            nPhaseDiagrams *= (long) (LookupData.ElementNames.length - i);
         }
         // Assemble arrays
         StructureProbability = new double[prototypeHitCount.length][];

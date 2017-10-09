@@ -1,11 +1,13 @@
 
 package magpie.csp.diagramdata;
 
+import jdk.nashorn.internal.lookup.Lookup;
 import magpie.data.materials.CompositionEntry;
 import magpie.data.materials.PrototypeEntry;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -13,6 +15,7 @@ import java.util.*;
 import magpie.data.materials.*;
 import magpie.data.materials.util.LookupData;
 import magpie.utility.DistinctPermutationGenerator;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.*;
 
 /**
@@ -95,16 +98,20 @@ public abstract class PhaseDiagramStatistics implements Serializable {
     protected int NComponents;
     /** Probability that each element appears in a phase diagram */
     protected double ElementProbability;
-    /** Number of possible elements */
-    protected int NElements;
-    /** List of common compositions and the names of prototypes found at that composition.
+    /**
+     * List of common compositions and the names of prototypes found at that composition.
      * Compositions with identical stoichiometry (i.e. AB and BA) share the same list.
+     *
+     * Key of the pair is an array where [0] is the number of elements, and the other entries are the stoichiometries
+     *  (ex:, A3B -> [0.75,0.25])
+     * Value is the names prototypes observed at that stoichiometries
      */
     protected List<Pair<double[], List<String>>> CommonCompositions;
-    /** For each composition, probability of each structure existing in a phase diagram. [][0] is the no-structure * condition. */
+    /**
+     * For each composition, probability of each structure existing in a phase diagram. [][0] is the no-structure condition.
+     * */
     protected double[][] StructureProbability;
-    /** Names of each element */
-    protected String[] ElementNames;
+
     /**
      * Used to sort {@linkplain #CommonCompositions}. Only sorts by the composition, never
      *  the list of prototype names.
@@ -114,10 +121,10 @@ public abstract class PhaseDiagramStatistics implements Serializable {
         public int compare(Pair<double[], List<String>> o1, Pair<double[], List<String>> o2) {
             double[] comp1 = o1.getKey();
             double[] comp2 = o2.getKey();
-            int c = Integer.compare(comp1.length, comp2.length);
-            if (c != 0) {
-                return c;
+            if (comp1.length != comp2.length) {
+                throw new RuntimeException("Arrays must be same length");
             }
+            int c;
             for (int i = 0; i < comp1.length; i++) {
                 c = Double.compare(comp1[i], comp2[i]);
                 if (c != 0) {
@@ -134,7 +141,37 @@ public abstract class PhaseDiagramStatistics implements Serializable {
      * Create a blank instance of this class.
      */
     protected PhaseDiagramStatistics() {};
-    
+
+    /**
+     * Ensure that a composition is sorted such that elements are listed in
+     * ascending order by atomic fraction
+     *
+     * @param elems Elements present in sample
+     * @param frac Fractions of each element present
+     */
+    static public void orderComposition(int[] elems, double[] frac) {
+        if (elems.length < 2) {
+            return;
+        }
+        boolean notDone = true;
+        double tempF;
+        int tempE;
+        while (notDone) {
+            notDone = false;
+            for (int i = 1; i < elems.length; i++) {
+                if (frac[i] < frac[i - 1]) {
+                    notDone = true;
+                    tempE = elems[i];
+                    elems[i] = elems[i - 1];
+                    elems[i - 1] = tempE;
+                    tempF = frac[i];
+                    frac[i] = frac[i - 1];
+                    frac[i - 1] = tempF;
+                }
+            }
+        }
+    }
+
     /**
      * Get number of compounds stored by this object.
      * @return Number of distinct compounds stored by this object.
@@ -209,7 +246,7 @@ public abstract class PhaseDiagramStatistics implements Serializable {
      */
     protected void calculateProbabilities() {
         // Elements is real easy - same for every element
-        ElementProbability = (1.0 + 1.0 / NElements) / (double) NElements;
+        ElementProbability = (1.0 + 1.0 / LookupData.ElementNames.length) / (double) LookupData.ElementNames.length;
         calculateStructureProbabilities();
     }
 
@@ -237,10 +274,10 @@ public abstract class PhaseDiagramStatistics implements Serializable {
      */
     public void importKnownCompounds(Map<CompositionEntry, String> compounds, 
             int DiagramOrder, int[] DesiredNBins) {
-        // --> Get all compounds relevant for this diagram
+
+        // Get all compounds relevant for this diagram (those with DiagramOrder or viewer elements)
         Map<CompositionEntry,String> compoundList = new TreeMap<>();
         NComponents = DiagramOrder;
-        NElements = compounds.keySet().iterator().next().getElementNameList().length;
         Iterator<Map.Entry<CompositionEntry,String>> iter = compounds.entrySet().iterator();
         while (iter.hasNext()) {
             Map.Entry<CompositionEntry,String> entry = iter.next();
@@ -249,12 +286,13 @@ public abstract class PhaseDiagramStatistics implements Serializable {
         }
         NCompounds = compoundList.size();
         
-        // ---> Count the number of times each stoichiometry occurs at each composition
+        // Count the number of times each stoichiometry occurs at each composition
         getCommonCompositions(compoundList, DesiredNBins);
         Collections.sort(CommonCompositions, CompositionComparator);
         
-        // --> For each compound, add it to all appropriate phase diagrams
+        // For each compound, add it to all appropriate phase diagrams
         processCompounds(compoundList);
+
         // Calculate probabilities
         calculateProbabilities();
     }
@@ -278,8 +316,6 @@ public abstract class PhaseDiagramStatistics implements Serializable {
             throw new Error(e);
         }
         // Read in each compound
-        ElementNames = LookupData.ElementNames;
-        NElements = LookupData.SortingOrder.length;
         do {
             String Line;
             try {
@@ -319,17 +355,21 @@ public abstract class PhaseDiagramStatistics implements Serializable {
 		if (DesiredNBins.length < NComponents - 1) {
 			throw new Error("Too few compositions defined.");
 		}
-        // --> Find the number of times each composition appears
+
+        // Find the number of times each composition appears
         List<List<Pair<double[], Integer>>> Histograms = new ArrayList<>(NComponents - 1);
-        for (int i=0; i<NComponents-1; i++) Histograms.add(new LinkedList<Pair<double[], Integer>>());
+        for (int i=0; i<NComponents-1; i++) Histograms.add(new LinkedList<>());
         for (Map.Entry<CompositionEntry, String> entry : Compounds.entrySet()) {
             // Get the stoichiometry of this entry
             CompositionEntry newCompound = entry.getKey();
             double[] newComposition = newCompound.getFractions();
+
             // Skip elemental compounds, or those with more elements than we are interested in
             if (newComposition.length == 1 || newComposition.length > NComponents) continue;
             Arrays.sort(newComposition);
-            // If not already known, add to list
+
+
+            // Check if we have seen this composition before
             List<Pair<double[], Integer>> relevantList = Histograms.get(newComposition.length - 2);
             boolean wasFound = false;
             for (Pair<double[], Integer> known : relevantList) {
@@ -341,19 +381,24 @@ public abstract class PhaseDiagramStatistics implements Serializable {
                 }
             }
             if (!wasFound) {
+                // If not already known, add to list
                 relevantList.add(new MutablePair<>(newComposition, 1));
             }
         }
-        // --> Find the most common entries, add an appropriate number to the composition list
-        CommonCompositions = new LinkedList<>();
+
+        // Find the most common entries, add an appropriate number to the composition list
+        CommonCompositions = new ArrayList<>();
         Comparator<Pair<double[], Integer>> ranker = new Comparator<Pair<double[], Integer>>() {
             @Override
             public int compare(Pair<double[], Integer> o1, Pair<double[], Integer> o2) {
                 return -1 * o1.getValue().compareTo(o2.getValue());
             }
         }; // Sorts such that the most frequent are at the top
+
+
         // Unary
-        addCompositionBin(new double[]{1}, new LinkedList<String>());
+        addCompositionBin(new double[]{1}, new LinkedList<>());
+
         // Binary +
         int elemCount = 1;
         for (List<Pair<double[],Integer>> histogram : Histograms) {
@@ -364,19 +409,19 @@ public abstract class PhaseDiagramStatistics implements Serializable {
             // Add until we have either exceed the target number of bins, or run out of common compositions
             while (CommonCompositions.size() - startCount < DesiredNBins[elemCount - 2]
                     && iter.hasNext()) {
-                addCompositionBin(iter.next().getKey(), new LinkedList<String>());
+                addCompositionBin(iter.next().getKey(), new LinkedList<>());
             }
         }
     }
 
     /**
      * Adds all permutations (i.e. ABC, BAC, ...) to
-     * @param x Stoichiometry to be added (must be sorted)
+     * @param x Stoichiometry to be added (must be sorted in ascending order)
      * @param Prototypes List that holds names of all prototypes with this stoichiometry (does not have to contain anything yet)
      */
     protected void addCompositionBin(double[] x, List<String> Prototypes) {
         // Ensure that if any entries are closer than a certain tolerance, they are made
-        //  precisely equal
+        //  exactly equal
         for (int i=1; i<x.length - 1; i++) {
             if (x[i] - x[i-1] < MinDistance) x[i] = x[i-1];
         }
@@ -389,10 +434,11 @@ public abstract class PhaseDiagramStatistics implements Serializable {
         } else {
             xCopy = x;
         }
+
         // Generate all distinct duplicates
         Set<double[]> images = DistinctPermutationGenerator.generatePermutations(xCopy);
         for (double[] image : images) {
-            CommonCompositions.add(new ImmutablePair<>(image, Prototypes));
+            CommonCompositions.add(new ImmutablePair<>(ArrayUtils.add(image, 0, x.length), Prototypes));
         }
     }
 
@@ -427,7 +473,7 @@ public abstract class PhaseDiagramStatistics implements Serializable {
             bothTrue[i] = new int[CommonCompositions.get(i).getRight().size() + 1];
         }
         for (int i = 0; i < NComponents; i++) {
-            bothTrue[CommonCompositions.size() + i] = new int[NElements];
+            bothTrue[CommonCompositions.size() + i] = new int[LookupData.ElementNames.length];
         }
         
         // ---> For each compound where condition is true, mark values of each variable
@@ -498,19 +544,28 @@ public abstract class PhaseDiagramStatistics implements Serializable {
     protected abstract void processCompounds(Map<CompositionEntry, String> compounds);
 
     /**
-     * Find the composition bin in {@linkplain #CommonCompositions}) closest to
-     *  a certain composition
-     * @param fracs Composition of a compound. Defined by the fraction of each element present
+     * Find the composition bin in {@linkplain #CommonCompositions}) that has the same number of elements
+     * and is the closest
+     * @param key Composition of a compound. Defined by the fraction of each element present, first element is the
+     *            number of elements, the remainder is the fraction of each element
      * @return Index of bin closest to this composition
      */
-    public int getClosestBin(double[] fracs) {
+    public int getClosestBin(double[] key) {
         double closestDist = 1.0E100;
         int compositionIndex = -1;
+
         for (int bin = 0; bin < CommonCompositions.size(); bin++) {
-            double[] binComposition = CommonCompositions.get(bin).getKey();
+            double[] binKey = CommonCompositions.get(bin).getKey();
+
+            // Make sure they have the same number of elements
+            if (binKey[0] != key[0]) {
+                continue;
+            }
+
+            // Compute the distance
             double totalDist = 0.0;
-            for (int e = 0; e < fracs.length; e++) {
-                totalDist += Math.abs(binComposition[e] - fracs[e]);
+            for (int e = 0; e < key.length; e++) {
+                totalDist += Math.abs(binKey[e] - key[e]);
             }
             if (totalDist < closestDist) {
                 closestDist = totalDist;
@@ -528,18 +583,17 @@ public abstract class PhaseDiagramStatistics implements Serializable {
      * @param frac Fraction to be extend
      * @return frac extended with 0s
      */
-    protected double[] extendComposition(double[] frac) {
-        // If length is smaller than NComponents, pad it with zeros
-        double[] key;
-        if (frac.length == NComponents) {
-            // Should never be >
-            key = frac.clone();
-        } else if (frac.length < NComponents) {
-            key = new double[NComponents];
-            System.arraycopy(frac, 0, key, 0, frac.length);
-        } else {
-            throw new Error("Implementation Error: Compound has more elements than this phase diagram keeps track of");
+    protected double[] createLookupKey(double[] frac) {
+        if (frac.length > NComponents) {
+            throw new IllegalArgumentException("Number of components too large");
+
         }
+        double[] key = new double[NComponents + 1];
+        // First item is the number of elements in the fraction
+        key[0] = frac.length;
+
+        // If length is smaller than NComponents, pad it with zeros
+        System.arraycopy(frac, 0, key, 1, frac.length);
         return key;
     }
     
@@ -590,7 +644,7 @@ public abstract class PhaseDiagramStatistics implements Serializable {
             } else {
                 // The cumulant corresponds to an element on a particular site
                 int site = id[0] - CommonCompositions.size();
-                String Element = ElementNames[id[1]];
+                String Element = LookupData.ElementNames[id[1]];
                 name = Character.toString((char) (65 + site)) + "=" + Element;
             }
             // Print out name and cumulant
@@ -608,7 +662,7 @@ public abstract class PhaseDiagramStatistics implements Serializable {
      *  composition
      */
     public int roundComposition(double[] frac) {
-        double[] key = extendComposition(frac);
+        double[] key = createLookupKey(frac);
         
         // --> Find the composition bin closest to the key
         int compositionIndex = getClosestBin(key);

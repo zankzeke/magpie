@@ -211,7 +211,7 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
         // Get the nearset composition bin
         int[] elems = composition.getElements();
         double[] fracs = composition.getFractions();
-        orderComposition(elems, fracs);
+        PhaseDiagramStatistics.orderComposition(elems, fracs);
         int compositionBin = statistics.getClosestBin(fracs);
         List<String> knownPrototypes = statistics.getPrototypeNames(fracs);
         return knownPrototypes;
@@ -230,7 +230,7 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
         // Get the composition bin for this entry
         int[] elems = composition.getElements();
         double[] fracs = composition.getFractions();
-        orderComposition(elems, fracs);
+        PhaseDiagramStatistics.orderComposition(elems, fracs);
         PhaseDiagramStatistics statistics = DiagramStatistics.get(elems.length);
         int compositionBin = statistics.getClosestBin(fracs);
         
@@ -249,7 +249,7 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
             // See if it maps to the same composition bin
             elems = entry.getKey().getElements();
             fracs = entry.getKey().getFractions();
-            orderComposition(elems, fracs);
+            PhaseDiagramStatistics.orderComposition(elems, fracs);
             if (compositionBin != statistics.getClosestBin(fracs)) {
                 continue;
             }
@@ -298,7 +298,7 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
         
         // --> Whether to rebuild classifier
         boolean toRebuid = false;
-        orderComposition(elems, fracs);
+        PhaseDiagramStatistics.orderComposition(elems, fracs);
         int compositionBin = statistics.getClosestBin(fracs);
         if (nComp != LastNComponents || compositionBin != LastCompositionBin) {
             toRebuid = true;
@@ -405,36 +405,6 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
         }
     }
 
-    /**
-     * Ensure that a composition is sorted such that elements are listed in
-     * ascending order by atomic fraction
-     *
-     * @param elems Elements present in sample
-     * @param frac Fractions of each element present
-     */
-    protected void orderComposition(int[] elems, double[] frac) {
-        if (elems.length < 2) {
-            return;
-        }
-        boolean notDone = true;
-        double tempF;
-        int tempE;
-        while (notDone) {
-            notDone = false;
-            for (int i = 1; i < elems.length; i++) {
-                if (frac[i] < frac[i - 1]) {
-                    notDone = true;
-                    tempE = elems[i];
-                    elems[i] = elems[i - 1];
-                    elems[i - 1] = tempE;
-                    tempF = frac[i];
-                    frac[i] = frac[i - 1];
-                    frac[i - 1] = tempF;
-                }
-            }
-        }
-    }
-    
     /**
      * Validates predictive ability of this model. Works by segmenting list of known compounds with
      *  a certain number of constituents into <code>folds</code> different subsets. Then, the CSP 
