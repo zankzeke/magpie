@@ -583,10 +583,9 @@ public abstract class PhaseDiagramStatistics implements Serializable {
      * @param frac Fraction to be extend
      * @return frac extended with 0s
      */
-    protected double[] createLookupKey(double[] frac) {
+    public double[] createLookupKey(double[] frac) {
         if (frac.length > NComponents) {
             throw new IllegalArgumentException("Number of components too large");
-
         }
         double[] key = new double[NComponents + 1];
         // First item is the number of elements in the fraction
@@ -686,7 +685,8 @@ public abstract class PhaseDiagramStatistics implements Serializable {
      * @return List of prototype names at the closest bin to composition
      */
     public List<String> getPrototypeNames(double[] fracs) {
-        int id = getClosestBin(fracs);
+        double[] key = createLookupKey(fracs);
+        int id = getClosestBin(key);
         return new LinkedList<>(CommonCompositions.get(id).getValue());
     }
 }

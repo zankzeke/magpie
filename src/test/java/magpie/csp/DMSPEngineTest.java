@@ -28,7 +28,7 @@ public class DMSPEngineTest {
     
     @Test
     public void testStructurePrediction() throws Exception {
-        // Initilize the engine
+        // Initialize the engine
         DMSPEngine csp = new DMSPEngine();
         csp.importKnownCompounds("datasets/prototypes.list");
         
@@ -38,7 +38,7 @@ public class DMSPEngineTest {
     
     @Test
     public void testCrossValidation() throws Exception {
-        // Initilize the engine
+        // Initialize the engine
         DMSPEngine csp = new DMSPEngine();
         csp.importKnownCompounds("datasets/prototypes.list");
         

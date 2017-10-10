@@ -76,7 +76,7 @@ import org.apache.commons.lang3.tuple.Pair;
  * <p><b><u>Implementation Guide:</u></b>
  * 
  * <p>In order to create your own crystal structure predictor, you just need to implement 
- *  a single operation: {@linkplain #makeClassifier(magpie.csp.PhaseDiagramStatistics, magpie.data.oqmd.PrototypeDataset) }.
+ *  a single operation: {@linkplain #makeClassifier(PhaseDiagramStatistics, PrototypeDataset)} }.
  *  This operation generates a classifier that will predict the probability that a certain 
  *  crystal structure will form given composition. Composition is supplied as a {@linkplain PrototypeEntry}
  *  where the least-prevalent element is on "A" site, the second least is on the "B", and so on. 
@@ -232,7 +232,7 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
         double[] fracs = composition.getFractions();
         PhaseDiagramStatistics.orderComposition(elems, fracs);
         PhaseDiagramStatistics statistics = DiagramStatistics.get(elems.length);
-        int compositionBin = statistics.getClosestBin(fracs);
+        int compositionBin = statistics.getClosestBin(statistics.createLookupKey(fracs));
         
         // Get siteInfo for this entry
         PrototypeSiteInformation siteInfo = makeSiteInfo(fracs);
@@ -250,7 +250,7 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
             elems = entry.getKey().getElements();
             fracs = entry.getKey().getFractions();
             PhaseDiagramStatistics.orderComposition(elems, fracs);
-            if (compositionBin != statistics.getClosestBin(fracs)) {
+            if (compositionBin != statistics.getClosestBin(statistics.createLookupKey(fracs))) {
                 continue;
             }
             // If it fits both criteria, add it to the dataset
@@ -258,7 +258,7 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
             fillPrototypeEntry(newEntry, elems);
             int prototypeID = knownPrototypes.indexOf(entry.getValue());
             if (prototypeID == -1) {
-                throw new Error("Unknown prototype structure: " + entry.getKey() + " = " + entry.getValue());
+                throw new RuntimeException("Unknown prototype structure: " + entry.getKey() + " = " + entry.getValue());
             }
             newEntry.setMeasuredClass((double) prototypeID);
             trainData.addEntry(newEntry);
@@ -299,7 +299,7 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
         // --> Whether to rebuild classifier
         boolean toRebuid = false;
         PhaseDiagramStatistics.orderComposition(elems, fracs);
-        int compositionBin = statistics.getClosestBin(fracs);
+        int compositionBin = statistics.getClosestBin(statistics.createLookupKey(fracs));
         if (nComp != LastNComponents || compositionBin != LastCompositionBin) {
             toRebuid = true;
             LastNComponents = nComp;
@@ -468,7 +468,7 @@ public abstract class CSPEngine implements Commandable, Printable, Options {
         Collections.shuffle(fullSet);
         List<List<Map.Entry<CompositionEntry,String>>> subSets = new ArrayList<>(folds);
         for (int i=0; i<folds; i++) 
-            subSets.add(new LinkedList<Map.Entry<CompositionEntry, String>>());
+            subSets.add(new LinkedList<>());
         for (int i=0; i<fullSet.size(); i++) {
             subSets.get(i % folds).add(fullSet.get(i));
         }
