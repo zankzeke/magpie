@@ -7,6 +7,7 @@ import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.CompositionEntry;
 import magpie.data.materials.util.LookupData;
 import magpie.user.CommandHandler;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * Filter entries that contain certain elements. Only works on {@link CompositionDataset}.
@@ -20,28 +21,40 @@ public class ContainsElementFilter extends BaseDatasetFilter {
     /** Elements that compounds are not allowed to contain */
     protected String[] ElementList;
     /** List of IDs of those elements */
-    private int[] ExcludedIndex;
+    protected int[] ExcludedIndex;
 
     @Override
     public void setOptions(List<Object> OptionsObj) throws Exception {
         String[] Options = CommandHandler.convertCommandToString(OptionsObj);
         try {
             if (Options.length == 0) {
-                  throw new Exception();
+                  throw new IllegalArgumentException();
             }
             setElementList(Options);
         } catch (Exception e) {
-            throw new Exception(printUsage());
+            throw new IllegalArgumentException(printUsage());
         }
     }
 
     /**
      * Define list of elements to use for filter.
-     * @param ElementList List of element abbreviations
+     * @param elements List of element abbreviations
      */
-    public void setElementList(String[] ElementList) {
-        this.ElementList = ElementList.clone();
-        ExcludedIndex = getElementIndices(ElementList);
+    public void setElementList(String[] elements) {
+        this.ElementList = elements.clone();
+        ExcludedIndex = getElementIndices(elements);
+    }
+
+    /**
+     * Define a list of elements to use for the filter
+     * @param elements Index of the elements
+     */
+    public void setElementList(int[] elements) {
+        ExcludedIndex = elements.clone();
+        ElementList = new String[elements.length];
+        for (int i=0; i<elements.length; i++) {
+            ElementList[i] = LookupData.ElementNames[elements[i]];
+        }
     }
 
     @Override
@@ -77,8 +90,9 @@ public class ContainsElementFilter extends BaseDatasetFilter {
      * @return Whether it contains at least one of the specified elements
      */
     public boolean entryContainsElement(CompositionEntry entry) {
-        for (int j=0; j<ElementList.length; j++) {
-            if (entry.getElementFraction(ExcludedIndex[j]) > 0) {
+        int[] elems = entry.getElements();
+        for (int elem : ExcludedIndex) {
+            if (ArrayUtils.contains(elems, elem)) {
                 return true;
             }
         }
@@ -87,16 +101,17 @@ public class ContainsElementFilter extends BaseDatasetFilter {
 
     /**
      * Given a list of elements, return their indices. 
-     * @param ElementList List of element names to operate on
-     * @return Array containing index of each element in ElementList
+     * @param elements List of element names to operate on
+     * @return Array containing index of each element in elements
      */
-    static protected int[] getElementIndices(String[] ElementList) {
+    static protected int[] getElementIndices(String[] elements) {
         // Get the index of each element
-        int[] ElementIndex = new int[ElementList.length];
-        List<String> ElementNamesAsList = Arrays.asList(LookupData.ElementNames);
+        int[] ElementIndex = new int[elements.length];
         for (int i=0; i<ElementIndex.length; i++) {
-            int index = ElementNamesAsList.indexOf(ElementList[i]);
-            if (index == -1) throw new Error(ElementList[i] + " is not a valid element");
+            int index = ArrayUtils.indexOf(LookupData.ElementNames, elements[i]);
+            if (index == -1) {
+                throw new RuntimeException(elements[i] + " is not a valid element");
+            }
             ElementIndex[i] = index;
         }
         return ElementIndex;
