@@ -60,7 +60,10 @@ abstract public class WekaUtility {
         }));
         
         // Load additional packages
-        weka.core.WekaPackageManager.loadPackages(false);
+        try {
+            weka.core.WekaPackageManager.loadPackages(false);
+        } catch (Exception e) {
+        }
         
         // Reset output
         System.setErr(original);
