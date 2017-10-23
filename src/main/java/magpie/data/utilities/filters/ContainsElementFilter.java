@@ -49,7 +49,7 @@ public class ContainsElementFilter extends BaseDatasetFilter {
      * Define a list of elements to use for the filter
      * @param elements Index of the elements
      */
-    public void setElementList(int[] elements) {
+    public void setElementListByIndex(int[] elements) {
         ExcludedIndex = elements.clone();
         ElementList = new String[elements.length];
         for (int i=0; i<elements.length; i++) {

@@ -58,7 +58,7 @@ public class ContainsElementFilterTest {
         ContainsElementFilter filter = new ContainsElementFilter();
 
         // Test set by index
-        filter.setElementList(new int[]{12,0});
+        filter.setElementListByIndex(new int[]{12,0});
         assertArrayEquals(new int[]{12,0}, filter.ExcludedIndex);
         assertArrayEquals(new String[]{"Al","H"}, filter.ElementList);
 
