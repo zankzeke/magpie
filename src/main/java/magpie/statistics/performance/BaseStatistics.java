@@ -5,6 +5,7 @@ import magpie.utility.interfaces.Commandable;
 import magpie.utility.interfaces.Options;
 import magpie.utility.interfaces.Printable;
 import magpie.utility.interfaces.Savable;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.stat.StatUtils;
 
 import java.io.PrintWriter;
@@ -31,6 +32,9 @@ import java.util.*;
  * <print><p><b>stats</b> - Print out all statistics</print>
  * 
  * <print><p><b>roc</b> - Print out Receiver Operating Characteristic curve</print>
+ *
+ * <print><p><b>baseline</b> - Print statistics about the training data</print>
+ *
  * 
  * <p><b><u>Implemented Save Commands</u></b></u>
  * 
@@ -38,9 +42,7 @@ import java.util.*;
  * statistics</save>
  * 
  * @author Logan Ward
- * @version 1.0
  */
-
 abstract public class BaseStatistics implements java.io.Serializable, 
         java.lang.Cloneable, Printable, Options, Commandable, Savable {
     /** Number of entries evaluated */
@@ -58,13 +60,11 @@ abstract public class BaseStatistics implements java.io.Serializable,
     protected double[] Predicted;
 
     /**
-     * Integrate area between ROC curve and random guessing. Note that random guessing is
-     * defined by the line where FPR = Sensitivity.
-     * @param ROC Receiver operating characteristic curve data (see getROCCurve)
-     * @return Area between ROC Curve and random guessing normalized such that 1.0 is a
-     * perfect classifier and 0.0 is a perfectly-random classifier
+     * Integrate area under the between ROC curve.
+     * @return Area between ROC Curve and x-axis. 1 is a perfect classifier, 0 is a perfectly-bad classifier, and 0.5
+     * is equivalent to random guessing.
      */
-    public static double integrateROCCurve(double[][] ROC) {
+    private void integrateROCCurve() {
         double value = 0;
         double last;
 
@@ -82,11 +82,13 @@ abstract public class BaseStatistics implements java.io.Serializable,
             } else if (ROC[i][1] == last)
                 Sensitivity.set(FPR.size() - 1, ROC[i][2]);
         }
-        // Do simple trapizoid integration from the minimimum (0) to the max (1)
+        // Do simple trapezoid integration from the minimum (0) to the max (1)
         for (int i = 0; i < FPR.size() - 1; i++) {
             value += (Sensitivity.get(i) + Sensitivity.get(i + 1)) / 2.0 * (FPR.get(i + 1) - FPR.get(i));
         }
-        return (value - 0.5) / 0.5;
+
+        // Set the value for the area under the curve
+        ROC_AUC = value;
     }
 
     @Override
@@ -132,39 +134,52 @@ abstract public class BaseStatistics implements java.io.Serializable,
 
     /**
      * Generate the receiver operating characteristic curve based on the measured
-     * and predicted variables for many instances.
+     * and score variables for many instances.
      *
-     * @param measured Measured class variable (is returned sorted)
-     * @param predicted Predicted class variable (is returned sorted)
-     * @param NSteps Number of steps in curve
+     * Computes the ROC curve using the False Positive Rate for the x-axis and True Positive Rate for the y-axis.
+     * Assumes that the positive label is 0.
+     *
+     * Stores the result in {@linkplain #ROC}
+     *
+     * @param measured Measured class variable
+     * @param score Classification score. Higher score means 'more likely to be positive class'
+     * @param maxSteps Number of steps in curve
      */
-    protected void getROCCurve(double[] measured, double[] predicted, int NSteps) {
-        // Initialize the ROC curve
-        ROC = new double[NSteps+2][3];
-        double min = Math.min(StatUtils.min(measured),StatUtils.min(predicted)),
-                max = Math.max(StatUtils.max(measured),StatUtils.max(predicted));
-        ROC[0][0] = min;
-        ROC[NSteps+1][0] = max;
-        ROC[NSteps+1][1]=1; ROC[NSteps+1][2]=1;
+    protected void getROCCurve(int[] measured, double[] score, int maxSteps) {
+        // Set number of steps to be at most the number
+        int nSteps = Math.min(maxSteps, measured.length);
 
-        // Will step along fractions of the array
-        double[] predicted_sorted = Arrays.copyOf(predicted, predicted.length);
-        Arrays.sort(predicted_sorted);
-        int step_size = measured.length / (NSteps + 1);
-        for (int i=1; i<=NSteps; i++) {
-            double cutoff = predicted_sorted[step_size * i];
-            double TP=0, P=0, FP=0, N=0;
-            for (int j=0; j<measured.length; j++) {
-                TP += measured[j]<=cutoff && predicted[j]<=cutoff ? 1 : 0;
-                FP += measured[j]>cutoff && predicted[j]<=cutoff ? 1 : 0;
-                if (measured[j]<=cutoff) P++; else N++;
+        // Initialize the ROC curve
+        ROC = new double[nSteps+2][3];
+        ROC[0][0] = Double.POSITIVE_INFINITY; // Best possible score
+        ROC[nSteps][0] = Double.NEGATIVE_INFINITY; // Worst possible score
+        ROC[nSteps][1] = 1;
+        ROC[nSteps][2] = 1;
+
+        // Count the number of true and negative glasses
+        int P = 0;
+        for (int i=0; i<measured.length; i++) {
+            if (measured[i] == 0) {
+                P++;
             }
-            ROC[i][0]=cutoff;
-            ROC[i][1]= N > 0 ? FP/N : 1.0; // False positive rate
-            ROC[i][2]= P > 0 ? TP/P : 0.0; // Sensitivity
+        }
+        int N = measured.length - P;
+
+        // Gradually increase the cutoff
+        double step_size = 100 / (nSteps+1);
+        for (int i=0; i<nSteps; i++) {
+            double cutoff = StatUtils.percentile(score, 100 - step_size * (i+1));
+            double TP=0, FP=0;
+            for (int j=0; j<measured.length; j++) {
+                TP += measured[j] == 0 && score[j]>=cutoff ? 1 : 0;
+                FP += measured[j] != 0 && score[j]>=cutoff ? 1 : 0;
+            }
+            ROC[i+1][0]=cutoff;
+            ROC[i+1][1]= N > 0 ? FP/N : 1.0; // False positive rate
+            ROC[i+1][2]= P > 0 ? TP/P : 0.0; // True positive rate
         }
 
-        ROC_AUC = integrateROCCurve(ROC);
+        integrateROCCurve();
     }
     
     /** 
@@ -173,7 +188,9 @@ abstract public class BaseStatistics implements java.io.Serializable,
      * @return ROC curve for model. 
      */
     public String printROCCurve() {
-        if (ROC == null) { throw new Error("ROC Curve not yet calculated"); }
+        if (ROC == null) {
+            throw new RuntimeException("ROC Curve not yet calculated");
+        }
         String Output = "";
         Output += String.format("%11s\t%11s\t%11s\n","Value","FPR","Sensitivity");
         for (int i=0; i<ROC.length; i++) {
@@ -190,8 +207,15 @@ abstract public class BaseStatistics implements java.io.Serializable,
 
     @Override
     public String printDescription(boolean htmlFormat) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
+
+    /**
+     * Print statistics about the measured class values. Useful as context for interpreting how good the
+     * performance statistics actually are
+     * @return String listing all of the measured baseline statistics
+     */
+    abstract public String printBaselineStats();
 
     @Override
     public String printCommand(List<String> Command) throws Exception {
@@ -201,8 +225,10 @@ abstract public class BaseStatistics implements java.io.Serializable,
                 return toString();
             case "roc":
                 return printROCCurve();
+            case "baseline":
+                return printBaselineStats();
             default:
-                throw new Exception("ERROR: Print command \"" + Command.get(0)
+                throw new IllegalArgumentException("Print command \"" + Command.get(0)
                         + "\" not recognized");
         }
     }
@@ -255,9 +281,9 @@ abstract public class BaseStatistics implements java.io.Serializable,
             throw new Exception("No performance data");
         }
         PrintWriter fp = new PrintWriter(filename);
-        fp.println("measured, predicted");
+        fp.println("measured,predicted");
         for (int i=0; i<Measured.length; i++) {
-            fp.format("%.7e, %.7e\n", Measured[i], Predicted[i]);
+            fp.format("%.7e,%.7e\n", Measured[i], Predicted[i]);
         }
         fp.close();
     }
