@@ -3,7 +3,7 @@ package magpie.attributes.generators.crystal;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import magpie.data.materials.AtomicStructureEntry;
+import magpie.data.materials.CrystalStructureEntry;
 import magpie.data.materials.CrystalStructureDataset;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -28,7 +28,7 @@ public class APRDFAttributeGeneratorTest {
         strc.setTypeName(0, "Ni");
         strc.setTypeName(1, "Al");
         
-        AtomicStructureEntry entry = new AtomicStructureEntry(strc, "B2-NiAl", null);
+        CrystalStructureEntry entry = new CrystalStructureEntry(strc, "B2-NiAl", null);
         data.addEntry(entry);
         
         // Create entry generator

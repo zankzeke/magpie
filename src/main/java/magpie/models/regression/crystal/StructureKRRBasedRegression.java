@@ -3,7 +3,7 @@ package magpie.models.regression.crystal;
 import java.util.*;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
-import magpie.data.materials.AtomicStructureEntry;
+import magpie.data.materials.CrystalStructureEntry;
 import magpie.data.materials.CrystalStructureDataset;
 import magpie.models.regression.BaseRegression;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -113,7 +113,7 @@ abstract public class StructureKRRBasedRegression extends BaseRegression {
     public void run_protected(Dataset TrainData) {
         try {
             for (BaseEntry ptr : TrainData.getEntries()) {
-                AtomicStructureEntry entry = (AtomicStructureEntry) ptr;
+                CrystalStructureEntry entry = (CrystalStructureEntry) ptr;
                 Object rep = computeRepresentation(entry.getStructure());
                 double y = 0;
                 for (int a = 0; a < TrainingStructures.size(); a++) {
@@ -150,7 +150,7 @@ abstract public class StructureKRRBasedRegression extends BaseRegression {
      * @param num Number to list
      * @return List of names of closest training entries
      */
-    public List<String> findClosestEntries(AtomicStructureEntry entry, int num) {
+    public List<String> findClosestEntries(CrystalStructureEntry entry, int num) {
         // Compute the representation of this new entry
         Object myRep = computeRepresentation(entry.getStructure());
         
@@ -224,11 +224,11 @@ abstract public class StructureKRRBasedRegression extends BaseRegression {
                 for (BaseEntry entry : data.getEntries()) {
                     // Get matches
                     List<String> matches = findClosestEntries(
-                            (AtomicStructureEntry) entry, toPrint);
+                            (CrystalStructureEntry) entry, toPrint);
                     
                     // Print matches
                     System.out.println("Matches for " + 
-                            ((AtomicStructureEntry) entry).getName() + ":");
+                            ((CrystalStructureEntry) entry).getName() + ":");
                     for (int i=0; i<matches.size(); i++) {
                         System.out.format("\t#%d %s\n", i+1, matches.get(i));
                     }

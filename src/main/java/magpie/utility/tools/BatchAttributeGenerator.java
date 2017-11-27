@@ -178,7 +178,7 @@ public class BatchAttributeGenerator implements Commandable, Options {
         // Make empty clone of template
         template = template.emptyClone();
         
-        // Compute attributes before writing header. Gets the right names
+        // Compute attributes so before writing header
         try {
             template.generateAttributes();
         } catch (Exception e) {

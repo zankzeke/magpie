@@ -52,20 +52,5 @@ public class ContainsElementFilterTest {
         assertTrue(res[3]);
         assertFalse(res[4]);
     }
-
-    @Test
-    public void testSetElements() throws Exception {
-        ContainsElementFilter filter = new ContainsElementFilter();
-
-        // Test set by index
-        filter.setElementList(new int[]{12,0});
-        assertArrayEquals(new int[]{12,0}, filter.ExcludedIndex);
-        assertArrayEquals(new String[]{"Al","H"}, filter.ElementList);
-
-        // Test set by name
-        filter.setElementList(new String[]{"Al","H"});
-        assertArrayEquals(new int[]{12,0}, filter.ExcludedIndex);
-        assertArrayEquals(new String[]{"Al","H"}, filter.ElementList);
-    }
     
 }

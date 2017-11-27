@@ -3,7 +3,7 @@ package magpie.attributes.generators.crystal;
 import java.util.ArrayList;
 import java.util.List;
 import magpie.attributes.generators.BaseAttributeGenerator;
-import magpie.data.materials.AtomicStructureEntry;
+import magpie.data.materials.CrystalStructureEntry;
 import magpie.data.materials.CrystalStructureDataset;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -40,7 +40,7 @@ public class ChemicalOrderingAttributeGeneratorTest
         
         // Add it to a dataset
         CrystalStructureDataset data = new CrystalStructureDataset();
-        data.addEntry(new AtomicStructureEntry(strc, "B2", null));
+        data.addEntry(new CrystalStructureEntry(strc, "B2", null));
         
         // Make attribute generator
         ChemicalOrderingAttributeGenerator gen = new ChemicalOrderingAttributeGenerator();

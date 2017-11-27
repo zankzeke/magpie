@@ -12,7 +12,7 @@ import vassal.data.Cell;
  * 
  * @author Logan Ward
  */
-public class AtomicStructureEntryTest {
+public class CrystalStructureEntryTest {
     
     @Test
     public void testReplacement() throws Exception {
@@ -22,7 +22,7 @@ public class AtomicStructureEntryTest {
         cell.addAtom(new Atom(new double[]{0.5,0.5,0.5}, 1));
         cell.setTypeName(0, "Cu");
         cell.setTypeName(1, "Zr");
-        AtomicStructureEntry CuZr = new AtomicStructureEntry(cell, "CuZr", null);
+        CrystalStructureEntry CuZr = new CrystalStructureEntry(cell, "CuZr", null);
         
         // Run Voronoi tessellation
         CuZr.computeVoronoiTessellation();
@@ -30,7 +30,7 @@ public class AtomicStructureEntryTest {
         // Make B2-NiZr
         Map<String,String> changes = new TreeMap<>();
         changes.put("Cu", "Ni");
-        AtomicStructureEntry NiZr = CuZr.replaceElements(changes);
+        CrystalStructureEntry NiZr = CuZr.replaceElements(changes);
         
         // Make sure the tessellation object did not change
         assertSame(CuZr.computeVoronoiTessellation(), NiZr.computeVoronoiTessellation());
@@ -44,7 +44,7 @@ public class AtomicStructureEntryTest {
         // Now, change the structure such that it has fewer types
         changes.put("Ni", "Zr");
         
-        AtomicStructureEntry bccZr = NiZr.replaceElements(changes);
+        CrystalStructureEntry bccZr = NiZr.replaceElements(changes);
         
         // Make sure the structure only has one type
         assertEquals(1.0, bccZr.getElementFraction("Zr"), 1e-6);
@@ -61,7 +61,7 @@ public class AtomicStructureEntryTest {
         cell.addAtom(new Atom(new double[]{0.5,0.5,0.5}, 1));
         cell.setTypeName(0, "Cu");
         cell.setTypeName(1, "Zr");
-        AtomicStructureEntry CuZr = new AtomicStructureEntry(cell, "B2", null);
+        CrystalStructureEntry CuZr = new CrystalStructureEntry(cell, "B2", null);
         
         // Get name
         String name = CuZr.toString();
@@ -79,7 +79,7 @@ public class AtomicStructureEntryTest {
         cell.addAtom(new Atom(new double[]{0.5,0.5,0.5}, 1));
         cell.setTypeName(0, "Cu");
         cell.setTypeName(1, "Zr");
-        AtomicStructureEntry CuZr = new AtomicStructureEntry(cell, "B2", null);
+        CrystalStructureEntry CuZr = new CrystalStructureEntry(cell, "B2", null);
         
         // Get name
         JSONObject json = CuZr.toJSON();

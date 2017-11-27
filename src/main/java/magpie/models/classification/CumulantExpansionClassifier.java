@@ -48,7 +48,7 @@ public class CumulantExpansionClassifier extends BaseClassifier implements Savab
     /** Number of constituents in prototype */
     private int NComponents = 3;
     /** Desired number of composition bins. */
-    private int[] NBins = new int[]{30,120,120};
+    private int[] NBins = new int[]{30,120};
     /** Data about what compositions have compounds in all phase diagrams */
     private PhaseDiagramStatistics PhaseDiagramStats;
 

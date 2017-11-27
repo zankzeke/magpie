@@ -3,7 +3,7 @@ package magpie.attributes.generators.crystal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import magpie.data.materials.AtomicStructureEntry;
+import magpie.data.materials.CrystalStructureEntry;
 import magpie.data.materials.CrystalStructureDataset;
 import magpie.utility.interfaces.Citation;
 import org.apache.commons.lang3.tuple.Pair;
@@ -28,7 +28,7 @@ public class PRDFAttributeGeneratorTest {
         Cell strc1 = new Cell();
         strc1.addAtom(new Atom(new double[]{0,0,0}, 0));
         strc1.setTypeName(0, "Al");
-        AtomicStructureEntry entry1 = new AtomicStructureEntry(strc1, "Al", null);
+        CrystalStructureEntry entry1 = new CrystalStructureEntry(strc1, "Al", null);
         data.addEntry(entry1);
         
         Cell strc2 = new Cell();
@@ -37,7 +37,7 @@ public class PRDFAttributeGeneratorTest {
         strc2.addAtom(new Atom(new double[]{0,0.5,0}, 1));
         strc2.setTypeName(1, "Al");
         strc2.addAtom(new Atom(new double[]{0,0,0.5}, 1));
-        AtomicStructureEntry entry2 = new AtomicStructureEntry(strc2, "NiAl2", null);
+        CrystalStructureEntry entry2 = new CrystalStructureEntry(strc2, "NiAl2", null);
         data.addEntry(entry2);
         
         // Create attribute generator

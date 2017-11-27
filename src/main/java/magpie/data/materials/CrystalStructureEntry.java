@@ -14,7 +14,7 @@ import vassal.io.VASP5IO;
  * Represents a crystal structure.
  * @author Logan Ward
  */
-public class AtomicStructureEntry extends CompositionEntry {
+public class CrystalStructureEntry extends CompositionEntry {
 	/** Crystal structure */
 	private Cell Structure;
 	/** Name of entry */
@@ -31,7 +31,7 @@ public class AtomicStructureEntry extends CompositionEntry {
 	 * @param name Name of structure (used for debugging purposes)
 	 * @throws java.lang.Exception 
 	 */
-	public AtomicStructureEntry(Cell structure, String name, double[] radii) throws Exception {
+	public CrystalStructureEntry(Cell structure, String name, double[] radii) throws Exception {
 		this.Structure = structure;
 		this.Name = name;
 		
@@ -80,10 +80,10 @@ public class AtomicStructureEntry extends CompositionEntry {
      * @return New entry 
      * @throws java.lang.Exception If composition fails to parse
      */
-    public AtomicStructureEntry replaceElements(Map<String,String> replacements)
+    public CrystalStructureEntry replaceElements(Map<String,String> replacements)
             throws Exception {
         // Create new entry
-        AtomicStructureEntry newEntry = clone();
+        CrystalStructureEntry newEntry = clone();
         newEntry.Structure.replaceTypeNames(replacements);
         newEntry.Structure.mergeLikeTypes();
         newEntry.computeComposition();
@@ -97,16 +97,16 @@ public class AtomicStructureEntry extends CompositionEntry {
     }
 
     @Override
-    public AtomicStructureEntry clone() {
-        AtomicStructureEntry x = (AtomicStructureEntry) super.clone(); 
+    public CrystalStructureEntry clone() {
+        CrystalStructureEntry x = (CrystalStructureEntry) super.clone();
         x.Structure = Structure.clone();
         return x;
     }
 
     @Override
     public boolean equals(Object other) {
-        if (other instanceof AtomicStructureEntry) {
-            AtomicStructureEntry you = (AtomicStructureEntry) other;
+        if (other instanceof CrystalStructureEntry) {
+            CrystalStructureEntry you = (CrystalStructureEntry) other;
             return Structure.equals(you.Structure) && super.equals(other);
         }
         return false;
@@ -114,9 +114,9 @@ public class AtomicStructureEntry extends CompositionEntry {
 
     @Override
     public int compare(Object A, Object B) {
-        if (B instanceof AtomicStructureEntry) {
-            AtomicStructureEntry Bobj = (AtomicStructureEntry) B;
-            AtomicStructureEntry Aobj = (AtomicStructureEntry) A;
+        if (B instanceof CrystalStructureEntry) {
+            CrystalStructureEntry Bobj = (CrystalStructureEntry) B;
+            CrystalStructureEntry Aobj = (CrystalStructureEntry) A;
 
             // First: Check for equality
             if (Aobj.equals(Bobj)) return 0;

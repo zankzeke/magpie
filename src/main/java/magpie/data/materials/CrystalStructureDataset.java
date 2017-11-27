@@ -6,6 +6,7 @@ import java.util.*;
 import java.io.File;
 import java.io.FileReader;
 import java.io.PrintWriter;
+
 import magpie.attributes.generators.crystal.*;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
@@ -14,12 +15,7 @@ import vassal.data.Cell;
 import vassal.io.VASP5IO;
 
 /**
- * Holds a entries that represent crystal structures. Here, the attributes are
- * designed to be insensitive to the length scale of the structure. 
- * As an example, this would be useful to predict the properties of a new material
- * in an already-known structure (e.g., the energy of a perovskite crystal
- * with a yet-unstudied composition). In order to model the effects of 
- * changing length scales, consider {@linkplain AtomicStructureDataset}.
+ * Holds a entries that represent crystal structures.
  * 
  * <p><b>How to Import Files:</b>
  * 
@@ -35,24 +31,6 @@ import vassal.io.VASP5IO;
  * <br>&lt;name of POSCAR&gt; &lt;property #1 of that structure&gt; &lt;...&gt;
  * 
  * <p>This file follows similar rules to that of {@linkplain CompositionDataset}
- * 
- * <p><b>Crystal Structure Attributes</b>
- * 
- * <p>Entries in this dataset have two different kinds of attributes:
- * 
- * <ol>
- * <li>Attributes based on only composition. See: {@linkplain CompositionDataset}
- * <li>Attributes based on the crystal structure. 
- * </ol>
- * 
- * <p>The crystal-structure-based attributes are designed to be similar (if not
- * equal) for all crystals based on the same prototype (e.g. coordination number 
- * statistics). The intention for these attributes is that they can be used 
- * before determining the equilibrium lattice parameter or atom positions in a 
- * crystal using a tool like DFT. For example, this would be useful if you wanted 
- * to predict the formation energy of a hypothetical structure without have to first
- * find the equilibrium lattice parameter. The attributes are also design to be
- * insensitive to unit cell selection and stable against small changes in atomic positions.
  * 
  * <p><b><u>Implemented Save Formats</u></b>
  * 
@@ -106,69 +84,80 @@ public class CrystalStructureDataset extends CompositionDataset {
 	 * Import all structure files in a directory.
 	 * @param directory Directory containing VASP5-formatted files
 	 * @param options No options
-	 * @throws Exception 
+	 * @throws Exception If parsing fails
 	 */
 	@Override
 	public void importText(String directory, Object[] options) throws Exception {
 		// Get all files in that directory
         File dir = new File(directory);
         if (! dir.exists()) {
-            throw new Exception("No such directory.");
+            throw new IllegalArgumentException("No such directory.");
         }
         if (! dir.isDirectory()) {
-            throw new Exception("Expected an input directory, not file");
+            throw new IllegalArgumentException("Expected an input directory, not file");
         }
-        File[] files = dir.listFiles();
-		
-		// Read in properties
-		Map<String, double[]> properties = new TreeMap<>();
-		for (File file : files) {
-			if (! file.getName().equals("properties.txt")) {
-				continue;
-			}
-			BufferedReader fp = new BufferedReader(new FileReader(file));
-			String line = fp.readLine();
-			importPropertyNames(line);
-			while (true) {
-				line = fp.readLine();
-				if (line == null) break;
-				String[] words = line.split("\\s+");
-				double[] props = new double[NProperties()];
-				Arrays.fill(props, Double.NaN);
-				for (int i=1; i<words.length; i++) {
-					try {
-						props[i-1] = Double.parseDouble(words[i]);
-					} catch (NumberFormatException e) {
-						// Do nothing
-					}
-				}
-				properties.put(words[0], props);
-			}
-			fp.close();
-		}
-		
-		// Get radii of each element
-		double[] radii;
-		try {
-			radii = getPropertyLookupTable("CovalentRadius");
-		} catch (Exception e) {
-			radii = null;
-		}
-        
-        // Import each file
-        List<AtomicStructureEntry> toAdd = new LinkedList<>();
+
+        // Prepare list to store entries
+        List<CrystalStructureEntry> toAdd = new ArrayList<>(dir.listFiles().length - 1);
+
+        // Prepare file parser
         VASP5IO io = new VASP5IO();
+
+        // Get radii of each element (used for some structure analyses
+        double[] radii;
+        try {
+            radii = getPropertyLookupTable("CovalentRadius");
+        } catch (Exception e) {
+            radii = null;
+        }
+
+        // Read in entries from the 'properties.txt' file
+        File propFile = new File(dir, "properties.txt");
+        Set<String> filenames = new HashSet<>(); // List of files that were already read
+        if (propFile.isFile()) {
+            try (BufferedReader fp = new BufferedReader(new FileReader(propFile))) {
+                String line = fp.readLine();
+                importPropertyNames(line);
+                while ((line = fp.readLine()) != null) {
+                    // Split up the line
+                    String[] words = line.split("\\s+");
+
+                    // Try to read the structure file
+                    String filename = words[0];
+                    filenames.add(filename);
+                    Cell strc;
+                    try {
+                        strc = io.parseFile(new File(dir, filename).getAbsolutePath());
+                    } catch (Exception e) {
+                        System.err.format("File failed to parse: %s\n", filename);
+                        continue; // No need to read the properties
+                    }
+
+                    // Read in the properties
+                    double[] props = importEntryProperties(words);
+
+                    // Create the entry
+                    CrystalStructureEntry entry = new CrystalStructureEntry(strc, filename, radii);
+                    entry.setMeasuredProperties(props);
+                    toAdd.add(entry);
+                }
+            }
+        }
+
+
+        // Read in the files that are not in "properties.txt"
+        File[] files = dir.listFiles();
         for (File file : files) {
+            // Check if file was already read
+            if (filenames.contains(file.getName())) {
+                continue;
+            }
+
+            // If not, read in the entry and add it to the dataset
             try {
                 Cell strc = io.parseFile(file.getAbsolutePath());
-                AtomicStructureEntry entry = 
-						new AtomicStructureEntry(strc, file.getName(), radii);
-				// See if we have properties for this entry
-				if (properties.containsKey(file.getName())) {
-					entry.setMeasuredProperties(properties.get(file.getName()));
-				} else { 
-					entry.setNProperties(NProperties());
-				}
+                CrystalStructureEntry entry =
+						new CrystalStructureEntry(strc, file.getName(), radii);
                 toAdd.add(entry);
             } catch (Exception e) {
                 // Do nothing
@@ -180,12 +169,12 @@ public class CrystalStructureDataset extends CompositionDataset {
 	}
 
     @Override
-    public AtomicStructureEntry getEntry(int index) {
-        return (AtomicStructureEntry) super.getEntry(index); 
+    public CrystalStructureEntry getEntry(int index) {
+        return (CrystalStructureEntry) super.getEntry(index);
     }
 
     @Override
-    public AtomicStructureEntry addEntry(String input) throws Exception {
+    public CrystalStructureEntry addEntry(String input) throws Exception {
         // Look up radii 
         double[] radii;
         try {
@@ -208,7 +197,7 @@ public class CrystalStructureDataset extends CompositionDataset {
         }
         
         // Create the entry
-        AtomicStructureEntry newEntry = new AtomicStructureEntry(strc, name, radii);
+        CrystalStructureEntry newEntry = new CrystalStructureEntry(strc, name, radii);
         
         // Add and return it
         addEntry(newEntry);
@@ -231,7 +220,7 @@ public class CrystalStructureDataset extends CompositionDataset {
                 
                 // Delete representations
                 for (BaseEntry e : d.getEntries()) {
-                    AtomicStructureEntry p = (AtomicStructureEntry) e;
+                    CrystalStructureEntry p = (CrystalStructureEntry) e;
                     p.clearRepresentations();
                 }
                 System.gc();
@@ -262,7 +251,7 @@ public class CrystalStructureDataset extends CompositionDataset {
      * file named "properties.txt" in this directory
      * 
      * @param directory Path to output directory
-     * @throws java.lang.Exception
+     * @throws java.lang.Exception if writing fails
      */
     public void writePOSCARs(String directory) throws Exception {
         // Delete directory, if it exists
@@ -291,7 +280,7 @@ public class CrystalStructureDataset extends CompositionDataset {
         VASP5IO io = new VASP5IO();
         for (int e=0; e<NEntries(); e++) {
             // Get the filename
-            AtomicStructureEntry entry = getEntry(e);
+            CrystalStructureEntry entry = getEntry(e);
             String filename = String.format("%d-%s.vasp", e, getEntry(e).toString());
             
             // Get path to output file

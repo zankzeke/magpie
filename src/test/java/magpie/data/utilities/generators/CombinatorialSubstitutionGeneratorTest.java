@@ -1,10 +1,9 @@
 package magpie.data.utilities.generators;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import magpie.data.BaseEntry;
-import magpie.data.materials.AtomicStructureEntry;
+import magpie.data.materials.CrystalStructureEntry;
 import magpie.data.materials.CrystalStructureDataset;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -25,13 +24,13 @@ public class CombinatorialSubstitutionGeneratorTest {
         Cell strc = new Cell();
         strc.addAtom(new Atom(new double[]{0,0,0}, 0));
         strc.setTypeName(0, "Cu");
-        AtomicStructureEntry entry = new AtomicStructureEntry(strc.clone(), "SC-Cu", null);
+        CrystalStructureEntry entry = new CrystalStructureEntry(strc.clone(), "SC-Cu", null);
         data.addEntry(entry);
         
         strc.addAtom(new Atom(new double[]{0.5,0.5,0.5}, 1));
         strc.setTypeName(0, "Cu");
         strc.setTypeName(1, "Zr");
-        entry = new AtomicStructureEntry(strc, "B2-CuZr", null);
+        entry = new CrystalStructureEntry(strc, "B2-CuZr", null);
         data.addEntry(entry);
         
         // Prepare generator
@@ -69,7 +68,7 @@ public class CombinatorialSubstitutionGeneratorTest {
         strc.setTypeName(1, "Ti");
         strc.setTypeName(2, "O");
         
-        AtomicStructureEntry entry = new AtomicStructureEntry(strc, "SrTiO3-perov", null);
+        CrystalStructureEntry entry = new CrystalStructureEntry(strc, "SrTiO3-perov", null);
         data.addEntry(entry);
         
         // Prepare generator
@@ -113,7 +112,7 @@ public class CombinatorialSubstitutionGeneratorTest {
         strc.addAtom(new Atom(new double[]{0.5,0.5,0.5}, 1));
         strc.setTypeName(0, "Cu");
         strc.setTypeName(1, "Zr");
-        AtomicStructureEntry entry = new AtomicStructureEntry(strc, "B2-CuZr", null);
+        CrystalStructureEntry entry = new CrystalStructureEntry(strc, "B2-CuZr", null);
         data.addEntry(entry);
         
         // Prepare generator

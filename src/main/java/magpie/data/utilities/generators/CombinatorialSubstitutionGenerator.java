@@ -2,7 +2,7 @@ package magpie.data.utilities.generators;
 
 import java.util.*;
 import magpie.data.BaseEntry;
-import magpie.data.materials.AtomicStructureEntry;
+import magpie.data.materials.CrystalStructureEntry;
 import magpie.data.materials.CrystalStructureDataset;
 import magpie.data.materials.util.LookupData;
 import magpie.utility.CartesianSumGenerator;
@@ -35,7 +35,7 @@ public class CombinatorialSubstitutionGenerator extends BaseEntryGenerator {
     /** List of elements ignore during substitution */
     final protected Set<String> ElementsToIgnore = new TreeSet<>();
     /** List of prototype structures */
-    final protected List<AtomicStructureEntry> Prototypes = new ArrayList<>();
+    final protected List<CrystalStructureEntry> Prototypes = new ArrayList<>();
     /** Types of enumeration */
     public enum EnumerationType {
         /** All permutations, with replacement */ ALL_POSSIBLE,
@@ -145,7 +145,7 @@ public class CombinatorialSubstitutionGenerator extends BaseEntryGenerator {
      * Define the list of prototype structures to use to create entries.
      * @param prototypes List containing prototype structures
      */
-    public void setPrototypes(List<AtomicStructureEntry> prototypes) {
+    public void setPrototypes(List<CrystalStructureEntry> prototypes) {
         Prototypes.clear();
         Prototypes.addAll(prototypes);
     }
@@ -155,9 +155,9 @@ public class CombinatorialSubstitutionGenerator extends BaseEntryGenerator {
      * @param data Dataset containing list of prototype structures
      */
     public void setPrototypes(CrystalStructureDataset data) {
-        List<AtomicStructureEntry> prot = new ArrayList<>(data.NEntries());
+        List<CrystalStructureEntry> prot = new ArrayList<>(data.NEntries());
         for (BaseEntry e : data.getEntries()) {
-            prot.add((AtomicStructureEntry) e);
+            prot.add((CrystalStructureEntry) e);
         }
         setPrototypes(prot);
     }
@@ -183,7 +183,7 @@ public class CombinatorialSubstitutionGenerator extends BaseEntryGenerator {
     public Iterator<BaseEntry> iterator() {
         // If desired compute the Voronoi tessellation of the prototypes
         if (ComputeVoronoi) {
-            Iterator<AtomicStructureEntry> iter = Prototypes.iterator();
+            Iterator<CrystalStructureEntry> iter = Prototypes.iterator();
             while (iter.hasNext()) {
                 try {
                     iter.next().computeVoronoiTessellation();
@@ -194,7 +194,7 @@ public class CombinatorialSubstitutionGenerator extends BaseEntryGenerator {
         }
         
         // Get iterator over prototypes
-        final Iterator<AtomicStructureEntry> protIter = Prototypes.iterator();
+        final Iterator<CrystalStructureEntry> protIter = Prototypes.iterator();
         
         // Initialize iterator element combinations(use entry 0 in Prototypes list)
         final Iterator<List<String>> elemIterInitial =
@@ -202,7 +202,7 @@ public class CombinatorialSubstitutionGenerator extends BaseEntryGenerator {
         
         return new Iterator<BaseEntry>() {
             Iterator<List<String>> elemIter = elemIterInitial;
-            AtomicStructureEntry curProt = protIter.next();
+            CrystalStructureEntry curProt = protIter.next();
 
             @Override
             public boolean hasNext() {
@@ -265,7 +265,7 @@ public class CombinatorialSubstitutionGenerator extends BaseEntryGenerator {
      * @return Iterator over all combinations
      */
     protected Iterator<List<String>> getReplacementIterator(
-            AtomicStructureEntry entry) {
+            CrystalStructureEntry entry) {
         // Get stacked list of all possible elements for each site
         Cell strc = entry.getStructure();
         List<Collection<String>> stack = new ArrayList<>(strc.nTypes());

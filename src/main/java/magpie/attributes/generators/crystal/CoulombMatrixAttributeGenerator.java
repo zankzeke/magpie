@@ -6,7 +6,7 @@ import java.util.List;
 import magpie.attributes.generators.BaseAttributeGenerator;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
-import magpie.data.materials.AtomicStructureEntry;
+import magpie.data.materials.CrystalStructureEntry;
 import magpie.data.materials.CrystalStructureDataset;
 import magpie.models.regression.crystal.CoulombSineMatrixRegression;
 import magpie.utility.interfaces.Citable;
@@ -95,7 +95,7 @@ public class CoulombMatrixAttributeGenerator extends BaseAttributeGenerator
         for (BaseEntry e : data.getEntries()) {
             // Compute eigenvalues
             double[] eigen = (double[]) computer.computeRepresentation(
-                    ((AtomicStructureEntry) e).getStructure());
+                    ((CrystalStructureEntry) e).getStructure());
             
             // Copy values
             Arrays.fill(attrs, 0);

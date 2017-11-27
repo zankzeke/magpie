@@ -9,7 +9,7 @@ import java.util.TreeSet;
 import magpie.attributes.generators.BaseAttributeGenerator;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
-import magpie.data.materials.AtomicStructureEntry;
+import magpie.data.materials.CrystalStructureEntry;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.CompositionEntry;
 import magpie.data.materials.CrystalStructureDataset;
@@ -168,7 +168,7 @@ public class PRDFAttributeGenerator extends BaseAttributeGenerator implements Ci
         for (BaseEntry entry : data.getEntries()) {
             // Compute the PRDF 
             Map<Pair<Integer,Integer>,double[]> prdf = (Map<Pair<Integer,Integer>,double[]>)
-                    computer.computeRepresentation(((AtomicStructureEntry) entry).getStructure());
+                    computer.computeRepresentation(((CrystalStructureEntry) entry).getStructure());
             
             // Store the attributes
             Arrays.fill(newAttrs, 0);

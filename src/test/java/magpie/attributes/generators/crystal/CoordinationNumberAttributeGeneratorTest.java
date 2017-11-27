@@ -2,7 +2,7 @@ package magpie.attributes.generators.crystal;
 
 import magpie.attributes.generators.BaseAttributeGenerator;
 import magpie.data.BaseEntry;
-import magpie.data.materials.AtomicStructureEntry;
+import magpie.data.materials.CrystalStructureEntry;
 import magpie.data.materials.CrystalStructureDataset;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -47,7 +47,7 @@ public class CoordinationNumberAttributeGeneratorTest {
         strc.addAtom(new Atom(new double[]{0.5,0.5,0.5}, 1));
         strc.setTypeName(0, "Al");
         strc.setTypeName(1, "Ni");
-        AtomicStructureEntry entry = new AtomicStructureEntry(strc, "Primtivie", null);
+        CrystalStructureEntry entry = new CrystalStructureEntry(strc, "Primtivie", null);
         data.addEntry(entry);
         
         // Create scaled cell
@@ -57,7 +57,7 @@ public class CoordinationNumberAttributeGeneratorTest {
         strc.addAtom(new Atom(new double[]{0.5,0.5,0.5}, 1));
         strc.setTypeName(0, "Al");
         strc.setTypeName(1, "Ni");
-        entry = new AtomicStructureEntry(strc, "Scaled", null);
+        entry = new CrystalStructureEntry(strc, "Scaled", null);
         data.addEntry(entry);
         
         // Create a cell where A & B are swapped
@@ -67,7 +67,7 @@ public class CoordinationNumberAttributeGeneratorTest {
         strc.addAtom(new Atom(new double[]{0.5,0.5,0.5}, 1));
         strc.setTypeName(0, "Ni");
         strc.setTypeName(1, "Al");
-        entry = new AtomicStructureEntry(strc, "Primtivie", null);
+        entry = new CrystalStructureEntry(strc, "Primtivie", null);
         data.addEntry(entry);
         
         // Create a 2x1x1 supercell
@@ -79,7 +79,7 @@ public class CoordinationNumberAttributeGeneratorTest {
         strc.addAtom(new Atom(new double[]{0.75,0.5,0.5}, 1));
         strc.setTypeName(0, "Ni");
         strc.setTypeName(1, "Al");
-        entry = new AtomicStructureEntry(strc, "Primtivie", null);
+        entry = new CrystalStructureEntry(strc, "Primtivie", null);
         data.addEntry(entry);
         
         // Generate attributes
