@@ -3,7 +3,7 @@ package magpie.data.utilities.generators;
 import magpie.data.BaseEntry;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.CompositionEntry;
-import org.apache.commons.collections.IteratorUtils;
+import org.apache.commons.collections4.IteratorUtils;
 import org.junit.Test;
 
 import java.util.LinkedList;

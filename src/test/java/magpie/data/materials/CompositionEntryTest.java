@@ -214,7 +214,7 @@ public class CompositionEntryTest {
     }
 
     @Test
-    public void testComapreWithAttributes() throws Exception {
+    public void testCompareWithAttributes() throws Exception {
         CompositionEntry entryA = new CompositionEntry("Al");
         CompositionEntry entryB = new CompositionEntry("Al");
 
