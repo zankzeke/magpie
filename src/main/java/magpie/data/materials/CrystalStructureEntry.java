@@ -325,7 +325,7 @@ public class CrystalStructureEntry extends CompositionEntry {
     @Override
     public String toString() {
         String comp = super.toString();
-        return Name + ":" + comp;
+        return Name + "_" + comp;
     }
 
     @Override

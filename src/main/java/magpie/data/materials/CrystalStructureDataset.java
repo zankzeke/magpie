@@ -78,7 +78,16 @@ public class CrystalStructureDataset extends CompositionDataset {
             Generators.add(0, new EffectiveCoordinationNumberAttributeGenerator());
         }
     }
-    
+
+    @Override
+    public CrystalStructureDataset clone() {
+        return (CrystalStructureDataset) super.clone();
+    }
+
+    @Override
+    public CrystalStructureDataset emptyClone() {
+        return (CrystalStructureDataset) super.emptyClone();
+    }
 
 	/**
 	 * Import all structure files in a directory.
