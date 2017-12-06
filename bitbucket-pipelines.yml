@@ -11,6 +11,9 @@ pipelines:
         caches:
           - gradle
         script:
+          # Initialize the submodules
+          - git submodule update --init
+          
           # Update the sklearn models
           - cd test-files
           - python make_models.py
