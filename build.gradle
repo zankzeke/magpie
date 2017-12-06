@@ -59,8 +59,8 @@ dependencies {
     testCompile 'junit:junit:4.12'
 
     // Custom libraries provided with Magpie
-    compile name: 'Vassal'
-    compile name: 'expr'
+    compile project(':lib/vassal')
+    compile project(':lib/expr')
 }
 
 // Distribution instructions
