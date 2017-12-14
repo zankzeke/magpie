@@ -211,7 +211,7 @@ public class ClassificationStatistics extends BaseStatistics {
 
     @Override
     public String printBaselineStats() {
-        return String.format("Largest class fraction: %.2f%%\n", MeasuredLargestClassFraction)
+        return String.format("Largest class fraction: %.2f%%\n", MeasuredLargestClassFraction * 100)
                 + String.format("Baseline log-loss: %.4f", BaselineLogLoss);
     }
 
