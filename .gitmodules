@@ -1,6 +1,6 @@
 [submodule "vassal"]
 	path = lib/vassal
-	url = git@bitbucket.org:wolverton/vassal.git
+	url = https://bitbucket.org/wolverton/vassal.git
 [submodule "lib/expr"]
 	path = lib/expr
-	url = git@github.com:wardlt/expr.git
+	url = https://github.com/wardlt/expr.git
