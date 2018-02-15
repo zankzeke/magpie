@@ -74,7 +74,7 @@ if __name__ == '__main__':
     if sys.version_info[0] == 2:
         data = np.genfromtxt(sys.stdin, delimiter=",", dtype=np.float32)
     elif sys.version_info[0] == 3:
-        data = np.genfromtxt(sys.stdin.buffer, delimiter=",", dtype=np.float32)
+        data= np.array([list(map(float,l.split(","))) for l in sys.stdin])
     else:
         raise Exception('Unrecognized version of Python: %s' % str(sys.version_info))
 
