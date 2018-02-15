@@ -1,7 +1,6 @@
 
 package magpie.csp.diagramdata;
 
-import jdk.nashorn.internal.lookup.Lookup;
 import magpie.data.materials.CompositionEntry;
 import magpie.data.materials.PrototypeEntry;
 import java.io.BufferedReader;

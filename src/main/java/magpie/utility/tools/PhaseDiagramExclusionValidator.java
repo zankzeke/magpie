@@ -17,6 +17,7 @@ import magpie.utility.interfaces.Commandable;
 import magpie.utility.interfaces.Options;
 import magpie.utility.interfaces.Printable;
 import magpie.utility.interfaces.Savable;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.math3.util.Combinations;
@@ -200,10 +201,10 @@ public class PhaseDiagramExclusionValidator implements Options, Commandable,
         LastStatistics = model instanceof AbstractRegressionModel ? 
                     new RegressionStatistics() : new ClassificationStatistics();
         LastStatistics.evaluate(output);
-        
+
         return output;
     }
-    
+
     /**
      * Print last results as formatted text. Style
      * @return Last results in a human-readable format

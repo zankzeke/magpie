@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import magpie.attributes.generators.BaseAttributeGenerator;
 import magpie.data.BaseEntry;
-import magpie.data.materials.AtomicStructureEntry;
+import magpie.data.materials.CrystalStructureEntry;
 import magpie.data.materials.CrystalStructureDataset;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -57,7 +57,7 @@ public class LocalPropertyDifferenceAttributeGeneratorTest
         strc.setTypeName(1, "He");
         
         // Add it to dataset
-        data.addEntry(new AtomicStructureEntry(strc, "B1-HHe", null));
+        data.addEntry(new CrystalStructureEntry(strc, "B1-HHe", null));
         
         // Run the attribute generator
         LocalPropertyDifferenceAttributeGenerator gen = new LocalPropertyDifferenceAttributeGenerator();

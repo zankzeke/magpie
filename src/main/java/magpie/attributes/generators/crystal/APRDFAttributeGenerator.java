@@ -4,7 +4,7 @@ import java.util.*;
 import magpie.attributes.generators.BaseAttributeGenerator;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
-import magpie.data.materials.AtomicStructureEntry;
+import magpie.data.materials.CrystalStructureEntry;
 import magpie.data.materials.CrystalStructureDataset;
 import magpie.data.materials.util.LookupData;
 import magpie.utility.interfaces.Citable;
@@ -146,7 +146,7 @@ public class APRDFAttributeGenerator extends BaseAttributeGenerator
         double[] newAttrs = new double[names.size()];
         for (BaseEntry entry : data.getEntries()) {
             // Get the structure
-            Cell strc = ((AtomicStructureEntry) entry).getStructure();
+            Cell strc = ((CrystalStructureEntry) entry).getStructure();
             
             // Prepare the APRDF tool
             tool.analyzeStructure(strc);

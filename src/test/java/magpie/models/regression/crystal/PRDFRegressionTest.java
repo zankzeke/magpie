@@ -2,7 +2,7 @@ package magpie.models.regression.crystal;
 
 import java.util.ArrayList;
 import java.util.List;
-import magpie.data.materials.AtomicStructureEntry;
+import magpie.data.materials.CrystalStructureEntry;
 import magpie.data.materials.CrystalStructureDataset;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -51,13 +51,13 @@ public class PRDFRegressionTest {
         Cell strc1 = new Cell();
         strc1.addAtom(new Atom(new double[]{0,0,0}, 0));
         strc1.setTypeName(0, "Al");
-        AtomicStructureEntry entry1 = new AtomicStructureEntry(strc1, "test", null);
+        CrystalStructureEntry entry1 = new CrystalStructureEntry(strc1, "test", null);
         entry1.setMeasuredClass(1.0);
         
         Cell strc2 = new Cell();
         strc2.addAtom(new Atom(new double[]{0,0,0}, 0));
         strc2.setTypeName(0, "Ni");
-        AtomicStructureEntry entry2 = new AtomicStructureEntry(strc2, "test", null);
+        CrystalStructureEntry entry2 = new CrystalStructureEntry(strc2, "test", null);
         entry2.setMeasuredClass(0.5);
         
         
@@ -84,17 +84,17 @@ public class PRDFRegressionTest {
         strc.addAtom(new Atom(new double[]{0.5,0.5,0.5}, 1));
         strc.setTypeName(0, "Al");
         strc.setTypeName(1, "Ni");
-        AtomicStructureEntry entry = new AtomicStructureEntry(strc, "AlNi", null);
+        CrystalStructureEntry entry = new CrystalStructureEntry(strc, "AlNi", null);
         data.addEntry(entry);
         
         strc = strc.clone();
         strc.setTypeName(0, "Fe");
-        entry = new AtomicStructureEntry(strc, "FeNi", null);
+        entry = new CrystalStructureEntry(strc, "FeNi", null);
         data.addEntry(entry);
         
         strc = strc.clone();
         strc.setTypeName(1, "Zr");
-        entry = new AtomicStructureEntry(strc, "FeZr", null);
+        entry = new CrystalStructureEntry(strc, "FeZr", null);
         data.addEntry(entry);
         
         // Assign fake class values

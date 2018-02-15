@@ -1,7 +1,7 @@
 
 package magpie.models.regression.crystal;
 
-import magpie.data.materials.AtomicStructureEntry;
+import magpie.data.materials.CrystalStructureEntry;
 import magpie.data.materials.CrystalStructureDataset;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.stat.StatUtils;
@@ -107,13 +107,13 @@ public class CoulombEwaldMatrixRegressionTest {
         Cell strc1 = new Cell();
         strc1.addAtom(new Atom(new double[]{0,0,0}, 0));
         strc1.setTypeName(0, "Al");
-        AtomicStructureEntry entry1 = new AtomicStructureEntry(strc1, "test", null);
+        CrystalStructureEntry entry1 = new CrystalStructureEntry(strc1, "test", null);
         entry1.setMeasuredClass(1.0);
         
         Cell strc2 = new Cell();
         strc2.addAtom(new Atom(new double[]{0,0,0}, 0));
         strc2.setTypeName(0, "Ni");
-        AtomicStructureEntry entry2 = new AtomicStructureEntry(strc2, "test", null);
+        CrystalStructureEntry entry2 = new CrystalStructureEntry(strc2, "test", null);
         entry2.setMeasuredClass(0.5);
         
         

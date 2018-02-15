@@ -41,16 +41,12 @@ import org.json.JSONObject;
  * <p>It is important that you can define the identity of an crystal by either specifying the 
  * element present on each site, or by specifying the composition of the elements occupying that
  * site. The latter option allows this class to handle mixing on a certain atomic site. Note that this
- * does <i>not</i> consider the ordering (or lack there of) on that sublattice. 
- * 
- * <p>In addition to attributes based solely on the composition (see {@linkplain CompositionDataset#generateAttributes(java.lang.String[], boolean, java.lang.String)}),
- * this class generates other statistics, as described in {@linkplain #generateAttributes(java.lang.String[], boolean, java.lang.String) }
+ * does <i>not</i> consider the ordering (or lack there of) on that sublattice.
  * 
  * <usage><p><b>Usage</b>: &lt;Structure description filename>
  * <br><pr><i>Structure description filename</i>: File containing description of atomic sites in structure</usage>
  * 
  * @author Logan Ward
- * @version 0.1
  */
 public class PrototypeDataset extends CompositionDataset {
     /** Stores information about each site */
@@ -85,7 +81,7 @@ public class PrototypeDataset extends CompositionDataset {
     @Override
     public void setOptions(List<Object> Options) throws Exception {
         if (Options.size() != 1)
-            throw new Exception(printUsage());
+            throw new IllegalArgumentException(printUsage());
         readStructureInformation(Options.get(0).toString());
     }
 
@@ -131,48 +127,36 @@ public class PrototypeDataset extends CompositionDataset {
         
     @Override
     public void importText(String filename, Object[] options) throws Exception {
-        // Count the number of lines (1 per entry + 1 header)
-        // Thanks to: http://stackoverflow.com/questions/453018/number-of-lines-in-a-file-in-java
-        LineNumberReader lr = new LineNumberReader(new FileReader(filename));
-        while (lr.skip(Long.MAX_VALUE) > 0 ) {};
-        int Entry_Count = lr.getLineNumber() + 1;
-        lr.close();
-        
         // Define the reader
         BufferedReader is = Files.newBufferedReader(Paths.get(filename), Charset.forName("US-ASCII"));
-        String Line; String[] Words;
+        String line;
+        String[] words;
         
         // Read in the header
-        Line = is.readLine();
-        importPropertyNames(Line);
+        line = is.readLine();
+        importPropertyNames(line);
         
         // Read in each entry
-        TreeMap<BaseEntry,PrototypeEntry> acceptedEntries = new TreeMap<>();
-        PrototypeEntry Entry;
-        for (int i=0; i<Entry_Count; i++){
+        ArrayList<BaseEntry> acceptedEntries = new ArrayList<>();
+        while ((line = is.readLine()) != null) {
             double[] properties;
             // Read a line and tokenize it
-            Line = is.readLine();
-            if (Line == null) 
-                break;
-            Words=Line.trim().split("\\s+");
-            if (Words.length == 1) // For blank lines
-                continue;
-            
+            words = line.trim().split("\\s+");
+
             // Get the properties
-            properties = importEntryProperties(Words);
+            properties = importEntryProperties(words);
             
             // Make an entry
-            Entry = new PrototypeEntry(SiteInfo, Words[0]);
-            Entry.setMeasuredProperties(properties);
+            PrototypeEntry entry = new PrototypeEntry(SiteInfo, words[0]);
+            entry.setMeasuredProperties(properties);
             
-            acceptedEntries.put(Entry, Entry);
+            acceptedEntries.add(entry);
         }
         // Close the file
         is.close();
         
         // Copy the entries
-        this.Entries = new ArrayList<>(acceptedEntries.keySet());
+        this.Entries = acceptedEntries;
     }
     
     /**

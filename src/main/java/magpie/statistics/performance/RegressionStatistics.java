@@ -1,6 +1,8 @@
 package magpie.statistics.performance;
 
 import magpie.data.Dataset;
+import magpie.utility.MathUtils;
+import magpie.utility.UtilityOperations;
 import org.apache.commons.math3.stat.StatUtils;
 import org.apache.commons.math3.stat.correlation.KendallsCorrelation;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
@@ -10,9 +12,8 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * This class contains methods to calculate statistics about regression models.
+ * Calculates performance statistics for regression models.
  * @author Logan Ward
- * @version 0.1
  */
 public class RegressionStatistics extends BaseStatistics {
     /** Mean absolute error */
@@ -27,6 +28,15 @@ public class RegressionStatistics extends BaseStatistics {
 	public double Rho;
 	/** Kendall's rank correlation coefficient */
 	public double Tau;
+	/** Standard deviation of measured values */
+	public double MeasuredStdDev;
+	/** Mean absolute deviation of measured values */
+	public double MeasuredMAD;
+	/** Range of measured values */
+	public double MeasuredRange;
+	/** Median of mesaured values */
+	public double MeasuredMedian;
+
 
     @Override
     protected void evaluate_protected(Dataset results) {
@@ -64,9 +74,19 @@ public class RegressionStatistics extends BaseStatistics {
         for (int i=0; i<NEntries; i++)
             error[i]=Math.abs(1-(predicted[i]/measured[i]));
         MRE = StatUtils.mean(error);
-        // Calculate the reciever-operating characteristic curve
-        getROCCurve(measured, predicted, 25);
-        ROC_AUC = integrateROCCurve(ROC);
+
+        // Compute statistics of measured values
+        MeasuredStdDev = Math.sqrt(StatUtils.populationVariance(Measured));
+        MeasuredMedian = StatUtils.percentile(Measured, 50);
+        MeasuredRange = StatUtils.max(Measured) - StatUtils.min(measured);
+        MeasuredMAD = MathUtils.meanAbsoluteDeviation(Measured);
+
+        // Calculate the receiver-operating characteristic curve for ability to predict above or below the median
+        int[] aboveMedian = new int[Measured.length];
+        for (int i=0; i<aboveMedian.length; i++) {
+            aboveMedian[i] = Measured[i] > MeasuredMedian ? 0 : 1;
+        }
+        getROCCurve(aboveMedian, predicted, 50);
     }
     
     @Override public Object clone() throws CloneNotSupportedException {
@@ -79,7 +99,7 @@ public class RegressionStatistics extends BaseStatistics {
     }
     
     @Override public String toString() {
-        String out = new String();
+        String out = "";
         out+="Number Tested: "+NumberTested
                 +"\nPearson's Correlation (R): "+String.format("%.4f", R)
                 +"\nSpearman's Correlation (Rho): "+String.format("%.4f", Rho)
@@ -89,6 +109,14 @@ public class RegressionStatistics extends BaseStatistics {
                 +"\nMRE: "+String.format("%.4f",MRE)
                 +"\nROC AUC: "+String.format("%.4f", ROC_AUC);
         return out;
+    }
+
+    @Override
+    public String printBaselineStats() {
+        return String.format("Mean absolute deviation: %.4f\n", MeasuredMAD)
+                + String.format("Standard Deviation: %.4f\n", MeasuredStdDev)
+                + String.format("Median: %.4f\n", MeasuredMedian)
+                + String.format("Range: %.4f", MeasuredRange);
     }
 
     @Override

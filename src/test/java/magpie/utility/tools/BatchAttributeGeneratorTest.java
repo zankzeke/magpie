@@ -3,7 +3,7 @@ package magpie.utility.tools;
 import magpie.Magpie;
 import magpie.attributes.generators.element.ElementalPropertyAttributeGenerator;
 import magpie.data.BaseEntry;
-import magpie.data.materials.AtomicStructureEntry;
+import magpie.data.materials.CrystalStructureEntry;
 import magpie.data.materials.CrystalStructureDataset;
 import magpie.data.materials.ElementDataset;
 import magpie.data.utilities.generators.CombinatorialSubstitutionGenerator;
@@ -104,7 +104,7 @@ public class BatchAttributeGeneratorTest {
         Cell strc = new Cell();
         strc.addAtom(new Atom(new double[]{0,0,0}, 0));
         strc.setTypeName(0, "H");
-        prot.addEntry(new AtomicStructureEntry(strc, "SC-H", null));
+        prot.addEntry(new CrystalStructureEntry(strc, "SC-H", null));
         
         List<Object> options = new ArrayList<>();
         options.add("-voro");

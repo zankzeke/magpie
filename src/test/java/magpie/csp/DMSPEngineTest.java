@@ -18,7 +18,7 @@ public class DMSPEngineTest {
     
     @Test
     public void testGetTrainingSet() throws Exception {
-        // Initilize the engine
+        // Initialize the engine
         DMSPEngine csp = new DMSPEngine();
         csp.importKnownCompounds("datasets/prototypes.list");
         

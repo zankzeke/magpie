@@ -16,8 +16,6 @@ import java.util.List;
  * @author Logan Ward
  */
 public class JSONOutput extends BaseDatasetOutput {
-    /** Whether the entry output phase has been started */
-    protected boolean EntriesStarted = false;
 
     @Override
     public void setOptions(List<Object> Options) throws Exception {
@@ -60,9 +58,6 @@ public class JSONOutput extends BaseDatasetOutput {
 
         // Print the beginning of the entries class
         fp.println("  \"entries\": [");
-
-        // Reset the "entries started" flag
-        EntriesStarted = false;
     }
 
     @Override
@@ -71,15 +66,16 @@ public class JSONOutput extends BaseDatasetOutput {
         PrintWriter fp = new PrintWriter(output, true);
 
         // Loop through entries, printing out their JSON version
+        boolean started = false;
         for (BaseEntry entry : entries) {
             // Make it into a JSON object
             JSONObject entryJSON = entry.toJSON();
 
             // If this isn't the first entry, add a ","
-            if (EntriesStarted) {
+            if (started) {
                 fp.print(",");
             } else {
-                EntriesStarted = true;
+                started = true;
             }
 
             // Append it to the array, adding additional indentation to each line

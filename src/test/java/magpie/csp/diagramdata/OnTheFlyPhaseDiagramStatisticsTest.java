@@ -1,9 +1,6 @@
 package magpie.csp.diagramdata;
 
 import magpie.data.materials.CompositionEntry;
-import magpie.data.materials.util.LookupData;
-import org.apache.commons.collections.ListUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Test;
 
 import java.util.Arrays;

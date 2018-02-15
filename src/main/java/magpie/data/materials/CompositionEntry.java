@@ -85,9 +85,8 @@ public class CompositionEntry extends MultiPropertyEntry {
      *
      * @param Element Numbers of element in ElementList
      * @param Amount  Amount of each element present
-     * @throws java.lang.Exception
      */
-    public CompositionEntry(int[] Element, double[] Amount) throws Exception {
+    public CompositionEntry(int[] Element, double[] Amount) {
         setComposition(Element, Amount, true);
     }
 
@@ -328,18 +327,19 @@ public class CompositionEntry extends MultiPropertyEntry {
 	 * Set the composition of this entry.
      *
      * <p>Checks to make sure all elements have positive amounts.
+     *
      * @param elements Elements in sample (listed by index
      * in {@linkplain LookupData#ElementNames})
 	 * @param amount Amount of each element
      * @param toSort Whether to store elements in sorted order
-     * @throws java.lang.Exception
      */
-    final protected void setComposition(int[] elements, double[] amount,
-            boolean toSort) throws Exception {
+    final protected void setComposition(int[] elements, double[] amount, boolean toSort) {
         // Get a full list of the non-zero elements
         Map<Integer, Double> comp = new TreeMap<>();
         for (int e=0; e<elements.length; e++) {
-            if (amount[e] <= 0) {
+            if (amount[e] < 0) {
+                throw new IllegalArgumentException("Element value less than zero");
+            } else if (amount[e] == 0) {
                 continue;
             }
 
@@ -372,13 +372,6 @@ public class CompositionEntry extends MultiPropertyEntry {
         x.Element = Element.clone();
         x.Fraction = Fraction.clone();
         return x;
-    }
-
-    /**
-     * @return Names of elements known by this entry
-     */
-    public String[] getElementNameList() {
-        return ElementNames;
     }
     
     /**
@@ -458,9 +451,15 @@ public class CompositionEntry extends MultiPropertyEntry {
             if (obj.Element.length != Element.length) {
                 return false;
             }
-            return (java.util.Arrays.equals(Element, obj.Element) &&
-                    java.util.Arrays.equals(Fraction, obj.Fraction)) &&
-                    super.equals(obj);
+            if (! java.util.Arrays.equals(Element, obj.Element)) {
+                return false;
+            }
+            for (int i=0; i<obj.Fraction.length; i++) {
+                if (Math.abs(obj.Fraction[i] - Fraction[i]) > 1e-6) {
+                    return false;
+                }
+            }
+            return super.equals(other);
         } else {
             return false;
         }

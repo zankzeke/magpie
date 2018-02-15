@@ -67,5 +67,4 @@ public class ContainsElementFilterTest {
         assertArrayEquals(new int[]{12,0}, filter.ExcludedIndex);
         assertArrayEquals(new String[]{"Al","H"}, filter.ElementList);
     }
-    
 }

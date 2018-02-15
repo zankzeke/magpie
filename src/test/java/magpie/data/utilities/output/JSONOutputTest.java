@@ -2,8 +2,6 @@ package magpie.data.utilities.output;
 
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
-import magpie.data.materials.CompositionDataset;
-import magpie.utility.tools.BatchAttributeGenerator;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.junit.Test;
@@ -41,28 +39,5 @@ public class JSONOutputTest {
         // Parse the JSON file
         JSONObject result = new JSONObject(new JSONTokener(new FileInputStream(testFile)));
         System.out.println(result.toString(2));
-    }
-
-    @Test
-    public void testBatchOutput() throws Exception {
-        // Read in the composition dataset
-        CompositionDataset data = new CompositionDataset();
-        data.importText("datasets/small_set.txt", null);
-
-        // Create the batch generator
-        BatchAttributeGenerator generator = new BatchAttributeGenerator();
-        generator.setBatchSize(10);
-
-        // Make the JSON output
-        JSONOutput output = new JSONOutput();
-        generator.setOutputter(output);
-
-        // Run it
-        File testFile = new File("test.json");
-        testFile.deleteOnExit();
-        generator.output(data, testFile);
-
-        // Make sure it works
-        JSONObject result = new JSONObject(new JSONTokener(new FileInputStream(testFile)));
     }
 }

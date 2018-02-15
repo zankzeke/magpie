@@ -4,7 +4,7 @@ import java.util.*;
 import magpie.attributes.generators.BaseAttributeGenerator;
 import magpie.data.BaseEntry;
 import magpie.data.Dataset;
-import magpie.data.materials.AtomicStructureEntry;
+import magpie.data.materials.CrystalStructureEntry;
 import magpie.data.materials.CrystalStructureDataset;
 import vassal.analysis.VoronoiCellBasedAnalysis;
 
@@ -56,7 +56,7 @@ public class CoordinationNumberAttributeGenerator extends BaseAttributeGenerator
         double[] temp = new double[newAttrs.size()];
         for (BaseEntry ptr : data.getEntries()) {
             // Get the Voronoi tessellation
-            AtomicStructureEntry entry = (AtomicStructureEntry) ptr;
+            CrystalStructureEntry entry = (CrystalStructureEntry) ptr;
             VoronoiCellBasedAnalysis voro;
             try {
                 voro = entry.computeVoronoiTessellation();

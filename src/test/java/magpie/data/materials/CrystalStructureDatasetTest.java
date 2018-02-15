@@ -3,12 +3,12 @@ package magpie.data.materials;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.List;
+
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import vassal.data.*;
+import vassal.io.VASP5IO;
 
 /**
  *
@@ -26,7 +26,7 @@ public class CrystalStructureDatasetTest {
         strc.setBasis(new double[]{3.52, 3.52, 3.52}, new double[]{90,90,90});
         strc.addAtom(new Atom(new double[]{0,0,0}, 0));
         strc.setTypeName(0, "Cu");
-        AtomicStructureEntry entry = new AtomicStructureEntry(strc, "Cu", null);
+        CrystalStructureEntry entry = new CrystalStructureEntry(strc, "Cu", null);
         
         // Add entry to dataset
         data.addEntry(entry);
@@ -57,7 +57,7 @@ public class CrystalStructureDatasetTest {
                 + " 0.5000000000 0.5000000000 0.5000000000\n"
                 + " 0.2500000000 0.2500000000 0.2500000000\n"
                 + " 0.0000000000 0.0000000000 0.0000000000";
-        AtomicStructureEntry entry = data.addEntry(input);
+        CrystalStructureEntry entry = data.addEntry(input);
         
         // Check out results
         assertEquals(4, entry.getStructure().nAtoms());
@@ -77,7 +77,7 @@ public class CrystalStructureDatasetTest {
         strc.addAtom(new Atom(new double[]{0.5,0.5,0.5}, 1));
         strc.setTypeName(0, "Al");
         strc.setTypeName(1, "Ni");
-        AtomicStructureEntry entry = new AtomicStructureEntry(strc, "Primtivie", null);
+        CrystalStructureEntry entry = new CrystalStructureEntry(strc, "Primtivie", null);
         data.addEntry(entry);
         
         // Create scaled cell
@@ -87,7 +87,7 @@ public class CrystalStructureDatasetTest {
         strc.addAtom(new Atom(new double[]{0.5,0.5,0.5}, 1));
         strc.setTypeName(0, "Al");
         strc.setTypeName(1, "Ni");
-        entry = new AtomicStructureEntry(strc, "Scaled", null);
+        entry = new CrystalStructureEntry(strc, "Scaled", null);
         data.addEntry(entry);
         
         // Create a cell where A & B are swapped
@@ -97,7 +97,7 @@ public class CrystalStructureDatasetTest {
         strc.addAtom(new Atom(new double[]{0.5,0.5,0.5}, 1));
         strc.setTypeName(0, "Ni");
         strc.setTypeName(1, "Al");
-        entry = new AtomicStructureEntry(strc, "Primtivie", null);
+        entry = new CrystalStructureEntry(strc, "Primtivie", null);
         data.addEntry(entry);
         
         // Create a 2x1x1 supercell
@@ -109,7 +109,7 @@ public class CrystalStructureDatasetTest {
         strc.addAtom(new Atom(new double[]{0.75,0.5,0.5}, 1));
         strc.setTypeName(0, "Ni");
         strc.setTypeName(1, "Al");
-        entry = new AtomicStructureEntry(strc, "Primtivie", null);
+        entry = new CrystalStructureEntry(strc, "Primtivie", null);
         data.addEntry(entry);
         
         // Generate attributes
@@ -150,14 +150,14 @@ public class CrystalStructureDatasetTest {
         strc.setBasis(new double[]{3.52, 3.52, 3.52}, new double[]{90,90,90});
         strc.addAtom(new Atom(new double[]{0,0,0}, 0));
         strc.setTypeName(0, "Cu");
-        AtomicStructureEntry entry = new AtomicStructureEntry(strc, "Cu", null);
+        CrystalStructureEntry entry = new CrystalStructureEntry(strc, "Cu", null);
         
         // Add entry to dataset
         data.addEntry(entry);
-        
+
         // Save the properties
         File output = new File("test-csd-output");
-        
+
         // Call the save command
         data.saveCommand("test-csd-output", "poscar");
         
@@ -177,5 +177,37 @@ public class CrystalStructureDatasetTest {
         fp.close();
         
         FileUtils.deleteDirectory(output);
+    }
+
+    @Test
+    public void testImport() throws Exception {
+        CrystalStructureDataset data = new CrystalStructureDataset();
+
+        // Read in the dataset
+        data.importText("datasets/icsd-sample", null);
+
+        // Make sure it read all 32 crystal structures
+        assertEquals(32, data.NEntries());
+        for (int i=0; i<32; i++) {
+            assertTrue(data.getEntry(i).getName().startsWith(String.format("%d-", i)));
+        }
+
+        // Save the poscars
+        File output = new File("test-csd-input");
+        try {
+            data.saveCommand("test-csd-input", "poscar");
+
+            // Write another file to that directory
+            VASP5IO io = new VASP5IO();
+            io.writeStructureToFile(data.getEntry(0).getStructure(), "test-csd-input/test.vasp");
+
+            // Read in that directory, make sure it gets 33 files
+            CrystalStructureDataset newData = (CrystalStructureDataset) data.emptyClone();
+            newData.importText("test-csd-input", null);
+            assertEquals(33, newData.NEntries());
+            assertTrue(newData.getEntry(0).getName().contains("0-B1Ho5Si3"));
+        } finally {
+            FileUtils.deleteDirectory(output);
+        }
     }
 }
