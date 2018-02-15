@@ -1,12 +1,13 @@
 package magpie.data.utilities.filters;
 
-import java.util.Arrays;
-import java.util.List;
 import magpie.data.Dataset;
 import magpie.data.materials.CompositionDataset;
 import magpie.data.materials.CompositionEntry;
 import magpie.data.materials.util.LookupData;
 import magpie.user.CommandHandler;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Filter entries that contain certain elements. Only works on {@link CompositionDataset}.
@@ -20,7 +21,25 @@ public class ContainsElementFilter extends BaseDatasetFilter {
     /** Elements that compounds are not allowed to contain */
     protected String[] ElementList;
     /** List of IDs of those elements */
-    private int[] ExcludedIndex;
+    protected int[] ExcludedIndex;
+
+    /**
+     * Given a list of elements, return their indices.
+     *
+     * @param ElementList List of element names to operate on
+     * @return Array containing index of each element in ElementList
+     */
+    static protected int[] getElementIndices(String[] ElementList) {
+        // Get the index of each element
+        int[] ElementIndex = new int[ElementList.length];
+        List<String> ElementNamesAsList = Arrays.asList(LookupData.ElementNames);
+        for (int i = 0; i < ElementIndex.length; i++) {
+            int index = ElementNamesAsList.indexOf(ElementList[i]);
+            if (index == -1) throw new Error(ElementList[i] + " is not a valid element");
+            ElementIndex[i] = index;
+        }
+        return ElementIndex;
+    }
 
     @Override
     public void setOptions(List<Object> OptionsObj) throws Exception {
@@ -60,7 +79,7 @@ public class ContainsElementFilter extends BaseDatasetFilter {
     public String printUsage() {
         return "Usage: <Element names...>";
     }
-    
+
     @Override
     public void train(Dataset TrainingSet) {
         /* Nothing to do */
@@ -72,7 +91,7 @@ public class ContainsElementFilter extends BaseDatasetFilter {
         if (! (D instanceof CompositionDataset))
             throw new Error("Dataset must be a CompositionDataset");
         CompositionDataset Data = (CompositionDataset) D;
-        
+
         // Find entries that contain one of those elements
         boolean[] contains = new boolean[D.NEntries()];
         for (int i=0; i<D.NEntries(); i++) {
@@ -95,23 +114,6 @@ public class ContainsElementFilter extends BaseDatasetFilter {
             }
         }
         return false;
-    }
-
-    /**
-     * Given a list of elements, return their indices. 
-     * @param ElementList List of element names to operate on
-     * @return Array containing index of each element in ElementList
-     */
-    static protected int[] getElementIndices(String[] ElementList) {
-        // Get the index of each element
-        int[] ElementIndex = new int[ElementList.length];
-        List<String> ElementNamesAsList = Arrays.asList(LookupData.ElementNames);
-        for (int i=0; i<ElementIndex.length; i++) {
-            int index = ElementNamesAsList.indexOf(ElementList[i]);
-            if (index == -1) throw new Error(ElementList[i] + " is not a valid element");
-            ElementIndex[i] = index;
-        }
-        return ElementIndex;
     }
     
 }
