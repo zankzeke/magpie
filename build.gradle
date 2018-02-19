@@ -82,8 +82,9 @@ jar {
 
     // Copy the exe folder into the output
     copy {
-        from 'exes'
+        from 'lib/vassal/voro++'
         into 'dist/exes'
+        include '*.exe'
     }
 
     // Copy python scripts into the output
