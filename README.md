@@ -27,11 +27,11 @@ To build with Gradle, use the included Gradle wrapper (which will install Gradle
 
 ### Downloading a Precompiled Version ###
 
-A complete version of Magpie that has already been compiled is available for **[download](http://oqmd.org/static/analytics/magpie/Magpie.zip)**. Since Magpie is written entirely in Java, this version should work without modification on any system with the Java Runtime Environment installed.
+A complete version of Magpie that has already been compiled is available for **[download](https://wolverton.bitbucket.io/magpie-latest.tar.gz)**. Since Magpie is written entirely in Java, this version should work without modification on any system with the Java Runtime Environment installed.
 
 ## How do I learn to use Magpie? ##
 
-Documentation for Magpie is available on [oqmd.org](http://oqmd.org/static/analytics/magpie/doc/). You may want to start with the [tutorial](http://oqmd.org/static/analytics/magpie/doc/tutorial.html).
+Documentation for Magpie is available on [wolverton.bitbucket.io](https://wolverton.bitbucket.io/). You may want to start with the [tutorial](https://wolverton.bitbucket.io/tutorial.html).
 
 
 ## Who can answer my questions? ##
