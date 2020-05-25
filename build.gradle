@@ -15,7 +15,7 @@ if (JavaVersion.current().isJava8Compatible()) {
 // Where to find libraries for Magpie
 repositories {
     maven  {
-        url "http://repo1.maven.org/maven2"
+        url "https://repo1.maven.org/maven2"
     }
     flatDir {
         dirs 'required-libraries'
