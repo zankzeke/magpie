@@ -30,7 +30,7 @@ class HTMLRenderer:
 			newLine += "\n</p>"
 			toOutput.append(newLine)
 		toOutput.sort()
-		for line in toOutput: print >>fp, line
+		for line in toOutput: print(line, file=fp)
 	
 	@staticmethod	
 	def writeDocumentationFile(jdPath, cls, library):
@@ -47,11 +47,11 @@ class HTMLRenderer:
 		fp = open(path, 'w')
 	
 		## Write header
-		print >>fp, "<html>\n<head>"
-		print >>fp, "\t<title>" + cls.name + "</title>"
-		print >>fp, "</head>"
-		print >>fp, "<body>"
-		print >>fp, "\t<h1>" + cls.name + "</h1>"
+		print("<html>\n<head>", file=fp)
+		print("\t<title>" + cls.name + "</title>", file=fp)
+		print("</head>", file=fp)
+		print("<body>", file=fp)
+		print("\t<h1>" + cls.name + "</h1>", file=fp)
 	
 		## Write introduction to class
 		toJDClass = "../"
@@ -60,13 +60,13 @@ class HTMLRenderer:
 		for package in cls.package.split("."): toJDClass += package + "/";
 		toJDClass += cls.name + ".html"
 		toJDClass = os.path.relpath(toJDClass)
-		print >>fp, "\t<p>See <a href=\"" + toJDClass + "\">Javadoc</a> for complete documentation of this class.</p>"
+		print("\t<p>See <a href=\"" + toJDClass + "\">Javadoc</a> for complete documentation of this class.</p>", file=fp)
 	
 		## Write usage for class
-		print >>fp, "<p>\n<b>Usage</b>: " + cls.usage
+		print("<p>\n<b>Usage</b>: " + cls.usage, file=fp)
 		for prm in cls.usageParameters:
-			print >>fp, "<br><i>" + prm.name + "</i>: " + prm.description
-		print >>fp, "</p>"
+			print("<br><i>" + prm.name + "</i>: " + prm.description, file=fp)
+		print("</p>", file=fp)
 	
 		## Gather operations
 		operations = set(cls.operations)
@@ -77,9 +77,9 @@ class HTMLRenderer:
 			extends = superCls.extends
 	
 		## Print out operations
-		print >>fp, "<h2>Available Operations</h2>"
-		print >>fp, "<p>These commands can be used to perform a variety of tasks, ranging from defining important"
-		print >>fp, "settings about the object to actually using it.</p>"
+		print("<h2>Available Operations</h2>", file=fp)
+		print("<p>These commands can be used to perform a variety of tasks, ranging from defining important", file=fp)
+		print("settings about the object to actually using it.</p>", file=fp)
 		HTMLRenderer.printOperations(fp, operations)
 	
 		## Gather/Print print commands
@@ -90,10 +90,10 @@ class HTMLRenderer:
 			operations.update(superCls.printCommands)
 			extends = superCls.extends
 		if len(operations) > 0:
-			print >>fp, "<h2>Available Print Commands</h2>"
-			print >>fp, "<p>These commands are run by calling &quot;print &lt;variable name&gt; "
-			print >>fp, "&lt;command> [&lt;options>]&quot;. Any output from that command will be "
-			print >>fp, "printed to standard output.</p>"
+			print("<h2>Available Print Commands</h2>", file=fp)
+			print("<p>These commands are run by calling &quot;print &lt;variable name&gt; ", file=fp)
+			print("&lt;command> [&lt;options>]&quot;. Any output from that command will be ", file=fp)
+			print("printed to standard output.</p>", file=fp)
 			HTMLRenderer.printOperations(fp, operations)
 	
 		## Gather/Print save formats
@@ -104,10 +104,10 @@ class HTMLRenderer:
 			operations.update(superCls.saveFormats)
 			extends = superCls.extends
 		if len(operations) > 0:
-			print >>fp, "<h2>Available Save Formats</h2>"
-			print >>fp, "<p>Variables of this type can be saved in the following formats:</p>"
+			print("<h2>Available Save Formats</h2>", file=fp)
+			print("<p>Variables of this type can be saved in the following formats:</p>", file=fp)
 			HTMLRenderer.printOperations(fp, operations)
 		
 		## Close shop
-		print >>fp, "</body>\n</html>"
+		print("</body>\n</html>", file=fp)
 		fp.close()

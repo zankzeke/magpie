@@ -17,8 +17,8 @@ from classHTMLRenderer import *
 #   Logan Ward (ward.logan.t@gmail.com)
 
 if len(sys.argv) != 2:
-	print "Write documentation of how to instantiate and use Magpie variables"
-	print "Usage: %s <javadoc dir>"%(sys.argv[0])
+	print("Write documentation of how to instantiate and use Magpie variables")
+	print("Usage: %s <javadoc dir>"%(sys.argv[0]))
 	sys.exit()
 docDir=sys.argv[1]
 
@@ -51,30 +51,30 @@ def printClassSummary(fp, classes):
 		if not started: started = True
 		else: toPrint += "</br>"
 		toPrint += line
-		print >>fp, toPrint
+		print(toPrint, file=fp)
 
 ## Print header
 fp = open("variables.html", "w")
-print >>fp, "<html>"
-print >>fp, "<head>"
-print >>fp, "\t<title>Magpie Variable Types</title>"
-print >>fp, "\t<link rel=\"stylesheet\" href=\"style.css\" type=\"text/css\" media=\"screen\" />"
-print >>fp, "</head>"
+print("<html>", file=fp)
+print("<head>", file=fp)
+print("\t<title>Magpie Variable Types</title>", file=fp)
+print("\t<link rel=\"stylesheet\" href=\"style.css\" type=\"text/css\" media=\"screen\" />", file=fp)
+print("</head>", file=fp)
 
 ## Print introduction
-print >>fp, "<body>"
-print >>fp, "<div id=\"wrapper\">"
-print >>fp, "<div class=\"footer\">"
-print >>fp, "\t<center><a href=\"index.html\">Manual Home</a></center>"
-print >>fp, "</div>"
+print("<body>", file=fp)
+print("<div id=\"wrapper\">", file=fp)
+print("<div class=\"footer\">", file=fp)
+print("\t<center><a href=\"index.html\">Manual Home</a></center>", file=fp)
+print("</div>", file=fp)
 
-print >>fp, "<center><h1>Variable Types</h1></center>"
-print >>fp, "<p>Magpie comes equipped with many different kinds of datasets, models, crystal structure prediction algorithms, and other kinds of variables. This section includes all of the currently available variable types and links to pages that describe what operations they&nbsp;support. If you are not yet familiar with how to call these operations, please consult the <a href=\"text-interface.html\">documentation for the text&nbsp;interface</a>.</p>"
+print("<center><h1>Variable Types</h1></center>", file=fp)
+print("<p>Magpie comes equipped with many different kinds of datasets, models, crystal structure prediction algorithms, and other kinds of variables. This section includes all of the currently available variable types and links to pages that describe what operations they&nbsp;support. If you are not yet familiar with how to call these operations, please consult the <a href=\"text-interface.html\">documentation for the text&nbsp;interface</a>.</p>", file=fp)
 
 ## Print dataset classes
-print >>fp, "<h2>Datasets</h2>"
-print >>fp, "<p>Each of these dataset objects can be used to represent different kinds of data, both in terms of"
-print >>fp, " how Magpie represents an entry internally and what kind of attributes it can generate.</p>"
+print("<h2>Datasets</h2>", file=fp)
+print("<p>Each of these dataset objects can be used to represent different kinds of data, both in terms of", file=fp)
+print(" how Magpie represents an entry internally and what kind of attributes it can generate.</p>", file=fp)
 
 classes = lib.getCompleteSubclasses("Dataset")
 printClassSummary(fp, classes)
@@ -82,21 +82,21 @@ for cls in classes:
 	HTMLRenderer.writeDocumentationFile(docDir, cls, lib)
 	
 ## Print model classes
-print >>fp, "<h2>Models</h2>"
-print >>fp, "<p>Magpie is equipped with the ability to generate many different kinds of models. This includes "
-print >>fp, "models for classifying data into known subsets or predicting the value of some property.</p>"
+print("<h2>Models</h2>", file=fp)
+print("<p>Magpie is equipped with the ability to generate many different kinds of models. This includes ", file=fp)
+print("models for classifying data into known subsets or predicting the value of some property.</p>", file=fp)
 classes = lib.getCompleteSubclasses("BaseModel")
 
-print >>fp, "<h3>Classification Models</h3>"
-print >>fp, "<p>Classifiers are used decide which group an entry belongs out of a finite list of options.</p>"
+print("<h3>Classification Models</h3>", file=fp)
+print("<p>Classifiers are used decide which group an entry belongs out of a finite list of options.</p>", file=fp)
 subClasses = [ x for x in classes if "classifi" in x.package ]
 printClassSummary(fp, subClasses)
 for cls in subClasses: 
 	HTMLRenderer.writeDocumentationFile(docDir, cls, lib)
 
-print >>fp, "<h3>Regression Models</h3>"
-print >>fp, "<p>Regression models are used to approximate unknown, continuous"
-print >>fp, " functions (think y = f(x) = a + b * x).</p>"
+print("<h3>Regression Models</h3>", file=fp)
+print("<p>Regression models are used to approximate unknown, continuous", file=fp)
+print(" functions (think y = f(x) = a + b * x).</p>", file=fp)
 subClasses = [ x for x in classes if "regression" in x.package ]
 printClassSummary(fp, subClasses)
 for cls in subClasses: 
@@ -104,8 +104,8 @@ for cls in subClasses:
 
 
 ## Print statistics classes
-print >>fp, "<h2>Statistics Calculators</h2>"
-print >>fp, "<p>Each of these objects can be used calculate different statistics about the performance of a model.</p>"
+print("<h2>Statistics Calculators</h2>", file=fp)
+print("<p>Each of these objects can be used calculate different statistics about the performance of a model.</p>", file=fp)
 
 classes = lib.getCompleteSubclasses("BaseStatistics")
 printClassSummary(fp, classes)
@@ -113,11 +113,11 @@ for cls in classes:
 	HTMLRenderer.writeDocumentationFile(docDir, cls, lib)
 
 ## Print clusterer classes
-print >>fp, "<h2>Clusterers</h2>"
-print >>fp, "<p>Clustering algorithms perform unsupervised learning, which recognizes "
-print >>fp, "groups of data with similar attributes and provides rules for how to distinguish between them. "
-print >>fp, "These groups <i>are not</i> known beforehand, use classification algorithms to build rules for "
-print >>fp, "separating data into already-known groups.</p>"
+print("<h2>Clusterers</h2>", file=fp)
+print("<p>Clustering algorithms perform unsupervised learning, which recognizes ", file=fp)
+print("groups of data with similar attributes and provides rules for how to distinguish between them. ", file=fp)
+print("These groups <i>are not</i> known beforehand, use classification algorithms to build rules for ", file=fp)
+print("separating data into already-known groups.</p>", file=fp)
 
 classes = lib.getCompleteSubclasses("BaseClusterer")
 printClassSummary(fp, classes)
@@ -126,9 +126,9 @@ for cls in classes:
 
 	
 ## Print Crystal Structure Predictors
-print >>fp, "<h2>Crystal Structure Predictors</h2>"
-print >>fp, "<p>Crystal structure prediction algorithms are used to predict which crystal structure "
-print >>fp, "is most probable out of a list of known prototypes to be stable at a certain composition.</p>"
+print("<h2>Crystal Structure Predictors</h2>", file=fp)
+print("<p>Crystal structure prediction algorithms are used to predict which crystal structure ", file=fp)
+print("is most probable out of a list of known prototypes to be stable at a certain composition.</p>", file=fp)
 
 classes = lib.getCompleteSubclasses("CSPEngine")
 printClassSummary(fp, classes)
@@ -136,7 +136,7 @@ for cls in classes:
 	HTMLRenderer.writeDocumentationFile(docDir, cls, lib)
 
 ## Close up shop
-print >>fp, "</div>\n</body>"
-print >>fp, "</html>"
+print("</div>\n</body>", file=fp)
+print("</html>", file=fp)
 fp.close()
 
