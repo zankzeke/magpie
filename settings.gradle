@@ -1,2 +1,5 @@
-include 'lib/vassal'
-include 'lib/expr'
+include 'vassal'
+include 'expr'
+
+project(':vassal').projectDir = new File('lib/vassal')
+project(':expr').projectDir = new File('lib/expr')
