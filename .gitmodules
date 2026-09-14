@@ -1,6 +1,3 @@
-[submodule "vassal"]
-	path = lib/vassal
-	url = https://bitbucket.org/wolverton/vassal.git
 [submodule "lib/expr"]
 	path = lib/expr
 	url = https://github.com/wardlt/expr.git

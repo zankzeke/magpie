@@ -1,39 +1,36 @@
-# Magpie #
+# Magpie
 
-[![Coverage Status](https://coveralls.io/repos/wolverton/magpie/badge.svg?branch=master&service=bitbucket)](https://coveralls.io/bitbucket/wolverton/magpie?branch=master) [![Statistics](https://www.openhub.net/p/wolverton_magpie/widgets/project_thin_badge.gif)](https://www.openhub.net/p/wolverton_magpie) 
+Magpie, the Materials-Agnostic Platform for Informatics and Exploration, is designed to simplify the use of machine learning to predict properties of materials.
 
-Magpie, the Materials-Agnostic Platform for Informatics and Exploration, is designed to simplify the use of machine learning to predict properties of materials. 
+> **Archive / mirror notice:** This repository is a community-maintained GitHub mirror/archive of the original Magpie project. The owner of this mirror is **not** the original Magpie author or developer. Historical upstream links may no longer be available.
 
-## How do I get Magpie? ##
+## How do I get Magpie?
 
-There are currently two options for installing Magpie
+### Building from source
 
-### Building from Source ###
+Clone this GitHub repository, including the remaining `expr` submodule:
 
-First, download or clone a copy of this repository from BitBucket. 
-
-```
-#!shell
-git clone --recursive https://bitbucket.org/wolverton/magpie
-```
-
-To build with Gradle, use the included Gradle wrapper (which will install Gradle on your system if needed):
-
-```
-#!shell
-
+```sh
+git clone --recursive https://github.com/zankzeke/magpie.git
+cd magpie
 ./gradlew jar
 ```
 
-### Downloading a Precompiled Version ###
+The original upstream `lib/vassal` Bitbucket submodule is no longer retrievable. To keep this archive buildable without that dead submodule, this mirror restores the historical `required-libraries/Vassal.jar` that was stored directly in Magpie before Vassal was converted to a submodule. See [`required-libraries/VASSAL_FALLBACK.md`](required-libraries/VASSAL_FALLBACK.md) for provenance and limitations.
 
-A complete version of Magpie that has already been compiled is available for **[download](https://wolverton.bitbucket.io/magpie-latest.tar.gz)**. Since Magpie is written entirely in Java, this version should work without modification on any system with the Java Runtime Environment installed.
+### Precompiled version
 
-## How do I learn to use Magpie? ##
+The historical precompiled-download URLs are no longer available, so this mirror does not advertise a precompiled package. Build from source using the instructions above.
 
-Documentation for Magpie is available on [wolverton.bitbucket.io](https://wolverton.bitbucket.io/). You may want to start with the [tutorial](https://wolverton.bitbucket.io/tutorial.html).
+## How do I learn to use Magpie?
 
+The original hosted documentation URLs are no longer reliable. Archived documentation is included in this repository:
 
-## Who can answer my questions? ##
+- [Documentation (`doc/index.html`)](doc/index.html)
+- [Tutorial (`doc/tutorial.html`)](doc/tutorial.html)
 
-Please contact any of the development team through their BitBucket accounts. If you have found an error, please open up an issue in BitBucket's issue tracker with a detailed explanation of what went wrong.
+These are the original archived HTML files. GitHub may display an HTML file as source rather than as a rendered website; downloading the `doc/` directory and opening `doc/index.html` or `doc/tutorial.html` locally preserves the original layout and relative links.
+
+## Who can answer my questions?
+
+For problems specific to this mirror/archive, please use [GitHub Issues](https://github.com/zankzeke/magpie/issues). For questions about the original Magpie project, note that this mirror's maintainer is not the original developer and may not be able to provide upstream project support.

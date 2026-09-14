@@ -59,7 +59,8 @@ dependencies {
     testCompile 'junit:junit:4.12'
 
     // Custom libraries provided with Magpie
-    compile project(':vassal')
+    // The historical Vassal.jar is restored from Magpie's own pre-submodule history.
+    compile files('required-libraries/Vassal.jar')
     compile project(':expr')
 }
 
@@ -80,9 +81,10 @@ jar {
     // Package it with dependencies
     from configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
 
-    // Copy the exe folder into the output
+    // Copy the archived Voro++ helper executables into the output.
+    // These executables are already tracked in this repository under exes/.
     copy {
-        from 'lib/vassal/voro++'
+        from 'exes'
         into 'dist/exes'
         include '*.exe'
     }
